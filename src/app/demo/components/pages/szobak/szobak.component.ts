@@ -3,7 +3,7 @@ import { Product } from 'src/app/demo/api/product';
 import { Szoba } from 'src/app/demo/api/szoba';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
-import { ProductService } from 'src/app/demo/service/product.service';
+import { SzobaService } from 'src/app/demo/service/szoba.service';
 
 @Component({
     templateUrl: './szobak.component.html',
@@ -11,11 +11,11 @@ import { ProductService } from 'src/app/demo/service/product.service';
 })
 export class SzobakComponent implements OnInit {
 
-    productDialog: boolean = false;
+    roomDialog: boolean = false;
 
-    deleteProductDialog: boolean = false;
+    deleteRoomDialog: boolean = false;
 
-    deleteProductsDialog: boolean = false;
+    deleteRoomsDialog: boolean = false;
 
     products: Product[] = [];
 
@@ -23,9 +23,21 @@ export class SzobakComponent implements OnInit {
 
     szobak: Szoba[] = [];
 
-    szoba: Szoba[] = [];
+    szoba: Szoba = {};
 
-    selectedProducts: Product[] = [];
+    szobaKodok = [
+      'A',  // Apartman
+      'MD', // Maranatha Double( Maranatha kétágyas)
+      'MB', // Maranatha Bunkbed (Maranatha négyágyas emeleteságyas)
+      'MQ', // Maranatha Queenbed (franciaágyas)
+      'KB', // Kastély Bunked (Kastélyban emeleteságyas)
+    ];
+
+    matrac: any;
+
+    agytipusok: any;
+
+    selectedRooms: Szoba[] = [];
 
     submitted: boolean = false;
 
@@ -35,114 +47,78 @@ export class SzobakComponent implements OnInit {
 
     rowsPerPageOptions = [5, 10, 20];
 
-    constructor(private productService: ProductService, private messageService: MessageService) { }
+    constructor(private szobaService: SzobaService, private messageService: MessageService) { }
 
     ngOnInit() {
-        this.productService.getProducts().then(data => this.products = data);
+        this.szobaService.getSzobak().then(data => this.szobak = data);
 
         this.cols = [
-            { field: 'product', header: 'Product' },
-            { field: 'price', header: 'Price' },
-            { field: 'category', header: 'Category' },
-            { field: 'rating', header: 'Reviews' },
-            { field: 'inventoryStatus', header: 'Status' }
+            { field: 'szobaszam', header: 'Szoba szám' },
+            { field: 'szobakod', header: 'Szoba kód' },
+            { field: 'agyakszama', header: 'Ágyak száma' },
+            { field: 'matrac', header: 'Matrac / gyerekágy' },
+            { field: 'furdoszoba', header: 'Fürdőszoba' },
+            { field: 'epulet', header: 'Épület / folyosó' },
+            { field: 'agytipus', header: 'Ágy típus' },
+            { field: 'megjegyzes', header: 'Megjegyzés' }
         ];
 
-        this.statuses = [
-            { label: 'FOGLALHATO', value: 'FOGLALHATO' },
-            { label: 'MAJDNEMTELE', value: 'MAJDNEMTELE' },
-            { label: 'MEGTELT', value: 'MEGTELT' }
+        // A szoba pótágyazhatóságát jelöli
+        this.matrac = [
+          { label: 'M', value: 'M' },    // matrac fér be
+          { label: 'GY', value: 'GY' },  // gyerekágy fér be, A matrac helyett befér gyerekágy de fordítva nem
+          { label: 'MM', value: 'MM' },  // 2 db matrac fér
+          { label: 'MGY', value: 'MGY' } // matrac és gyerekágy fér be
+      ];
+
+        this.agytipusok = [
+            { label: 'kétágyas', value: 'kétágyas' },
+            { label: 'emeletes ágy', value: 'emeletes ágy' },
+            { label: 'franciaágy', value: 'franciaágy' }
         ];
 
-        this.szobak = [
-            {
-                id: '1',
-                szobaszam: '101',
-                szobakod: 'MD',
-                agyakszama: '2',
-                epulet: 'Maranatha fsz',
-                agytipus: 'kétágyas',
-                megjegyzes: 'kapcs.: 102',
-            },
-            {
-                id: '2',
-                szobaszam: '102',
-                szobakod: 'MB',
-                agyakszama: '4',
-                epulet: 'Maranatha fsz',
-                agytipus: 'emeletes ágy',
-                megjegyzes: 'kapcs.: 101',
-            },
-            {
-                id: '3',
-                szobaszam: '103',
-                szobakod: 'MQ',
-                agyakszama: '2',
-                epulet: 'Maranatha fsz',
-                agytipus: 'franciaágy',
-                megjegyzes: 'kapcs.: 104',
-            },
-            {
-                id: '4',
-                szobaszam: '104',
-                szobakod: 'MB',
-                agyakszama: '4',
-                epulet: 'Maranatha fsz',
-                agytipus: 'emeletes ágy',
-                megjegyzes: 'kapcs.: 103',
-            },
-            {
-                id: '5',
-                szobaszam: '105',
-                szobakod: 'MD',
-                agyakszama: '2',
-                epulet: 'Maranatha fsz',
-                agytipus: 'kétágyas',
-                megjegyzes: 'kapcs.: 106',
-            }
-        ]
     }
 
     openNew() {
         this.product = {};
         this.submitted = false;
-        this.productDialog = true;
+        this.roomDialog = true;
     }
 
-    deleteSelectedProducts() {
-        this.deleteProductsDialog = true;
+    deleteSelected() {
+        this.deleteRoomsDialog = true;
     }
 
-    editProduct(product: Product) {
+    editRoom(product: Product) {
         this.product = { ...product };
-        this.productDialog = true;
+        this.roomDialog = true;
     }
 
-    deleteProduct(product: Product) {
-        this.deleteProductDialog = true;
+    deleteRoom(product: Product) {
+        this.deleteRoomDialog = true;
         this.product = { ...product };
     }
 
     confirmDeleteSelected() {
-        this.deleteProductsDialog = false;
-        this.products = this.products.filter(val => !this.selectedProducts.includes(val));
+        this.deleteRoomsDialog = false;
+        this.products = this.products.filter(val => !this.selectedRooms.includes(val));
         this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
-        this.selectedProducts = [];
+        this.selectedRooms = [];
     }
 
     confirmDelete() {
-        this.deleteProductDialog = false;
+        this.deleteRoomDialog = false;
         this.products = this.products.filter(val => val.id !== this.product.id);
         this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 });
         this.product = {};
     }
 
     hideDialog() {
-        this.productDialog = false;
+        this.roomDialog = false;
         this.submitted = false;
     }
 
-    saveProduct() {
+    saveRoom() {
         this.submitted = true;
 
         if (this.product.name?.trim()) {
@@ -162,7 +138,7 @@ export class SzobakComponent implements OnInit {
             }
 
             this.products = [...this.products];
-            this.productDialog = false;
+            this.roomDialog = false;
             this.product = {};
         }
     }

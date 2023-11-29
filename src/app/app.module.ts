@@ -12,20 +12,21 @@ import { IconService } from './demo/service/icon.service';
 import { NodeService } from './demo/service/node.service';
 import { PhotoService } from './demo/service/photo.service';
 import { KonferenciaService } from './demo/service/konferencia.service';
+import { SzobaService } from './demo/service/szoba.service';
 
 @NgModule({
-    declarations: [
-        AppComponent, NotfoundComponent
-    ],
-    imports: [
-        AppRoutingModule,
-        AppLayoutModule
-    ],
-    providers: [
-        { provide: LocationStrategy, useClass: HashLocationStrategy },
-        CountryService, CustomerService, EventService, IconService, NodeService,
-        PhotoService, ProductService, KonferenciaService
-    ],
-    bootstrap: [AppComponent]
+  declarations: [
+    AppComponent, NotfoundComponent
+  ],
+  imports: [
+    AppRoutingModule,
+    AppLayoutModule
+  ],
+  providers: [
+    { provide: LocationStrategy, useClass: HashLocationStrategy },
+    CountryService, CustomerService, EventService, IconService, NodeService,
+    PhotoService, ProductService, KonferenciaService, SzobaService
+  ],
+  bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -6,7 +6,7 @@
                 <ng-template pTemplate="left">
                     <div class="my-2">
                         <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
-                        <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger" (click)="deleteSelectedProducts()" [disabled]="!selectedProducts || !selectedProducts.length"></button>
+                        <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger" (click)="deleteSelected()" [disabled]="!selectedRooms || !selectedRooms.length"></button>
                     </div>
                 </ng-template>
 
@@ -16,13 +16,27 @@
                 </ng-template>
             </p-toolbar>
 
-            <p-table #dt [value]="szobak" [columns]="cols" responsiveLayout="scroll" [rows]="10" [globalFilterFields]="['name','country.name','representative.name','status']" [paginator]="true" [rowsPerPageOptions]="[10,20,30]" [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [(selection)]="selectedProducts" selectionMode="multiple" [rowHover]="true" dataKey="id">
-                <ng-template pTemplate="caption">
+            <p-table #dt
+                    [value]="szobak"
+                    [columns]="cols"
+                    responsiveLayout="scroll"
+                    [rows]="10"
+                    [globalFilterFields]="['szobaszam','szobakod']"
+                    [paginator]="true"
+                    [rowsPerPageOptions]="[10,20,30]"
+                    [showCurrentPageReport]="true"
+                    currentPageReportTemplate="{first} - {last} elem megjelenítése a(z) {totalRecords}-ból"
+                    [(selection)]="selectedRooms"
+                    selectionMode="multiple"
+                    [rowHover]="true"
+                    dataKey="id">
+
+                  <ng-template pTemplate="caption">
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
                         <h5 class="m-0">Szobák</h5>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
                             <i class="pi pi-search"></i>
-                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search..."  class="w-full sm:w-auto"/>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."  class="w-full sm:w-auto"/>
                         </span>
                     </div>
                 </ng-template>
@@ -70,8 +84,8 @@
                         </td>
                         <td>
                             <div class="flex">
-                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editProduct(product)"></button>
-                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteProduct(product)"></button>
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editRoom(szoba)"></button>
+                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteRoom(szoba)"></button>
                             </div>
                         </td>
                     </tr>
@@ -79,42 +93,35 @@
             </p-table>
         </div>
 
-        <p-dialog [(visible)]="productDialog" [style]="{width: '450px'}" header="Szoba adatai" [modal]="true" class="p-fluid">
+        <p-dialog [(visible)]="roomDialog" [style]="{width: '450px'}" header="Szoba adatai" [modal]="true" class="p-fluid">
             <ng-template pTemplate="content">
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="price">Szoba szám</label>
-                        <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD" locale="en-US"></p-inputNumber>
+                        <label for="szobaszam">Szoba szám</label>
+                        <p-inputNumber id="szobaszam" [(ngModel)]="szoba.szobaszam"></p-inputNumber>
                     </div>
                     <div class="field col">
-                        <label for="quantity">Szoba kód</label>
-                        <p-inputNumber id="quantity" [(ngModel)]="product.quantity"></p-inputNumber>
+                        <label for="szobakod">Szoba kód</label>
+                        <p-inputNumber id="szobakod" [(ngModel)]="szoba.szobakod"></p-inputNumber>
                     </div>
                 </div>
 
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="price">Ágyak száma</label>
-                        <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD" locale="en-US"></p-inputNumber>
+                        <label for="agyakszama">Ágyak száma</label>
+                        <p-inputNumber id="agyakszama" [(ngModel)]="szoba.agyakszama"></p-inputNumber>
                     </div>
                     <div class="field col">
-                        <label for="quantity">Épület / folyosó</label>
-                        <p-inputNumber id="quantity" [(ngModel)]="product.quantity"></p-inputNumber>
+                        <label for="epulet">Épület / folyosó</label>
+                        <p-inputNumber id="epulet" [(ngModel)]="szoba.epulet"></p-inputNumber>
                     </div>
-                </div>
-
-                <img [src]="'assets/demo/images/product/' + product.image" [alt]="product.image" width="150" class="mt-0 mx-auto mb-5 block shadow-2" *ngIf="product.image">
-                <div class="field">
-                    <label for="name">Name</label>
-                    <input type="text" pInputText id="name" [(ngModel)]="product.name" required autofocus [ngClass]="{'ng-invalid ng-dirty' : submitted && !product.name}"/>
-                    <small class="ng-dirty ng-invalid" *ngIf="submitted && !product.name">Name is required.</small>
                 </div>
 
                 <div class="field">
                     <label for="status">Ágy típus</label>
-                    <p-dropdown [(ngModel)]="product.inventoryStatus" inputId="inventoryStatus" optionValue="label" [options]="statuses" placeholder="Select">
+                    <p-dropdown [(ngModel)]="szoba.agytipus" inputId="agytipus" optionValue="label" [options]="agytipusok" placeholder="Válassz...">
                         <ng-template pTemplate="selectedItem">
-                            <span *ngIf="product && product.inventoryStatus" [class]="'product-badge status-' + product.inventoryStatus.toString().toLowerCase()">{{product.inventoryStatus}}</span>
+                            <span *ngIf="szoba && szoba.agytipus" [class]="'product-badge status-'">{{szoba.agytipus}}</span>
                         </ng-template>
                         <ng-template let-option pTemplate="item">
                             <span [class]="'product-badge status-' + option.value">{{option.label}}</span>
@@ -129,30 +136,30 @@
             </ng-template>
 
             <ng-template pTemplate="footer">
-                <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
-                <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveProduct()"></button>
+                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="saveRoom()"></button>
             </ng-template>
         </p-dialog>
 
-        <p-dialog [(visible)]="deleteProductDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+        <p-dialog [(visible)]="deleteRoomDialog" header="Megerősítés" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span *ngIf="product">Are you sure you want to delete <b>{{product.name}}</b>?</span>
+                <span *ngIf="product">Biztos vagy benne, hogy törölni akarod a <b>{{product.name}}</b> szobát?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteProductDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDelete()"></button>
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="deleteRoomDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="confirmDelete()"></button>
             </ng-template>
         </p-dialog>
 
-        <p-dialog [(visible)]="deleteProductsDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+        <p-dialog [(visible)]="deleteRoomsDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span>Are you sure you want to delete selected products?</span>
+                <span>Biztos vagy benne, hogy törölni akarod a szobákat?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteProductsDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDeleteSelected()"></button>
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="deleteRoomsDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="confirmDeleteSelected()"></button>
             </ng-template>
         </p-dialog>
     </div>

@@ -3,6 +3,8 @@ export interface Szoba {
     szobaszam?: string;
     szobakod?: string;
     agyakszama?: string;
+    matrac?: string;
+    furdoszoba?: string;
     epulet?: string;
     agytipus?: string;
     megjegyzes?: string;
