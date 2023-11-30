@@ -101,8 +101,15 @@
                         <p-inputNumber id="szobaszam" [(ngModel)]="szoba.szobaszam"></p-inputNumber>
                     </div>
                     <div class="field col">
-                        <label for="szobakod">Szoba kód</label>
-                        <p-inputNumber id="szobakod" [(ngModel)]="szoba.szobakod"></p-inputNumber>
+                      <label for="szobakod">Szoba kód</label>
+                      <p-dropdown [(ngModel)]="szoba.szobakod" inputId="szobakod" optionValue="value" [options]="szobaKodok" placeholder="Válassz...">
+                          <ng-template pTemplate="selectedItem">
+                              <span *ngIf="szoba && szoba.szobakod" [class]="'product-badge szobakod-'">{{szoba.szobakod}}</span>
+                          </ng-template>
+                          <ng-template let-option pTemplate="item">
+                              <span [class]="'product-badge szobakod-' + option.value">{{option.label}}</span>
+                          </ng-template>
+                      </p-dropdown>
                     </div>
                 </div>
 
@@ -113,7 +120,7 @@
                     </div>
                     <div class="field col">
                         <label for="epulet">Épület / folyosó</label>
-                        <p-inputNumber id="epulet" [(ngModel)]="szoba.epulet"></p-inputNumber>
+                        <input type="text" pInputText [(ngModel)]="szoba.epulet" />
                     </div>
                 </div>
 
@@ -128,6 +135,19 @@
                         </ng-template>
                     </p-dropdown>
                 </div>
+
+                <div class="field">
+                  <label for="status">Matrac</label>
+                  <p-dropdown [(ngModel)]="szoba.matrac" inputId="matrac" optionValue="label" [options]="matracok" placeholder="Válassz...">
+                      <ng-template pTemplate="selectedItem">
+                          <span *ngIf="szoba && szoba.matrac" [class]="'product-badge status-'">{{szoba.matrac}}</span>
+                      </ng-template>
+                      <ng-template let-option pTemplate="item">
+                          <span [class]="'product-badge status-' + option.value">{{option.label}}</span>
+                      </ng-template>
+                  </p-dropdown>
+                </div>
+
                 <div class="field">
                     <label for="description">Megjegyzés</label>
                     <textarea id="description" pInputTextarea [(ngModel)]="product.description" required rows="3" cols="20"></textarea>

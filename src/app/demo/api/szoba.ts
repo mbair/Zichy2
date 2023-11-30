@@ -1,5 +1,5 @@
 export interface Szoba {
-    id?: string;
+    id: string;
     szobaszam?: string;
     szobakod?: string;
     agyakszama?: string;
