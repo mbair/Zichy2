@@ -5,9 +5,11 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "buildProd": "ng build --output-path docs --base-href /Zichy2/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "deploy": "npm run buildProd && git commit -m 'Deploy' && git push"
   },
   "private": true,
   "dependencies": {
