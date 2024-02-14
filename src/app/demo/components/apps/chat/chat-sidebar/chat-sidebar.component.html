@@ -5,7 +5,7 @@
 <div class="w-full flex row-gap-4 flex-column surface-border p-4">
     <span class="p-input-icon-left w-full">
         <i class="pi pi-search"></i>
-        <input id="search" type="text" pInputText placeholder="Search" class="w-full" [(ngModel)]="searchValue" (input)="filter()"/>
+        <input id="search" type="text" pInputText placeholder="Keresés" class="w-full" [(ngModel)]="searchValue" (input)="filter()"/>
     </span>
     <div class="flex flex-row gap-4 md:flex-column overflow-auto">
         <app-user-card *ngFor="let user of filteredUsers" [user]="user"></app-user-card>

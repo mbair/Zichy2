@@ -3,6 +3,12 @@ import { RouterModule } from '@angular/router';
 
 @NgModule({
     imports: [RouterModule.forChild([
+        { path: 'konferenciak', data: { breadcrumb: 'Konferenciák' }, loadChildren: () => import('./konferenciak/konferenciak.module').then(m => m.KonferenciakModule) },
+        { path: 'vendegek', data: { breadcrumb: 'Vendégek' }, loadChildren: () => import('./vendegek/vendegek.module').then(m => m.VendegekModule) },
+        { path: 'szobak', data: { breadcrumb: 'Szobák' }, loadChildren: () => import('./szobak/szobak.module').then(m => m.SzobakModule) },
+        { path: 'etelek', data: { breadcrumb: 'Ételek' }, loadChildren: () => import('./etelek/etelek.module').then(m => m.EtelekModule) },
+        { path: 'food-sensitivities', data: { breadcrumb: 'Ételérzékenységek' }, loadChildren: () => import('./food-sensitivities/food-sensitivities.module').then(m => m.FoodSensitivitiesModule) },
+        { path: 'food-vouchers', data: { breadcrumb: 'Étel kuponok' }, loadChildren: () => import('./food-vouchers/food-vouchers.module').then(m => m.FoodVouchersModule) },
         { path: 'aboutus', data: { breadcrumb: 'About' }, loadChildren: () => import('./aboutus/aboutus.module').then(m => m.AboutUsModule) },
         { path: 'contact', data: { breadcrumb: 'Contact' }, loadChildren: () => import('./contact/contact.module').then(m => m.ContactModule) },
         { path: 'crud', data: { breadcrumb: 'Crud' }, loadChildren: () => import('./crud/crud.module').then(m => m.CrudModule) },

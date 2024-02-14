@@ -1,7 +1,15 @@
 <div class="layout-sidebar" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
     <div class="sidebar-header">
         <a [routerLink]="['/']" class="app-logo">
-            <svg  viewBox="0 0 124 22" fill="none" xmlns="http://www.w3.org/2000/svg" class="app-logo-normal">
+            <svg class="app-logo-normal" xmlns="http://www.w3.org/2000/svg" width="124" height="22" viewBox="0 0 124 22">
+                <text x="5" y="18" font-family="Poppins" font-size="22" fill="#6366f1">Zichy CRM</text>
+            </svg>
+
+            <svg class="app-logo-small" xmlns="http://www.w3.org/2000/svg" width="124" height="22" viewBox="0 0 124 22">
+                <text x="5" y="18" font-family="Poppins" font-size="18" fill="#6366f1">Zichy CRM</text>
+            </svg>
+
+            <!-- <svg  viewBox="0 0 124 22" fill="none" xmlns="http://www.w3.org/2000/svg" class="app-logo-normal">
                 <path d="M10.4851 0L0 20.9465H3.53702L10.4856 6.07843L17.2944 20.9465H20.9715L10.4851 0Z" fill="var(--logo-color)"/>
                 <path d="M13.84 15.7927L16.2077 21.0016H11.7682L13.84 15.7927Z" fill="var(--logo-color)"/>
                 <path d="M9.04645 21.0016L6.67875 15.7927L4.60701 21.0016H9.04645Z" fill="var(--logo-color)"/>
@@ -16,11 +24,11 @@
                 <path d="M10.4851 0L0 20.9465H3.53702L10.4856 6.07843L17.2944 20.9465H20.9715L10.4851 0Z" fill="var(--logo-color)"/>
                 <path d="M13.8399 15.793L16.2076 21.0019H11.7681L13.8399 15.793Z" fill="var(--logo-color)"/>
                 <path d="M9.04637 21.0019L6.67867 15.793L4.60693 21.0019H9.04637Z" fill="var(--logo-color)"/>
-            </svg>
+            </svg> -->
         </a>
         <button class="layout-sidebar-anchor p-link z-2 mb-2" type="button" (click)="anchor()"></button>
     </div>
- 
+
 
     <div #menuContainer class="layout-menu-container">
         <app-menu></app-menu>

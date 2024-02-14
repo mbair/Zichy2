@@ -3,12 +3,15 @@ import { Subscription } from 'rxjs';
 import { Product } from 'src/app/demo/api/product';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { ProductService } from 'src/app/demo/service/product.service';
+import { ActivityService } from 'src/app/demo/service/activity.service';
 import { Table } from 'primeng/table';
 
 @Component({
     templateUrl: './ecommerce.dashboard.component.html'
 })
 export class EcommerceDashboardComponent implements OnInit, OnDestroy {
+
+    activities: any[] = [];
 
     knobValue: number = 90;
 
@@ -30,20 +33,22 @@ export class EcommerceDashboardComponent implements OnInit, OnDestroy {
 
     cols: any[] = [];
 
-    constructor(private productService: ProductService, private layoutService: LayoutService) {
+    constructor(private activityService: ActivityService, private productService: ProductService, private layoutService: LayoutService) {
         this.subscription = this.layoutService.configUpdate$.subscribe(config => {
             this.initCharts();
         });
     }
 
     ngOnInit(): void {
+        this.activities = this.activityService.getActivities();
+
         this.weeks = [{
-            label: 'Last Week', 
+            label: 'Előző hét',
             value: 0,
             data: [[65, 59, 80, 81, 56, 55, 40], [28, 48, 40, 19, 86, 27, 90]]
-        }, 
+        },
         {
-            label: 'This Week', 
+            label: 'Aktuális hét',
             value: 1,
             data: [[35, 19, 40, 61, 16, 55, 30], [48, 78, 10, 29, 76, 77, 10]]
         }];
@@ -53,10 +58,10 @@ export class EcommerceDashboardComponent implements OnInit, OnDestroy {
         this.productService.getProductsSmall().then(data => this.products = data);
 
         this.cols = [
-            {header: 'Name', field: 'name'},
-            {header: 'Category', field: 'category'},
-            {header: 'Price', field: 'price'},
-            {header: 'Status', field: 'inventoryStatus'}
+            {header: 'Név', field: 'name'},
+            {header: 'Kategória', field: 'category'},
+            {header: 'Ár', field: 'price'},
+            {header: 'Státusz', field: 'inventoryStatus'}
         ]
     }
 
@@ -65,12 +70,12 @@ export class EcommerceDashboardComponent implements OnInit, OnDestroy {
         const textColor = documentStyle.getPropertyValue('--text-color');
         const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
         const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
-        
+
         this.barData = {
-            labels: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'],
+            labels: ['HÉT', 'KED', 'SZE', 'CSÜ', 'PÉN', 'SZO', 'VAS'],
             datasets: [
                 {
-                    label: 'Revenue',
+                    label: 'Bevétel',
                     backgroundColor: documentStyle.getPropertyValue('--primary-500'),
                     barThickness: 12,
                     borderRadius: 12,
@@ -85,9 +90,9 @@ export class EcommerceDashboardComponent implements OnInit, OnDestroy {
                 }
             ]
         };
-    
+
         this.pieData = {
-            labels: ['Electronics', 'Fashion', 'Household'],
+            labels: ['Kártyás fizetés', 'SZÉP kártya', 'Készpénz'],
             datasets: [
                 {
                     data: [300, 50, 100],
@@ -173,7 +178,7 @@ export class EcommerceDashboardComponent implements OnInit, OnDestroy {
         newBarData.datasets[1].data = this.selectedWeek.data[1];
         this.barData = newBarData;
     }
-    
+
     onGlobalFilter(table: Table, event: Event) {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
