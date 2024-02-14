@@ -1,0 +1,68 @@
+{
+	"data": [
+		{
+			"id": "1000",
+			"code": "f230fh0g3",
+			"name": "Golgota Nyári hetek 2020",
+			"description": "Product Description",
+			"image": "bamboo-watch.jpg",
+			"price": 34000,
+			"category": "Accessories",
+			"quantity": 24,
+			"inventoryStatus": "FOGLALHATO",
+			"rating": 5,
+            "beginDate": "2020.06.01",
+            "endDate": "2020.06.14",
+            "attendees": 500,
+            "canBeBooked": true
+		},
+        {
+			"id": "1000",
+			"code": "f230fh0g3",
+			"name": "Golgota Nyári hetek 2021",
+			"description": "Product Description",
+			"image": "bamboo-watch.jpg",
+			"price": 44000,
+			"category": "Accessories",
+			"quantity": 24,
+			"inventoryStatus": "FOGLALHATO",
+			"rating": 5,
+            "beginDate": "2020.06.01",
+            "endDate": "2020.06.14",
+            "attendees": 100,
+            "canBeBooked": true
+		},
+        {
+			"id": "1000",
+			"code": "f230fh0g3",
+			"name": "Golgota Nyári hetek 2022",
+			"description": "Product Description",
+			"image": "bamboo-watch.jpg",
+			"price": 54000,
+			"category": "Accessories",
+			"quantity": 24,
+			"inventoryStatus": "FOGLALHATO",
+			"rating": 5,
+            "beginDate": "2020.06.01",
+            "endDate": "2020.06.14",
+            "attendees": 200,
+            "canBeBooked": true
+		},
+        {
+			"id": "1000",
+			"code": "f230fh0g3",
+			"name": "Golgota Nyári hetek 2023",
+			"description": "Product Description",
+			"image": "bamboo-watch.jpg",
+			"price": 64000,
+			"category": "Accessories",
+			"quantity": 24,
+			"inventoryStatus": "FOGLALHATO",
+			"rating": 5,
+            "beginDate": "2020.06.01",
+            "endDate": "2020.06.14",
+            "attendees": 300,
+            "canBeBooked": true
+		}
+	]
+}
