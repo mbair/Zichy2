@@ -1,20 +1,25 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { MenuItem } from 'primeng/api';
-import { LayoutService } from "./service/app.layout.service";
+import { LayoutService } from 'src/app/layout/service/app.layout.service';
 
 @Component({
     selector: 'app-topbar',
     templateUrl: './app.topbar.component.html'
 })
-export class AppTopBarComponent {
-
-    items!: MenuItem[];
+export class AppTopbarComponent {
 
     @ViewChild('menubutton') menuButton!: ElementRef;
 
-    @ViewChild('topbarmenubutton') topbarMenuButton!: ElementRef;
-
-    @ViewChild('topbarmenu') menu!: ElementRef;
-
     constructor(public layoutService: LayoutService) { }
+
+    onMenuButtonClick() {
+        this.layoutService.onMenuToggle();
+    }
+
+    onProfileButtonClick() {
+        this.layoutService.showProfileSidebar();
+    }
+    onConfigButtonClick() {
+        this.layoutService.showConfigSidebar();
+    }
+    
 }

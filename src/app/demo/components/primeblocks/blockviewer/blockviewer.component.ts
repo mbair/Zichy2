@@ -1,14 +1,14 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ViewEncapsulation } from '@angular/core';
 
 enum BlockView {
-    PREVIEW,
-    CODE
+	PREVIEW,
+	CODE
 }
 
 @Component({
     // eslint-disable-next-line @angular-eslint/component-selector
-    selector: 'block-viewer',
-    template: `
+	selector: 'block-viewer',
+	template: `
     <div class="block-section">
         <div class="block-header">
             <span class="block-title">
@@ -35,36 +35,36 @@ enum BlockView {
         </div>
     </div>
   `,
-    styleUrls: ['./blockviewer.component.scss']
+	styleUrls: ['./blockviewer.component.scss'],
+	encapsulation: ViewEncapsulation.None
 })
 export class BlockViewerComponent {
 
-    @Input() header!: string;
+	@Input() header!: string;
 
-    @Input() code!: string;
+	@Input() code!: string;
 
-    @Input() containerClass!: string;
+	@Input() containerClass!: string;
 
-    @Input() previewStyle!: object;
+	@Input() previewStyle!: object;
 
-    @Input() free: boolean = true;
+	@Input() free: boolean = true;
 
-    @Input() new: boolean = false;
+	@Input() new: boolean = false;
 
-    BlockView = BlockView;
+	BlockView = BlockView;
 
-    blockView: BlockView = BlockView.PREVIEW;
+	blockView: BlockView = BlockView.PREVIEW;
 
-    activateView(event: Event, blockView: BlockView) {
+	activateView(event: Event, blockView: BlockView) {
 
-        this.blockView = blockView;
-        event.preventDefault();
-    }
+		this.blockView = blockView;
+		event.preventDefault();
+	}
 
-
-    async copyCode(event: Event) {
-        await navigator.clipboard.writeText(this.code);
-        event.preventDefault();
-    }
+	async copyCode(event: Event) {
+		await navigator.clipboard.writeText(this.code);
+		event.preventDefault();
+	}
 
 }

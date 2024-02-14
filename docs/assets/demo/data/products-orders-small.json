@@ -3,13 +3,13 @@
 		{
 			"id": "1000",
 			"code": "f230fh0g3",
-			"name": "Bamboo Watch44",
+			"name": "Bamboo Watch",
 			"description": "Product Description",
 			"image": "bamboo-watch.jpg",
 			"price": 65,
 			"category": "Accessories",
 			"quantity": 24,
-			"inventoryStatus": "FOGLALHATO",
+			"inventoryStatus": "INSTOCK",
             "rating": 5,
             "orders": [
                 {
@@ -59,7 +59,7 @@
 			"price": 72,
 			"category": "Accessories",
 			"quantity": 61,
-			"inventoryStatus": "FOGLALHATO",
+			"inventoryStatus": "INSTOCK",
             "rating": 4,
             "orders": [
                 {
@@ -91,7 +91,7 @@
 			"price": 79,
 			"category": "Fitness",
 			"quantity": 2,
-			"inventoryStatus": "MAJDNEMTELE",
+			"inventoryStatus": "LOWSTOCK",
             "rating": 3,
             "orders": [
                 {
@@ -123,7 +123,7 @@
 			"price": 29,
 			"category": "Clothing",
 			"quantity": 25,
-			"inventoryStatus": "FOGLALHATO",
+			"inventoryStatus": "INSTOCK",
             "rating": 5,
             "orders": []
 		},
@@ -136,7 +136,7 @@
 			"price": 15,
 			"category": "Accessories",
 			"quantity": 73,
-			"inventoryStatus": "FOGLALHATO",
+			"inventoryStatus": "INSTOCK",
             "rating": 4,
             "orders": [
                 {
@@ -168,7 +168,7 @@
 			"price": 120,
 			"category": "Accessories",
 			"quantity": 0,
-			"inventoryStatus": "MEGTELT",
+			"inventoryStatus": "OUTOFSTOCK",
             "rating": 4,
             "orders": [
                 {
@@ -209,7 +209,7 @@
 			"price": 32,
 			"category": "Accessories",
 			"quantity": 5,
-			"inventoryStatus": "MAJDNEMTELE",
+			"inventoryStatus": "LOWSTOCK",
             "rating": 3,
             "orders": [
                 {
@@ -241,7 +241,7 @@
 			"price": 34,
 			"category": "Accessories",
 			"quantity": 23,
-			"inventoryStatus": "FOGLALHATO",
+			"inventoryStatus": "INSTOCK",
             "rating": 5,
             "orders": [
                 {
@@ -264,7 +264,7 @@
 			"price": 99,
 			"category": "Electronics",
 			"quantity": 2,
-			"inventoryStatus": "MAJDNEMTELE",
+			"inventoryStatus": "LOWSTOCK",
             "rating": 4,
             "orders": [
                 {
@@ -296,7 +296,7 @@
 			"price": 299,
 			"category": "Electronics",
 			"quantity": 63,
-			"inventoryStatus": "FOGLALHATO",
+			"inventoryStatus": "INSTOCK",
             "rating": 3,
             "orders": [
                 {

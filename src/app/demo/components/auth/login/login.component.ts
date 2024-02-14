@@ -2,22 +2,16 @@ import { Component } from '@angular/core';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 
 @Component({
-    selector: 'app-login',
-    templateUrl: './login.component.html',
-    styles: [`
-        :host ::ng-deep .pi-eye,
-        :host ::ng-deep .pi-eye-slash {
-            transform:scale(1.6);
-            margin-right: 1rem;
-            color: var(--primary-color) !important;
-        }
-    `]
+	templateUrl: './login.component.html'
 })
 export class LoginComponent {
 
-    valCheck: string[] = ['remember'];
+	rememberMe: boolean = false;
 
-    password!: string;
+	constructor(private layoutService: LayoutService) {}
 
-    constructor(public layoutService: LayoutService) { }
+	get dark(): boolean {
+		return this.layoutService.config.colorScheme !== 'light';
+	}
+
 }

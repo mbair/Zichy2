@@ -1,13 +1,15 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { map } from 'rxjs/operators';
 
-@Injectable()
+@Injectable({
+    providedIn: 'root',
+})
 export class IconService {
 
     constructor(private http: HttpClient) { }
 
-    icons!: any[];
+    icons: any[] = [];
 
     selectedIcon: any;
 

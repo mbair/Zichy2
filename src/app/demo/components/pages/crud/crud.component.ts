@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { Product } from 'src/app/demo/api/product';
-import { MessageService } from 'primeng/api';
-import { Table } from 'primeng/table';
 import { ProductService } from 'src/app/demo/service/product.service';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { Table } from 'primeng/table';
 
 @Component({
     templateUrl: './crud.component.html',
-    providers: [MessageService]
+    providers: [MessageService, ConfirmationService]
 })
 export class CrudComponent implements OnInit {
 
@@ -30,7 +30,7 @@ export class CrudComponent implements OnInit {
 
     rowsPerPageOptions = [5, 10, 20];
 
-    constructor(private productService: ProductService, private messageService: MessageService) { }
+    constructor(private productService: ProductService, private messageService: MessageService, private confirmationService: ConfirmationService) { }
 
     ngOnInit() {
         this.productService.getProducts().then(data => this.products = data);
@@ -44,9 +44,9 @@ export class CrudComponent implements OnInit {
         ];
 
         this.statuses = [
-            { label: 'FOGLALHATO', value: 'FOGLALHATO' },
-            { label: 'MAJDNEMTELE', value: 'MAJDNEMTELE' },
-            { label: 'MEGTELT', value: 'MEGTELT' }
+            { label: 'INSTOCK', value: 'instock' },
+            { label: 'LOWSTOCK', value: 'lowstock' },
+            { label: 'OUTOFSTOCK', value: 'outofstock' }
         ];
     }
 
@@ -103,7 +103,7 @@ export class CrudComponent implements OnInit {
                 this.product.code = this.createId();
                 this.product.image = 'product-placeholder.svg';
                 // @ts-ignore
-                this.product.inventoryStatus = this.product.inventoryStatus ? this.product.inventoryStatus.value : 'FOGLALHATO';
+                this.product.inventoryStatus = this.product.inventoryStatus ? this.product.inventoryStatus.value : 'INSTOCK';
                 this.products.push(this.product);
                 this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
             }

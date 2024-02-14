@@ -1,8 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Product } from '../api/product';
 
-@Injectable()
+import { Product } from 'src/app/demo/api/product';
+
+@Injectable({
+    providedIn: 'root',
+})
 export class ProductService {
 
     constructor(private http: HttpClient) { }
@@ -30,6 +33,13 @@ export class ProductService {
 
     getProductsWithOrdersSmall() {
         return this.http.get<any>('assets/demo/data/products-orders-small.json')
+            .toPromise()
+            .then(res => res.data as Product[])
+            .then(data => data);
+    }
+
+    getProductsWithOrdersLarge() {
+        return this.http.get<any>('assets/demo/data/products-orders.json')
             .toPromise()
             .then(res => res.data as Product[])
             .then(data => data);

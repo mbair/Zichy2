@@ -1,16 +1,18 @@
-import { Component, Input } from '@angular/core';
-import { LayoutService } from "../service/app.layout.service";
-import { MenuService } from "../app.menu.service";
+import { Component, Input, OnInit } from '@angular/core';
+import { MenuService } from '../app.menu.service';
+import { ColorScheme, LayoutService, MenuColorScheme, MenuMode } from '../service/app.layout.service';
 
 @Component({
     selector: 'app-config',
     templateUrl: './app.config.component.html'
 })
-export class AppConfigComponent {
+export class AppConfigComponent implements OnInit {
 
     @Input() minimal: boolean = false;
 
-    scales: number[] = [12, 13, 14, 15, 16];
+    componentThemes: any[] = [];
+
+    scales: number[] = [12,13,14,15,16];
 
     constructor(public layoutService: LayoutService, public menuService: MenuService) { }
 
@@ -30,12 +32,23 @@ export class AppConfigComponent {
         this.layoutService.config.scale = _val;
     }
 
-    get menuMode(): string {
+    get menuMode(): MenuMode {
         return this.layoutService.config.menuMode;
     }
 
-    set menuMode(_val: string) {
+    set menuMode(_val: MenuMode) {
         this.layoutService.config.menuMode = _val;
+        if (this.layoutService.isSlimPlus() || this.layoutService.isSlim() || this.layoutService.isHorizontal()) {
+            this.menuService.reset();
+        }
+    }
+
+    get colorScheme(): ColorScheme {
+        return this.layoutService.config.colorScheme;
+    }
+
+    set colorScheme(_val: ColorScheme) {
+        this.changeColorScheme(_val);
     }
 
     get inputStyle(): string {
@@ -54,24 +67,55 @@ export class AppConfigComponent {
         this.layoutService.config.ripple = _val;
     }
 
+    get menuTheme(): MenuColorScheme {
+        return this.layoutService.config.menuTheme;
+    }
+
+    set menuTheme(_val: MenuColorScheme) {
+        this.layoutService.config.menuTheme = _val;
+    }
+
+    ngOnInit() {
+        this.componentThemes = [
+            { name: 'indigo', color: '#6366F1' },
+            { name: 'blue', color: '#3B82F6' },
+            { name: 'purple', color: '#8B5CF6' },
+            { name: 'teal', color: '#14B8A6' },
+            { name: 'cyan', color: '#06b6d4' },
+            { name: 'green', color: '#10b981' },
+            { name: 'orange', color: '#f59e0b' },
+            { name: 'pink', color: '#d946ef' }
+        ];
+    }
+
     onConfigButtonClick() {
         this.layoutService.showConfigSidebar();
     }
 
-    changeTheme(theme: string, colorScheme: string) {
-        const themeLink = <HTMLLinkElement>document.getElementById('theme-css');
-        const newHref = themeLink.getAttribute('href')!.replace(this.layoutService.config.theme, theme);
-        this.layoutService.config.colorScheme
+    changeColorScheme(colorScheme: ColorScheme) {
+        const themeLink = <HTMLLinkElement>document.getElementById('theme-link');
+        const themeLinkHref = themeLink.getAttribute('href');
+        const currentColorScheme = 'theme-' + this.layoutService.config.colorScheme;
+        const newColorScheme = 'theme-' + colorScheme;
+        const newHref = themeLinkHref!.replace(currentColorScheme, newColorScheme);
         this.replaceThemeLink(newHref, () => {
-            this.layoutService.config.theme = theme;
             this.layoutService.config.colorScheme = colorScheme;
             this.layoutService.onConfigUpdate();
         });
     }
 
+    changeTheme(theme: string) {
+        const themeLink = <HTMLLinkElement>document.getElementById('theme-link');
+        const newHref = themeLink.getAttribute('href')!.replace(this.layoutService.config.theme, theme);
+        this.replaceThemeLink(newHref, () => {
+            this.layoutService.config.theme = theme;
+            this.layoutService.onConfigUpdate();
+        });
+    }
+
     replaceThemeLink(href: string, onComplete: Function) {
-        const id = 'theme-css';
-        const themeLink = <HTMLLinkElement>document.getElementById('theme-css');
+        const id = 'theme-link';
+        const themeLink = <HTMLLinkElement>document.getElementById(id);
         const cloneLinkElement = <HTMLLinkElement>themeLink.cloneNode(true);
 
         cloneLinkElement.setAttribute('href', href);
@@ -99,4 +143,5 @@ export class AppConfigComponent {
     applyScale() {
         document.documentElement.style.fontSize = this.scale + 'px';
     }
+    
 }

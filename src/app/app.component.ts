@@ -9,7 +9,8 @@ export class AppComponent implements OnInit {
 
     constructor(private primengConfig: PrimeNGConfig) { }
 
-    ngOnInit() {
+    ngOnInit(): void {
         this.primengConfig.ripple = true;
     }
+
 }

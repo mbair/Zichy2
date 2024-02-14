@@ -8,24 +8,28 @@ import { SidebarModule } from 'primeng/sidebar';
 import { BadgeModule } from 'primeng/badge';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputSwitchModule } from 'primeng/inputswitch';
+import { TooltipModule } from 'primeng/tooltip';
 import { RippleModule } from 'primeng/ripple';
+import { AppConfigModule } from './config/app.config.module';
+import { AppLayoutComponent } from './app.layout.component';
+import { AppBreadcrumbComponent } from './app.breadcrumb.component';
+import { AppSidebarComponent } from './app.sidebar.component';
+import { AppTopbarComponent } from './app.topbar.component';
+import { AppProfileSidebarComponent } from './app.profilesidebar.component';
 import { AppMenuComponent } from './app.menu.component';
 import { AppMenuitemComponent } from './app.menuitem.component';
 import { RouterModule } from '@angular/router';
-import { AppTopBarComponent } from './app.topbar.component';
-import { AppFooterComponent } from './app.footer.component';
-import { AppConfigModule } from './config/config.module';
-import { AppSidebarComponent } from "./app.sidebar.component";
-import { AppLayoutComponent } from "./app.layout.component";
+import { ButtonModule } from 'primeng/button';
 
 @NgModule({
     declarations: [
-        AppMenuitemComponent,
-        AppTopBarComponent,
-        AppFooterComponent,
-        AppMenuComponent,
-        AppSidebarComponent,
         AppLayoutComponent,
+        AppBreadcrumbComponent,
+        AppSidebarComponent,
+        AppTopbarComponent,
+        AppProfileSidebarComponent,
+        AppMenuComponent,
+        AppMenuitemComponent
     ],
     imports: [
         BrowserModule,
@@ -37,10 +41,11 @@ import { AppLayoutComponent } from "./app.layout.component";
         BadgeModule,
         RadioButtonModule,
         InputSwitchModule,
+        ButtonModule,
+        TooltipModule,
         RippleModule,
         RouterModule,
         AppConfigModule
-    ],
-    exports: [AppLayoutComponent]
+    ]
 })
 export class AppLayoutModule { }

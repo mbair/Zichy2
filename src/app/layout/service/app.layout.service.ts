@@ -1,13 +1,20 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 
+export type MenuMode = 'static' | 'overlay' | 'horizontal' | 'slim' | 'slim-plus' | 'reveal' | 'drawer';
+
+export type ColorScheme = 'light' | 'dark'| 'dim';
+
+export type MenuColorScheme = 'colorScheme' | 'primaryColor'| 'transparent';
+
 export interface AppConfig {
     inputStyle: string;
-    colorScheme: string;
+    colorScheme: ColorScheme;
     theme: string;
     ripple: boolean;
-    menuMode: string;
+    menuMode: MenuMode;
     scale: number;
+    menuTheme: MenuColorScheme;
 }
 
 interface LayoutState {
@@ -17,6 +24,8 @@ interface LayoutState {
     configSidebarVisible: boolean;
     staticMenuMobileActive: boolean;
     menuHoverActive: boolean;
+    sidebarActive:boolean;
+    anchored: boolean,
 }
 
 @Injectable({
@@ -29,8 +38,9 @@ export class LayoutService {
         inputStyle: 'outlined',
         menuMode: 'static',
         colorScheme: 'light',
-        theme: 'lara-light-indigo',
+        theme: 'indigo',
         scale: 14,
+        menuTheme: 'colorScheme'
     };
 
     state: LayoutState = {
@@ -39,7 +49,9 @@ export class LayoutService {
         profileSidebarVisible: false,
         configSidebarVisible: false,
         staticMenuMobileActive: false,
-        menuHoverActive: false
+        menuHoverActive: false,
+        sidebarActive:false,
+        anchored: false
     };
 
     private configUpdate = new Subject<AppConfig>();
@@ -53,6 +65,7 @@ export class LayoutService {
     onMenuToggle() {
         if (this.isOverlay()) {
             this.state.overlayMenuActive = !this.state.overlayMenuActive;
+
             if (this.state.overlayMenuActive) {
                 this.overlayOpen.next(null);
             }
@@ -70,11 +83,12 @@ export class LayoutService {
         }
     }
 
+    onOverlaySubmenuOpen() {
+        this.overlayOpen.next(null);
+    }
+
     showProfileSidebar() {
-        this.state.profileSidebarVisible = !this.state.profileSidebarVisible;
-        if (this.state.profileSidebarVisible) {
-            this.overlayOpen.next(null);
-        }
+        this.state.profileSidebarVisible = true;
     }
 
     showConfigSidebar() {
@@ -87,6 +101,18 @@ export class LayoutService {
 
     isDesktop() {
         return window.innerWidth > 991;
+    }
+
+    isSlim() {
+        return this.config.menuMode === 'slim';
+    }
+
+    isSlimPlus() {
+        return this.config.menuMode === 'slim-plus';
+    }
+
+    isHorizontal() {
+        return this.config.menuMode === 'horizontal';
     }
 
     isMobile() {

@@ -22,8 +22,8 @@ import { TooltipModule } from 'primeng/tooltip';
         FormsModule,
         InputTextModule,
         PasswordModule,
-        TooltipModule,
-        PrimeBlocksRoutingModule
+        PrimeBlocksRoutingModule,
+        TooltipModule
     ],
     declarations: [BlocksComponent, BlockViewerComponent]
 })
