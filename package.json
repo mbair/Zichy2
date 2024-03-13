@@ -1,12 +1,13 @@
 {
-    "name": "apollo-ng",
-    "version": "16.0.0",
+    "name": "nfc-reserve",
+    "version": "1.0.0",
     "scripts": {
         "ng": "ng",
         "start": "ng serve",
         "build": "ng build",
         "buildProd": "ng build --output-path docs --base-href /Zichy2/",
         "watch": "ng build --watch --configuration development",
+        "dev": "ng serve --ssl --ssl-cert ./localSslCertificate/server.crt --ssl-key ./localSslCertificate/server.key --open --host 0.0.0.0 --disable-host-check",
         "test": "ng test",
         "lint": "ng lint",
         "deploy": "npm run buildProd && git commit -m 'Deploy' && git push"
