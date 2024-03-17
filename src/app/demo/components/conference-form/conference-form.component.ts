@@ -26,37 +26,11 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
     subscription: Subscription;
     loading: boolean = false;
     darkMode: boolean = false;
-
-    arrivalDate: Date = new Date();
-    departureDate: Date = new Date();
-    diet: string = '';
-    firstMeal: string = '';
-    lastMeal: string = '';
-    lastName: string = '';
-    firstName: string = '';
-    gender: any = '';
-    idCard: any;
-    male: boolean = false;
-    female: boolean = false;
-    birthdate: Date = new Date();
-    nationality: string = '';
-    country: string = '';
-    zipcode: string = '';
-    email: string = '';
-    telefon: string = '';
-    roommate: string = '';
-    privacy: boolean = false;
-    szepCard: any = '';
-    roomType: string = '';
-    babyBed: any = '';
-    payment: string = '';
     countries: any[] = [];
     diets: any[] = [];
     payments: any[] = [];
     meals: any[] = [];
     roomTypes: any[] = [];
-
-
 
     constructor(public router: Router,
         private layoutService: LayoutService,
@@ -64,38 +38,37 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
         private countryService: CountryService,
         private formBuilder: FormBuilder) {
 
-            this.subscription = this.layoutService.configUpdate$.subscribe(config => {
-                this.darkMode = config.colorScheme === 'dark' || config.colorScheme === 'dim' ? true : false;
-            })
+        this.subscription = this.layoutService.configUpdate$.subscribe(config => {
+            this.darkMode = config.colorScheme === 'dark' || config.colorScheme === 'dim' ? true : false;
+        })
 
-            this.isFormValid$ = new BehaviorSubject<boolean>(false)
+        this.conferenceForm = this.formBuilder.group({
+            lastName: ['', Validators.required],
+            firstName: ['', Validators.required],
+            gender: ['', Validators.required],
+            birthdate: ['', Validators.required],
+            nationality: ['', Validators.required],
+            country: ['', Validators.required],
+            zipcode: ['', Validators.required],
+            email: ['', [Validators.required, Validators.email]],
+            telefon: ['', Validators.required],
+            arrivalDate: ['', Validators.required],
+            firstMeal: ['', Validators.required],
+            diet: ['', Validators.required],
+            departureDate: ['', Validators.required],
+            lastMeal: ['', Validators.required],
+            roomType: ['', Validators.required],
+            roommate: ['', Validators.required],
+            payment: ['', Validators.required],
+            babyBed: ['', Validators.required],
+            idCard: ['', [Validators.required]],
+            privacy: ['', Validators.required],
+        })
 
-            this.conferenceForm = this.formBuilder.group({
-                gender: ['', Validators.required],
-                birthdate: ['', Validators.required],
-                nationality: ['', Validators.required],
-                country: ['', Validators.required],
-                email: ['', [Validators.required, Validators.email]],
-                idCard: ['', [Validators.required, Validators.email]],
-                telefon: ['', Validators.required],
-                arrivalDate: ['', Validators.required],
-                firstName: ['', Validators.required],
-                firstMeal: ['', Validators.required],
-                diet: ['', Validators.required],
-                departureDate: ['', Validators.required],
-                lastName: ['', Validators.required],
-                lastMeal: ['', Validators.required],
-                roomType: ['', Validators.required],
-                roommate: ['', Validators.required],
-                payment: ['', Validators.required],
-                babyBed: ['', Validators.required],
-                privacy: ['', Validators.required],
-                zipcode: ['', Validators.required],
-            })
+        this.isFormValid$ = new BehaviorSubject<boolean>(false)
     }
 
     ngOnInit() {
-
         this.countryService.getCountries().then(countries => {
             this.countries = countries
         })
@@ -133,9 +106,6 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
             { label: 'Apartman (közös konyhával, fürdővel és nappalival)', value: 'Apartman (közös konyhával, fürdővel és nappalival)' },
         ]
 
-
-
-
         this.isFormValid$ = this.formChanges$.pipe(
             debounceTime(300),
             distinctUntilChanged(),
@@ -146,14 +116,43 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
         this.conferenceForm.valueChanges.subscribe(() => this.formChanges$.next());
     }
 
+    get lastName() { return this.conferenceForm.controls['lastName'] }
+    get firstName() { return this.conferenceForm.controls['firstName'] }
+    get gender() { return this.conferenceForm.controls['gender'] }
+    get birthdate() { return this.conferenceForm.controls['birthdate'] }
+    get nationality() { return this.conferenceForm.controls['nationality'] }
+    get country() { return this.conferenceForm.controls['country'] }
+    get zipcode() { return this.conferenceForm.controls['zipcode'] }
+    get email() { return this.conferenceForm.controls['email'] }
+    get telefon() { return this.conferenceForm.controls['telefon'] }
+    get arrivalDate() { return this.conferenceForm.controls['arrivalDate'] }
+    get firstMeal() { return this.conferenceForm.controls['firstMeal'] }
+    get diet() { return this.conferenceForm.controls['diet'] }
+    get departureDate() { return this.conferenceForm.controls['departureDate'] }
+    get lastMeal() { return this.conferenceForm.controls['lastMeal'] }
+    get roomType() { return this.conferenceForm.controls['roomType'] }
+    get roommate() { return this.conferenceForm.controls['roommate'] }
+    get payment() { return this.conferenceForm.controls['payment'] }
+    get babyBed() { return this.conferenceForm.controls['babyBed'] }
+    get idCard() { return this.conferenceForm.controls['idCard'] }
+    get privacy() { return this.conferenceForm.controls['privacy'] }
+
+
     onSubmit(): void {
         console.log('onSubmit')
+
+        // Az összes form elemet módosítottra állítjuk
+        this.conferenceForm.markAllAsTouched()
+        this.conferenceForm.markAsDirty()
         this.loading = true;
 
         setTimeout(() => {
             this.loading = false
 
             console.log('Az űrlap adatok:', this.conferenceForm.value);
+
+            // Új üzenet hozzáadása előtt, először töröljük az összes meglévőt
+            this.messageService.clear();
 
             if (this.conferenceForm.valid) {
                 // Az űrlap adatok elküldése a szerverre
@@ -170,12 +169,10 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
                 this.messageService.add({
                     severity: "error",
                     summary: "Hiba!",
-                    detail: "Az űrlap nem megfelelően lett kitöltve!",
+                    detail: "Az űrlap nem lett megfelelően kitöltve!",
                 })
             }
-
-
-        }, 2000)
+        }, 500)
     }
 
     ngOnDestroy() {
