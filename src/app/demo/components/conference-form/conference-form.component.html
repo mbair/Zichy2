@@ -193,7 +193,7 @@
                                         <!-- Étrend -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['diet'].invalid && (conferenceForm.controls['diet'].dirty || conferenceForm.controls['diet'].touched) }">
                                             <label for="zipcode" class="font-medium text-900">Étrend</label>
-                                            <p-dropdown id="diets" formControlName="diet" [options]="diets" optionLabel="label" optionValue="value" placeholder="Válasszon..."></p-dropdown>
+                                            <p-dropdown id="diets" formControlName="diet" [options]="diets" optionLabel="name" optionValue="value" placeholder="Válasszon..."></p-dropdown>
                                             <div *ngIf="conferenceForm.controls['diet'].invalid && (conferenceForm.controls['diet'].dirty || conferenceForm.controls['diet'].touched)" class="text-red-500">Kérjük, válassza ki az étrendjét!</div>
                                         </div>
 

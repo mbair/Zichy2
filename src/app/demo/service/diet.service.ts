@@ -9,7 +9,7 @@ export class DietService {
 
     constructor(private http: HttpClient) { }
 
-    getSzobak() {
+    getDiets() {
         return this.http.get<any>('assets/demo/data/diet.json')
             .toPromise()
             .then(res => res.data as Diet[])

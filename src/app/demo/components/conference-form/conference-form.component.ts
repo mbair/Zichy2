@@ -1,12 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { LayoutService } from 'src/app/layout/service/app.layout.service';
-import { MessageService } from 'primeng/api';
-import { CountryService } from 'src/app/demo/service/country.service';
-
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subscription, Observable, Subject, BehaviorSubject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { LayoutService } from 'src/app/layout/service/app.layout.service';
+import { MessageService } from 'primeng/api';
+import { CountryService } from 'src/app/demo/service/country.service';
+import { Diet } from 'src/app/demo/api/diet';
+import { DietService } from 'src/app/demo/service/diet.service';
 
 
 @Component({
@@ -27,15 +28,17 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
     loading: boolean = false;
     darkMode: boolean = false;
     countries: any[] = [];
-    diets: any[] = [];
     payments: any[] = [];
     meals: any[] = [];
     roomTypes: any[] = [];
+    diets: Diet[] = [];
+    // diet: Diet = <Diet>{};
 
     constructor(public router: Router,
         private layoutService: LayoutService,
         private messageService: MessageService,
         private countryService: CountryService,
+        private dietService: DietService,
         private formBuilder: FormBuilder) {
 
         this.subscription = this.layoutService.configUpdate$.subscribe(config => {
@@ -69,8 +72,14 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+        // Fetch countries
         this.countryService.getCountries().then(countries => {
             this.countries = countries
+        })
+
+        // Fetch diets
+        this.dietService.getDiets().then(diets => {
+            this.diets = diets
         })
 
         this.payments = [
@@ -86,14 +95,14 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
             { label: 'Nem kérek étkezést', value: 'nem kér' },
         ]
 
-        this.diets = [
-            { label: 'Normál', value: 'normal' },
-            { label: 'Gluténmentes', value: 'glutenFree' },
-            { label: 'Laktózmentes', value: 'lactoseFree' },
-            { label: 'Tejmentes', value: 'milkFree' },
-            { label: 'Glutén és tej/laktózmentes', value: 'glutenAndLactoseFree' },
-            { label: 'Vegetáriánus', value: 'vegetarian' }
-        ]
+        // this.diets = [
+        //     { label: 'Normál', value: 'normal' },
+        //     { label: 'Gluténmentes', value: 'glutenFree' },
+        //     { label: 'Laktózmentes', value: 'lactoseFree' },
+        //     { label: 'Tejmentes', value: 'milkFree' },
+        //     { label: 'Glutén és tej/laktózmentes', value: 'glutenAndLactoseFree' },
+        //     { label: 'Vegetáriánus', value: 'vegetarian' }
+        // ]
 
         this.roomTypes = [
             { label: 'Nem kérek szállást', value: 'Nem kérek szállást' },
