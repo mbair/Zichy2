@@ -57,17 +57,32 @@ export class FoodSensitivitiesComponent implements OnInit {
         this.FoodSensitivities = [
             {
                 id: '1',
-                name: 'Laktóz intolerancia',
+                name: 'Normál',
                 enabled: true,
             },
             {
                 id: '2',
-                name: 'Glutén intolerancia',
+                name: 'Gluténmentes',
                 enabled: true,
             },
             {
                 id: '3',
-                name: 'Tojás intolerancia',
+                name: 'Laktózmentes',
+                enabled: true,
+            },
+            {
+                id: '4',
+                name: 'Tejmentes',
+                enabled: true,
+            },
+            {
+                id: '5',
+                name: 'Glutén és tej/laktózmentes',
+                enabled: true,
+            },
+            {
+                id: '6',
+                name: 'Vegetáriánus',
                 enabled: true,
             },
         ]

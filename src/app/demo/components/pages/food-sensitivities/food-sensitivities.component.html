@@ -6,7 +6,7 @@
             <p-table #dt [value]="FoodSensitivities" [columns]="cols" responsiveLayout="scroll" [rows]="10" [globalFilterFields]="['name','country.name','representative.name','status']" [paginator]="true" [rowsPerPageOptions]="[10,20,30]" [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [(selection)]="selectedProducts" selectionMode="multiple" [rowHover]="true" dataKey="id">
                 <ng-template pTemplate="caption">
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                        <h5 class="m-0">Ételérzékenységek</h5>
+                        <h5 class="m-0">Étrendek</h5>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
                             <i class="pi pi-search"></i>
                             <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."  class="w-full sm:w-auto"/>
@@ -24,7 +24,7 @@
                         <th style="width: 3rem">
                             <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                         </th>
-                        <th pSortableColumn="name">Érzékenység neve <p-sortIcon field="name"></p-sortIcon></th>
+                        <th pSortableColumn="name">Étrend neve <p-sortIcon field="name"></p-sortIcon></th>
                         <th pSortableColumn="enabled">Engedélyezve <p-sortIcon field="enabled"></p-sortIcon></th>
                         <th></th>
                     </tr>

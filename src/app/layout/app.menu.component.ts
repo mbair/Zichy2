@@ -86,32 +86,32 @@ export class AppMenuComponent implements OnInit {
                         {
                             label: 'Menük',
                             icon: 'pi pi-fw pi-pencil',
-                            routerLink: ['/pages/etelek']
+                            // routerLink: ['/pages/menuk']
                         },
                         {
                             label: 'Konyhanaptár',
                             icon: 'pi pi-fw pi-pencil',
-                            routerLink: ['/pages/etelek']
+                            // routerLink: ['/pages/konyhanaptar'],
                         },
                         {
                             label: 'Egyéb szolgáltatások',
                             icon: 'pi pi-fw pi-pencil',
-                            routerLink: ['/pages/etelek']
+                            // routerLink: ['/pages/egyeb']
                         },
                         {
                             label: 'Ételek',
                             icon: 'pi pi-fw pi-pencil',
-                            routerLink: ['/pages/etelek']
+                            // routerLink: ['/pages/etelek']
                         },
                         {
-                            label: 'Ételérzékenységek',
+                            label: 'Étrendek',
                             icon: 'pi pi-fw pi-pencil',
                             routerLink: ['/pages/food-sensitivities']
                         },
                         {
                             label: 'Étel Voucher',
                             icon: 'pi pi-fw pi-pencil',
-                            routerLink: ['/pages/food-vouchers']
+                            // routerLink: ['/pages/food-vouchers']
                         },
                     ]
                 },

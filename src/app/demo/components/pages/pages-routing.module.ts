@@ -7,7 +7,7 @@ import { RouterModule } from '@angular/router';
         { path: 'vendegek', data: { breadcrumb: 'Vendégek' }, loadChildren: () => import('./vendegek/vendegek.module').then(m => m.VendegekModule) },
         { path: 'szobak', data: { breadcrumb: 'Szobák' }, loadChildren: () => import('./szobak/szobak.module').then(m => m.SzobakModule) },
         { path: 'etelek', data: { breadcrumb: 'Ételek' }, loadChildren: () => import('./etelek/etelek.module').then(m => m.EtelekModule) },
-        { path: 'food-sensitivities', data: { breadcrumb: 'Ételérzékenységek' }, loadChildren: () => import('./food-sensitivities/food-sensitivities.module').then(m => m.FoodSensitivitiesModule) },
+        { path: 'food-sensitivities', data: { breadcrumb: 'Étrendek' }, loadChildren: () => import('./food-sensitivities/food-sensitivities.module').then(m => m.FoodSensitivitiesModule) },
         { path: 'food-vouchers', data: { breadcrumb: 'Étel kuponok' }, loadChildren: () => import('./food-vouchers/food-vouchers.module').then(m => m.FoodVouchersModule) },
         { path: 'aboutus', data: { breadcrumb: 'About' }, loadChildren: () => import('./aboutus/aboutus.module').then(m => m.AboutUsModule) },
         { path: 'contact', data: { breadcrumb: 'Contact' }, loadChildren: () => import('./contact/contact.module').then(m => m.ContactModule) },
