@@ -59,7 +59,7 @@ export class AppMenuComponent implements OnInit {
                             {
                                 label: 'Új szoba',
                                 icon: 'pi pi-fw pi-plus',
-                                routerLink: ['conference/create']
+                                // routerLink: ['szoba/create']
                             },
                             {
                                 label: 'Szoba lista',
@@ -69,12 +69,12 @@ export class AppMenuComponent implements OnInit {
                             {
                                 label: 'Takarítás',
                                 icon: 'pi pi-fw pi-list',
-                                routerLink: ['conference/list']
+                                // routerLink: ['conference/list']
                             },
                             {
                                 label: 'Érkezők-távozók',
                                 icon: 'pi pi-fw pi-list',
-                                routerLink: ['conference/list']
+                                // routerLink: ['conference/list']
                             }
                         ]
                     },

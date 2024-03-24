@@ -104,14 +104,20 @@
                                         <!-- Állampolgárság -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="nationality" class="font-medium text-900">Állampolgárság</label>
-                                            <p-dropdown inputId="nationality" formControlName="nationality" [options]="countries" optionLabel="name" [filter]="true" filterBy="name" [showClear]="true" placeholder="Válasszon..." [ngClass]="{
+                                            <p-dropdown inputId="nationality" formControlName="nationality" [options]="countries" optionLabel="name" [filter]="true" filterBy="hunationality" [showClear]="true" placeholder="Válasszon..." [ngClass]="{
                                                 'ng-invalid': nationality.invalid && (nationality.dirty || nationality.touched),
                                                 'ng-dirty': nationality.dirty || nationality.touched
                                               }">
+                                                <ng-template let-country pTemplate="selectedItem">
+                                                    <div class="flex align-items-center gap-2" *ngIf="nationality">
+                                                        <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code.toLowerCase()" style="width: 18px"/>
+                                                        <div>{{country.hunationality}}</div>
+                                                    </div>
+                                                </ng-template>
                                                 <ng-template let-country pTemplate="item">
                                                     <div class="flex align-items-center">
                                                         <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + country.code.toLowerCase()" style="width:18px"/>
-                                                        <div>{{country.name}}</div>
+                                                        <div>{{country.hunationality}}</div>
                                                     </div>
                                                 </ng-template>
                                             </p-dropdown>
@@ -121,14 +127,20 @@
                                         <!-- Lakóhely - ország -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="country" class="font-medium text-900">Lakóhely - ország</label>
-                                            <p-dropdown inputId="country" formControlName="country" [options]="countries" optionLabel="name" [filter]="true" filterBy="name" [showClear]="true" placeholder="Válasszon..." [ngClass]="{
+                                            <p-dropdown inputId="country" formControlName="country" [options]="countries" optionLabel="name" [filter]="true" filterBy="huname" [showClear]="true" placeholder="Válasszon..." [ngClass]="{
                                                 'ng-invalid': country.invalid && (country.dirty || country.touched),
                                                 'ng-dirty': country.dirty || country.touched
                                               }">
+                                                <ng-template let-country pTemplate="selectedItem">
+                                                    <div class="flex align-items-center gap-2" *ngIf="country">
+                                                        <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code.toLowerCase()" style="width: 18px"/>
+                                                        <div>{{country.huname}}</div>
+                                                    </div>
+                                                </ng-template>
                                                 <ng-template let-country pTemplate="item">
                                                     <div class="flex align-items-center">
                                                         <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + country.code.toLowerCase()" style="width:18px"/>
-                                                        <div>{{country.name}}</div>
+                                                        <div>{{country.huname}}</div>
                                                     </div>
                                                 </ng-template>
                                             </p-dropdown>
