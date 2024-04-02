@@ -38,7 +38,7 @@ export class RFIDTagComponent implements OnInit {
     }
 
     deleteSelectedTags() {
-        this.deleteTagDialog = true;
+        this.deleteTagsDialog = true;
     }
 
     editTag(tag: Tag) {
@@ -54,7 +54,7 @@ export class RFIDTagComponent implements OnInit {
     confirmDeleteSelected() {
         this.deleteTagsDialog = false;
         let tags = this.tags.filter(val => !this.selectedTags.includes(val));
-        this.tags = { ...tags };
+        this.tags = tags;
         this.messageService.add({ severity: 'success', summary: 'Siker', detail: 'Címkék törölve', life: 3000 });
         this.selectedTags = [];
     }
@@ -74,9 +74,7 @@ export class RFIDTagComponent implements OnInit {
     save() {
         if (!this.tag.identifier) return;
 
-        console.log('this.tag', this.tag)
         this.submitted = true;
-
         if (this.tag.identifier && this.tag.identifier.trim().length > 0) {
             const last = this.tags[this.tags.length - 1];
             const lastId = Number(last.id);
