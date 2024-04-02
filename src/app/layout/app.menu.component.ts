@@ -73,9 +73,9 @@ export class AppMenuComponent implements OnInit {
                         ]
                     },
                     {
-                        label: 'NFC eszköz',
-                        icon: 'pi pi-fw pi-key',
-                        routerLink: ['/pages/nfc-device']
+                        label: 'RFID címke',
+                        icon: 'pi pi-fw pi-tags',
+                        routerLink: ['/rfid-tag']
                     },
                 ]
             },
