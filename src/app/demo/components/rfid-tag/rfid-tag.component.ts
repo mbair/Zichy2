@@ -3,6 +3,7 @@ import { Tag } from 'src/app/demo/api/tag';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { TagService } from 'src/app/demo/service/tag.service';
+import 'onscan.js';
 
 @Component({
     templateUrl: './rfid-tag.component.html',
@@ -27,7 +28,10 @@ export class RFIDTagComponent implements OnInit {
 
         this.cols = [
             { field: 'id', header: 'ID' },
-            { field: 'identifier', header: 'Azonosító' }
+            { field: 'identifier', header: 'Azonosító' },
+            { field: 'enabled', header: 'Engedélyezve van' },
+            { field: 'createdAt', header: 'Létrehozva' },
+            { field: 'updatedAt', header: 'Módosítva' }
         ]
     }
 
