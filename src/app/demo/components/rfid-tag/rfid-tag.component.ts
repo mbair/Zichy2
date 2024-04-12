@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { Tag } from 'src/app/demo/api/tag';
+import { Tag as PrimeNgTag } from 'primeng/tag';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { TagService } from 'src/app/demo/service/tag.service';
@@ -21,6 +22,8 @@ export class RFIDTagComponent implements OnInit {
     cols: any[] = [];
     rowsPerPageOptions = [5, 10, 20];
 
+    private code: string = '';
+
     constructor(private tagService: TagService, private messageService: MessageService) { }
 
     ngOnInit() {
@@ -33,6 +36,18 @@ export class RFIDTagComponent implements OnInit {
             { field: 'createdAt', header: 'Létrehozva' },
             { field: 'updatedAt', header: 'Módosítva' }
         ]
+    }
+
+    @HostListener('window:keypress', ['$event'])
+    keyEvent(event: KeyboardEvent): void {
+        if (event.key === 'Enter') {
+            // The QR/Bar code is ready here
+            // Do something here with the scanned code
+            console.log('hello', this.code)
+            alert('CODE: ' + this.code)
+        } else {
+            this.code += event.key;
+        }
     }
 
     openNew() {
