@@ -31,6 +31,7 @@ export class RFIDTagComponent implements OnInit {
 
         this.cols = [
             { field: 'id', header: 'ID' },
+            { field: 'color', header: 'Szín' },
             { field: 'identifier', header: 'Azonosító' },
             { field: 'enabled', header: 'Engedélyezve van' },
             { field: 'createdAt', header: 'Létrehozva' },
@@ -44,7 +45,8 @@ export class RFIDTagComponent implements OnInit {
             // The QR/Bar code is ready here
             // Do something here with the scanned code
             console.log('hello', this.code)
-            alert('CODE: ' + this.code)
+            // alert('CODE: ' + this.code)
+            this.tag.identifier = this.code
         } else {
             this.code += event.key;
         }

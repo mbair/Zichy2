@@ -25,6 +25,7 @@
                             <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                         </th>
                         <th pSortableColumn="id">ID <p-sortIcon field="id"></p-sortIcon></th>
+                        <th pSortableColumn="color">Szín <p-sortIcon field="color"></p-sortIcon></th>
                         <th pSortableColumn="identifier">Azonosító <p-sortIcon field="identifier"></p-sortIcon></th>
                         <th pSortableColumn="enabled">Engedélyezve van <p-sortIcon field="enabled"></p-sortIcon></th>
                         <th pSortableColumn="createdAt">Létrehozva <p-sortIcon field="createdAt"></p-sortIcon></th>
@@ -40,6 +41,10 @@
                         <td style="width:5%; min-width:5rem;">
                             <span class="p-column-title">ID</span>
                             {{tag.id}}
+                        </td>
+                        <td style="width:15%; min-width:15rem;">
+                            <span class="p-column-title">Szín</span>
+                            {{tag.color}}
                         </td>
                         <td style="width:15%; min-width:15rem;">
                             <span class="p-column-title">Azonosító</span>
@@ -73,7 +78,9 @@
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="identifier">Azonosító</label>
-                        <input pInputText type="text" id="identifier" [(ngModel)]="tag.identifier"/>
+                        <input pInputText type="text" id="identifier" [(ngModel)]="tag.identifier" readonly/>
+                        <p-tag *ngIf="!tag.identifier" icon="pi pi-info-circle" severity="info" value="Tartsa az RFID címkét az olvasóhoz..."></p-tag>
+                        <p-tag icon="pi pi-check" severity="success" value={{tag.identifier}}></p-tag>
                     </div>
                 </div>
             </ng-template>
