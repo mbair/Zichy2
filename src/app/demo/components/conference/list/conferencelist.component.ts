@@ -37,7 +37,11 @@ export class ConferenceListComponent implements OnInit {
 
     rowsPerPageOptions = [5, 10, 20];
 
-    constructor(private konferenciaService: KonferenciaService, private messageService: MessageService, private customerService: CustomerService, private router: Router) { }
+    constructor(
+        private konferenciaService: KonferenciaService,
+        private messageService: MessageService,
+        private customerService: CustomerService,
+        private router: Router) { }
 
     ngOnInit() {
         this.customerService.getCustomersLarge().then(customers => this.customers = customers);
@@ -68,6 +72,12 @@ export class ConferenceListComponent implements OnInit {
     onGlobalFilter(table: Table, event: Event) {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains')
     }
+
+    navigateToConferenceForm(konferencia: any) {
+        console.log('navigateToConferenceForm', konferencia)
+        this.router.navigateByUrl("/conference-form");
+    }
+
 
     navigateToCreateUser(){
         this.router.navigate(['conference/create'])

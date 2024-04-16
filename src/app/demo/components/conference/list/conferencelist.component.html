@@ -38,7 +38,7 @@
                         <td>
                             <p-tableCheckbox [value]="konferencia"></p-tableCheckbox>
                         </td>
-                        <td style="width:14%; min-width:14rem;">
+                        <td style="width:24%; min-width:14rem;">
                             <span class="p-column-title">Konferencia neve</span>
                             {{konferencia.name}}
                         </td>
@@ -65,6 +65,7 @@
 
                         <td>
                             <div class="flex">
+                                <button pButton pRipple icon="pi pi-search" class="p-button-rounded p-button-success mr-2" (click)="navigateToConferenceForm(konferencia)"></button>
                                 <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editProduct(konferencia)"></button>
                                 <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteProduct(konferencia)"></button>
                             </div>
