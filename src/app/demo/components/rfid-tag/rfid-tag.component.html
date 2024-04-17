@@ -73,14 +73,19 @@
             </p-table>
         </div>
 
-        <p-dialog [(visible)]="tagDialog" [style]="{width: '450px'}" header="RFID címke felvitel" [modal]="true" class="p-fluid">
+        <p-dialog [(visible)]="tagDialog" [style]="{width: '450px', height: '600px'}" header="RFID címke felvitel" [modal]="true" class="p-fluid">
             <ng-template pTemplate="content">
+                <p-messages [(value)]="messages1" [enableService]="false" [closable]="false"></p-messages>
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="identifier">Azonosító</label>
-                        <input pInputText type="text" id="identifier" [(ngModel)]="tag.identifier" readonly/>
-                        <p-tag *ngIf="!tag.identifier" icon="pi pi-info-circle" severity="info" value="Tartsa az RFID címkét az olvasóhoz..."></p-tag>
-                        <p-tag icon="pi pi-check" severity="success" value={{tag.identifier}}></p-tag>
+                        <input pInputText type="text" id="identifier" [(ngModel)]="tag.identifier" readonly autofocus />
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="identifier">Címke színe</label>
+                        <p-dropdown [options]="tagColors" optionLabel="name" [(ngModel)]="selectedTagColor" [showClear]="true" placeholder="Válasszon színt..."></p-dropdown>
                     </div>
                 </div>
             </ng-template>

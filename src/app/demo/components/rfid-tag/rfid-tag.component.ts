@@ -1,15 +1,20 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { Tag } from 'src/app/demo/api/tag';
 import { Tag as PrimeNgTag } from 'primeng/tag';
-import { MessageService } from 'primeng/api';
+import { Message, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { TagService } from 'src/app/demo/service/tag.service';
-import 'onscan.js';
+
+interface TagColor {
+    name: string;
+    code: string;
+}
 
 @Component({
     templateUrl: './rfid-tag.component.html',
     providers: [MessageService]
 })
+
 export class RFIDTagComponent implements OnInit {
 
     tag: Tag = {};
@@ -21,6 +26,10 @@ export class RFIDTagComponent implements OnInit {
     submitted: boolean = false;
     cols: any[] = [];
     rowsPerPageOptions = [5, 10, 20];
+    messages1: Message[] = [];
+    selectedTagColor: TagColor | undefined;
+    tagColors: TagColor[] = []
+
 
     private code: string = '';
 
@@ -37,6 +46,18 @@ export class RFIDTagComponent implements OnInit {
             { field: 'createdAt', header: 'Létrehozva' },
             { field: 'updatedAt', header: 'Módosítva' }
         ]
+
+        this.tagColors = [
+            { name: 'fekete', code: 'black' },
+            { name: 'sárga', code: 'yellow' },
+            { name: 'piros', code: 'red' },
+            { name: 'zöld', code: 'green' },
+            { name: 'kék', code: 'blue' }
+        ]
+
+        this.messages1 = [
+            { severity: 'info', summary: '', detail: 'Tartsa az RFID címkét az olvasóhoz...' },
+        ]
     }
 
     @HostListener('window:keypress', ['$event'])
@@ -48,12 +69,17 @@ export class RFIDTagComponent implements OnInit {
             // alert('CODE: ' + this.code)
             this.tag.identifier = this.code
         } else {
-            this.code += event.key;
+            if (event.key === 'ö'){
+                this.code += '0'
+            } else {
+                this.code += event.key
+            }
         }
     }
 
     openNew() {
         this.tag = {};
+        this.code = '';
         this.submitted = false;
         this.tagDialog = true;
     }
@@ -104,7 +130,7 @@ export class RFIDTagComponent implements OnInit {
             this.tags = [...this.tags];
             this.tagDialog = false;
             this.tag = {};
-            this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Címke rögzítve', life: 3000 });
+            this.messageService.add({ severity: 'success', summary: 'Siker', detail: 'Címke rögzítve', life: 3000 });
         }
     }
 

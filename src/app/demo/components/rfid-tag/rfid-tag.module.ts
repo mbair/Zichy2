@@ -17,6 +17,7 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
+import { MessagesModule } from 'primeng/messages';
 
 @NgModule({
     imports: [
@@ -36,7 +37,8 @@ import { TagModule } from 'primeng/tag';
         RadioButtonModule,
         InputNumberModule,
         DialogModule,
-        TagModule
+        TagModule,
+        MessagesModule
     ],
     declarations: [RFIDTagComponent]
 })
