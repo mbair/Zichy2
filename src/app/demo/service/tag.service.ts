@@ -20,7 +20,7 @@ export class TagService {
 
     getTags() {
         // TODO: HTTPS needed
-        return this.http.get<any>('http://h112-75.rackhostvps.com:881/api/rfid/get/0/500')
+        return this.http.get<any>('https://nfcreserve.hu/api/rfid/get/0/500')
             .toPromise()
             .then(res => {
                 let rows = res.rows;
