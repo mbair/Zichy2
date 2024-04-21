@@ -1,364 +1,94 @@
-<!DOCTYPE html>
-<html lang="hu">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFID Reader</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+<div class="relative overflow-hidden flex flex-column justify-content-center">
 
-    <!-- OnScan - RFID reader tool -->
-    <script src="onscan.js"> </script>
-
-    <!-- Google Fonts -->
-    <link rel='preconnect' href='https://fonts.googleapis.com'>
-    <link href='https://fonts.googleapis.com/css2?family=Poppins&display=swap' rel='stylesheet' type='text/css'>
-
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-
-        header {
-            background-color: #3B82F6;
-            text-align: center;
-            width: 100%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1000;
-        }
-
-        h1 {
-            font-size: 5rem;
-            color: #fff;
-            margin: 0;
-        }
-
-        .container {
-            position: relative;
-            top: 120px;
-            display: flex;
-            flex-direction: row;
-            flex-flow: row wrap;
-            justify-content: space-between;
-            width: 100%;
-            height: calc(100vh - 120px);
-            overflow-y: auto; /* Görgetősáv a túlcsorduló tartalom kezelésére */
-        }
-
-        .item {
-            display: flex;
-            width: calc(100% - 12px);
-            margin: 12px
-        }
-
-        .card {
-            padding: 12px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: calc(100% - 24px);
-            height: calc(100% - 24px);
-        }
-
-        .card h2 {
-            font-size: 24px;
-            margin: 12px;
-            color: #37415178;
-        }
-
-        .card p {
-            font-size: 40px;
-            margin: 12px;
-            color: #374151;
-        }
-
-        button {
-            color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            flex: 1;
-            width: 100%;
-            height: 100%;
-            min-height: 150px;
-            font-size: 3rem;
-            cursor: pointer;
-            z-index: 1000; /* A gomb legfelül kell hogy legyen */
-            background: #22c55e;
-            border: 1px solid #22c55e;
-        }
-
-        button:hover {
-            background-color: #16a34a;
-        }
-
-
-        @media (min-width: 720px) {
-            .item {
-                width: calc(100% - 24px);
-            }
-        }
-
-        @media (min-width: 1020px) {
-            .item {
-                width: calc(50% - 24px);
-            }
-        }
-
-        .backdrop {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1000;
-            background-color: black;
-            opacity: 0.5;
-            filter: blur(16px);
-            -webkit-filter: blur(16px);
-
-            position: absolute;
-            left: 0;
-            top: 0;
-            right: 0;
-            bottom: 0;
-
-            background:black;
-            background:rgba(0,0,0,0.8);
-
-            filter:blur(16px);
-            -o-filter:blur(16px);
-            -ms-filter:blur(16px);
-            -moz-filter:blur(16px);
-            -webkit-filter:blur(16px);
-
-            backdrop-filter: blur(16px);
-        }
-
-        .loader {
-            display: none;
-            position: absolute;
-            left: calc(50% - 60px);
-            top: calc(50% - 60px);
-            border: 16px solid #f3f3f3; /* Light grey */
-            border-top: 16px solid #3498db; /* Blue */
-            border-radius: 50%;
-            width: 120px;
-            height: 120px;
-            animation: spin 2s linear infinite;
-            z-index: 1001;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-  </style>
-</head>
-<body>
-
-    <header>
-        <h1 id="mealName">Ebéd</h1>
-    </header>
-
-    <div class='container'>
-        <div class='item'>
-            <div class="card">
-                <h2>Vendég neve</h2>
-                <p id="guestName"></p>
-            </div>
-        </div>
-        <div class='item'>
-            <div class="card">
-                <h2>Étrend</h2>
-                <p id="diet"></p>
-            </div>
-        </div>
-        <div class='item'>
-            <div class="card">
-                <h2>Korosztály</h2>
-                <p id="ageGroup"></p>
-            </div>
-        </div>
-        <div class='item'>
-            <div class="card">
-                <h2>Konferencia neve</h2>
-                <p id="conferenceName"></p>
-            </div>
-        </div>
-        <div class='item'>
-            <div class="card">
-                <h2>Már kiadott ételek száma</h2>
-                <p id="servedMeals">0</p>
-            </div>
-        </div>
-        <div class='item'>
-            <button id="serveMealBtn">Étel kiadva</button>
+    <div class="header bg-teal-500">
+        <div class="p-5 font-medium text-5xl text-white white-space-nowrap">
+            Ebéd
         </div>
     </div>
 
-    <div class="backdrop"></div>
-    <div class="loader"></div>
 
-    <script>
+<div class="surface-ground px-5 py-5">
+    <div class="grid">
 
-        var RFIDS = [
-            // Fekete
-            {
-                code: '156221',
-                guestName: 'Gábris Balázs',
-                diet: 'Húsevő',
-                ageGroup: 'Felnőtt',
-                conferenceName: 'Teszt Konferencia 2024',
-                servedMeals: '113',
-            },
-            // Piros
-            {
-                code: '318113',
-                guestName: 'Timi',
-                diet: 'Vegetáriánus',
-                ageGroup: 'Felnőtt',
-                conferenceName: 'Teszt Konferencia 2024',
-                servedMeals: '114',
-            },
-            // Kék
-            {
-                code: '7679569',
-                guestName: 'István',
-                diet: 'Húsevő',
-                ageGroup: 'Felnőtt',
-                conferenceName: 'Teszt Konferencia 2024',
-                servedMeals: '115',
-            },
-            // Zöld
-            {
-                code: '3916686',
-                guestName: 'Máté',
-                diet: 'Vegetáriánus',
-                ageGroup: 'Felnőtt',
-                conferenceName: 'Teszt Konferencia 2024',
-                servedMeals: '116',
-            },
-            // Sárga
-            {
-                code: '361343',
-                guestName: 'Dávidka',
-                diet: 'Bébiétel',
-                ageGroup: 'Gyermek',
-                conferenceName: 'Teszt Konferencia 2024',
-                servedMeals: '117',
-            },
-        ]
+        <!-- Vendég neve -->
+        <div class="col-12 md:col-12 lg:col-6">
+            <div class="info-box surface-card shadow-2 p-5 border-round border-teal-500">
+                <div class="flex justify-content-between">
+                    <div>
+                        <span class="block text-500 text-3xl font-medium mb-3">Vendég</span>
+                        <div class="text-900 font-medium text-5xl">Gábris Balázs</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        window.addEventListener("load", (event) => {
+        <!-- Étrend -->
+        <div class="col-12 md:col-12 lg:col-6">
+            <div class="info-box surface-card shadow-2 p-5 border-round border-teal-500">
+                <div class="flex justify-content-between">
+                    <div>
+                        <span class="block text-500 text-3xl font-medium mb-3">Étrend</span>
+                        <div class="text-900 font-medium text-5xl">Normál</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="grid mt-1">
 
-            // Enable scan events for the entire document
-            onScan.attachTo(document);
+        <!-- Korosztály -->
+        <div class="col-12 md:col-12 lg:col-6">
+            <div class="info-box surface-card shadow-2 p-5 border-round border-teal-500">
+                <div class="flex justify-content-between">
+                    <div>
+                        <span class="block text-500 text-3xl font-medium mb-3">Korosztály</span>
+                        <div class="text-900 font-medium text-5xl">18-65</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            // Register event listener
-            document.addEventListener('scan', function(sScancode, iQuatity) {
-                console.log('sScancode', sScancode)
-                console.log('iQuatity', iQuatity)
-                console.log('CODE', sScancode.detail.scanCode)
+        <!-- Konferencia neve -->
+        <div class="col-12 md:col-12 lg:col-6">
+            <div class="info-box surface-card shadow-2 p-5 border-round border-teal-500">
+                <div class="flex justify-content-between">
+                    <div>
+                        <span class="block text-500 text-3xl font-medium mb-3">Konferencia</span>
+                        <div class="text-900 font-medium text-5xl">Golgota Nyári hetek 2024</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                if (!sScancode.detail.scanCode) {
-                    console.error('Scanning faliure!')
-                }
+    <div class="grid mt-1">
 
-                // Querying the data associated with RFID card
-                getRfidData(sScancode.detail.scanCode)
-            })
+        <!-- Már kiadott ételek száma -->
+        <div class="col-12 md:col-12 lg:col-6">
+            <div class="info-box surface-card shadow-2 p-5 border-round border-teal-500">
+                <div class="flex justify-content-between">
+                    <div>
+                        <span class="block text-500 text-3xl font-medium mb-3">Már kiadott ételek száma</span>
+                        <div class="text-900 font-medium text-5xl">145</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            // Change background color according to diet
-            document.getElementById('serveMealBtn').addEventListener('click', function() {
-                // TODO: remove this
-                // getRfidData('123456')ööö1ö56221
-
-
-                document.body.classList.toggle('color-change');
-            })
-
-        })
-
-        function getRfidData(scancode) {
-
-            if (!scancode) return;
-
-            startLoading();
-
-            const apiKey = 'your_api_key_here';
-            const apiUrl = 'https://jsonplaceholder.typicode.com/todos/1';
-
-            const requestOptions = {
-              method: 'GET',
-              headers: {
-                'Authorization': `Bearer ${apiKey}`,
-            }
-        }
-
-        fetch(apiUrl, requestOptions)
-        .then(response => {
-            stopLoading();
-            if (!response.ok) {
-              throw new Error('Network response was not ok')
-          }
-          return response.json()
-      })
-        .then(data => {
-            var RfidQueryResponse = {
-                guestName: 'Gábris Balázs',
-                diet: 'Húsevő',
-                ageGroup: 'Felnőtt',
-                conferenceName: 'Teszt Konferencia 2024',
-                servedMeals: '113',
-            }
-
-            console.log('Scancode', scancode)
-
-            console.log('RFIDS', RFIDS)
-
-            let obj = RFIDS.find(o => o.code === scancode);
-
-            console.log('obj', obj)
-
-            // Update panel values
-            for (const [key, value] of Object.entries(obj)) {
-                console.log(`Key: ${key}, Value: ${value}`);
-                let element = document.getElementById(key);
-                if (element)
-                    element.textContent = value
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error)
-        })
-    }
-
-    function search(nameKey, myArray){
-        for (let i=0; i < myArray.length; i++) {
-            if (myArray[i].name === nameKey) {
-                return myArray[i];
-            }
-        }
-    }
-
-    function startLoading() {
-        document.getElementsByClassName('backdrop')[0].style.display = 'block';
-        document.getElementsByClassName('loader')[0].style.display = 'block';
-    }
-
-    function stopLoading() {
-        document.getElementsByClassName('backdrop')[0].style.display = 'none';
-        document.getElementsByClassName('loader')[0].style.display = 'none';
-    }
-</script>
+        <!-- Étel kiadva -->
+        <div class="col-12 md:col-12 lg:col-6">
+            <div class="surface-card shadow-2 border-round">
+                <div class="flex align-items-center justify-content-center gap-2" >
+                    <button class="flex align-items-center justify-content-center w-full h-fullgap-2 bg-teal-500 shadow-1 border-round-sm border-none cursor-pointer hover:bg-teal-600 transition-duration-200" style="min-height: 160px;">
+                        <span class="font-medium text-5xl text-white white-space-nowrap">
+                            Étel kiadva
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 
-
-</body>
-</html>
+</div>

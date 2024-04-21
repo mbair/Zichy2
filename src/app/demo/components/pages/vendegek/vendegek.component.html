@@ -68,6 +68,7 @@
                         </td>
                         <td>
                             <div class="flex">
+                                <button pButton pRipple icon="pi pi-tags" class="p-button-rounded p-button-success mr-2" (click)="assignTag(product)"></button>
                                 <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editProduct(product)"></button>
                                 <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteProduct(product)"></button>
                             </div>
@@ -161,6 +162,29 @@
             <ng-template pTemplate="footer">
                 <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteProductsDialog = false"></button>
                 <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDeleteSelected()"></button>
+            </ng-template>
+        </p-dialog>
+
+        <p-dialog [(visible)]="tagDialog" [style]="{width: '450px', height: '600px'}" header="RFID címke felvitel" [modal]="true" class="p-fluid">
+            <ng-template pTemplate="content">
+                <p-messages [(value)]="messages1" [enableService]="false" [closable]="false"></p-messages>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="identifier">Azonosító</label>
+                        <input pInputText type="text" id="identifier" [(ngModel)]="tag.identifier" readonly autofocus />
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="identifier">Címke színe</label>
+                        <p-dropdown [options]="tagColors" optionLabel="name" [(ngModel)]="selectedTagColor" [showClear]="true" placeholder="Válasszon színt..."></p-dropdown>
+                    </div>
+                </div>
+            </ng-template>
+
+            <ng-template pTemplate="footer">
+                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="save()"></button>
             </ng-template>
         </p-dialog>
     </div>

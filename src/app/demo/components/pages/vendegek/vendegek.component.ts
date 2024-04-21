@@ -1,16 +1,25 @@
 import { Component, OnInit } from '@angular/core';
 import { Product } from 'src/app/demo/api/product';
 import { Vendeg } from 'src/app/demo/api/vendeg';
-import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { ProductService } from 'src/app/demo/service/product.service';
+import { Message, MessageService } from 'primeng/api';
+import { Tag } from 'src/app/demo/api/tag';
 
+interface TagColor {
+    name: string;
+    code: string;
+}
 @Component({
     templateUrl: './vendegek.component.html',
     providers: [MessageService]
 })
+
 export class VendegekComponent implements OnInit {
 
+    tag: Tag = {};
+    tagDialog: boolean = false;
+    selectedTagColor: TagColor | undefined;
     productDialog: boolean = false;
 
     deleteProductDialog: boolean = false;
@@ -34,6 +43,8 @@ export class VendegekComponent implements OnInit {
     statuses: any[] = [];
 
     rowsPerPageOptions = [5, 10, 20];
+    tagColors: TagColor[] = []
+    messages1: Message[] = [];
 
     constructor(private productService: ProductService, private messageService: MessageService) { }
 
@@ -47,6 +58,18 @@ export class VendegekComponent implements OnInit {
             { field: 'rating', header: 'Reviews' },
             { field: 'inventoryStatus', header: 'Status' }
         ];
+
+        this.tagColors = [
+            { name: 'fekete', code: 'black' },
+            { name: 'sárga', code: 'yellow' },
+            { name: 'piros', code: 'red' },
+            { name: 'zöld', code: 'green' },
+            { name: 'kék', code: 'blue' }
+        ]
+
+        this.messages1 = [
+            { severity: 'info', summary: '', detail: 'Tartsa az RFID címkét az olvasóhoz...' },
+        ]
 
         this.statuses = [
             { label: 'FOGLALHATO', value: 'FOGLALHATO' },
@@ -327,5 +350,26 @@ export class VendegekComponent implements OnInit {
 
     onGlobalFilter(table: Table, event: Event) {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+    }
+
+    assignTag(guest: any) {
+        this.product = { ...guest };
+        this.tagDialog = true;
+    }
+
+    save() {
+        if (!this.tag.identifier) return;
+
+        this.submitted = true;
+        if (this.tag.identifier && this.tag.identifier.trim().length > 0) {
+            // const last = this.tags[this.tags.length - 1];
+            // const lastId = Number(last.id);
+            // this.tag.id = lastId + 1;
+            // this.tags.push(this.tag);
+            // this.tags = [...this.tags];
+            this.tagDialog = false;
+            this.tag = {};
+            this.messageService.add({ severity: 'success', summary: 'Siker', detail: 'Címke rögzítve', life: 3000 });
+        }
     }
 }

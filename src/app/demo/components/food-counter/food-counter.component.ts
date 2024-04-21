@@ -20,6 +20,16 @@ import { DietService } from 'src/app/demo/service/diet.service';
 
 export class FoodCounterComponent implements OnInit, OnDestroy {
 
+    guest: object = {
+        code: '156221',
+        firstName: 'Balázs',
+        lastName: 'Gábris',
+        diet: 'Húsevő',
+        ageGroup: 'Felnőtt',
+        conferenceName: 'Teszt Konferencia 2024',
+        servedMeals: '113',
+    }
+
     conferenceForm: FormGroup;
     isFormValid$: Observable<boolean>;
     private formChanges$: Subject<void> = new Subject();
@@ -123,6 +133,55 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
         // Monitor the changes of the form
         this.conferenceForm.valueChanges.subscribe(() => this.formChanges$.next());
+
+
+        var RFIDS = [
+            // Fekete
+            {
+                code: '156221',
+                guestName: 'Gábris Balázs',
+                diet: 'Húsevő',
+                ageGroup: 'Felnőtt',
+                conferenceName: 'Teszt Konferencia 2024',
+                servedMeals: '113',
+            },
+            // Piros
+            {
+                code: '318113',
+                guestName: 'Timi',
+                diet: 'Vegetáriánus',
+                ageGroup: 'Felnőtt',
+                conferenceName: 'Teszt Konferencia 2024',
+                servedMeals: '114',
+            },
+            // Kék
+            {
+                code: '7679569',
+                guestName: 'István',
+                diet: 'Húsevő',
+                ageGroup: 'Felnőtt',
+                conferenceName: 'Teszt Konferencia 2024',
+                servedMeals: '115',
+            },
+            // Zöld
+            {
+                code: '3916686',
+                guestName: 'Máté',
+                diet: 'Vegetáriánus',
+                ageGroup: 'Felnőtt',
+                conferenceName: 'Teszt Konferencia 2024',
+                servedMeals: '116',
+            },
+            // Sárga
+            {
+                code: '361343',
+                guestName: 'Dávidka',
+                diet: 'Bébiétel',
+                ageGroup: 'Gyermek',
+                conferenceName: 'Teszt Konferencia 2024',
+                servedMeals: '117',
+            },
+        ]
     }
 
     get lastName() { return this.conferenceForm.controls['lastName'] }
