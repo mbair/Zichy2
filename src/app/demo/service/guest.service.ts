@@ -43,7 +43,6 @@ export class GuestService {
     }
 
     public updateGuest(modifiedGuest: Vendeg, guests: Vendeg[]):void {
-        console.log('modifiedGuest', modifiedGuest)
         this.http.put(this.API + '/update/' + modifiedGuest.id, modifiedGuest, {
             observe: 'response',
             responseType: 'json'

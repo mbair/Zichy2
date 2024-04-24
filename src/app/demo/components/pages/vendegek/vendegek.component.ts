@@ -42,6 +42,7 @@ export class VendegekComponent implements OnInit {
     rowsPerPageOptions = [5, 10, 20];
     tagColors: TagColor[] = []
     messages1: Message[] = [];
+    successfullMessage: Message[] = [];
     scanTemp: string = '';
     scannedCode: string = '';
     guest: Vendeg = {}
@@ -66,9 +67,7 @@ export class VendegekComponent implements OnInit {
         this.serviceMessageObs$ = this.dataService.serviceMessageObs;
         this.serviceMessageObs$.subscribe((data) => {
             if (data) {
-                this.messages1 = [
-                    { severity: 'success', summary: '', detail: 'Sikeresen hozzárendelte a címkét a vendéghez!' },
-                ]
+                this.messages1 = this.successfullMessage
             }
         })
 
@@ -222,7 +221,6 @@ export class VendegekComponent implements OnInit {
     }
 
     assignTag(guest: any) {
-        console.log('assignTag guest', guest)
         // Empty previous scanned codes
         this.scanTemp = '';
         this.scannedCode = '';
@@ -237,6 +235,11 @@ export class VendegekComponent implements OnInit {
         this.guest.rfid =  '';
         this.dataService.updateGuest(this.guest, this.vendegek);
         this.submitted = true;
+        this.successfullMessage = [{
+            severity: 'success',
+            summary: '',
+            detail: 'A címkét eltávolítottuk a vendégtől!'
+        }]
     }
 
     save() {
@@ -244,6 +247,11 @@ export class VendegekComponent implements OnInit {
         this.guest.rfid = this.scannedCode;
         this.dataService.updateGuest(this.guest, this.vendegek)
         this.submitted = true;
+        this.successfullMessage = [{
+            severity: 'success',
+            summary: '',
+            detail: 'Sikeresen hozzárendelte a címkét a vendéghez!'
+        }]
     }
 
     @HostListener('window:keypress', ['$event'])
