@@ -24,4 +24,5 @@ export interface Vendeg {
     babaAgy?: string;
     tamogatas?: string;
     indok?: string;
+    rfid?: string;
 }

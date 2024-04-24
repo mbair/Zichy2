@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { Product } from 'src/app/demo/api/product';
@@ -42,8 +42,12 @@ export class VendegekComponent implements OnInit {
     rowsPerPageOptions = [5, 10, 20];
     tagColors: TagColor[] = []
     messages1: Message[] = [];
+    scanTemp: string = '';
+    scannedCode: string = '';
+    guest: Vendeg = {}
 
     guestsObs$: Observable<any> | undefined;
+    serviceMessageObs$: Observable<any> | undefined;
 
     constructor(private dataService: GuestService, private messageService: MessageService) { }
 
@@ -52,12 +56,21 @@ export class VendegekComponent implements OnInit {
         this.guestsObs$.subscribe((data) => {
             this.loading = false;
             if (data) {
-                this.vendegek = data.rows;
+                this.vendegek = data;
             }
         })
 
         // Get all Guests
         this.dataService.getGuests()
+
+        this.serviceMessageObs$ = this.dataService.serviceMessageObs;
+        this.serviceMessageObs$.subscribe((data) => {
+            if (data) {
+                this.messages1 = [
+                    { severity: 'success', summary: '', detail: 'Sikeresen hozzárendelte a címkét a vendéghez!' },
+                ]
+            }
+        })
 
 
         this.cols = [
@@ -76,9 +89,7 @@ export class VendegekComponent implements OnInit {
             { name: 'kék', code: 'blue' }
         ]
 
-        this.messages1 = [
-            { severity: 'info', summary: '', detail: 'Tartsa az RFID címkét az olvasóhoz...' },
-        ]
+
 
         this.statuses = [
             { label: 'FOGLALHATO', value: 'FOGLALHATO' },
@@ -155,6 +166,11 @@ export class VendegekComponent implements OnInit {
         this.submitted = false;
     }
 
+    hideTagDialog() {
+        this.tagDialog = false;
+        this.submitted = false;
+    }
+
     saveProduct() {
         this.submitted = true;
 
@@ -206,25 +222,48 @@ export class VendegekComponent implements OnInit {
     }
 
     assignTag(guest: any) {
-        this.product = { ...guest };
+        console.log('assignTag guest', guest)
+        // Empty previous scanned codes
+        this.scanTemp = '';
+        this.scannedCode = '';
+        this.guest = { ...guest };
+        this.messages1 = [
+            { severity: 'info', summary: '', detail: 'Tartsa az RFID címkét az olvasóhoz...' },
+        ]
         this.tagDialog = true;
     }
 
-    save() {
-        if (!this.tag.identifier) return;
-
+    unAssignTag() {
+        this.guest.rfid =  '';
+        this.dataService.updateGuest(this.guest, this.vendegek);
         this.submitted = true;
-        if (this.tag.identifier && this.tag.identifier.trim().length > 0) {
-            // const last = this.tags[this.tags.length - 1];
-            // const lastId = Number(last.id);
-            // this.tag.id = lastId + 1;
-            // this.tags.push(this.tag);
-            // this.tags = [...this.tags];
-            // this.guestService.assignTag(1, this.tag.identifier).then(data => console.log(data))öö12946238
+    }
 
-            this.tagDialog = false;
-            this.tag = {};
-            this.messageService.add({ severity: 'success', summary: 'Siker', detail: 'Címke rögzítve', life: 3000 });
+    save() {
+        if (!this.scannedCode) return;
+        this.guest.rfid = this.scannedCode;
+        this.dataService.updateGuest(this.guest, this.vendegek)
+        this.submitted = true;
+    }
+
+    @HostListener('window:keypress', ['$event'])
+    keyEvent(event: KeyboardEvent): void {
+        if (event.key === 'Enter') {
+            // The QR/Bar code is ready here
+            // Do something here with the scanned code
+            this.scannedCode = this.scanTemp
+            this.scanTemp = ''
+            console.log('scannedCode', this.scannedCode)
+        } else {
+            if (event.key === 'ö'){
+                this.scanTemp += '0'
+            }
+            else if (/^[0-9]$/i.test(event.key)) {
+                this.scanTemp += event.key
+            }
+            else {
+                return
+            }
         }
     }
 

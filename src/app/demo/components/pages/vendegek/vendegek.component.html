@@ -28,9 +28,9 @@
                         <th pSortableColumn="szoba">Szoba <p-sortIcon field="szoba"></p-sortIcon></th>
                         <th pSortableColumn="etrend">Étrend <p-sortIcon field="etrend"></p-sortIcon></th>
                         <th pSortableColumn="conferenceName">Konferencia <p-sortIcon field="conferenceName"></p-sortIcon></th>
-                        <th pSortableColumn="birthDate">Születési dátum <p-sortIcon field="birthDate"></p-sortIcon></th>
+                        <!-- <th pSortableColumn="birthDate">Születési dátum <p-sortIcon field="birthDate"></p-sortIcon></th>
                         <th pSortableColumn="erkezesDate">Érkezés <p-sortIcon field="erkezesDate"></p-sortIcon></th>
-                        <th pSortableColumn="tavozasDate">Távozás <p-sortIcon field="tavozasDate"></p-sortIcon></th>
+                        <th pSortableColumn="tavozasDate">Távozás <p-sortIcon field="tavozasDate"></p-sortIcon></th> -->
                         <th></th>
                     </tr>
                 </ng-template>
@@ -41,7 +41,7 @@
                         </td>
                         <td style="width:14%; min-width:10rem;"><span class="p-column-title">Név</span>
                             {{guest.lastName}} {{guest.firstName}}
-                            <span *ngIf="guest.identifier" class="pi pi-tag"></span>
+                            <span *ngIf="guest.rfid" class="pi pi-tag"></span>
                         </td>
                         <td style="width:10%; min-width:7rem;">
                             <span class="p-column-title">Szoba</span>
@@ -51,11 +51,11 @@
                             <span class="p-column-title">Étrend</span>
                             {{guest.diet}}
                         </td>
-                        <td style="width:14%; min-width:10rem;">
+                        <td style="width:40%; min-width:35rem;">
                             <span class="p-column-title">Konferencia</span>
                             {{guest.conferenceName}}
                         </td>
-                        <td style="width:14%; min-width:8rem;">
+                        <!-- <td style="width:14%; min-width:8rem;">
                             <span class="p-column-title">Születési dátum</span>
                             {{guest.birthDate | date:'yyyy.MM.dd'}}
                         </td>
@@ -66,10 +66,10 @@
                         <td style="width:10%; min-width:8rem;">
                             <span class="p-column-title">Távozás</span>
                             {{guest.dateOfDeparture | date:'yyyy.MM.dd'}}
-                        </td>
+                        </td> -->
                         <td>
                             <div class="flex">
-                                <button pButton pRipple icon="pi pi-tags" class="p-button-rounded p-button-success mr-2" (click)="assignTag(product)"></button>
+                                <button pButton pRipple icon="pi pi-tags" class="p-button-rounded p-button-success mr-2" (click)="assignTag(guest)"></button>
                                 <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editProduct(product)"></button>
                                 <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteProduct(product)"></button>
                             </div>
@@ -166,25 +166,21 @@
             </ng-template>
         </p-dialog>
 
-        <p-dialog [(visible)]="tagDialog" [style]="{width: '450px', height: '600px'}" header="RFID címke felvitel" [modal]="true" class="p-fluid">
+        <p-dialog [(visible)]="tagDialog" [style]="{width: '450px'}" header="RFID címke vendéghez rendelés" [modal]="true" class="p-fluid">
             <ng-template pTemplate="content">
                 <p-messages [(value)]="messages1" [enableService]="false" [closable]="false"></p-messages>
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="identifier">Azonosító</label>
-                        <input pInputText type="text" id="identifier" [(ngModel)]="tag.identifier" readonly autofocus />
+                        <label for="identifier">Címke azonosító</label>
+                        <input pInputText type="text" id="identifier" [value]="scannedCode" readonly autofocus />
                     </div>
                 </div>
-                <div class="formgrid grid">
-                    <div class="field col">
-                        <label for="tagcolor">Címke színe</label>
-                        <p-dropdown [options]="tagColors" optionLabel="name" [(ngModel)]="selectedTagColor" [showClear]="true" placeholder="Válasszon színt..."></p-dropdown>
-                    </div>
+                <div class="text-center">
+                    <button pButton pRipple label="Címke visszavétel" icon="pi pi-trash" class="p-button-danger" (click)="unAssignTag()" [disabled]="!guest.rfid?.length"></button>
                 </div>
             </ng-template>
-
             <ng-template pTemplate="footer">
-                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="hideTagDialog()"></button>
                 <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="save()"></button>
             </ng-template>
         </p-dialog>
