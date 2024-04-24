@@ -1,31 +1,10 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
+import { Guest } from '../../api/guest';
+import { GuestService } from '../../service/guest.service';
+import { Observable } from 'rxjs';
 
-
-interface Guest {
-    id: number,
-    firstName: string,
-    lastName: string,
-    nationality: string,
-    country: string,
-    zipCode: string,
-    roomNum: string,
-    dateOfArrival: string,
-    firstMeal: string,
-    dateOfDeparture: string,
-    lastMeal: string,
-    szepCard: number,
-    accommodationExtra: string,
-    birthDate: string,
-    rfid: string,
-    enabled: number,
-    diet: string,
-    ageGroup: string,
-    conferenceName: string,
-    servedMeals: string,
-    gender: string,
-}
 
 @Component({
     selector: 'food-counter',
@@ -38,91 +17,34 @@ interface Guest {
 export class FoodCounterComponent implements OnInit, OnDestroy {
 
     mealsNumber: number = 0;
-    guest: Guest | undefined;
+    guest: Guest;
+    guests: Guest[];
     loading: boolean = false;
+    ageGroup: string = '';
+    scanTemp: string = '';
+    scannedCode: string = '';
 
-    private code: string = '';
+    guestsObs$: Observable<any> | undefined;
+    serviceMessageObs$: Observable<any> | undefined;
 
-    constructor(public router: Router, private messageService: MessageService) {
+    constructor(public router: Router, private dataService: GuestService, private messageService: MessageService) {
     }
 
     ngOnInit() {
+        this.guestsObs$ = this.dataService.guestObs;
+        this.guestsObs$.subscribe((data) => {
+            this.loading = false;
+            if (data) {
+                this.guests = data;
+            }
+        })
 
-        this.guest = {
-            id: 1,
-            firstName: 'Balázs',
-            lastName: 'Gábris',
-            nationality: 'hungarian',
-            country: 'hungary',
-            zipCode: '7626',
-            roomNum: '113',
-            dateOfArrival: '2024.04.21',
-            firstMeal: '2024.04.21',
-            dateOfDeparture: '2024.04.21',
-            lastMeal: '2024.04.21',
-            szepCard: 0,
-            accommodationExtra: '',
-            birthDate: '1985.10.13',
-            rfid: '156221',
-            enabled: 1,
+        // Get all Guests
+        this.dataService.getGuests()
+    }
 
-            // TODO: Az alábbi mezők szükségesek
-            diet: 'Húsevő',
-            ageGroup: 'Felnőtt', // birthdate-ből kalkuláljuk
-            conferenceName: 'Teszt Konferencia 2024',
-            servedMeals: '113',
-            gender: '',
-        }
-
-        // szepCard,roomNum,accommodationExtra,dateOfArrival,firstMeal,dateOfDeparture,lastMeal,diet,lastName,firstName,gender,birthDate,nationality,country,zipCode
-
-        var RFIDS = [
-            // Fekete
-            {
-                code: '156221',
-                guestName: 'Gábris Balázs',
-                diet: 'Húsevő',
-                ageGroup: 'Felnőtt',
-                conferenceName: 'Teszt Konferencia 2024',
-                servedMeals: '113',
-            },
-            // Piros
-            {
-                code: '318113',
-                guestName: 'Timi',
-                diet: 'Vegetáriánus',
-                ageGroup: 'Felnőtt',
-                conferenceName: 'Teszt Konferencia 2024',
-                servedMeals: '114',
-            },
-            // Kék
-            {
-                code: '7679569',
-                guestName: 'István',
-                diet: 'Húsevő',
-                ageGroup: 'Felnőtt',
-                conferenceName: 'Teszt Konferencia 2024',
-                servedMeals: '115',
-            },
-            // Zöld
-            {
-                code: '3916686',
-                guestName: 'Máté',
-                diet: 'Vegetáriánus',
-                ageGroup: 'Felnőtt',
-                conferenceName: 'Teszt Konferencia 2024',
-                servedMeals: '116',
-            },
-            // Sárga
-            {
-                code: '361343',
-                guestName: 'Dávidka',
-                diet: 'Bébiétel',
-                ageGroup: 'Gyermek',
-                conferenceName: 'Teszt Konferencia 2024',
-                servedMeals: '117',
-            },
-        ]
+    public incMealsCount() {
+        this.mealsNumber++
     }
 
     @HostListener('window:keypress', ['$event'])
@@ -130,53 +52,27 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         if (event.key === 'Enter') {
             // The QR/Bar code is ready here
             // Do something here with the scanned code
-            console.log('hello', this.code)
-            // alert('CODE: ' + this.code)
-            // this.guest?.rfid = this.code
+            this.scannedCode = this.scanTemp
+            this.scanTemp = ''
+            console.log('scannedCode', this.scannedCode)
 
-            this.getGuestByRFID()
+            this.guests.map(guest => {
+                if (guest.rfid === this.scannedCode) {
+                    this.guest = guest
+                    this.mealsNumber++
+                }
+            })
         } else {
-            if (event.key === 'ö'){
-                this.code += '0'
-            } else {
-                this.code += event.key
+            if (event.key === 'ö') {
+                this.scanTemp += '0'
+            }
+            else if (/^[0-9]$/i.test(event.key)) {
+                this.scanTemp += event.key
+            }
+            else {
+                return
             }
         }
-    }
-
-    getGuestByRFID(): any {
-
-
-    }
-
-    onScan(): void {
-        this.loading = true;
-
-        setTimeout(() => {
-            this.loading = false
-
-            // Új üzenet hozzáadása előtt, először töröljük az összes meglévőt
-            this.messageService.clear();
-
-            // if (this.conferenceForm.valid) {
-                // Az űrlap adatok elküldése a szerverre
-
-                this.messageService.add({
-                    severity: "success",
-                    summary: "Sikeresen regisztrált!",
-                    detail: "Sok szeretettel várjuk a konferenciára!",
-                })
-            // } else {
-                // Az űrlap érvénytelen, ki kell javítani az összes hibát
-                console.log('Az űrlap érvénytelen, kérjük, javítsa az összes hibát.');
-
-                this.messageService.add({
-                    severity: "error",
-                    summary: "Hiba!",
-                    detail: "Az űrlap nem lett megfelelően kitöltve!",
-                })
-            // }
-        }, 500)
     }
 
     ngOnDestroy() {
