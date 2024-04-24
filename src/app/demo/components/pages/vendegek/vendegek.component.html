@@ -3,7 +3,7 @@
         <div class="card px-0 py-0">
             <p-toast></p-toast>
 
-            <p-table #dt [value]="vendegek" [columns]="cols" responsiveLayout="scroll" [rows]="10" [globalFilterFields]="['name','country.name','representative.name','status']" [paginator]="true" [rowsPerPageOptions]="[10,20,30]" [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [(selection)]="selectedProducts" selectionMode="multiple" [rowHover]="true" dataKey="id">
+            <p-table #dt [value]="vendegek" responsiveLayout="scroll" [rows]="10" [globalFilterFields]="['firstName', 'lastName']" [paginator]="true" [rowsPerPageOptions]="[10,20,30]" [showCurrentPageReport]="true" currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése" [(selection)]="selectedProducts" selectionMode="multiple" [rowHover]="true" dataKey="id">
                 <ng-template pTemplate="caption">
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
                         <h5 class="m-0">Vendégek</h5>
@@ -27,44 +27,45 @@
                         <th pSortableColumn="vezeteknev">Név <p-sortIcon field="vezeteknev"></p-sortIcon></th>
                         <th pSortableColumn="szoba">Szoba <p-sortIcon field="szoba"></p-sortIcon></th>
                         <th pSortableColumn="etrend">Étrend <p-sortIcon field="etrend"></p-sortIcon></th>
-                        <th pSortableColumn="gyulekezet">Gyülekezet <p-sortIcon field="gyulekezet"></p-sortIcon></th>
-                        <th pSortableColumn="telefon">Telefon <p-sortIcon field="telefon"></p-sortIcon></th>
+                        <th pSortableColumn="conferenceName">Konferencia <p-sortIcon field="conferenceName"></p-sortIcon></th>
+                        <th pSortableColumn="birthDate">Születési dátum <p-sortIcon field="birthDate"></p-sortIcon></th>
                         <th pSortableColumn="erkezesDate">Érkezés <p-sortIcon field="erkezesDate"></p-sortIcon></th>
                         <th pSortableColumn="tavozasDate">Távozás <p-sortIcon field="tavozasDate"></p-sortIcon></th>
                         <th></th>
                     </tr>
                 </ng-template>
-                <ng-template pTemplate="body" let-vendeg>
+                <ng-template pTemplate="body" let-guest>
                     <tr>
                         <td>
-                            <p-tableCheckbox [value]="vendeg"></p-tableCheckbox>
+                            <p-tableCheckbox [value]="guest"></p-tableCheckbox>
                         </td>
                         <td style="width:14%; min-width:10rem;"><span class="p-column-title">Név</span>
-                            {{vendeg.vezeteknev}} {{vendeg.keresztnev}}
+                            {{guest.lastName}} {{guest.firstName}}
+                            <span *ngIf="guest.identifier" class="pi pi-tag"></span>
                         </td>
                         <td style="width:10%; min-width:7rem;">
                             <span class="p-column-title">Szoba</span>
-                            {{vendeg.szoba}}
+                            {{guest.roomNum}}
                         </td>
                         <td style="width:14%; min-width:10rem;">
                             <span class="p-column-title">Étrend</span>
-                            {{vendeg.etrend}}
+                            {{guest.diet}}
                         </td>
                         <td style="width:14%; min-width:10rem;">
-                            <span class="p-column-title">Gyülekezet</span>
-                            {{vendeg.gyulekezet}}
+                            <span class="p-column-title">Konferencia</span>
+                            {{guest.conferenceName}}
                         </td>
                         <td style="width:14%; min-width:8rem;">
-                            <span class="p-column-title">Telefon</span>
-                            {{vendeg.telefon}}
+                            <span class="p-column-title">Születési dátum</span>
+                            {{guest.birthDate | date:'yyyy.MM.dd'}}
                         </td>
                         <td style="width:10%; min-width:8rem;">
                             <span class="p-column-title">Érkezés</span>
-                            {{vendeg.erkezesDate}}
+                            {{guest.dateOfArrival | date:'yyyy.MM.dd'}}
                         </td>
                         <td style="width:10%; min-width:8rem;">
                             <span class="p-column-title">Távozás</span>
-                            {{vendeg.tavozasDate}}
+                            {{guest.dateOfDeparture | date:'yyyy.MM.dd'}}
                         </td>
                         <td>
                             <div class="flex">
@@ -176,7 +177,7 @@
                 </div>
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="identifier">Címke színe</label>
+                        <label for="tagcolor">Címke színe</label>
                         <p-dropdown [options]="tagColors" optionLabel="name" [(ngModel)]="selectedTagColor" [showClear]="true" placeholder="Válasszon színt..."></p-dropdown>
                     </div>
                 </div>

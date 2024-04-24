@@ -1,55 +1,64 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Observable } from 'rxjs';
+import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { Product } from 'src/app/demo/api/product';
 import { Vendeg } from 'src/app/demo/api/vendeg';
-import { Table } from 'primeng/table';
-import { ProductService } from 'src/app/demo/service/product.service';
+import { GuestService } from 'src/app/demo/service/guest.service';
 import { Message, MessageService } from 'primeng/api';
+import { Table } from 'primeng/table';
 import { Tag } from 'src/app/demo/api/tag';
+
+
 
 interface TagColor {
     name: string;
     code: string;
 }
 @Component({
+    selector: 'guests',
     templateUrl: './vendegek.component.html',
     providers: [MessageService]
 })
 
+@AutoUnsubscribe()
+
 export class VendegekComponent implements OnInit {
 
+    loading: boolean = false;           // Loading overlay trigger value
     tag: Tag = {};
     tagDialog: boolean = false;
     selectedTagColor: TagColor | undefined;
     productDialog: boolean = false;
-
     deleteProductDialog: boolean = false;
-
     deleteProductsDialog: boolean = false;
-
     products: Product[] = [];
-
     product: Product = {};
-
     vendegek: Vendeg[] = [];
-
     vendeg: Vendeg = {};
-
     selectedProducts: Product[] = [];
-
     submitted: boolean = false;
-
     cols: any[] = [];
-
     statuses: any[] = [];
-
     rowsPerPageOptions = [5, 10, 20];
     tagColors: TagColor[] = []
     messages1: Message[] = [];
 
-    constructor(private productService: ProductService, private messageService: MessageService) { }
+    guestsObs$: Observable<any> | undefined;
+
+    constructor(private dataService: GuestService, private messageService: MessageService) { }
 
     ngOnInit() {
-        this.productService.getProducts().then(data => this.products = data);
+        this.guestsObs$ = this.dataService.guestObs;
+        this.guestsObs$.subscribe((data) => {
+            this.loading = false;
+            if (data) {
+                this.vendegek = data.rows;
+            }
+        })
+
+        // Get all Guests
+        this.dataService.getGuests()
+
 
         this.cols = [
             { field: 'product', header: 'Product' },
@@ -99,162 +108,6 @@ export class VendegekComponent implements OnInit {
                 utolsoEtkezes: 'ebéd',
                 pentekEbed: 'Igen, kérek',
                 szallasTipus: 'Apartman',
-                szobaIgeny: '',
-                babaAgy: 'nem',
-                tamogatas: 'teljes',
-                indok: 'szervező'
-            },
-            {
-                vezeteknev: 'Varga',
-                keresztnev: 'Dániel',
-                szoba: '104',
-                fizmod: 'Banki',
-                etrend: 'vegetáriánus',
-                gyulekezet: 'Golgota Budapest',
-                nem: 'férfi',
-                email: 'szabodora@gmail.com',
-                telefon: '06201234567',
-                szuldatum: '1978.01.01.',
-                korcsoport: '18 év feletti',
-                allampolgarsag: 'HU',
-                orszag: 'Hungary',
-                irsz: '2233',
-                erkezesDate: '2022.08.07.',
-                elsoEtkezes: 'vacsora',
-                tavozasDate: '2022.08.12.',
-                utolsoEtkezes: 'ebéd',
-                pentekEbed: 'Igen, kérek',
-                szallasTipus: 'M4',
-                szobaIgeny: '',
-                babaAgy: 'nem',
-                tamogatas: 'teljes',
-                indok: 'szervező'
-            },
-            {
-                vezeteknev: 'Varga',
-                keresztnev: 'Mária',
-                szoba: '104',
-                fizmod: 'Banki',
-                etrend: 'normál',
-                gyulekezet: 'Golgota Budapest',
-                nem: 'nő',
-                email: 'szabodora@gmail.com',
-                telefon: '06201234567',
-                szuldatum: '1987.01.01.',
-                korcsoport: '18 év feletti',
-                allampolgarsag: 'HU',
-                orszag: 'Hungary',
-                irsz: '2233',
-                erkezesDate: '2022.08.07.',
-                elsoEtkezes: 'vacsora',
-                tavozasDate: '2022.08.12.',
-                utolsoEtkezes: 'ebéd',
-                pentekEbed: 'Igen, kérek',
-                szallasTipus: 'M4',
-                szobaIgeny: '',
-                babaAgy: 'nem',
-                tamogatas: 'teljes',
-                indok: 'szervező'
-            },
-            {
-                vezeteknev: 'Varga',
-                keresztnev: 'Máté',
-                szoba: '104',
-                fizmod: 'Banki',
-                etrend: 'nem kér étkezést',
-                gyulekezet: 'Golgota Budapest',
-                nem: 'férfi',
-                email: 'szabodora@gmail.com',
-                telefon: '06201234567',
-                szuldatum: '2016.01.01.',
-                korcsoport: '18 év feletti',
-                allampolgarsag: 'HU',
-                orszag: 'Hungary',
-                irsz: '2233',
-                erkezesDate: '2022.08.07.',
-                elsoEtkezes: 'vacsora',
-                tavozasDate: '2022.08.12.',
-                utolsoEtkezes: 'ebéd',
-                pentekEbed: 'Igen, kérek',
-                szallasTipus: 'M4',
-                szobaIgeny: '',
-                babaAgy: 'nem',
-                tamogatas: 'teljes',
-                indok: 'szervező'
-            },
-            {
-                vezeteknev: 'Varga',
-                keresztnev: 'Laura',
-                szoba: '104',
-                fizmod: 'Banki',
-                etrend: 'normál',
-                gyulekezet: 'Golgota Budapest',
-                nem: 'nő',
-                email: 'szabodora@gmail.com',
-                telefon: '06201234567',
-                szuldatum: '2020.01.01.',
-                korcsoport: '18 év feletti',
-                allampolgarsag: 'HU',
-                orszag: 'Hungary',
-                irsz: '2233',
-                erkezesDate: '2022.08.07.',
-                elsoEtkezes: 'vacsora',
-                tavozasDate: '2022.08.12.',
-                utolsoEtkezes: 'ebéd',
-                pentekEbed: 'Igen, kérek',
-                szallasTipus: 'M4',
-                szobaIgeny: '',
-                babaAgy: 'nem',
-                tamogatas: 'teljes',
-                indok: 'szervező'
-            },
-            {
-                vezeteknev: 'Németh',
-                keresztnev: 'Csilla',
-                szoba: '112',
-                fizmod: 'Banki',
-                etrend: 'nem kér étkezést',
-                gyulekezet: 'Golgota Budapest',
-                nem: 'nő',
-                email: 'szabodora@gmail.com',
-                telefon: '06702345678',
-                szuldatum: '1982.01.01.',
-                korcsoport: '18 év feletti',
-                allampolgarsag: 'HU',
-                orszag: 'Hungary',
-                irsz: '2233',
-                erkezesDate: '2022.08.07.',
-                elsoEtkezes: 'vacsora',
-                tavozasDate: '2022.08.12.',
-                utolsoEtkezes: 'ebéd',
-                pentekEbed: 'Igen, kérek',
-                szallasTipus: 'M4',
-                szobaIgeny: '',
-                babaAgy: 'nem',
-                tamogatas: 'teljes',
-                indok: 'szervező'
-            },
-            {
-                vezeteknev: 'Németh',
-                keresztnev: 'Balázs',
-                szoba: '112',
-                fizmod: 'Banki',
-                etrend: 'vegetáriánus',
-                gyulekezet: 'Golgota Budapest',
-                nem: 'férfi',
-                email: 'szabodora@gmail.com',
-                telefon: '06702345678',
-                szuldatum: '1978.01.01.',
-                korcsoport: '18 év feletti',
-                allampolgarsag: 'HU',
-                orszag: 'Hungary',
-                irsz: '2233',
-                erkezesDate: '2022.08.07.',
-                elsoEtkezes: 'vacsora',
-                tavozasDate: '2022.08.12.',
-                utolsoEtkezes: 'ebéd',
-                pentekEbed: 'Igen, kérek',
-                szallasTipus: 'M4',
                 szobaIgeny: '',
                 babaAgy: 'nem',
                 tamogatas: 'teljes',
@@ -367,9 +220,14 @@ export class VendegekComponent implements OnInit {
             // this.tag.id = lastId + 1;
             // this.tags.push(this.tag);
             // this.tags = [...this.tags];
+            // this.guestService.assignTag(1, this.tag.identifier).then(data => console.log(data))öö12946238
+
             this.tagDialog = false;
             this.tag = {};
             this.messageService.add({ severity: 'success', summary: 'Siker', detail: 'Címke rögzítve', life: 3000 });
         }
+    }
+
+    ngOnDestroy(): void {
     }
 }

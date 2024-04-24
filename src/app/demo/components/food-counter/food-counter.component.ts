@@ -24,6 +24,7 @@ interface Guest {
     ageGroup: string,
     conferenceName: string,
     servedMeals: string,
+    gender: string,
 }
 
 @Component({
@@ -67,10 +68,13 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
             // TODO: Az alábbi mezők szükségesek
             diet: 'Húsevő',
-            ageGroup: 'Felnőtt',
+            ageGroup: 'Felnőtt', // birthdate-ből kalkuláljuk
             conferenceName: 'Teszt Konferencia 2024',
             servedMeals: '113',
+            gender: '',
         }
+
+        // szepCard,roomNum,accommodationExtra,dateOfArrival,firstMeal,dateOfDeparture,lastMeal,diet,lastName,firstName,gender,birthDate,nationality,country,zipCode
 
         var RFIDS = [
             // Fekete
@@ -141,6 +145,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     }
 
     getGuestByRFID(): any {
+
 
     }
 

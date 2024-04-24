@@ -4,6 +4,7 @@ import { Tag as PrimeNgTag } from 'primeng/tag';
 import { Message, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { TagService } from 'src/app/demo/service/tag.service';
+import { Observable } from 'rxjs';
 
 interface TagColor {
     name: string;
@@ -17,6 +18,7 @@ interface TagColor {
 
 export class RFIDTagComponent implements OnInit {
 
+    loading: boolean = false;           // Loading overlay trigger value
     tag: Tag = {};
     tags: Tag[] = [];
     selectedTags: Tag[] = [];
@@ -33,10 +35,21 @@ export class RFIDTagComponent implements OnInit {
 
     private code: string = '';
 
-    constructor(private tagService: TagService, private messageService: MessageService) { }
+    tagsObs$: Observable<any>;
+
+    constructor(private dataService: TagService, private messageService: MessageService) { }
 
     ngOnInit() {
-        this.tagService.getTags().then(data => this.tags = data)
+        this.tagsObs$ = this.dataService.guestObs;
+        this.tagsObs$.subscribe((data) => {
+            this.loading = false;
+            if (data) {
+                this.tags = data.rows;
+            }
+        })
+
+        // Get all Tags
+        this.dataService.getTags()
 
         this.cols = [
             { field: 'id', header: 'ID' },
