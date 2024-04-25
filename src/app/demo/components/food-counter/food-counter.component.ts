@@ -42,7 +42,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         })
 
         // Get all Guests
-        this.dataService.getGuests()
+        // this.dataService.getGuests()
 
         // Initalize guest
         this.guest = {
@@ -66,20 +66,22 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             this.scanTemp = ''
             console.log('scannedCode', this.scannedCode)
 
-            this.guests.map(guest => {
-                if (guest.rfid === this.scannedCode) {
-                    this.guest = guest
-                    this.mealsNumber++
+            this.getGuestByRFID(this.scannedCode)
 
-                    let birthDate = new Date('1985-10-13')
-                    let age:number = this.calculateAge(birthDate)
-                    if (age >= 18){
-                        this.ageGroup = 'felnőtt'
-                    } else {
-                        this.ageGroup = 'gyermek'
-                    }
-                }
-            })
+            // this.guests.map(guest => {
+            //     if (guest.rfid === this.scannedCode) {
+            //         this.guest = guest
+            //         this.mealsNumber++
+
+            //         let birthDate = new Date('1985-10-13')
+            //         let age: number = this.calculateAge(birthDate)
+            //         if (age >= 18) {
+            //             this.ageGroup = 'felnőtt'
+            //         } else {
+            //             this.ageGroup = 'gyermek'
+            //         }
+            //     }
+            // })
         } else {
             if (event.key === 'ö') {
                 this.scanTemp += '0'
@@ -93,7 +95,29 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         }
     }
 
-    calculateAge(birthday:any) { // birthday is a date
+    getGuestByRFID(rfid: string): void {
+        console.log('getGuestByRFID', rfid)
+        this.dataService.getByRFID(rfid).subscribe({
+            next: (data) => {
+                this.guest = data;
+                this.mealsNumber++
+                console.log('Guest data:', data)
+
+                let birthDate = new Date('1985-10-13')
+                let age: number = this.calculateAge(birthDate)
+                if (age >= 10) {
+                    this.ageGroup = 'felnőtt'
+                } else {
+                    this.ageGroup = 'gyermek'
+                }
+            },
+            error: (error) => {
+                console.error('Error:', error)
+            }
+        })
+    }
+
+    calculateAge(birthday: any) { // birthday is a date
         let ageDifMs = Date.now() - birthday.getTime();
         let ageDate = new Date(ageDifMs); // miliseconds from epoch
         return Math.abs(ageDate.getUTCFullYear() - 1970);

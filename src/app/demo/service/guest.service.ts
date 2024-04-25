@@ -27,43 +27,47 @@ export class GuestService {
         return this.serviceMessage$.asObservable()
     }
 
-    public getGuests():void {
+    public getGuests(): void {
         this.http.get(this.API + '/get/0/9999', {
             observe: 'response',
             responseType: 'json'
         })
-        .subscribe({
-            next: (response: any) => {
-                this.guestData$.next(response.body.rows)
-            },
-            error: (error: any) => {
-                this.serviceMessage$.next(error)
-            }
-        })
+            .subscribe({
+                next: (response: any) => {
+                    this.guestData$.next(response.body.rows)
+                },
+                error: (error: any) => {
+                    this.serviceMessage$.next(error)
+                }
+            })
     }
 
-    public updateGuest(modifiedGuest: Vendeg, guests: Vendeg[]):void {
+    public getByRFID(rfid: string): Observable<any> {
+        return this.http.get(`${this.API}/getbyrfid/${rfid}`);
+    }
+
+    public updateGuest(modifiedGuest: Vendeg, guests: Vendeg[]): void {
         this.http.put(this.API + '/update/' + modifiedGuest.id, modifiedGuest, {
             observe: 'response',
             responseType: 'json'
         })
-        .subscribe({
-            next: (response: any) => {
-                // Deep Copy of Guests
-                let guestsClone = JSON.parse(JSON.stringify(guests))
+            .subscribe({
+                next: (response: any) => {
+                    // Deep Copy of Guests
+                    let guestsClone = JSON.parse(JSON.stringify(guests))
 
-                // Replace with modified element
-                guestsClone.forEach((guest: Vendeg, index: number) => {
-                    if (guest.id === modifiedGuest.id) {
-                        guestsClone[index] = modifiedGuest;
-                    }
-                })
-                this.guestData$.next(guestsClone)
-                this.serviceMessage$.next('success')
-            },
-            error: (error: any) => {
-                this.serviceMessage$.next(error)
-            }
-        })
+                    // Replace with modified element
+                    guestsClone.forEach((guest: Vendeg, index: number) => {
+                        if (guest.id === modifiedGuest.id) {
+                            guestsClone[index] = modifiedGuest;
+                        }
+                    })
+                    this.guestData$.next(guestsClone)
+                    this.serviceMessage$.next('success')
+                },
+                error: (error: any) => {
+                    this.serviceMessage$.next(error)
+                }
+            })
     }
 }
