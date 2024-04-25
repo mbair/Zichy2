@@ -3,8 +3,24 @@ import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { Guest } from '../../api/guest';
 import { GuestService } from '../../service/guest.service';
+import { MealService } from '../../service/meal.service';
 import { Observable } from 'rxjs';
 
+const adultDosageAgeLimit: number = 10;  // From the age of 10, we give an adult dose
+const mealTimes: object = {
+    breakfast: {
+        begin: 7,
+        end: 10
+    },
+    lunch: {
+        begin: 11,
+        end: 15
+    },
+    dinner: {
+        begin: 17,
+        end: 20
+    }
+}
 
 @Component({
     selector: 'food-counter',
@@ -16,10 +32,13 @@ import { Observable } from 'rxjs';
 
 export class FoodCounterComponent implements OnInit, OnDestroy {
 
+    currentMeal: string;
+    translatedMeal: string;
     mealsNumber: number = 0;
     guest: Guest;
     guests: Guest[];
     loading: boolean = false;
+    alreadyRecievedFood: boolean = false;
     ageGroup: string = '';
     scanTemp: string = '';
     scannedCode: string = '';
@@ -29,11 +48,14 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     guestsObs$: Observable<any> | undefined;
     serviceMessageObs$: Observable<any> | undefined;
 
-    constructor(public router: Router, private dataService: GuestService, private messageService: MessageService) {
+    constructor(public router: Router,
+        private guestService: GuestService,
+        private mealService: MealService,
+        private messageService: MessageService) {
     }
 
     ngOnInit() {
-        this.guestsObs$ = this.dataService.guestObs;
+        this.guestsObs$ = this.guestService.guestObs;
         this.guestsObs$.subscribe((data) => {
             this.loading = false;
             if (data) {
@@ -42,7 +64,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         })
 
         // Get all Guests
-        // this.dataService.getGuests()
+        // this.guestService.getGuests()
 
         // Initalize guest
         this.guest = {
@@ -51,6 +73,10 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             diet: '',
             conferenceName: '',
         }
+
+        // Set Actual mealName
+        this.currentMeal = this.mealService.getCurrentMealName();
+        this.translatedMeal = this.translateMealName(this.currentMeal);
     }
 
     public incMealsCount() {
@@ -97,19 +123,22 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
     getGuestByRFID(rfid: string): void {
         console.log('getGuestByRFID', rfid)
-        this.dataService.getByRFID(rfid).subscribe({
+        this.guestService.getByRFID(rfid).subscribe({
             next: (data) => {
+
+                // Check whether the guest has already received food in the given meal cycle
+                if (data.lastRfidUsage) {
+                    let lastRfidUsage = new Date(data.lastRfidUsage)
+                    let now = new Date()
+                }
+
+
                 this.guest = data;
                 this.mealsNumber++
                 console.log('Guest data:', data)
 
-                let birthDate = new Date('1985-10-13')
-                let age: number = this.calculateAge(birthDate)
-                if (age >= 10) {
-                    this.ageGroup = 'felnőtt'
-                } else {
-                    this.ageGroup = 'gyermek'
-                }
+                let birthDate = new Date('1985-10-13') // TODO: Remove hardcoded birthDate
+                this.setAgeGroup(birthDate)
             },
             error: (error) => {
                 console.error('Error:', error)
@@ -117,10 +146,26 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         })
     }
 
-    calculateAge(birthday: any) { // birthday is a date
-        let ageDifMs = Date.now() - birthday.getTime();
+    setAgeGroup(birthDate: Date) {
+        let ageDifMs = Date.now() - birthDate.getTime();
         let ageDate = new Date(ageDifMs); // miliseconds from epoch
-        return Math.abs(ageDate.getUTCFullYear() - 1970);
+        let age = Math.abs(ageDate.getUTCFullYear() - 1970);
+
+        if (age >= adultDosageAgeLimit) {
+            this.ageGroup = 'felnőtt'
+        } else {
+            this.ageGroup = 'gyermek'
+        }
+    }
+
+    translateMealName(mealName: string): string {
+        const translations: any = {
+            breakfast: 'Reggeli',
+            lunch: 'Ebéd',
+            dinner: 'Vacsora'
+        }
+
+        return translations[mealName] || mealName;
     }
 
     ngOnDestroy() {
