@@ -23,6 +23,8 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     ageGroup: string = '';
     scanTemp: string = '';
     scannedCode: string = '';
+    screenWidth: number = window.screen.width;
+    screenHeight: number = window.screen.height;
 
     guestsObs$: Observable<any> | undefined;
     serviceMessageObs$: Observable<any> | undefined;
