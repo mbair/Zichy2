@@ -91,14 +91,14 @@
                         </button>
 
                         <!-- Már átvett étel -->
-                        <button *ngIf="isOpen && alreadyRecievedFood" class="flex align-items-center justify-content-center w-full h-fullgap-2 bg-red-500 shadow-1 border-round-sm border-none cursor-pointer hover:bg-teal-600 transition-duration-200" style="min-height: 80px;">
+                        <button *ngIf="isOpen && alreadyRecievedFood" class="flex align-items-center justify-content-center w-full h-fullgap-2 bg-red-500 shadow-1 border-round-sm border-none cursor-pointer hover:bg-red-600 transition-duration-200" style="min-height: 80px;">
                             <span class="font-medium text-2xl text-white white-space-nowrap">
                                 Már átvett étel
                             </span>
                         </button>
 
                         <!-- Jelenleg nincs étkeztetés -->
-                        <button *ngIf="!isOpen" class="flex align-items-center justify-content-center w-full h-fullgap-2 bg-red-500 shadow-1 border-round-sm border-none cursor-pointer hover:bg-teal-600 transition-duration-200" style="min-height: 80px;">
+                        <button *ngIf="!isOpen" class="flex align-items-center justify-content-center w-full h-fullgap-2 bg-red-500 shadow-1 border-round-sm border-none cursor-pointer hover:bg-red-600 transition-duration-200" style="min-height: 80px;">
                             <span class="font-medium text-2xl text-white white-space-nowrap">
                                 Jelenleg nincs étkeztetés
                             </span>

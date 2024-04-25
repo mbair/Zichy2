@@ -29,13 +29,13 @@ export class VendegekComponent implements OnInit {
     tagDialog: boolean = false;
     selectedTagColor: TagColor | undefined;
     productDialog: boolean = false;
-    deleteProductDialog: boolean = false;
-    deleteProductsDialog: boolean = false;
+    deleteGuestDialog: boolean = false;
+    deleteGuestsDialog: boolean = false;
     products: Product[] = [];
     product: Product = {};
-    vendegek: Vendeg[] = [];
-    vendeg: Vendeg = {};
-    selectedProducts: Product[] = [];
+    guests: Vendeg[] = [];
+    guest: Vendeg = {};
+    selectedGuests: Product[] = [];
     submitted: boolean = false;
     cols: any[] = [];
     statuses: any[] = [];
@@ -45,26 +45,25 @@ export class VendegekComponent implements OnInit {
     successfullMessage: Message[] = [];
     scanTemp: string = '';
     scannedCode: string = '';
-    guest: Vendeg = {}
 
     guestsObs$: Observable<any> | undefined;
     serviceMessageObs$: Observable<any> | undefined;
 
-    constructor(private dataService: GuestService, private messageService: MessageService) { }
+    constructor(private guestService: GuestService, private messageService: MessageService) { }
 
     ngOnInit() {
-        this.guestsObs$ = this.dataService.guestObs;
+        this.guestsObs$ = this.guestService.guestObs;
         this.guestsObs$.subscribe((data) => {
             this.loading = false;
             if (data) {
-                this.vendegek = data;
+                this.guests = data;
             }
         })
 
         // Get all Guests
-        this.dataService.getGuests()
+        this.guestService.getGuests()
 
-        this.serviceMessageObs$ = this.dataService.serviceMessageObs;
+        this.serviceMessageObs$ = this.guestService.serviceMessageObs;
         this.serviceMessageObs$.subscribe((data) => {
             if (data) {
                 this.messages1 = this.successfullMessage
@@ -96,7 +95,7 @@ export class VendegekComponent implements OnInit {
             { label: 'MEGTELT', value: 'MEGTELT' }
         ];
 
-        this.vendegek = [
+        this.guests = [
             {
                 vezeteknev: 'Szabó',
                 keresztnev: 'Dóra',
@@ -132,8 +131,8 @@ export class VendegekComponent implements OnInit {
         this.productDialog = true;
     }
 
-    deleteSelectedProducts() {
-        this.deleteProductsDialog = true;
+    deleteSelectedGuests() {
+        this.deleteGuestsDialog = true;
     }
 
     editProduct(product: Product) {
@@ -141,23 +140,25 @@ export class VendegekComponent implements OnInit {
         this.productDialog = true;
     }
 
-    deleteProduct(product: Product) {
-        this.deleteProductDialog = true;
-        this.product = { ...product };
+    deleteGuest(guest: Vendeg) {
+        console.log('deleteGuest guest', guest)
+        this.deleteGuestDialog = true;
+        this.guest = { ...guest };
     }
 
     confirmDeleteSelected() {
-        this.deleteProductsDialog = false;
-        this.products = this.products.filter(val => !this.selectedProducts.includes(val));
+        this.deleteGuestsDialog = false;
+        this.guests = this.guests.filter(val => !this.selectedGuests.includes(val));
         this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
-        this.selectedProducts = [];
+        this.selectedGuests = [];
     }
 
     confirmDelete() {
-        this.deleteProductDialog = false;
-        this.products = this.products.filter(val => val.id !== this.product.id);
-        this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 });
-        this.product = {};
+        this.deleteGuestDialog = false;
+        this.guests = this.guests.filter(val => val.id !== this.guest.id);
+        this.guestService.deleteGuest(this.guest, this.guests)
+        this.messageService.add({ severity: 'success', summary: '', detail: 'Vendég törölve', life: 3000 });
+        this.guest = {};
     }
 
     hideDialog() {
@@ -233,7 +234,7 @@ export class VendegekComponent implements OnInit {
 
     unAssignTag() {
         this.guest.rfid =  '';
-        this.dataService.updateGuest(this.guest, this.vendegek);
+        this.guestService.updateGuest(this.guest, this.guests);
         this.submitted = true;
         this.successfullMessage = [{
             severity: 'success',
@@ -245,7 +246,7 @@ export class VendegekComponent implements OnInit {
     save() {
         if (!this.scannedCode) return;
         this.guest.rfid = this.scannedCode;
-        this.dataService.updateGuest(this.guest, this.vendegek)
+        this.guestService.updateGuest(this.guest, this.guests)
         this.submitted = true;
         this.successfullMessage = [{
             severity: 'success',

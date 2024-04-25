@@ -19,7 +19,7 @@ export class MealService {
         },
         dinner: {
             begin: 17,
-            end: 21
+            end: 20
         }
     };
 
