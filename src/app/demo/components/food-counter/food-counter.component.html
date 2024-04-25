@@ -1,8 +1,8 @@
 <div class="relative overflow-hidden flex flex-column justify-content-center">
 
-    <div class="header bg-teal-500">
+    <div class="header" [ngClass]="isOpen ? 'bg-teal-500' : 'bg-red-500' ">
         <div class="p-1 font-medium text-center text-2xl text-white white-space-nowrap">
-            {{ translatedMeal }}
+            {{ currentMeal || "Jelenleg nincs étkeztetés!" }}
         </div>
         <div class="absolute top-0 right-0 p-2 text-white text-sm ">
             {{ screenWidth }}x{{ screenHeight }}
@@ -84,16 +84,23 @@
             <div class="col-12 md:col-12 lg:col-6 p-2">
                 <div class="surface-card shadow-2 border-round">
                     <div class="flex align-items-center justify-content-center gap-2" >
-                        <button *ngIf="!alreadyRecievedFood" (click)="incMealsCount()" class="flex align-items-center justify-content-center w-full h-fullgap-2 bg-teal-500 shadow-1 border-round-sm border-none cursor-pointer hover:bg-teal-600 transition-duration-200" style="min-height: 80px;">
+                        <button *ngIf="isOpen && !alreadyRecievedFood" (click)="incMealsCount()" class="flex align-items-center justify-content-center w-full h-fullgap-2 bg-teal-500 shadow-1 border-round-sm border-none cursor-pointer hover:bg-teal-600 transition-duration-200" style="min-height: 80px;">
                             <span class="font-medium text-2xl text-white white-space-nowrap">
                                 Étel kiadva
                             </span>
                         </button>
 
                         <!-- Már átvett étel -->
-                        <button *ngIf="alreadyRecievedFood" class="flex align-items-center justify-content-center w-full h-fullgap-2 bg-red-500 shadow-1 border-round-sm border-none cursor-pointer hover:bg-teal-600 transition-duration-200" style="min-height: 80px;">
+                        <button *ngIf="isOpen && alreadyRecievedFood" class="flex align-items-center justify-content-center w-full h-fullgap-2 bg-red-500 shadow-1 border-round-sm border-none cursor-pointer hover:bg-teal-600 transition-duration-200" style="min-height: 80px;">
                             <span class="font-medium text-2xl text-white white-space-nowrap">
                                 Már átvett étel
+                            </span>
+                        </button>
+
+                        <!-- Jelenleg nincs étkeztetés -->
+                        <button *ngIf="!isOpen" class="flex align-items-center justify-content-center w-full h-fullgap-2 bg-red-500 shadow-1 border-round-sm border-none cursor-pointer hover:bg-teal-600 transition-duration-200" style="min-height: 80px;">
+                            <span class="font-medium text-2xl text-white white-space-nowrap">
+                                Jelenleg nincs étkeztetés
                             </span>
                         </button>
                     </div>

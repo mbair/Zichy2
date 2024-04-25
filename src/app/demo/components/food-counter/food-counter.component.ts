@@ -32,8 +32,8 @@ const mealTimes: object = {
 
 export class FoodCounterComponent implements OnInit, OnDestroy {
 
+    isOpen: boolean;
     currentMeal: string;
-    translatedMeal: string;
     mealsNumber: number = 0;
     guest: Guest;
     guests: Guest[];
@@ -74,9 +74,17 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             conferenceName: '',
         }
 
-        // Set Actual mealName
-        this.currentMeal = this.mealService.getCurrentMealName();
-        this.translatedMeal = this.translateMealName(this.currentMeal);
+        this.mealService.mealChanged.subscribe(() => {
+            this.updateCurrentMeal()
+        })
+
+        // this.updateCurrentMeal()
+
+        // // Create a timer to update the current meal
+        // setInterval(() => {
+        //     this.updateCurrentMeal()
+        // }, 60000)
+
     }
 
     public incMealsCount() {
@@ -121,6 +129,11 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         }
     }
 
+    updateCurrentMeal(): void {
+        this.isOpen = this.mealService.isOpen()
+        this.currentMeal = this.mealService.getCurrentMealName()
+    }
+
     getGuestByRFID(rfid: string): void {
         console.log('getGuestByRFID', rfid)
         this.guestService.getByRFID(rfid).subscribe({
@@ -156,16 +169,6 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         } else {
             this.ageGroup = 'gyermek'
         }
-    }
-
-    translateMealName(mealName: string): string {
-        const translations: any = {
-            breakfast: 'Reggeli',
-            lunch: 'Ebéd',
-            dinner: 'Vacsora'
-        }
-
-        return translations[mealName] || mealName;
     }
 
     ngOnDestroy() {
