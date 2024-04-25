@@ -252,6 +252,9 @@ export class VendegekComponent implements OnInit {
             summary: '',
             detail: 'Sikeresen hozzárendelte a címkét a vendéghez!'
         }]
+        setTimeout(() => {
+            this.hideTagDialog()
+        }, 200);
     }
 
     @HostListener('window:keypress', ['$event'])
