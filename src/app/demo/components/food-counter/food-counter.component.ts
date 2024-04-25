@@ -41,6 +41,14 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
         // Get all Guests
         this.dataService.getGuests()
+
+        // Initalize guest
+        this.guest = {
+            lastName: '',
+            firstName: '',
+            diet: '',
+            conferenceName: '',
+        }
     }
 
     public incMealsCount() {
@@ -60,6 +68,14 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 if (guest.rfid === this.scannedCode) {
                     this.guest = guest
                     this.mealsNumber++
+
+                    let birthDate = new Date('1985-10-13')
+                    let age:number = this.calculateAge(birthDate)
+                    if (age >= 18){
+                        this.ageGroup = 'felnőtt'
+                    } else {
+                        this.ageGroup = 'gyermek'
+                    }
                 }
             })
         } else {
@@ -73,6 +89,12 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 return
             }
         }
+    }
+
+    calculateAge(birthday:any) { // birthday is a date
+        let ageDifMs = Date.now() - birthday.getTime();
+        let ageDate = new Date(ageDifMs); // miliseconds from epoch
+        return Math.abs(ageDate.getUTCFullYear() - 1970);
     }
 
     ngOnDestroy() {

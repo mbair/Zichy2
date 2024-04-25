@@ -1,23 +1,26 @@
 <div class="relative overflow-hidden flex flex-column justify-content-center">
 
     <div class="header bg-teal-500">
-        <div class="p-5 font-medium text-center text-5xl text-white white-space-nowrap">
+        <div class="p-1 font-medium text-center text-2xl text-white white-space-nowrap">
             Ebéd
+        </div>
+        <div class="absolute top-0 right-0 p-2 text-white text-sm ">
+            1024x768
         </div>
     </div>
 
 
-<div class="surface-ground px-5 py-5">
+<div class="surface-ground px-4 py-4">
     <div class="grid">
 
         <!-- Vendég neve -->
-        <div class="col-12 md:col-12 lg:col-6">
-            <div class="info-box surface-card shadow-2 p-5 border-round border-teal-500">
+        <div class="col-12 md:col-12 lg:col-6 p-2">
+            <div class="info-box surface-card shadow-2 p-3 border-round border-teal-500">
                 <div class="flex justify-content-between">
                     <div>
-                        <span class="block text-500 text-3xl font-medium mb-3">Vendég</span>
-                        <div class="text-900 font-medium text-5xl">
-                            {{ guest?.lastName }} {{ guest?.firstName }}&nbsp;
+                        <span class="block text-500 text-xl font-medium mb-3">Vendég</span>
+                        <div class="text-900 font-medium text-2xl">
+                            {{ guest.lastName }} {{ guest.firstName }}&nbsp;
                         </div>
                     </div>
                 </div>
@@ -25,12 +28,12 @@
         </div>
 
         <!-- Étrend -->
-        <div class="col-12 md:col-12 lg:col-6">
-            <div class="info-box surface-card shadow-2 p-5 border-round border-teal-500">
+        <div class="col-12 md:col-12 lg:col-6 p-2">
+            <div class="info-box surface-card shadow-2 p-3 border-round border-teal-500">
                 <div class="flex justify-content-between">
                     <div>
-                        <span class="block text-500 text-3xl font-medium mb-3">Étrend</span>
-                        <div class="text-900 font-medium text-5xl">{{ guest?.diet }}&nbsp;</div>
+                        <span class="block text-500 text-xl font-medium mb-3">Étrend</span>
+                        <div class="text-900 font-medium text-2xl">{{ guest.diet }}&nbsp;</div>
                     </div>
                 </div>
             </div>
@@ -39,24 +42,24 @@
     <div class="grid mt-1">
 
         <!-- Korosztály -->
-        <div class="col-12 md:col-12 lg:col-6">
-            <div class="info-box surface-card shadow-2 p-5 border-round border-teal-500">
+        <div class="col-12 md:col-12 lg:col-6 p-2">
+            <div class="info-box surface-card shadow-2 p-3 border-round border-teal-500">
                 <div class="flex justify-content-between">
                     <div>
-                        <span class="block text-500 text-3xl font-medium mb-3">Korosztály</span>
-                        <div class="text-900 font-medium text-5xl">{{ ageGroup }}&nbsp;</div>
+                        <span class="block text-500 text-xl font-medium mb-3">Korosztály</span>
+                        <div class="text-900 font-medium text-2xl">{{ ageGroup }}&nbsp;</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Konferencia neve -->
-        <div class="col-12 md:col-12 lg:col-6">
-            <div class="info-box surface-card shadow-2 p-5 border-round border-teal-500">
+        <div class="col-12 md:col-12 lg:col-6 p-2">
+            <div class="info-box surface-card shadow-2 p-3 border-round border-teal-500">
                 <div class="flex justify-content-between">
                     <div>
-                        <span class="block text-500 text-3xl font-medium mb-3">Konferencia</span>
-                        <div class="text-900 font-medium text-5xl">{{ guest?.conferenceName }}&nbsp;</div>
+                        <span class="block text-500 text-xl font-medium mb-3">Konferencia</span>
+                        <div class="text-900 font-medium text-2xl">{{ guest.conferenceName }}&nbsp;</div>
                     </div>
                 </div>
             </div>
@@ -66,23 +69,23 @@
     <div class="grid mt-1">
 
         <!-- Már kiadott ételek száma -->
-        <div class="col-12 md:col-12 lg:col-6">
-            <div class="info-box surface-card shadow-2 p-5 border-round border-teal-500">
+        <div class="col-12 md:col-12 lg:col-6 p-2">
+            <div class="info-box surface-card shadow-2 p-3 border-round border-teal-500">
                 <div class="flex justify-content-between">
                     <div>
-                        <span class="block text-500 text-3xl font-medium mb-3">Már kiadott ételek száma</span>
-                        <div class="text-900 font-medium text-5xl">{{ mealsNumber }}</div>
+                        <span class="block text-500 text-xl font-medium mb-3">Már kiadott ételek száma</span>
+                        <div class="text-900 font-medium text-2xl">{{ mealsNumber }}</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Étel kiadva -->
-        <div class="col-12 md:col-12 lg:col-6">
+        <div class="col-12 md:col-12 lg:col-6 p-2">
             <div class="surface-card shadow-2 border-round">
                 <div class="flex align-items-center justify-content-center gap-2" >
-                    <button (click)="incMealsCount()" class="flex align-items-center justify-content-center w-full h-fullgap-2 bg-teal-500 shadow-1 border-round-sm border-none cursor-pointer hover:bg-teal-600 transition-duration-200" style="min-height: 160px;">
-                        <span class="font-medium text-5xl text-white white-space-nowrap">
+                    <button (click)="incMealsCount()" class="flex align-items-center justify-content-center w-full h-fullgap-2 bg-teal-500 shadow-1 border-round-sm border-none cursor-pointer hover:bg-teal-600 transition-duration-200" style="min-height: 80px;">
+                        <span class="font-medium text-2xl text-white white-space-nowrap">
                             Étel kiadva
                         </span>
                     </button>
