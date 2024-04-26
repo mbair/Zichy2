@@ -1,6 +1,6 @@
-import { HttpClient, HttpRequest } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, of, tap } from 'rxjs';
 import { Vendeg } from '../api/vendeg';
 
 @Injectable({
@@ -10,12 +10,17 @@ import { Vendeg } from '../api/vendeg';
 
 export class GuestService {
 
+    httpOptions = {
+        headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    }
+
     private API = 'https://nfcreserve.hu/api/guest'
     private guestData$: BehaviorSubject<any>
     private serviceMessage$: BehaviorSubject<any>
 
     constructor(private http: HttpClient) {
         this.guestData$ = new BehaviorSubject<any>(null)
+
         this.serviceMessage$ = new BehaviorSubject<any>(null)
     }
 
@@ -61,6 +66,13 @@ export class GuestService {
             })
     }
 
+    public updateGuest2(modifiedGuest: Vendeg): Observable<any> {
+        return this.http.put(this.API + '/update/' + modifiedGuest.id, modifiedGuest, this.httpOptions).pipe(
+            tap(_ => console.log(`updated guest id=${modifiedGuest.id}`)),
+            catchError(this.handleError<any>('updateGuest2'))
+        )
+    }
+
     public deleteGuest(guest: Vendeg): void {
         this.http.delete(this.API + '/delete/' + guest.id, {
             observe: 'response',
@@ -97,5 +109,26 @@ export class GuestService {
                     this.serviceMessage$.next(error)
                 }
             })
+    }
+
+    /**
+     * Handle Http operation that failed.
+     * Let the app continue.
+     *
+     * @param operation - name of the operation that failed
+     * @param result - optional value to return as the observable result
+     */
+    private handleError<T>(operation = 'operation', result?: T) {
+        return (error: any): Observable<T> => {
+
+            // TODO: send the error to remote logging infrastructure
+            console.error(error); // log to console instead
+
+            // TODO: better job of transforming error for user consumption
+            console.error(`${operation} failed: ${error.message}`);
+
+            // Let the app keep running by returning an empty result.
+            return of(result as T);
+        }
     }
 }

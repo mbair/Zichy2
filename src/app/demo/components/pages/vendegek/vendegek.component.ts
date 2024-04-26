@@ -204,8 +204,8 @@ export class VendegekComponent implements OnInit {
 
     findIndexById(id: string | undefined): number {
         let index = -1;
-        for (let i = 0; i < this.products.length; i++) {
-            if (this.products[i].id === id) {
+        for (let i = 0; i < this.guests.length; i++) {
+            if (this.guests[i].id === id) {
                 index = i;
                 break;
             }
@@ -254,17 +254,19 @@ export class VendegekComponent implements OnInit {
     save() {
         if (!this.scannedCode) return;
         this.guest.rfid = this.scannedCode;
-        this.guestService.updateGuest(this.guest)
-        this.guests[this.findIndexById(this.guest.id)] = this.guest;
-        this.submitted = true;
-        this.successfullMessage = [{
-            severity: 'success',
-            summary: '',
-            detail: 'Sikeresen hozzárendelte a címkét a vendéghez!'
-        }]
-        setTimeout(() => {
-            this.hideTagDialog()
-        }, 200);
+        // this.guestService.updateGuest({ id: this.guest.id, rfid: this.scannedCode})
+        this.guestService.updateGuest2(this.guest).subscribe(() => {
+            this.guests[this.findIndexById(this.guest.id)] = this.guest;
+            this.submitted = true;
+            this.successfullMessage = [{
+                severity: 'success',
+                summary: '',
+                detail: 'Sikeresen hozzárendelte a címkét a vendéghez!'
+            }]
+            setTimeout(() => {
+                this.hideTagDialog()
+            }, 200);
+        })
     }
 
     @HostListener('window:keypress', ['$event'])
