@@ -55,18 +55,23 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             }
         })
 
+        this.mealService.mealChanged.subscribe(() => {
+            this.updateCurrentMeal()
+        })
+        this.updateCurrentMeal()
+
         // Initalize guest
+        this.resetGuest()
+    }
+
+    public resetGuest() {
+        this.ageGroup = ''
         this.guest = {
             lastName: '',
             firstName: '',
             diet: '',
             conferenceName: '',
         }
-
-        this.mealService.mealChanged.subscribe(() => {
-            this.updateCurrentMeal()
-        })
-        this.updateCurrentMeal()
     }
 
     public incMealsCount() {
@@ -81,6 +86,9 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             this.scannedCode = this.scanTemp
             this.scanTemp = ''
             console.log('scannedCode', this.scannedCode)
+
+            // Reset Guest
+            this.resetGuest()
 
             // Query a guest belonging to RFID
             this.getGuestByRFID(this.scannedCode)
@@ -146,6 +154,13 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             },
             error: (error) => {
                 console.error('Error:', error)
+                if (error.status === 404) {
+                    this.guest = {
+                        lastName: 'ISMERETLEN',
+                        firstName: 'ESZKÖZ'
+                    }
+                }
+
             }
         })
     }
@@ -157,6 +172,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             let birthDateD = moment(new Date(birthDate))
             let duration = moment.duration(moment(new Date()).diff(birthDateD))
             console.log('duration', duration)
+
             let age = duration.asYears()
             this.ageGroup = age >= ADULT_DOSAGE_AGE_LIMIT ? 'felnőtt' : 'gyermek'
         }
