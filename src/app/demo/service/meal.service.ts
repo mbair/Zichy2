@@ -21,23 +21,25 @@ export class MealService {
             begin: 17,
             end: 20
         }
-    };
+    }
 
     constructor() {
+        this.checkMealStart()
         setInterval(() => {
             this.checkMealStart()
-        }, 20000);
+        }, 20000)
     }
 
     checkMealStart(): void {
-        const now = new Date();
-        const currentHour = now.getHours();
+        const now = new Date()
+        const currentHour = now.getHours()
 
         for (const mealName of Object.keys(this.mealTimes)) {
             const meal = this.mealTimes[mealName];
             if (currentHour >= meal.begin && currentHour < meal.end) {
-                this.mealChanged.next(mealName);
-                return; // Ha megtaláltuk az aktuális étkezést, nincs szükség további keresésre
+                this.mealChanged.next(mealName)
+                // Once the current meal has been found, there is no need to search further
+                return
             }
         }
     }

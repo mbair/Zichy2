@@ -67,14 +67,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         this.mealService.mealChanged.subscribe(() => {
             this.updateCurrentMeal()
         })
-
-        // this.updateCurrentMeal()
-
-        // // Create a timer to update the current meal
-        // setInterval(() => {
-        //     this.updateCurrentMeal()
-        // }, 60000)
-
+        this.updateCurrentMeal()
     }
 
     public incMealsCount() {
