@@ -71,16 +71,14 @@ export class GuestService {
             })
     }
 
-    public deleteGuest(guest: Vendeg, guests: Vendeg[]): void {
+    public deleteGuest(guest: Vendeg): void {
         this.http.delete(this.API + '/delete/' + guest.id, {
             observe: 'response',
             responseType: 'json'
         })
             .subscribe({
                 next: (response: any) => {
-                    let reduced_guests = guests.filter((guest: Vendeg) => !guests.includes(guest));
-                    this.guestData$.next(reduced_guests)
-                    this.serviceMessage$.next('success')
+                    this.serviceMessage$.next(response)
                 },
                 error: (error: any) => {
                     this.serviceMessage$.next(error)

@@ -161,8 +161,8 @@
                 <span>Biztosan törölni akarja a kiválasztott vendégeket?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteGuestsDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDeleteSelected()"></button>
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="deleteGuestsDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="confirmDeleteSelected()"></button>
             </ng-template>
         </p-dialog>
 
@@ -186,3 +186,8 @@
         </p-dialog>
     </div>
 </div>
+
+<!-- Loading Overlay -->
+<p-blockUI [autoZIndex]="true" [blocked]="loading">
+    <p-progressSpinner></p-progressSpinner>
+</p-blockUI>

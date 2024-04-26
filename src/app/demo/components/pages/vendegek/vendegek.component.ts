@@ -24,7 +24,7 @@ interface TagColor {
 
 export class VendegekComponent implements OnInit {
 
-    loading: boolean = false;           // Loading overlay trigger value
+    loading: boolean = true;           // Loading overlay trigger value
     tag: Tag = {};
     tagDialog: boolean = false;
     selectedTagColor: TagColor | undefined;
@@ -145,18 +145,27 @@ export class VendegekComponent implements OnInit {
         this.guest = { ...guest };
     }
 
-    confirmDeleteSelected() {
+    async confirmDeleteSelected() {
+        this.loading = true;
         this.deleteGuestsDialog = false;
-        this.selectedGuests.map(selectedGuest => this.guestService.deleteGuest(selectedGuest, this.guests))
+        for (const selectedGuest of this.selectedGuests) {
+            await this.guestService.deleteGuest(selectedGuest)
+            await this.delay(3000)
+        }
         this.guests = this.guests.filter(val => !this.selectedGuests.includes(val))
         this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendégek törölve', life: 3000 })
         this.selectedGuests = []
+        this.loading = false;
+    }
+
+    delay(ms: number) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     confirmDelete() {
         this.deleteGuestDialog = false;
         this.guests = this.guests.filter(val => val.id !== this.guest.id);
-        this.guestService.deleteGuest(this.guest, this.guests)
+        this.guestService.deleteGuest(this.guest)
         this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendég törölve', life: 3000 });
         this.guest = {};
     }
