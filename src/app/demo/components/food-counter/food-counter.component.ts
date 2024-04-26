@@ -139,13 +139,10 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                 // Check whether the guest has already received food in the given meal cycle
                 if (data.lastRfidUsage) {
-                    let lastRfidUsage = new Date(data.lastRfidUsage)
-                    console.log('lastRfidUsage', lastRfidUsage)
-                    let now = new Date()
-                    let timeDiffinMs: number = now.getTime() - lastRfidUsage.getTime();
-                    let twoHoursInMs: number = 2 * 60 * 60 * 1000;
-                    console.log('timeDiffinMs', timeDiffinMs)
-                    if (timeDiffinMs >= twoHoursInMs) {
+                    let lastRfidUsage = moment(new Date(data.lastRfidUsage))
+                    let duration = moment.duration(lastRfidUsage.diff(moment(new Date())));
+                    let hours = duration.asHours();
+                    if (hours < 2) {
                         this.alreadyRecievedFood = true;
                     }
                 }
