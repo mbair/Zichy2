@@ -247,7 +247,7 @@ export class VendegekComponent implements OnInit {
 
     unAssignTag() {
         this.guest.rfid =  '';
-        this.guestService.updateGuest(this.guest, this.guests);
+        this.guestService.updateGuest(this.guest);
         this.submitted = true;
         this.successfullMessage = [{
             severity: 'success',
@@ -259,7 +259,7 @@ export class VendegekComponent implements OnInit {
     save() {
         if (!this.scannedCode) return;
         this.guest.rfid = this.scannedCode;
-        this.guestService.updateGuest(this.guest, this.guests)
+        this.guestService.updateGuest(this.guest)
         this.submitted = true;
         this.successfullMessage = [{
             severity: 'success',

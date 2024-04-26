@@ -46,23 +46,13 @@ export class GuestService {
         return this.http.get(`${this.API}/getbyrfid/${rfid}`);
     }
 
-    public updateGuest(modifiedGuest: Vendeg, guests: Vendeg[]): void {
+    public updateGuest(modifiedGuest: Vendeg): void {
         this.http.put(this.API + '/update/' + modifiedGuest.id, modifiedGuest, {
             observe: 'response',
             responseType: 'json'
         })
             .subscribe({
                 next: (response: any) => {
-                    // Deep Copy of Guests
-                    let guestsClone = JSON.parse(JSON.stringify(guests))
-
-                    // Replace with modified element
-                    guestsClone.forEach((guest: Vendeg, index: number) => {
-                        if (guest.id === modifiedGuest.id) {
-                            guestsClone[index] = modifiedGuest;
-                        }
-                    })
-                    this.guestData$.next(guestsClone)
                     this.serviceMessage$.next('success')
                 },
                 error: (error: any) => {

@@ -118,7 +118,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     updateCurrentMeal(): void {
         this.isOpen = this.mealService.isOpen()
         let mealName = this.mealService.getCurrentMealName()
-        if (mealName !== this.currentMeal){
+        if (mealName !== this.currentMeal) {
             this.currentMeal = mealName
             this.mealsNumber = 0
         }
@@ -129,19 +129,35 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         this.guestService.getByRFID(rfid).subscribe({
             next: (data) => {
 
+                // Update guest information
+                this.guest = data;
+                console.log('Guest data:', data)
+
+                // Define AgeGroup
+                this.setAgeGroup(this.guest.birthDate)
+
                 // Check whether the guest has already received food in the given meal cycle
                 if (data.lastRfidUsage) {
                     let lastRfidUsage = new Date(data.lastRfidUsage)
                     let now = new Date()
+                    let timeDiffinMs: number = now.getTime() - lastRfidUsage.getTime();
+                    let twoHoursInMs: number = 2 * 60 * 60 * 1000;
+
+                    if (timeDiffinMs >= twoHoursInMs) {
+                        this.alreadyRecievedFood = true;
+                    }
                 }
 
+                // The guest is eating for the first time at this meal
+                else {
+                    this.mealsNumber++
 
-                this.guest = data;
-                this.mealsNumber++
-                console.log('Guest data:', data)
-
-                let birthDate = new Date('1985-10-13') // TODO: Remove hardcoded birthDate
-                this.setAgeGroup(birthDate)
+                    // Insert Timestamp to lastRfidUsage
+                    let now = new Date().toLocaleString( 'hu', { timeZoneName: 'short' } );
+                    console.log('now', now)
+                    this.guest.lastRfidUsage = now;
+                    this.guestService.updateGuest(this.guest)
+                }
             },
             error: (error) => {
                 console.error('Error:', error)
@@ -149,15 +165,20 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         })
     }
 
-    setAgeGroup(birthDate: Date) {
-        let ageDifMs = Date.now() - birthDate.getTime();
-        let ageDate = new Date(ageDifMs); // miliseconds from epoch
-        let age = Math.abs(ageDate.getUTCFullYear() - 1970);
-
-        if (age >= ADULT_DOSAGE_AGE_LIMIT) {
-            this.ageGroup = 'felnőtt'
+    setAgeGroup(birthDate: string | undefined): void {
+        if (!birthDate) {
+            this.ageGroup = 'Hibás dátum'
         } else {
-            this.ageGroup = 'gyermek'
+            let birthDateD = new Date(birthDate)
+            let ageDifMs = Date.now() - birthDateD.getTime();
+            let ageDate = new Date(ageDifMs); // miliseconds from epoch
+            let age = Math.abs(ageDate.getUTCFullYear() - 1970);
+
+            if (age >= ADULT_DOSAGE_AGE_LIMIT) {
+                this.ageGroup = 'felnőtt'
+            } else {
+                this.ageGroup = 'gyermek'
+            }
         }
     }
 

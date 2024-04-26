@@ -2,7 +2,7 @@ export interface Guest {
     id?: string;
     firstName?: string;
     lastName?: string;
-    gender?: 0;
+    gender?: number;
     nationality?: string;
     country?: string;
     zipCode?: string;
@@ -11,11 +11,13 @@ export interface Guest {
     firstMeal?: string;
     dateOfDeparture?: string;
     lastMeal?: string;
-    szepCard?: true;
+    szepCard?: number;
     accommodationExtra?: string;
     birthDate?: string;
     rfid?: string;
-    enabled?: true;
+    enabled?: number;
     conferenceName?: string;
-    diet?: string
+    diet?: string;
+    lastRfidUsage?: string;
+    rfidColor?: string;
 }
