@@ -6,21 +6,7 @@ import { GuestService } from '../../service/guest.service';
 import { MealService } from '../../service/meal.service';
 import { Observable } from 'rxjs';
 
-const adultDosageAgeLimit: number = 10;  // From the age of 10, we give an adult dose
-const mealTimes: object = {
-    breakfast: {
-        begin: 7,
-        end: 10
-    },
-    lunch: {
-        begin: 11,
-        end: 15
-    },
-    dinner: {
-        begin: 17,
-        end: 20
-    }
-}
+const ADULT_DOSAGE_AGE_LIMIT: number = 10;  // From the age of 10, we give an adult dose
 
 @Component({
     selector: 'food-counter',
@@ -42,8 +28,8 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     ageGroup: string = '';
     scanTemp: string = '';
     scannedCode: string = '';
-    screenWidth: number = window.screen.width;
-    screenHeight: number = window.screen.height;
+    windowWidth: number;
+    windowHeight: number;
 
     guestsObs$: Observable<any> | undefined;
     serviceMessageObs$: Observable<any> | undefined;
@@ -52,6 +38,10 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         private guestService: GuestService,
         private mealService: MealService,
         private messageService: MessageService) {
+
+        // Tablet size: 854 x 534 px
+        this.windowWidth = window.innerWidth || document.documentElement.clientWidth;
+        this.windowHeight = window.innerHeight || document.documentElement.clientHeight;
     }
 
     ngOnInit() {
@@ -129,6 +119,12 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         }
     }
 
+    @HostListener('window:resize', ['$event'])
+    onResize(event: UIEvent) {
+        this.windowWidth = window.innerWidth || document.documentElement.clientWidth
+        this.windowHeight = window.innerHeight || document.documentElement.clientHeight
+    }
+
     updateCurrentMeal(): void {
         this.isOpen = this.mealService.isOpen()
         this.currentMeal = this.mealService.getCurrentMealName()
@@ -164,7 +160,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         let ageDate = new Date(ageDifMs); // miliseconds from epoch
         let age = Math.abs(ageDate.getUTCFullYear() - 1970);
 
-        if (age >= adultDosageAgeLimit) {
+        if (age >= ADULT_DOSAGE_AGE_LIMIT) {
             this.ageGroup = 'felnőtt'
         } else {
             this.ageGroup = 'gyermek'
