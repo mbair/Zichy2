@@ -154,16 +154,11 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         if (!birthDate) {
             this.ageGroup = 'Hibás dátum'
         } else {
-            let birthDateD = new Date(birthDate)
-            let ageDifMs = Date.now() - birthDateD.getTime();
-            let ageDate = new Date(ageDifMs); // miliseconds from epoch
-            let age = Math.abs(ageDate.getUTCFullYear() - 1970);
-
-            if (age >= ADULT_DOSAGE_AGE_LIMIT) {
-                this.ageGroup = 'felnőtt'
-            } else {
-                this.ageGroup = 'gyermek'
-            }
+            let birthDateD = moment(new Date(birthDate))
+            let duration = moment.duration(moment(new Date()).diff(birthDateD))
+            console.log('duration', duration)
+            let age = duration.asYears()
+            this.ageGroup = age >= ADULT_DOSAGE_AGE_LIMIT ? 'felnőtt' : 'gyermek'
         }
     }
 
