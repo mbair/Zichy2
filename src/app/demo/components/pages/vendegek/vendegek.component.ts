@@ -141,23 +141,23 @@ export class VendegekComponent implements OnInit {
     }
 
     deleteGuest(guest: Vendeg) {
-        console.log('deleteGuest guest', guest)
         this.deleteGuestDialog = true;
         this.guest = { ...guest };
     }
 
     confirmDeleteSelected() {
         this.deleteGuestsDialog = false;
-        this.guests = this.guests.filter(val => !this.selectedGuests.includes(val));
-        this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
-        this.selectedGuests = [];
+        this.selectedGuests.map(selectedGuest => this.guestService.deleteGuest(selectedGuest, this.guests))
+        this.guests = this.guests.filter(val => !this.selectedGuests.includes(val))
+        this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendégek törölve', life: 3000 })
+        this.selectedGuests = []
     }
 
     confirmDelete() {
         this.deleteGuestDialog = false;
         this.guests = this.guests.filter(val => val.id !== this.guest.id);
         this.guestService.deleteGuest(this.guest, this.guests)
-        this.messageService.add({ severity: 'success', summary: '', detail: 'Vendég törölve', life: 3000 });
+        this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendég törölve', life: 3000 });
         this.guest = {};
     }
 
