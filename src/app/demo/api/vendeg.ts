@@ -25,4 +25,6 @@ export interface Vendeg {
     tamogatas?: string;
     indok?: string;
     rfid?: string;
+    lastRfidUsage?: string;
+    rfidColor?: string;
 }

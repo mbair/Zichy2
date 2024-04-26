@@ -240,6 +240,7 @@ export class VendegekComponent implements OnInit {
 
     unAssignTag() {
         this.guest.rfid = '';
+        this.guest.lastRfidUsage = '';
         this.guestService.updateGuest(this.guest);
         let guestsClone = JSON.parse(JSON.stringify(this.guests))
             guestsClone[this.findIndexById(this.guest.id)] = this.guest;
@@ -271,6 +272,25 @@ export class VendegekComponent implements OnInit {
                 this.hideTagDialog()
             }, 200);
         })
+    }
+
+    getDietColor(diet: string): string {
+        switch (diet) {
+            case 'tejmentes':
+                return 'blue';
+            case 'laktózmentes':
+                return 'blue'
+            case 'gluténmentes':
+                return 'yellow'
+            case 'glutén-, laktóz-, tejmentes':
+                return 'red'
+            case 'vegetáriánus':
+                return 'green'
+            case 'nem kér étkezést':
+                return 'silver'
+            default:
+                return 'black'
+        }
     }
 
     @HostListener('window:keypress', ['$event'])
