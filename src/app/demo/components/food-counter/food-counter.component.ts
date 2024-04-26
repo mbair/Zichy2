@@ -82,22 +82,8 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             this.scanTemp = ''
             console.log('scannedCode', this.scannedCode)
 
+            // Query a guest belonging to RFID
             this.getGuestByRFID(this.scannedCode)
-
-            // this.guests.map(guest => {
-            //     if (guest.rfid === this.scannedCode) {
-            //         this.guest = guest
-            //         this.mealsNumber++
-
-            //         let birthDate = new Date('1985-10-13')
-            //         let age: number = this.calculateAge(birthDate)
-            //         if (age >= 18) {
-            //             this.ageGroup = 'felnőtt'
-            //         } else {
-            //             this.ageGroup = 'gyermek'
-            //         }
-            //     }
-            // })
         } else {
             if (event.key === 'ö') {
                 this.scanTemp += '0'
@@ -132,12 +118,12 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                 // Update guest information
                 this.guest = data;
-                console.log('Guest data:', data)
 
                 // Define AgeGroup
                 this.setAgeGroup(this.guest.birthDate)
 
                 // Check whether the guest has already received food in the given meal cycle
+                this.alreadyRecievedFood = false;
                 if (data.lastRfidUsage) {
                     let lastRfidUsage = moment(new Date(data.lastRfidUsage))
                     let duration = moment.duration(lastRfidUsage.diff(moment(new Date())));
