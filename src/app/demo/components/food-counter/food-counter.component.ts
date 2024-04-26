@@ -53,9 +53,6 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             }
         })
 
-        // Get all Guests
-        // this.guestService.getGuests()
-
         // Initalize guest
         this.guest = {
             lastName: '',
@@ -120,7 +117,11 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
     updateCurrentMeal(): void {
         this.isOpen = this.mealService.isOpen()
-        this.currentMeal = this.mealService.getCurrentMealName()
+        let mealName = this.mealService.getCurrentMealName()
+        if (mealName !== this.currentMeal){
+            this.currentMeal = mealName
+            this.mealsNumber = 0
+        }
     }
 
     getGuestByRFID(rfid: string): void {

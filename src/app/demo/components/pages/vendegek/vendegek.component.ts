@@ -61,10 +61,12 @@ export class VendegekComponent implements OnInit {
         })
 
         // Get all Guests
+        this.loading = true;
         this.guestService.getGuests()
 
         this.serviceMessageObs$ = this.guestService.serviceMessageObs;
         this.serviceMessageObs$.subscribe((data) => {
+            this.loading = false;
             if (data) {
                 this.messages1 = this.successfullMessage
             }
@@ -163,11 +165,13 @@ export class VendegekComponent implements OnInit {
     }
 
     confirmDelete() {
+        this.loading = true;
         this.deleteGuestDialog = false;
         this.guests = this.guests.filter(val => val.id !== this.guest.id);
         this.guestService.deleteGuest(this.guest)
         this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendég törölve', life: 3000 });
         this.guest = {};
+        this.loading = false;
     }
 
     hideDialog() {
