@@ -5,6 +5,8 @@ import { Guest } from '../../api/guest';
 import { GuestService } from '../../service/guest.service';
 import { MealService } from '../../service/meal.service';
 import { Observable } from 'rxjs';
+import * as moment from 'moment';
+
 
 const ADULT_DOSAGE_AGE_LIMIT: number = 10;  // From the age of 10, we give an adult dose
 
@@ -125,7 +127,6 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     }
 
     getGuestByRFID(rfid: string): void {
-        console.log('getGuestByRFID', rfid)
         this.guestService.getByRFID(rfid).subscribe({
             next: (data) => {
 
@@ -139,10 +140,11 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 // Check whether the guest has already received food in the given meal cycle
                 if (data.lastRfidUsage) {
                     let lastRfidUsage = new Date(data.lastRfidUsage)
+                    console.log('lastRfidUsage', lastRfidUsage)
                     let now = new Date()
                     let timeDiffinMs: number = now.getTime() - lastRfidUsage.getTime();
                     let twoHoursInMs: number = 2 * 60 * 60 * 1000;
-
+                    console.log('timeDiffinMs', timeDiffinMs)
                     if (timeDiffinMs >= twoHoursInMs) {
                         this.alreadyRecievedFood = true;
                     }
@@ -153,8 +155,8 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                     this.mealsNumber++
 
                     // Insert Timestamp to lastRfidUsage
-                    let now = new Date().toLocaleString( 'hu', { timeZoneName: 'short' } );
-                    console.log('now', now)
+                    let date = new Date();
+                    let now = moment(date).format('YYYY-MM-DD HH:mm:ss')
                     this.guest.lastRfidUsage = now;
                     this.guestService.updateGuest(this.guest)
                 }
