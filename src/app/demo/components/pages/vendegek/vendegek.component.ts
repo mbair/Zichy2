@@ -240,10 +240,12 @@ export class VendegekComponent implements OnInit {
 
     unAssignTag() {
         this.guest.rfid = '';
-        let guestClone = JSON.parse(JSON.stringify(this.guest))
         this.guestService.updateGuest(this.guest);
-        this.guests[this.findIndexById(this.guest.id)] = this.guest;
-        this.submitted = true;
+        let guestsClone = JSON.parse(JSON.stringify(this.guests))
+            guestsClone[this.findIndexById(this.guest.id)] = this.guest;
+            this.guests = guestsClone
+
+            this.submitted = true;
         this.successfullMessage = [{
             severity: 'success',
             summary: '',
@@ -256,7 +258,9 @@ export class VendegekComponent implements OnInit {
         this.guest.rfid = this.scannedCode;
         // this.guestService.updateGuest({ id: this.guest.id, rfid: this.scannedCode})
         this.guestService.updateGuest2(this.guest).subscribe(() => {
-            this.guests[this.findIndexById(this.guest.id)] = this.guest;
+            let guestsClone = JSON.parse(JSON.stringify(this.guests))
+            guestsClone[this.findIndexById(this.guest.id)] = this.guest;
+            this.guests = guestsClone
             this.submitted = true;
             this.successfullMessage = [{
                 severity: 'success',
