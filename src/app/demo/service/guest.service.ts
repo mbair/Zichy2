@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Vendeg } from '../api/vendeg';
@@ -66,6 +66,29 @@ export class GuestService {
             observe: 'response',
             responseType: 'json'
         })
+            .subscribe({
+                next: (response: any) => {
+                    this.serviceMessage$.next(response)
+                },
+                error: (error: any) => {
+                    this.serviceMessage$.next(error)
+                }
+            })
+    }
+
+    public deleteGuests(guests: Vendeg[]): void {
+        let params = {
+            ids: guests.map(guest => guest.id)
+        }
+
+        const req = new HttpRequest(
+            'POST',
+            this.API + '/bulkdelete',
+            params,
+            { responseType: 'json' }
+        )
+
+        this.http.request(req)
             .subscribe({
                 next: (response: any) => {
                     this.serviceMessage$.next(response)

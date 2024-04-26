@@ -147,21 +147,14 @@ export class VendegekComponent implements OnInit {
         this.guest = { ...guest };
     }
 
-    async confirmDeleteSelected() {
+    confirmDeleteSelected() {
         this.loading = true;
         this.deleteGuestsDialog = false;
-        for (const selectedGuest of this.selectedGuests) {
-            await this.guestService.deleteGuest(selectedGuest)
-            await this.delay(3000)
-        }
+        this.guestService.deleteGuests(this.selectedGuests)
         this.guests = this.guests.filter(val => !this.selectedGuests.includes(val))
         this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendégek törölve', life: 3000 })
         this.selectedGuests = []
         this.loading = false;
-    }
-
-    delay(ms: number) {
-        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     confirmDelete() {
@@ -209,7 +202,7 @@ export class VendegekComponent implements OnInit {
         }
     }
 
-    findIndexById(id: string): number {
+    findIndexById(id: string | undefined): number {
         let index = -1;
         for (let i = 0; i < this.products.length; i++) {
             if (this.products[i].id === id) {
@@ -246,8 +239,10 @@ export class VendegekComponent implements OnInit {
     }
 
     unAssignTag() {
-        this.guest.rfid =  '';
+        this.guest.rfid = '';
+        let guestClone = JSON.parse(JSON.stringify(this.guest))
         this.guestService.updateGuest(this.guest);
+        this.guests[this.findIndexById(this.guest.id)] = this.guest;
         this.submitted = true;
         this.successfullMessage = [{
             severity: 'success',
@@ -260,6 +255,7 @@ export class VendegekComponent implements OnInit {
         if (!this.scannedCode) return;
         this.guest.rfid = this.scannedCode;
         this.guestService.updateGuest(this.guest)
+        this.guests[this.findIndexById(this.guest.id)] = this.guest;
         this.submitted = true;
         this.successfullMessage = [{
             severity: 'success',
