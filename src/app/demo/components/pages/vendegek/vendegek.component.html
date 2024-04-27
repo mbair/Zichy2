@@ -24,9 +24,9 @@
                         <th style="width: 3rem">
                             <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                         </th>
-                        <th pSortableColumn="vezeteknev">Név <p-sortIcon field="vezeteknev"></p-sortIcon></th>
-                        <th pSortableColumn="szoba">Szoba <p-sortIcon field="szoba"></p-sortIcon></th>
-                        <th pSortableColumn="etrend">Étrend <p-sortIcon field="etrend"></p-sortIcon></th>
+                        <th pSortableColumn="lastName">Név <p-sortIcon field="lastName"></p-sortIcon></th>
+                        <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
+                        <th pSortableColumn="diet">Étrend <p-sortIcon field="diet"></p-sortIcon></th>
                         <th pSortableColumn="conferenceName">Konferencia <p-sortIcon field="conferenceName"></p-sortIcon></th>
                         <th pSortableColumn="rfid">RFID <p-sortIcon field="rfid"></p-sortIcon></th>
                         <th pSortableColumn="lastRfidUsage">RFID használat<p-sortIcon field="lastRfidUsage"></p-sortIcon></th>
@@ -184,7 +184,8 @@
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="identifier">Címke azonosító</label>
-                        <input pInputText type="text" id="identifier" [value]="scannedCode" readonly autofocus />
+                        <input pInputText type="text" id="identifier" [(ngModel)]="scannedCode" readonly autofocus />
+                        <!-- <span>{{scannedCode.length}}</span> -->
                     </div>
                 </div>
                 <div class="text-center">

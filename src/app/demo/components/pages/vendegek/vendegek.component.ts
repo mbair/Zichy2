@@ -230,7 +230,7 @@ export class VendegekComponent implements OnInit {
     assignTag(guest: any) {
         // Empty previous scanned codes
         this.scanTemp = '';
-        this.scannedCode = '';
+        this.scannedCode = this.guest.rfid || '';
         this.guest = { ...guest };
         this.messages1 = [
             { severity: 'info', summary: '', detail: 'Tartsa az RFID címkét az olvasóhoz...' },
@@ -263,13 +263,15 @@ export class VendegekComponent implements OnInit {
             guestsClone[this.findIndexById(this.guest.id)] = this.guest;
             this.guests = guestsClone
             this.submitted = true;
+            this.scannedCode = '';
+            this.guest = {}
             this.successfullMessage = [{
                 severity: 'success',
                 summary: '',
                 detail: 'Sikeresen hozzárendelte a címkét a vendéghez!'
             }]
             setTimeout(() => {
-                this.hideTagDialog()
+                this.tagDialog = false
             }, 200);
         })
     }
