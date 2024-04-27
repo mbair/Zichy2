@@ -134,23 +134,21 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.alreadyRecievedFood = false;
                 if (data.lastRfidUsage) {
                     let lastRfidUsage = moment(new Date(data.lastRfidUsage))
-                    let duration = moment.duration(lastRfidUsage.diff(moment(new Date())));
+                    let duration = moment.duration(moment(new Date()).diff(lastRfidUsage))
                     let hours = duration.asHours();
                     if (hours < 2) {
-                        this.alreadyRecievedFood = true;
+                        this.alreadyRecievedFood = true
                     }
                 }
 
                 // The guest is eating for the first time at this meal
-                else {
-                    this.mealsNumber++
+                this.mealsNumber++
 
-                    // Insert Timestamp to lastRfidUsage
-                    let date = new Date();
-                    let now = moment(date).format('YYYY-MM-DD HH:mm:ss')
-                    this.guest.lastRfidUsage = now;
-                    this.guestService.updateGuest(this.guest)
-                }
+                // Insert Timestamp to lastRfidUsage
+                let date = new Date();
+                let now = moment(date).format('YYYY-MM-DD HH:mm:ss')
+                this.guest.lastRfidUsage = now;
+                this.guestService.updateGuest(this.guest)
             },
             error: (error) => {
                 console.error('Error:', error)
@@ -160,7 +158,6 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                         firstName: 'ESZKÖZ'
                     }
                 }
-
             }
         })
     }
@@ -169,11 +166,10 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         if (!birthDate) {
             this.ageGroup = 'Hibás dátum'
         } else {
-            let birthDateD = moment(new Date(birthDate))
-            let duration = moment.duration(moment(new Date()).diff(birthDateD))
-            console.log('duration', duration)
+            let birthDateD = moment(new Date(birthDate)),
+                duration = moment.duration(moment(new Date()).diff(birthDateD)),
+                age = duration.asYears()
 
-            let age = duration.asYears()
             this.ageGroup = age >= ADULT_DOSAGE_AGE_LIMIT ? 'felnőtt' : 'gyermek'
         }
     }
