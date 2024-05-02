@@ -1,9 +1,29 @@
 <div class="grid">
     <div class="col-12">
+        <div class="col-12 px-0">
+            <p-tag [style]="{ 'background': 'linear-gradient(-225deg,#AC32E4 0%,#7918F2 48%,#4801FF 100%)'}">
+                <div class="flex align-items-center gap-2">
+                    <i class="pi pi-calendar" style="font-size: 1rem"></i>
+                    <span class="text-base">20240502-20240505 - Érezd és lásd reziliencia női hétvége</span>
+                </div>
+            </p-tag>
+        </div>
+
         <div class="card px-0 py-0">
             <p-toast></p-toast>
-
-            <p-table #dt [value]="guests" responsiveLayout="scroll" [rows]="10" [globalFilterFields]="['firstName', 'lastName']" [paginator]="true" [rowsPerPageOptions]="[10,20,30]" [showCurrentPageReport]="true" currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése" [(selection)]="selectedGuests" selectionMode="multiple" [rowHover]="true" dataKey="id">
+            <p-table #dt
+                     [value]="guests"
+                     responsiveLayout="scroll"
+                     [rows]="20"
+                     [globalFilterFields]="['firstName', 'lastName', 'rfid', 'roomNum', 'diet', 'birthDate', 'dateOfArrival', 'dateOfDeparture', 'firstMeal', 'lastMeal']"
+                     [paginator]="true"
+                     [rowsPerPageOptions]="rowsPerPageOptions"
+                     [showCurrentPageReport]="true"
+                     currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
+                     [(selection)]="selectedGuests"
+                     selectionMode="multiple"
+                     [rowHover]="true"
+                     dataKey="id">
                 <ng-template pTemplate="caption">
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
                         <h5 class="m-0">Vendégek</h5>
@@ -27,12 +47,14 @@
                         <th pSortableColumn="lastName">Név <p-sortIcon field="lastName"></p-sortIcon></th>
                         <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
                         <th pSortableColumn="diet">Étrend <p-sortIcon field="diet"></p-sortIcon></th>
-                        <th pSortableColumn="conferenceName">Konferencia <p-sortIcon field="conferenceName"></p-sortIcon></th>
                         <th pSortableColumn="rfid">RFID <p-sortIcon field="rfid"></p-sortIcon></th>
                         <th pSortableColumn="lastRfidUsage">RFID használat<p-sortIcon field="lastRfidUsage"></p-sortIcon></th>
-                        <!-- <th pSortableColumn="birthDate">Születési dátum <p-sortIcon field="birthDate"></p-sortIcon></th>
-                        <th pSortableColumn="erkezesDate">Érkezés <p-sortIcon field="erkezesDate"></p-sortIcon></th>
-                        <th pSortableColumn="tavozasDate">Távozás <p-sortIcon field="tavozasDate"></p-sortIcon></th> -->
+                        <th pSortableColumn="birthDate">Születési dátum <p-sortIcon field="birthDate"></p-sortIcon></th>
+                        <th pSortableColumn="dateOfArrival">Érkezés <p-sortIcon field="dateOfArrival"></p-sortIcon></th>
+                        <th pSortableColumn="firstMeal">Eslő étkezés <p-sortIcon field="firstMeal"></p-sortIcon></th>
+                        <th pSortableColumn="dateOfDeparture">Távozás <p-sortIcon field="dateOfDeparture"></p-sortIcon></th>
+                        <th pSortableColumn="lastMeal">Utolsó étkezés <p-sortIcon field="lastMeal"></p-sortIcon></th>
+                        <!-- <th pSortableColumn="conferenceName">Konferencia <p-sortIcon field="conferenceName"></p-sortIcon></th> -->
                         <th></th>
                     </tr>
                 </ng-template>
@@ -55,10 +77,7 @@
                                    [style]="{'background': getDietColor(guest.diet)}">
                             </p-tag>
                         </td>
-                        <td style="width:20%; min-width:15rem;">
-                            <span class="p-column-title">Konferencia</span>
-                            {{guest.conferenceName}}
-                        </td>
+
                         <td>
                             <span class="p-column-title">RFID</span>
                             {{guest.rfid}}
@@ -67,7 +86,7 @@
                             <span class="p-column-title">Utolsó RFID használat</span>
                             {{guest.lastRfidUsage | date:'yyyy.MM.dd HH:mm:ss':'UTC' }}
                         </td>
-                        <!-- <td style="width:14%; min-width:8rem;">
+                        <td style="width:14%; min-width:8rem;">
                             <span class="p-column-title">Születési dátum</span>
                             {{guest.birthDate | date:'yyyy.MM.dd'}}
                         </td>
@@ -76,9 +95,17 @@
                             {{guest.dateOfArrival | date:'yyyy.MM.dd'}}
                         </td>
                         <td style="width:10%; min-width:8rem;">
+                            <span class="p-column-title">Első étkezés</span>
+                            {{guest.firstMeal}}
+                        </td>
+                        <td style="width:10%; min-width:8rem;">
                             <span class="p-column-title">Távozás</span>
                             {{guest.dateOfDeparture | date:'yyyy.MM.dd'}}
-                        </td> -->
+                        </td>
+                        <td style="width:10%; min-width:8rem;">
+                            <span class="p-column-title">Utolsó étkezés</span>
+                            {{guest.lastMeal}}
+                        </td>
                         <td>
                             <div class="flex">
                                 <button pButton pRipple icon="pi pi-tags" class="p-button-rounded p-button-success mr-2" (click)="assignTag(guest)"></button>

@@ -39,7 +39,7 @@ export class VendegekComponent implements OnInit {
     submitted: boolean = false;
     cols: any[] = [];
     statuses: any[] = [];
-    rowsPerPageOptions = [5, 10, 20];
+    rowsPerPageOptions = [20, 50, 100];
     tagColors: TagColor[] = []
     messages1: Message[] = [];
     successfullMessage: Message[] = [];
@@ -252,6 +252,9 @@ export class VendegekComponent implements OnInit {
             summary: '',
             detail: 'A címkét eltávolítottuk a vendégtől!'
         }]
+        setTimeout(() => {
+            this.tagDialog = false
+        }, 200)
     }
 
     save() {
