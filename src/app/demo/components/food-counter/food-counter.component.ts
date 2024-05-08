@@ -27,6 +27,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     guests: Guest[];
     loading: boolean = false;
     alreadyRecievedFood: boolean = false;
+    canEat: boolean = false;
     ageGroup: string = '';
     scanTemp: string = '';
     scannedCode: string = '';
@@ -113,7 +114,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
     updateCurrentMeal(): void {
         this.isOpen = this.mealService.isOpen()
-        let mealName = this.mealService.getCurrentMealName()
+        let mealName = this.mealService.getMealNameByTime(new Date())
         if (mealName !== this.currentMeal) {
             this.currentMeal = mealName
             this.mealsNumber = 0
@@ -131,23 +132,72 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.setAgeGroup(this.guest.birthDate)
 
                 // Check whether the guest has already received food in the given meal cycle
+                let today = moment(),
+                    dateOfArrival = moment(new Date(data.dateOfArrival).setHours(0)),
+                    dateOfDeparture = moment(new Date(data.dateOfDeparture).setHours(24));
+
+                if (dateOfArrival <= today && today <= dateOfDeparture) {
+
+                    // The arrival date is today
+                    if (dateOfArrival.isSame(today, 'day')) {
+                        if (this.currentMeal == 'reggeli') {
+                            if (data.firstMeal == 'reggeli') {
+                                this.canEat = true
+                            }
+                        }
+                        else if (this.currentMeal == 'ebéd') {
+                            if (data.firstMeal == 'reggeli' || data.firstMeal == 'ebéd') {
+                                this.canEat = true
+                            }
+                        }
+                        else if (this.currentMeal == 'vacsora') {
+                            if (data.firstMeal == 'reggeli' || data.firstMeal == 'ebéd' || data.firstMeal == 'vacsora') {
+                                this.canEat = true
+                            }
+                        }
+                    }
+
+                    // The departure date is today
+                    if (dateOfDeparture.isSame(today, 'day')) {
+                        if (this.currentMeal == 'reggeli') {
+                            if (data.lastMeal == 'reggeli' || data.lastMeal == 'ebéd' || data.lastMeal == 'vacsora') {
+                                this.canEat = true
+                            }
+                        }
+                        if (this.currentMeal == 'ebéd') {
+                            if (data.lastMeal == 'ebéd' || data.lastMeal == 'vacsora') {
+                                this.canEat = true
+                            }
+                        }
+                        else if (this.currentMeal == 'vacsora') {
+                            if (data.lastMeal == 'vacsora') {
+                                this.canEat = true
+                            }
+                        }
+                    }
+                }
+
                 this.alreadyRecievedFood = false;
                 if (data.lastRfidUsage) {
-                    let lastRfidUsage = moment(new Date(data.lastRfidUsage))
-                    let duration = moment.duration(moment(new Date()).diff(lastRfidUsage))
-                    let hours = duration.asHours();
-                    if (hours < 2) {
+                    let lastRfidUsage = new Date(data.lastRfidUsage)
+                        lastRfidUsage = new Date(lastRfidUsage.getTime() - (2 * 60 * 60 * 1000)) // TODO: TimeZone bug
+
+                    let lastMeal = this.mealService.getMealNameByTime(lastRfidUsage)
+                    if (this.currentMeal == lastMeal) {
                         this.alreadyRecievedFood = true
                     }
+                    // let duration = moment.duration(moment().diff(lastRfidUsage))
+                    // let hours = duration.asHours();
+                    // if (hours < 2) {
+                    //     this.alreadyRecievedFood = true
+                    // }
                 }
 
                 // The guest is eating for the first time at this meal
                 this.mealsNumber++
 
                 // Insert Timestamp to lastRfidUsage
-                let date = new Date();
-                let now = moment(date).format('YYYY-MM-DD HH:mm:ss')
-                this.guest.lastRfidUsage = now;
+                this.guest.lastRfidUsage = moment().format('YYYY-MM-DD HH:mm:ss');
                 this.guestService.updateGuest(this.guest)
             },
             error: (error) => {

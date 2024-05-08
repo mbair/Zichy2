@@ -8,7 +8,7 @@ export class MealService {
 
     mealChanged: Subject<string> = new Subject<string>()
 
-    mealTimes: any = {
+    meals: any = {
         breakfast: {
             begin: 7,
             end: 10
@@ -34,8 +34,8 @@ export class MealService {
         const now = new Date()
         const currentHour = now.getHours()
 
-        for (const mealName of Object.keys(this.mealTimes)) {
-            const meal = this.mealTimes[mealName];
+        for (const mealName of Object.keys(this.meals)) {
+            const meal = this.meals[mealName];
             if (currentHour >= meal.begin && currentHour < meal.end) {
                 this.mealChanged.next(mealName)
                 // Once the current meal has been found, there is no need to search further
@@ -44,22 +44,22 @@ export class MealService {
         }
     }
 
-    getCurrentMealName(): string {
-        const currentHour = new Date().getHours();
-        for (const mealName in this.mealTimes) {
-            const meal = this.mealTimes[mealName];
-            if (currentHour >= meal.begin && currentHour < meal.end) {
-                return this.translateMealName(mealName);
+    getMealNameByTime(time: Date): string {
+        const hour = time.getHours()
+        for (const mealName in this.meals) {
+            const meal = this.meals[mealName];
+            if (hour >= meal.begin && hour <= meal.end) {
+                return this.translateMealName(mealName)
             }
         }
-        return "Jelenleg nincs étkeztetés";
+        return "Jelenleg nincs étkeztetés"
     }
 
     translateMealName(mealName: string): string {
         const translations: any = {
-            breakfast: 'Reggeli',
-            lunch: 'Ebéd',
-            dinner: 'Vacsora',
+            breakfast: 'reggeli',
+            lunch: 'ebéd',
+            dinner: 'vacsora',
         }
 
         return translations[mealName] || mealName;
@@ -67,8 +67,8 @@ export class MealService {
 
     isOpen(): boolean {
         const currentHour = new Date().getHours();
-        for (const mealName in this.mealTimes) {
-            const meal = this.mealTimes[mealName];
+        for (const mealName in this.meals) {
+            const meal = this.meals[mealName];
             if (currentHour >= meal.begin && currentHour < meal.end) {
                 return true
             }
