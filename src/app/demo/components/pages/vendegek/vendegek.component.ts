@@ -5,7 +5,7 @@ import { Product } from 'src/app/demo/api/product';
 import { Vendeg } from 'src/app/demo/api/vendeg';
 import { GuestService } from 'src/app/demo/service/guest.service';
 import { Message, MessageService } from 'primeng/api';
-import { Table } from 'primeng/table';
+import { Table, TableRowCollapseEvent, TableRowExpandEvent } from 'primeng/table';
 import { Tag } from 'src/app/demo/api/tag';
 
 
@@ -45,6 +45,8 @@ export class VendegekComponent implements OnInit {
     successfullMessage: Message[] = [];
     scanTemp: string = '';
     scannedCode: string = '';
+    tableData: any;
+    expandedRows = {};
 
     guestsObs$: Observable<any> | undefined;
     serviceMessageObs$: Observable<any> | undefined;
@@ -56,7 +58,9 @@ export class VendegekComponent implements OnInit {
         this.guestsObs$.subscribe((data) => {
             this.loading = false;
             if (data) {
-                this.guests = data;
+
+                // Filter out test users
+                this.guests = data.filter((guest: any) => guest.lastName !== "Gábris");
             }
         })
 
@@ -64,6 +68,7 @@ export class VendegekComponent implements OnInit {
         this.loading = true;
         this.guestService.getGuests()
 
+        // Message
         this.serviceMessageObs$ = this.guestService.serviceMessageObs;
         this.serviceMessageObs$.subscribe((data) => {
             this.loading = false;
@@ -72,14 +77,15 @@ export class VendegekComponent implements OnInit {
             }
         })
 
-
         this.cols = [
-            { field: 'product', header: 'Product' },
-            { field: 'price', header: 'Price' },
-            { field: 'category', header: 'Category' },
-            { field: 'rating', header: 'Reviews' },
-            { field: 'inventoryStatus', header: 'Status' }
-        ];
+            { field: 'name', header: 'Név' },  // lastName + firstName
+            { field: 'roomNum', header: 'Szoba' },
+            { field: 'diet', header: 'Étrend' },
+            { field: 'rfid', header: 'RFID' },
+            { field: 'lastRfidUsage', header: 'RFID használat' },
+            { field: 'dateOfArrival', header: 'Érkezés' },
+            { field: 'dateOfDeparture', header: 'Távozás' }
+        ]
 
         this.tagColors = [
             { name: 'fekete', code: 'black' },
@@ -125,6 +131,23 @@ export class VendegekComponent implements OnInit {
                 indok: 'szervező'
             }
         ]
+    }
+
+    expandAll() {
+        // this.expandedRows = this.guests.reduce((acc, g) => (acc[g.id] = 'undefined') && acc, {});
+        this.expandedRows = {};
+    }
+
+    collapseAll() {
+        this.expandedRows = {};
+    }
+
+    onRowExpand(event: TableRowExpandEvent) {
+        // this.messageService.add({ severity: 'info', summary: 'Product Expanded', detail: event.data.name, life: 3000 });
+    }
+
+    onRowCollapse(event: TableRowCollapseEvent) {
+        // this.messageService.add({ severity: 'success', summary: 'Product Collapsed', detail: event.data.name, life: 3000 });
     }
 
     openNew() {
@@ -243,10 +266,10 @@ export class VendegekComponent implements OnInit {
         this.guest.lastRfidUsage = '';
         this.guestService.updateGuest(this.guest);
         let guestsClone = JSON.parse(JSON.stringify(this.guests))
-            guestsClone[this.findIndexById(this.guest.id)] = this.guest;
-            this.guests = guestsClone
+        guestsClone[this.findIndexById(this.guest.id)] = this.guest;
+        this.guests = guestsClone
 
-            this.submitted = true;
+        this.submitted = true;
         this.successfullMessage = [{
             severity: 'success',
             summary: '',
@@ -307,7 +330,7 @@ export class VendegekComponent implements OnInit {
             this.scanTemp = ''
             console.log('scannedCode', this.scannedCode)
         } else {
-            if (event.key === 'ö'){
+            if (event.key === 'ö') {
                 this.scanTemp += '0'
             }
             else if (/^[0-9]$/i.test(event.key)) {

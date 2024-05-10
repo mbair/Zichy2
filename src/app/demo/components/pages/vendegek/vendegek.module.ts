@@ -19,6 +19,7 @@ import { DialogModule } from 'primeng/dialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { TagModule } from 'primeng/tag';
+import { TreeTableModule } from 'primeng/treetable';
 
 @NgModule({
     imports: [
@@ -40,7 +41,8 @@ import { TagModule } from 'primeng/tag';
         DialogModule,
         ProgressSpinnerModule,
         BlockUIModule,
-        TagModule
+        TagModule,
+        TreeTableModule
     ],
     declarations: [VendegekComponent]
 })
