@@ -2,7 +2,7 @@
 
     <div class="header" [ngClass]="isOpen ? 'bg-teal-500' : 'bg-red-500' ">
         <div class="p-1 font-medium text-center text-2xl text-white white-space-nowrap">
-            {{ (currentMeal | titlecase) || "Jelenleg nincs étkeztetés!" }}
+            {{ isOpen ? (currentMeal | titlecase) : "Jelenleg nincs étkeztetés!" }}
         </div>
         <div class="absolute top-0 right-0 p-2 text-white text-sm ">
             {{ windowWidth }}x{{ windowHeight }}
