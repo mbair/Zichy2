@@ -157,6 +157,11 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                         }
                     }
 
+                    // Intermediate days
+                    if (dateOfArrival !== today && today !== dateOfDeparture){
+                        this.canEat = true
+                    }
+
                     // The departure date is today
                     if (dateOfDeparture.isSame(today, 'day')) {
                         if (this.currentMeal == 'reggeli') {
