@@ -80,11 +80,11 @@
                             {{guest.lastName}} {{guest.firstName}}
                             <span *ngIf="guest.rfid" class="pi pi-tag"></span>
                         </td>
-                        <td class="text-center" style="width:10%; min-width:7rem;">
+                        <td class="text-center" style="width:8%; min-width:6rem;">
                             <span class="p-column-title">Szoba</span>
                             {{guest.roomNum}}
                         </td>
-                        <td style="width:14%; min-width:10rem;">
+                        <td style="width:12%; min-width:9rem;">
                             <span class="p-column-title">Étrend</span>
                             <p-tag [value]="guest.diet"
                                    [style]="{'background': getDietColor(guest.diet)}">
@@ -98,11 +98,11 @@
                             <span class="p-column-title">Utolsó RFID használat</span>
                             {{guest.lastRfidUsage | date:'yyyy.MM.dd HH:mm:ss':'UTC' }}
                         </td>
-                        <td style="width:10%; min-width:8rem;">
+                        <td style="width:9%; min-width:8rem;">
                             <span class="p-column-title">Érkezés</span>
                             {{guest.dateOfArrival | date:'yyyy.MM.dd'}}
                         </td>
-                        <td style="width:10%; min-width:8rem;">
+                        <td style="width:9%; min-width:8rem;">
                             <span class="p-column-title">Távozás</span>
                             {{guest.dateOfDeparture | date:'yyyy.MM.dd'}}
                         </td>
