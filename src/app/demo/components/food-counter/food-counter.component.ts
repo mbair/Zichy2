@@ -63,6 +63,11 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
         // Initalize guest
         this.resetGuest()
+
+        // TODO: TESZT
+        // setTimeout(() => {
+        //     this.getGuestByRFID('127921')
+        // }, 500);
     }
 
     public resetGuest() {
@@ -87,6 +92,14 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             this.scannedCode = this.scanTemp
             this.scanTemp = ''
             console.log('scannedCode', this.scannedCode)
+
+            // Show scannedCode in Toast message
+            // this.messageService.add({
+            //     severity: 'info',
+            //     summary: 'Beolvasott kód',
+            //     detail: this.scannedCode,
+            //     life: 10000
+            // })
 
             // Reset Guest
             this.resetGuest()

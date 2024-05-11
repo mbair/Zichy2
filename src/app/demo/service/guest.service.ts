@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, of, tap } from 'rxjs';
-import { Vendeg } from '../api/vendeg';
+import { Guest } from '../api/guest';
 
 @Injectable({
     providedIn: 'root',
@@ -51,7 +51,7 @@ export class GuestService {
         return this.http.get(`${this.API}/getbyrfid/${rfid}`);
     }
 
-    public updateGuest(modifiedGuest: Vendeg): void {
+    public updateGuest(modifiedGuest: Guest): void {
         this.http.put(this.API + '/update/' + modifiedGuest.id, modifiedGuest, {
             observe: 'response',
             responseType: 'json'
@@ -66,14 +66,14 @@ export class GuestService {
             })
     }
 
-    public updateGuest2(modifiedGuest: Vendeg): Observable<any> {
+    public updateGuest2(modifiedGuest: Guest): Observable<any> {
         return this.http.put(this.API + '/update/' + modifiedGuest.id, modifiedGuest, this.httpOptions).pipe(
             tap(_ => console.log(`updated guest id=${modifiedGuest.id}`)),
             catchError(this.handleError<any>('updateGuest2'))
         )
     }
 
-    public deleteGuest(guest: Vendeg): void {
+    public deleteGuest(guest: Guest): void {
         this.http.delete(this.API + '/delete/' + guest.id, {
             observe: 'response',
             responseType: 'json'
@@ -88,7 +88,7 @@ export class GuestService {
             })
     }
 
-    public deleteGuests(guests: Vendeg[]): void {
+    public deleteGuests(guests: Guest[]): void {
         let params = {
             ids: guests.map(guest => guest.id)
         }

@@ -5,7 +5,8 @@
             {{ isOpen ? (currentMeal | titlecase) : "Jelenleg nincs étkeztetés!" }}
         </div>
         <div class="absolute top-0 right-0 p-2 text-white text-sm ">
-            {{ windowWidth }}x{{ windowHeight }}
+            <!-- {{ windowWidth }}x{{ windowHeight }} -->
+            {{ this.scannedCode }}
         </div>
     </div>
 
@@ -116,3 +117,5 @@
         </div>
     </div>
 </div>
+
+<p-toast></p-toast>

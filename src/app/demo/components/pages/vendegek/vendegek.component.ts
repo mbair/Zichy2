@@ -2,11 +2,11 @@ import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { Product } from 'src/app/demo/api/product';
-import { Vendeg } from 'src/app/demo/api/vendeg';
 import { GuestService } from 'src/app/demo/service/guest.service';
 import { Message, MessageService } from 'primeng/api';
 import { Table, TableRowCollapseEvent, TableRowExpandEvent } from 'primeng/table';
 import { Tag } from 'src/app/demo/api/tag';
+import { Guest } from 'src/app/demo/api/guest';
 
 
 
@@ -28,13 +28,13 @@ export class VendegekComponent implements OnInit {
     tag: Tag = {};
     tagDialog: boolean = false;
     selectedTagColor: TagColor | undefined;
-    productDialog: boolean = false;
+    guestDialog: boolean = false;
     deleteGuestDialog: boolean = false;
     deleteGuestsDialog: boolean = false;
     products: Product[] = [];
     product: Product = {};
-    guests: Vendeg[] = [];
-    guest: Vendeg = {};
+    guests: Guest[] = [];
+    guest: Guest = {};
     selectedGuests: Product[] = [];
     submitted: boolean = false;
     cols: any[] = [];
@@ -103,34 +103,34 @@ export class VendegekComponent implements OnInit {
             { label: 'MEGTELT', value: 'MEGTELT' }
         ];
 
-        this.guests = [
-            {
-                vezeteknev: 'Szabó',
-                keresztnev: 'Dóra',
-                szoba: 'L13B',
-                fizmod: 'Banki',
-                etrend: 'vegetáriánus',
-                gyulekezet: 'Golgota Budapest',
-                nem: 'nő',
-                email: 'szabodora@gmail.com',
-                telefon: '06201234567',
-                szuldatum: '1989.01.01.',
-                korcsoport: '18 év feletti',
-                allampolgarsag: 'HU',
-                orszag: 'Hungary',
-                irsz: '2233',
-                erkezesDate: '2022.08.07.',
-                elsoEtkezes: 'vacsora',
-                tavozasDate: '2022.08.12.',
-                utolsoEtkezes: 'ebéd',
-                pentekEbed: 'Igen, kérek',
-                szallasTipus: 'Apartman',
-                szobaIgeny: '',
-                babaAgy: 'nem',
-                tamogatas: 'teljes',
-                indok: 'szervező'
-            }
-        ]
+        // this.guests = [
+        //     {
+        //         vezeteknev: 'Szabó',
+        //         keresztnev: 'Dóra',
+        //         szoba: 'L13B',
+        //         fizmod: 'Banki',
+        //         etrend: 'vegetáriánus',
+        //         gyulekezet: 'Golgota Budapest',
+        //         nem: 'nő',
+        //         email: 'szabodora@gmail.com',
+        //         telefon: '06201234567',
+        //         szuldatum: '1989.01.01.',
+        //         korcsoport: '18 év feletti',
+        //         allampolgarsag: 'HU',
+        //         orszag: 'Hungary',
+        //         irsz: '2233',
+        //         erkezesDate: '2022.08.07.',
+        //         elsoEtkezes: 'vacsora',
+        //         tavozasDate: '2022.08.12.',
+        //         utolsoEtkezes: 'ebéd',
+        //         pentekEbed: 'Igen, kérek',
+        //         szallasTipus: 'Apartman',
+        //         szobaIgeny: '',
+        //         babaAgy: 'nem',
+        //         tamogatas: 'teljes',
+        //         indok: 'szervező'
+        //     }
+        // ]
     }
 
     expandAll() {
@@ -153,19 +153,19 @@ export class VendegekComponent implements OnInit {
     openNew() {
         this.product = {};
         this.submitted = false;
-        this.productDialog = true;
+        this.guestDialog = true;
     }
 
     deleteSelectedGuests() {
         this.deleteGuestsDialog = true;
     }
 
-    editProduct(product: Product) {
-        this.product = { ...product };
-        this.productDialog = true;
+    editGuest(guest: Guest) {
+        this.guest = { ...guest };
+        this.guestDialog = true;
     }
 
-    deleteGuest(guest: Vendeg) {
+    deleteGuest(guest: Guest) {
         this.deleteGuestDialog = true;
         this.guest = { ...guest };
     }
@@ -191,7 +191,7 @@ export class VendegekComponent implements OnInit {
     }
 
     hideDialog() {
-        this.productDialog = false;
+        this.guestDialog = false;
         this.submitted = false;
     }
 
@@ -220,7 +220,7 @@ export class VendegekComponent implements OnInit {
             }
 
             this.products = [...this.products];
-            this.productDialog = false;
+            this.guestDialog = false;
             this.product = {};
         }
     }

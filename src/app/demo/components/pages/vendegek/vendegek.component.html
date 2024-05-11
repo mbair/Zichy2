@@ -109,7 +109,7 @@
                         <td>
                             <div class="flex">
                                 <button pButton pRipple icon="pi pi-tags" class="p-button-rounded p-button-success mr-2" (click)="assignTag(guest)"></button>
-                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editProduct(product)"></button>
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editGuest(guest)"></button>
                                 <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteGuest(guest)"></button>
                             </div>
                         </td>
@@ -164,27 +164,26 @@
             </p-table>
         </div>
 
-        <p-dialog [(visible)]="productDialog" [style]="{width: '450px'}" header="Vendég adatai" [modal]="true" class="p-fluid">
+        <p-dialog [(visible)]="guestDialog" [style]="{width: '450px'}" header="Vendég adatai" [modal]="true" class="p-fluid">
             <ng-template pTemplate="content">
-                <img [src]="'assets/demo/images/product/' + product.image" [alt]="product.image" width="150" class="mt-0 mx-auto mb-5 block shadow-2" *ngIf="product.image">
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="price">Vezetéknév</label>
-                        <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD" locale="en-US"></p-inputNumber>
+                        <label for="lastName">Vezetéknév</label>
+                        <input type="text" pInputText [(ngModel)]="guest.lastName" />
                     </div>
                     <div class="field col">
-                        <label for="quantity">Keresztnév</label>
-                        <p-inputNumber id="quantity" [(ngModel)]="product.quantity"></p-inputNumber>
+                        <label for="firstName">Keresztnév</label>
+                        <input type="text" pInputText [(ngModel)]="guest.firstName" />
                     </div>
                 </div>
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="price">Szoba</label>
-                        <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD" locale="en-US"></p-inputNumber>
+                        <label for="roomNum">Szoba</label>
+                        <p-input id="roomNum" [(ngModel)]="guest.roomNum"></p-input>
                     </div>
                     <div class="field col">
-                        <label for="quantity">Étrend</label>
-                        <p-inputNumber id="quantity" [(ngModel)]="product.quantity"></p-inputNumber>
+                        <label for="diet">Étrend</label>
+                        <p-input id="diet" [(ngModel)]="guest.diet"></p-input>
                     </div>
                 </div>
 
