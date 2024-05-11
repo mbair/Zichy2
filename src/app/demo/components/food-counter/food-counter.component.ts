@@ -7,6 +7,7 @@ import { MealService } from '../../service/meal.service';
 import { LogService } from '../../service/log.service';
 import { Observable } from 'rxjs';
 import * as moment from 'moment';
+moment.locale('hu')
 
 
 const ADULT_DOSAGE_AGE_LIMIT: number = 10;  // From the age of 10, we give an adult dose
@@ -55,9 +56,13 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             this.loading = false;
             if (data) {
                 this.guests = data;
+                this.setCurrentMealsNumber()
             }
         })
+        // Get guests to define current meals number
+        this.guestService.getGuests()
 
+        // Listen to meal changes
         this.mealService.mealChanged.subscribe(() => {
             this.updateCurrentMeal()
         })
@@ -70,8 +75,6 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         // setTimeout(() => {
         //     this.getGuestByRFID('127921')
         // }, 500);
-
-
     }
 
     public resetGuest() {
@@ -208,11 +211,17 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.alreadyRecievedFood = false;
                 if (data.lastRfidUsage) {
                     let lastRfidUsage = new Date(data.lastRfidUsage)
-                        lastRfidUsage = new Date(lastRfidUsage.getTime() - (2 * 60 * 60 * 1000)) // TODO: TimeZone bug
+                        // lastRfidUsage = new Date(lastRfidUsage.getTime() - (2 * 60 * 60 * 1000)) // TODO: TimeZone bug
 
                     let lastMeal = this.mealService.getMealNameByTime(lastRfidUsage)
                     if (this.currentMeal == lastMeal) {
                         this.alreadyRecievedFood = true
+
+                        // Logging error
+                        this.logService.createLog({
+                            name: "FoodCounter Already received food: " + this.guest.lastName + " " + this.guest.firstName + this.scannedCode,
+                            capacity: 0
+                        })
                     }
                     // let duration = moment.duration(moment().diff(lastRfidUsage))
                     // let hours = duration.asHours();
@@ -235,6 +244,12 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                         lastName: 'ISMERETLEN',
                         firstName: 'ESZKÖZ'
                     }
+
+                    // Logging error
+                    this.logService.createLog({
+                        name: "FoodCounter Unknown Device: " + this.scannedCode,
+                        capacity: 0
+                    })
                 }
             }
         })
@@ -250,6 +265,24 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
             this.ageGroup = age >= ADULT_DOSAGE_AGE_LIMIT ? 'felnőtt' : 'gyermek'
         }
+    }
+
+    setCurrentMealsNumber(): void {
+        // Find guests who has used their RFID's
+        this.guests.map(guest => {
+            if (guest.lastRfidUsage) {
+                let lastRfidUsage = moment(new Date(guest.lastRfidUsage))
+
+                // Usage was today
+                let today = moment()
+                if (lastRfidUsage.isSame(today, 'day')) {
+                    let lastMeal = this.mealService.getMealNameByTime(new Date(guest.lastRfidUsage))
+                    if (this.currentMeal == lastMeal) {
+                        this.mealsNumber++
+                    }
+                }
+            }
+        })
     }
 
     ngOnDestroy() {
