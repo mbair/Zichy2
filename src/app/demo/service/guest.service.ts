@@ -50,6 +50,21 @@ export class GuestService {
         return this.http.get(`${this.API}/getbyrfid/${rfid}`);
     }
 
+    public createGuest(guest: Guest): void {
+        this.http.post(this.API + '/create', guest, {
+            observe: 'response',
+            responseType: 'json'
+        })
+            .subscribe({
+                next: (response: any) => {
+                    this.serviceMessage$.next('success')
+                },
+                error: (error: any) => {
+                    this.serviceMessage$.next(error)
+                }
+            })
+    }
+
     public updateGuest(modifiedGuest: Guest): void {
         this.http.put(this.API + '/update/' + modifiedGuest.id, modifiedGuest, {
             observe: 'response',

@@ -179,52 +179,81 @@
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="roomNum">Szoba</label>
-                        <p-input id="roomNum" [(ngModel)]="guest.roomNum"></p-input>
+                        <input type="text" pInputText [(ngModel)]="guest.roomNum" />
                     </div>
                     <div class="field col">
-                        <label for="diet">Étrend</label>
-                        <p-input id="diet" [(ngModel)]="guest.diet"></p-input>
+                        <label for="diet">RFID</label>
+                        <input type="text" pInputText [(ngModel)]="guest.rfid" />
                     </div>
                 </div>
-
                 <div class="field">
                     <label for="status">Étrend</label>
-                    <p-dropdown [(ngModel)]="product.inventoryStatus" inputId="inventoryStatus" optionValue="label" [options]="statuses" placeholder="Válasszon étrendet...">
+                    <p-dropdown [(ngModel)]="guest.diet" inputId="diet" optionValue="label" [options]="diets" placeholder="Válasszon étrendet...">
                         <ng-template pTemplate="selectedItem">
-                            <span *ngIf="product && product.inventoryStatus" [class]="'product-badge status-' + product.inventoryStatus.toString().toLowerCase()">{{product.inventoryStatus}}</span>
+                            <span *ngIf="guest && guest.diet">{{guest.diet}}</span>
                         </ng-template>
                         <ng-template let-option pTemplate="item">
-                            <span [class]="'product-badge status-' + option.value">{{option.label}}</span>
+                            <span>{{option.label}}</span>
                         </ng-template>
                     </p-dropdown>
                 </div>
-
-                <div class="formgrid grid">
-                    <div class="field col">
-                        <label for="price">Gyülekezet</label>
-                        <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD" locale="en-US"></p-inputNumber>
-                    </div>
-                    <div class="field col">
-                        <label for="quantity">Telefon</label>
-                        <p-inputNumber id="quantity" [(ngModel)]="product.quantity"></p-inputNumber>
-                    </div>
-                </div>
-
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="price">Érkezés</label>
-                        <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD" locale="en-US"></p-inputNumber>
+                        <input type="text" pInputText [(ngModel)]="guest.dateOfArrival" />
                     </div>
                     <div class="field col">
-                        <label for="quantity">Távozás</label>
-                        <p-inputNumber id="quantity" [(ngModel)]="product.quantity"></p-inputNumber>
+                        <label for="quantity">Első étkezés</label>
+                        <input type="text" pInputText [(ngModel)]="guest.firstMeal" />
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="price">Távozás</label>
+                        <input type="text" pInputText [(ngModel)]="guest.dateOfArrival" />
+                    </div>
+                    <div class="field col">
+                        <label for="quantity">Utolsó étkezés</label>
+                        <input type="text" pInputText [(ngModel)]="guest.lastMeal" />
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="price">Nem</label>
+                        <input type="text" pInputText [(ngModel)]="guest.gender" />
+                    </div>
+                    <div class="field col">
+                        <label for="quantity">Születési dátum</label>
+                        <input type="text" pInputText [(ngModel)]="guest.birthDate" />
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="price">Ország</label>
+                        <input type="text" pInputText [(ngModel)]="guest.country" />
+                    </div>
+                    <div class="field col">
+                        <label for="quantity">Nemzetiség</label>
+                        <input type="text" pInputText [(ngModel)]="guest.nationality" />
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="price">SZÉP kártya</label>
+                        <input type="text" pInputText [(ngModel)]="guest.szepCard" />
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="quantity">Extra</label>
+                        <textarea rows="5" cols="30" pInputTextarea [(ngModel)]="guest.accommodationExtra"></textarea>
                     </div>
                 </div>
             </ng-template>
 
             <ng-template pTemplate="footer">
                 <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
-                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="saveProduct()"></button>
+                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="saveGuest()"></button>
             </ng-template>
         </p-dialog>
 

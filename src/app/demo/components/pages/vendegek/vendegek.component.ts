@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, isDevMode } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { Product } from 'src/app/demo/api/product';
@@ -38,6 +38,7 @@ export class VendegekComponent implements OnInit {
     selectedGuests: Product[] = [];
     submitted: boolean = false;
     cols: any[] = [];
+    diets: any[] = [];
     statuses: any[] = [];
     rowsPerPageOptions = [20, 50, 100];
     tagColors: TagColor[] = []
@@ -59,8 +60,13 @@ export class VendegekComponent implements OnInit {
             this.loading = false;
             if (data) {
 
-                // Filter out test users
-                this.guests = data.filter((guest: any) => guest.lastName !== "Gábris");
+                this.guests = data
+
+                // Filter out test users on production
+                console.log('isDevMode()', isDevMode())
+                if (!isDevMode()) {
+                    this.guests = data.filter((guest: any) => guest.lastName !== "Gábris")
+                }
             }
         })
 
@@ -95,13 +101,15 @@ export class VendegekComponent implements OnInit {
             { name: 'kék', code: 'blue' }
         ]
 
-
-
-        this.statuses = [
-            { label: 'FOGLALHATO', value: 'FOGLALHATO' },
-            { label: 'MAJDNEMTELE', value: 'MAJDNEMTELE' },
-            { label: 'MEGTELT', value: 'MEGTELT' }
-        ];
+        this.diets = [
+            { label: 'normál', value: 'normál' },
+            { label: 'tejmentes', value: 'tejmentes' },
+            { label: 'laktózmentes', value: 'laktózmentes' },
+            { label: 'gluténmentes', value: 'gluténmentes' },
+            { label: 'glutén-, laktóz-, tejmentes', value: 'glutén-, laktóz-, tejmentes' },
+            { label: 'vegetáriánus', value: 'vegetáriánus' },
+            { label: 'nem kér étkezést', value: 'nem kér étkezést' }
+        ]
 
         // this.guests = [
         //     {
@@ -200,28 +208,33 @@ export class VendegekComponent implements OnInit {
         this.submitted = false;
     }
 
-    saveProduct() {
+    saveGuest() {
         this.submitted = true;
 
-        if (this.product.name?.trim()) {
-            if (this.product.id) {
-                // @ts-ignore
-                this.product.inventoryStatus = this.product.inventoryStatus.value ? this.product.inventoryStatus.value : this.product.inventoryStatus;
-                this.products[this.findIndexById(this.product.id)] = this.product;
-                this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
+        if (this.guest.firstName?.trim()) {
+            if (this.guest.id) {
+                this.guestService.updateGuest(this.guest)
+                this.guests[this.findIndexById(this.guest.id)] = this.guest;
+                this.submitted = true;
+                this.successfullMessage = [{
+                    severity: 'success',
+                    summary: '',
+                    detail: 'Sikeres vendégmódosítás!'
+                }]
             } else {
-                this.product.id = this.createId();
-                this.product.code = this.createId();
-                this.product.image = 'product-placeholder.svg';
-                // @ts-ignore
-                this.product.inventoryStatus = this.product.inventoryStatus ? this.product.inventoryStatus.value : 'FOGLALHATO';
-                this.products.push(this.product);
-                this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
+                this.guestService.createGuest(this.guest)
+                this.guests.push(this.guest)
+                this.submitted = true;
+                this.successfullMessage = [{
+                    severity: 'success',
+                    summary: '',
+                    detail: 'Sikeres vendég rögzítés!'
+                }]
             }
 
-            this.products = [...this.products];
-            this.guestDialog = false;
-            this.product = {};
+            this.guests = [...this.guests]
+            this.guestDialog = false
+            this.guest = {}
         }
     }
 
@@ -268,7 +281,6 @@ export class VendegekComponent implements OnInit {
         let guestsClone = JSON.parse(JSON.stringify(this.guests))
         guestsClone[this.findIndexById(this.guest.id)] = this.guest;
         this.guests = guestsClone
-
         this.submitted = true;
         this.successfullMessage = [{
             severity: 'success',
