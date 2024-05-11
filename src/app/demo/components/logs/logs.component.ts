@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { Message, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { Observable } from 'rxjs';
@@ -11,6 +12,7 @@ import { Log } from '../../api/log';
     providers: [MessageService]
 })
 
+@AutoUnsubscribe()
 
 export class LogsComponent implements OnInit {
 
@@ -51,4 +53,6 @@ export class LogsComponent implements OnInit {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
 
+    ngOnDestroy(): void {
+    }
 }

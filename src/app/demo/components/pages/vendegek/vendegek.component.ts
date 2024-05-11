@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { Product } from 'src/app/demo/api/product';
 import { GuestService } from 'src/app/demo/service/guest.service';
+import { LogService } from 'src/app/demo/service/log.service';
 import { Message, MessageService } from 'primeng/api';
 import { Table, TableRowCollapseEvent, TableRowExpandEvent } from 'primeng/table';
 import { Tag } from 'src/app/demo/api/tag';
@@ -52,18 +53,16 @@ export class VendegekComponent implements OnInit {
     guestsObs$: Observable<any> | undefined;
     serviceMessageObs$: Observable<any> | undefined;
 
-    constructor(private guestService: GuestService, private messageService: MessageService) { }
+    constructor(private guestService: GuestService, private messageService: MessageService, private logService: LogService) { }
 
     ngOnInit() {
         this.guestsObs$ = this.guestService.guestObs;
         this.guestsObs$.subscribe((data) => {
-            this.loading = false;
+            this.loading = false
             if (data) {
-
                 this.guests = data
 
                 // Filter out test users on production
-                console.log('isDevMode()', isDevMode())
                 if (!isDevMode()) {
                     this.guests = data.filter((guest: any) => guest.lastName !== "Gábris")
                 }
@@ -290,6 +289,12 @@ export class VendegekComponent implements OnInit {
         setTimeout(() => {
             this.tagDialog = false
         }, 200)
+
+        // Logging
+        this.logService.createLog({
+            name: "Unassign Tag from " + this.guest.lastName + " " + this.guest.firstName,
+            capacity: 0
+        })
     }
 
     save() {
@@ -300,9 +305,6 @@ export class VendegekComponent implements OnInit {
             let guestsClone = JSON.parse(JSON.stringify(this.guests))
             guestsClone[this.findIndexById(this.guest.id)] = this.guest;
             this.guests = guestsClone
-            this.submitted = true;
-            this.scannedCode = '';
-            this.guest = {}
             this.successfullMessage = [{
                 severity: 'success',
                 summary: '',
@@ -311,6 +313,16 @@ export class VendegekComponent implements OnInit {
             setTimeout(() => {
                 this.tagDialog = false
             }, 200);
+
+            // Logging
+            this.logService.createLog({
+                name: "Assign Tag " + this.guest.rfid + " to " + this.guest.lastName + " " + this.guest.firstName,
+                capacity: 0
+            })
+
+            this.submitted = true;
+            this.scannedCode = '';
+            this.guest = {}
         })
     }
 
