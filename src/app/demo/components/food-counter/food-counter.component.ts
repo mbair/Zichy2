@@ -4,6 +4,7 @@ import { MessageService } from 'primeng/api';
 import { Guest } from '../../api/guest';
 import { GuestService } from '../../service/guest.service';
 import { MealService } from '../../service/meal.service';
+import { LogService } from '../../service/log.service';
 import { Observable } from 'rxjs';
 import * as moment from 'moment';
 
@@ -40,6 +41,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     constructor(public router: Router,
         private guestService: GuestService,
         private mealService: MealService,
+        private logService: LogService,
         private messageService: MessageService) {
 
         // Tablet size: 854 x 534 px
@@ -68,6 +70,8 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         // setTimeout(() => {
         //     this.getGuestByRFID('127921')
         // }, 500);
+
+
     }
 
     public resetGuest() {
@@ -100,6 +104,12 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             //     detail: this.scannedCode,
             //     life: 10000
             // })
+
+            // Logging scannedCode
+            this.logService.createLog({
+                name: "FoodCounter scannedCode: " + this.scannedCode,
+                capacity: 0
+            })
 
             // Reset Guest
             this.resetGuest()

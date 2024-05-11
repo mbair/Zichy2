@@ -20,7 +20,6 @@ export class GuestService {
 
     constructor(private http: HttpClient) {
         this.guestData$ = new BehaviorSubject<any>(null)
-
         this.serviceMessage$ = new BehaviorSubject<any>(null)
     }
 
