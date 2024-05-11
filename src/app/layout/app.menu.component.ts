@@ -102,6 +102,11 @@ export class AppMenuComponent implements OnInit {
                         icon: 'pi pi-fw pi-calendar',
                         // routerLink: ['/pages/konyhanaptar'],
                     },
+                    {
+                        label: 'Logok',
+                        icon: 'pi pi-fw pi-list',
+                        routerLink: ['/logs']
+                    },
                     // {
                     //     label: 'Egyéb szolgáltatások',
                     //     icon: 'pi pi-fw pi-pencil',
