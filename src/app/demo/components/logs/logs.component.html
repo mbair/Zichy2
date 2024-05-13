@@ -3,7 +3,9 @@
         <div class="card px-0 py-0">
             <p-table #dt
                     [value]="logs"
-                    responsiveLayout="scroll"
+                    [sortOrder]="-1"
+                    sortField="name"
+                    responsiveLayout="createdAt"
                     [rows]="50"
                     [globalFilterFields]="['name','createdAt']"
                     [paginator]="true"
