@@ -182,12 +182,12 @@
                         <input type="text" pInputText [(ngModel)]="guest.roomNum" />
                     </div>
                     <div class="field col">
-                        <label for="diet">RFID</label>
+                        <label for="rfid">RFID</label>
                         <input type="text" pInputText [(ngModel)]="guest.rfid" />
                     </div>
                 </div>
                 <div class="field">
-                    <label for="status">Étrend</label>
+                    <label for="diet">Étrend</label>
                     <p-dropdown [(ngModel)]="guest.diet" inputId="diet" optionValue="label" [options]="diets" placeholder="Válasszon étrendet...">
                         <ng-template pTemplate="selectedItem">
                             <span *ngIf="guest && guest.diet">{{guest.diet}}</span>
@@ -199,53 +199,53 @@
                 </div>
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="price">Érkezés</label>
+                        <label for="dateOfArrival">Érkezés</label>
                         <input type="text" pInputText [(ngModel)]="guest.dateOfArrival" />
                     </div>
                     <div class="field col">
-                        <label for="quantity">Első étkezés</label>
+                        <label for="firstMeal">Első étkezés</label>
                         <input type="text" pInputText [(ngModel)]="guest.firstMeal" />
                     </div>
                 </div>
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="price">Távozás</label>
-                        <input type="text" pInputText [(ngModel)]="guest.dateOfArrival" />
+                        <label for="dateOfDeparture">Távozás</label>
+                        <input type="text" pInputText [(ngModel)]="guest.dateOfDeparture" />
                     </div>
                     <div class="field col">
-                        <label for="quantity">Utolsó étkezés</label>
+                        <label for="lastMeal">Utolsó étkezés</label>
                         <input type="text" pInputText [(ngModel)]="guest.lastMeal" />
                     </div>
                 </div>
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="price">Nem</label>
+                        <label for="gender">Nem</label>
                         <input type="text" pInputText [(ngModel)]="guest.gender" />
                     </div>
                     <div class="field col">
-                        <label for="quantity">Születési dátum</label>
+                        <label for="birthDate">Születési dátum</label>
                         <input type="text" pInputText [(ngModel)]="guest.birthDate" />
                     </div>
                 </div>
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="price">Ország</label>
+                        <label for="country">Ország</label>
                         <input type="text" pInputText [(ngModel)]="guest.country" />
                     </div>
                     <div class="field col">
-                        <label for="quantity">Nemzetiség</label>
+                        <label for="nationality">Nemzetiség</label>
                         <input type="text" pInputText [(ngModel)]="guest.nationality" />
                     </div>
                 </div>
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="price">SZÉP kártya</label>
+                        <label for="szepCard">SZÉP kártya</label>
                         <input type="text" pInputText [(ngModel)]="guest.szepCard" />
                     </div>
                 </div>
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="quantity">Extra</label>
+                        <label for="accommodationExtra">Extra</label>
                         <textarea rows="5" cols="30" pInputTextarea [(ngModel)]="guest.accommodationExtra"></textarea>
                     </div>
                 </div>
