@@ -1,19 +1,28 @@
 <div class="grid">
     <div class="col-12">
         <div class="col-12 px-0">
-            <p-tag [style]="{ 'background': 'linear-gradient(-225deg,#AC32E4 0%,#7918F2 48%,#4801FF 100%)'}">
+            <p-dropdown
+                [options]="conferences"
+                [(ngModel)]="selectedConference"
+                optionLabel="name"
+                [showClear]="true"
+                (onChange)="onConferenceChange()"
+                placeholder="Válasszon konferenciát...">
+            </p-dropdown>
+
+            <!-- <p-tag [style]="{ 'background': 'linear-gradient(-225deg,#AC32E4 0%,#7918F2 48%,#4801FF 100%)'}">
                 <div class="flex align-items-center gap-2">
                     <i class="pi pi-calendar" style="font-size: 1rem"></i>
                     <span class="text-base">20240510-20240512 - Golgota Női hétvége</span>
                 </div>
-            </p-tag>
+            </p-tag> -->
         </div>
 
         <div class="card px-0 py-0">
             <p-toast></p-toast>
             <p-table #dt
                      dataKey="id"
-                     [value]="guests"
+                     [value]="filteredGuests"
                      responsiveLayout="scroll"
                      [rows]="20"
                      [globalFilterFields]="['firstName', 'lastName', 'rfid', 'roomNum', 'diet', 'birthDate', 'dateOfArrival', 'dateOfDeparture', 'firstMeal', 'lastMeal']"

@@ -49,6 +49,10 @@ export class VendegekComponent implements OnInit {
     scannedCode: string = '';
     tableData: any;
     expandedRows = {};
+    filteredGuests: Guest[] = [...this.guests];
+
+    conferences: any[];
+    selectedConference: any;
 
     guestsObs$: Observable<any> | undefined;
     serviceMessageObs$: Observable<any> | undefined;
@@ -61,6 +65,7 @@ export class VendegekComponent implements OnInit {
             this.loading = false
             if (data) {
                 this.guests = data
+                this.filteredGuests = data
 
                 // Filter out test users on production
                 if (!isDevMode()) {
@@ -81,6 +86,14 @@ export class VendegekComponent implements OnInit {
                 this.messages1 = this.successfullMessage
             }
         })
+
+        // Actual conferences
+        this.conferences = [
+            { name: '20240518-20240520 - KMGY Pünkösdi Hétvége' },
+            { name: '20240518-20240520 - Észak-Buda Golgota' },
+            { name: '20240518-20240520 - Esztergomi Golgota gyülekezeti hétvége' },
+            { name: '20240517-20240519 - Szegedi Gimi 10B osztálykirándulás' }
+        ];
 
         this.cols = [
             { field: 'name', header: 'Név' },  // lastName + firstName
@@ -138,6 +151,14 @@ export class VendegekComponent implements OnInit {
         //         indok: 'szervező'
         //     }
         // ]
+    }
+
+    onConferenceChange() {
+        if (this.selectedConference) {
+            this.filteredGuests = this.guests.filter(guest => guest.conferenceName === this.selectedConference?.name);
+        } else {
+            this.filteredGuests = [...this.guests];
+        }
     }
 
     expandAll() {
