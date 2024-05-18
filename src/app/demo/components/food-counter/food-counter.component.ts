@@ -35,6 +35,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     scannedCode: string = '';
     windowWidth: number;
     windowHeight: number;
+    backgroundColor: string = 'surface-ground';
 
     guestsObs$: Observable<any> | undefined;
     serviceMessageObs$: Observable<any> | undefined;
@@ -184,7 +185,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                     }
 
                     // Intermediate days
-                    if (dateOfArrival !== today && today !== dateOfDeparture){
+                    if (dateOfArrival !== today && today !== dateOfDeparture) {
                         this.canEat = true
                     }
 
@@ -211,7 +212,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.alreadyRecievedFood = false;
                 if (data.lastRfidUsage) {
                     let lastRfidUsage = new Date(data.lastRfidUsage)
-                        // lastRfidUsage = new Date(lastRfidUsage.getTime() - (2 * 60 * 60 * 1000)) // TODO: TimeZone bug
+                    // lastRfidUsage = new Date(lastRfidUsage.getTime() - (2 * 60 * 60 * 1000)) // TODO: TimeZone bug
 
                     let lastMeal = this.mealService.getMealNameByTime(lastRfidUsage)
                     if (this.currentMeal == lastMeal) {
@@ -219,15 +220,10 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                         // Logging error
                         this.logService.createLog({
-                            name: "FoodCounter Already received food: " + this.guest.lastName + " " + this.guest.firstName + this.scannedCode,
+                            name: "FoodCounter Already received food: " + this.guest.lastName + " " + this.guest.firstName + " " + this.scannedCode,
                             capacity: 0
                         })
                     }
-                    // let duration = moment.duration(moment().diff(lastRfidUsage))
-                    // let hours = duration.asHours();
-                    // if (hours < 2) {
-                    //     this.alreadyRecievedFood = true
-                    // }
                 }
 
                 // The guest is eating for the first time at this meal
@@ -236,6 +232,9 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 // Insert Timestamp to lastRfidUsage
                 this.guest.lastRfidUsage = moment().format('YYYY-MM-DD HH:mm:ss');
                 this.guestService.updateGuest(this.guest)
+
+                // Set background color
+                this.backgroundColor = this.getDietColor(this.guest.diet)
             },
             error: (error) => {
                 console.error('Error:', error)
@@ -270,19 +269,42 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     setCurrentMealsNumber(): void {
         // Find guests who has used their RFID's
         this.guests.map(guest => {
-            if (guest.lastRfidUsage) {
-                let lastRfidUsage = moment(new Date(guest.lastRfidUsage))
 
-                // Usage was today
-                let today = moment()
-                if (lastRfidUsage.isSame(today, 'day')) {
-                    let lastMeal = this.mealService.getMealNameByTime(new Date(guest.lastRfidUsage))
-                    if (this.currentMeal == lastMeal) {
-                        this.mealsNumber++
+            // Filter out test users
+            if (guest.lastName !== "Gábris") {
+                if (guest.lastRfidUsage) {
+                    let lastRfidUsage = moment(new Date(guest.lastRfidUsage))
+
+                    // Usage was today
+                    let today = moment()
+                    if (lastRfidUsage.isSame(today, 'day')) {
+                        let lastMeal = this.mealService.getMealNameByTime(new Date(guest.lastRfidUsage))
+                        if (this.currentMeal == lastMeal) {
+                            this.mealsNumber++
+                        }
                     }
                 }
             }
         })
+    }
+
+    getDietColor(diet: string | undefined): string {
+        switch (this.guest.diet) {
+            case 'tejmentes':
+                return 'blue-400';
+            case 'laktózmentes':
+                return 'blue-400'
+            case 'gluténmentes':
+                return 'yellow-300'
+            case 'glutén-, laktóz-, tejmentes':
+                return 'red-500'
+            case 'vegetáriánus':
+                return 'teal-500'
+            case 'nem kér étkezést':
+                return 'gray-300'
+            default:
+                return 'gray-700'
+        }
     }
 
     ngOnDestroy() {
