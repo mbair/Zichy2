@@ -212,9 +212,8 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.alreadyRecievedFood = false;
                 if (data.lastRfidUsage) {
                     let lastRfidUsage = new Date(data.lastRfidUsage)
-                    // lastRfidUsage = new Date(lastRfidUsage.getTime() - (2 * 60 * 60 * 1000)) // TODO: TimeZone bug
-
                     let lastMeal = this.mealService.getMealNameByTime(lastRfidUsage)
+
                     if (this.currentMeal == lastMeal) {
                         this.alreadyRecievedFood = true
 
