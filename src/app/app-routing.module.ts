@@ -22,6 +22,7 @@ const routes: Routes = [
             { path: 'ecommerce', data: { breadcrumb: 'E-Commerce' }, loadChildren: () => import('./demo/components/ecommerce/ecommerce.module').then(m => m.EcommerceModule) },
             { path: 'apps', data: { breadcrumb: 'Apps' }, loadChildren: () => import('./demo/components/apps/apps.module').then(m => m.AppsModule) },
             { path: 'logs', data: { breadcrumb: 'Logok' }, loadChildren: () => import('./demo/components/logs/logs.module').then(m => m.LogsModule) },
+            { path: 'guest', data: { breadcrumb: 'Vendégek' }, loadChildren: () => import('./demo/components/vendegek/vendegek.module').then(m => m.VendegekModule) },
         ]
     },
     { path: 'auth', data: { breadcrumb: 'Auth' }, loadChildren: () => import('./demo/components/auth/auth.module').then(m => m.AuthModule) },

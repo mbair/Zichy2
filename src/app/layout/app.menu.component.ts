@@ -38,7 +38,7 @@ export class AppMenuComponent implements OnInit {
                     {
                         label: 'Vendégek',
                         icon: 'pi pi-fw pi-user',
-                        routerLink: ['/pages/vendegek']
+                        routerLink: ['/guest']
                     },
                     // {
                     //     label: 'Szobák',

@@ -4,7 +4,6 @@ import { RouterModule } from '@angular/router';
 @NgModule({
     imports: [RouterModule.forChild([
         { path: 'konferenciak', data: { breadcrumb: 'Konferenciák' }, loadChildren: () => import('./konferenciak/konferenciak.module').then(m => m.KonferenciakModule) },
-        { path: 'vendegek', data: { breadcrumb: 'Vendégek' }, loadChildren: () => import('./vendegek/vendegek.module').then(m => m.VendegekModule) },
         { path: 'szobak', data: { breadcrumb: 'Szobák' }, loadChildren: () => import('./szobak/szobak.module').then(m => m.SzobakModule) },
         { path: 'etelek', data: { breadcrumb: 'Ételek' }, loadChildren: () => import('./etelek/etelek.module').then(m => m.EtelekModule) },
         { path: 'food-sensitivities', data: { breadcrumb: 'Étrendek' }, loadChildren: () => import('./food-sensitivities/food-sensitivities.module').then(m => m.FoodSensitivitiesModule) },
