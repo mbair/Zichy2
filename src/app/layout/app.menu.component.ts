@@ -40,37 +40,10 @@ export class AppMenuComponent implements OnInit {
                         icon: 'pi pi-fw pi-user',
                         routerLink: ['/guest']
                     },
-                    // {
-                    //     label: 'Szobák',
-                    //     icon: 'pi pi-fw pi-pencil',
-                    //     routerLink: ['/pages/szobak']
-                    // },
-
                     {
                         label: 'Szobák',
                         icon: 'pi pi-fw pi-building',
-                        items: [
-                            {
-                                label: 'Új szoba',
-                                icon: 'pi pi-fw pi-plus',
-                                // routerLink: ['szoba/create']
-                            },
-                            {
-                                label: 'Szoba lista',
-                                icon: 'pi pi-fw pi-list',
-                                routerLink: ['/pages/szobak']
-                            },
-                            {
-                                label: 'Takarítás',
-                                icon: 'pi pi-fw pi-list',
-                                // routerLink: ['conference/list']
-                            },
-                            {
-                                label: 'Érkezők-távozók',
-                                icon: 'pi pi-fw pi-list',
-                                // routerLink: ['conference/list']
-                            }
-                        ]
+                        routerLink: ['/room']
                     },
                     {
                         label: 'RFID címke',
