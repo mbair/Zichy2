@@ -1,15 +1,14 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { Product } from 'src/app/demo/api/product';
 import { Vendeg } from 'src/app/demo/api/vendeg';
 import { GuestService } from 'src/app/demo/service/guest.service';
 import { Message, MessageService } from 'primeng/api';
+import { LazyLoadEvent } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { Tag } from 'src/app/demo/api/tag';
-
-
-
+import { Response } from '../../../api/ApiResponse'
 interface TagColor {
     name: string;
     code: string;
@@ -24,7 +23,7 @@ interface TagColor {
 
 export class VendegekComponent implements OnInit {
 
-    loading: boolean = true;           // Loading overlay trigger value
+    loading: boolean = true;
     tag: Tag = {};
     tagDialog: boolean = false;
     selectedTagColor: TagColor | undefined;
@@ -39,8 +38,7 @@ export class VendegekComponent implements OnInit {
     submitted: boolean = false;
     cols: any[] = [];
     statuses: any[] = [];
-    rowsPerPageOptions = [5, 10, 20];
-    tagColors: TagColor[] = []
+    tagColors: TagColor[] = [];
     messages1: Message[] = [];
     successfullMessage: Message[] = [];
     scanTemp: string = '';
@@ -49,20 +47,29 @@ export class VendegekComponent implements OnInit {
     guestsObs$: Observable<any> | undefined;
     serviceMessageObs$: Observable<any> | undefined;
 
+    //pagination and sortin g and seraching:
+    rowsPerPageOptions = [5, 10, 20];
+    rowsPerPage: number = 10; // Default rows per page
+    totalRecords: number = 0;
+    page: number = 0;
+    sortField: string = ''; // Current sort field
+    sortOrder: number = 1; // Current sort order
+    globalFilter: string = ''; // Global filter
+    filterValues: { [key: string]: string } = {};
+
+
     constructor(private guestService: GuestService, private messageService: MessageService) { }
 
     ngOnInit() {
         this.guestsObs$ = this.guestService.guestObs;
-        this.guestsObs$.subscribe((data) => {
+        this.guestsObs$.subscribe((data: Response) => {
             this.loading = false;
             if (data) {
-                this.guests = data;
+                this.guests = data.rows || [];
+                this.totalRecords = data.totalItems || 0;
+                this.page = data.currentPage || 0;
             }
         })
-
-        // Get all Guests
-        this.loading = true;
-        this.guestService.getGuests()
 
         this.serviceMessageObs$ = this.guestService.serviceMessageObs;
         this.serviceMessageObs$.subscribe((data) => {
@@ -72,13 +79,50 @@ export class VendegekComponent implements OnInit {
             }
         })
 
+        this.initializeTable();
+    }
 
+    loadGuests() {
+        this.loading = true;
+
+        const filters = Object.keys(this.filterValues)
+            .map(key => this.filterValues[key].length>0 ? `${key}=${this.filterValues[key]}` : '');
+        const queryParams = filters.filter(x => x.length > 0).join('&');
+
+        if (this.globalFilter !== '') {
+            return this.guestService.getGuestsBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder });
+        }
+        
+        if(queryParams.length>0){
+            return this.guestService.getGuestsBySearchQuery(queryParams);
+        }
+
+        return this.guestService.getGuests(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder });
+    }
+
+    onFilter(event: any, field: string) {
+        this.filterValues[field] = event.target.value;
+        this.loadGuests();
+    }
+
+    onLazyLoad(event: any) {
+        this.page = event.first! / event.rows!;
+        this.rowsPerPage = event.rows ?? 10;
+        this.sortField = event.sortField ?? '';
+        this.sortOrder = event.sortOrder ?? 1;
+        this.globalFilter = event.globalFilter ?? '';
+
+        this.loadGuests();
+    }
+
+    initializeTable() {
         this.cols = [
-            { field: 'product', header: 'Product' },
-            { field: 'price', header: 'Price' },
-            { field: 'category', header: 'Category' },
-            { field: 'rating', header: 'Reviews' },
-            { field: 'inventoryStatus', header: 'Status' }
+            { field: 'lastName', header: 'Név' },
+            { field: 'roomNum', header: 'Szoba' },
+            { field: 'diet', header: 'Étrend' },
+            { field: 'conferenceName', header: 'Konferencia' },
+            { field: 'rfid', header: 'RFID' },
+            { field: 'lastRfidUsage', header: 'Utolsó RFID használat' }
         ];
 
         this.tagColors = [
@@ -87,44 +131,13 @@ export class VendegekComponent implements OnInit {
             { name: 'piros', code: 'red' },
             { name: 'zöld', code: 'green' },
             { name: 'kék', code: 'blue' }
-        ]
-
-
+        ];
 
         this.statuses = [
             { label: 'FOGLALHATO', value: 'FOGLALHATO' },
             { label: 'MAJDNEMTELE', value: 'MAJDNEMTELE' },
             { label: 'MEGTELT', value: 'MEGTELT' }
         ];
-
-        this.guests = [
-            {
-                vezeteknev: 'Szabó',
-                keresztnev: 'Dóra',
-                szoba: 'L13B',
-                fizmod: 'Banki',
-                etrend: 'vegetáriánus',
-                gyulekezet: 'Golgota Budapest',
-                nem: 'nő',
-                email: 'szabodora@gmail.com',
-                telefon: '06201234567',
-                szuldatum: '1989.01.01.',
-                korcsoport: '18 év feletti',
-                allampolgarsag: 'HU',
-                orszag: 'Hungary',
-                irsz: '2233',
-                erkezesDate: '2022.08.07.',
-                elsoEtkezes: 'vacsora',
-                tavozasDate: '2022.08.12.',
-                utolsoEtkezes: 'ebéd',
-                pentekEbed: 'Igen, kérek',
-                szallasTipus: 'Apartman',
-                szobaIgeny: '',
-                babaAgy: 'nem',
-                tamogatas: 'teljes',
-                indok: 'szervező'
-            }
-        ]
     }
 
     openNew() {
@@ -150,10 +163,10 @@ export class VendegekComponent implements OnInit {
     confirmDeleteSelected() {
         this.loading = true;
         this.deleteGuestsDialog = false;
-        this.guestService.deleteGuests(this.selectedGuests)
-        this.guests = this.guests.filter(val => !this.selectedGuests.includes(val))
-        this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendégek törölve', life: 3000 })
-        this.selectedGuests = []
+        this.guestService.deleteGuests(this.selectedGuests);
+        this.guests = this.guests.filter(val => !this.selectedGuests.includes(val));
+        this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendégek törölve', life: 3000 });
+        this.selectedGuests = [];
         this.loading = false;
     }
 
@@ -161,7 +174,7 @@ export class VendegekComponent implements OnInit {
         this.loading = true;
         this.deleteGuestDialog = false;
         this.guests = this.guests.filter(val => val.id !== this.guest.id);
-        this.guestService.deleteGuest(this.guest)
+        this.guestService.deleteGuest(this.guest);
         this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendég törölve', life: 3000 });
         this.guest = {};
         this.loading = false;
@@ -234,7 +247,7 @@ export class VendegekComponent implements OnInit {
         this.guest = { ...guest };
         this.messages1 = [
             { severity: 'info', summary: '', detail: 'Tartsa az RFID címkét az olvasóhoz...' },
-        ]
+        ];
         this.tagDialog = true;
     }
 
@@ -242,16 +255,15 @@ export class VendegekComponent implements OnInit {
         this.guest.rfid = '';
         this.guest.lastRfidUsage = '';
         this.guestService.updateGuest(this.guest);
-        let guestsClone = JSON.parse(JSON.stringify(this.guests))
-            guestsClone[this.findIndexById(this.guest.id)] = this.guest;
-            this.guests = guestsClone
-
-            this.submitted = true;
+        let guestsClone = JSON.parse(JSON.stringify(this.guests));
+        guestsClone[this.findIndexById(this.guest.id)] = this.guest;
+        this.guests = guestsClone;
+        this.submitted = true;
         this.successfullMessage = [{
             severity: 'success',
             summary: '',
             detail: 'A címkét eltávolítottuk a vendégtől!'
-        }]
+        }];
     }
 
     save() {
@@ -281,17 +293,17 @@ export class VendegekComponent implements OnInit {
             case 'tejmentes':
                 return 'blue';
             case 'laktózmentes':
-                return 'blue'
+                return 'blue';
             case 'gluténmentes':
-                return 'yellow'
+                return 'yellow';
             case 'glutén-, laktóz-, tejmentes':
-                return 'red'
+                return 'red';
             case 'vegetáriánus':
-                return 'green'
+                return 'green';
             case 'nem kér étkezést':
-                return 'silver'
+                return 'silver';
             default:
-                return 'black'
+                return 'black';
         }
     }
 
@@ -304,7 +316,7 @@ export class VendegekComponent implements OnInit {
             this.scanTemp = ''
             console.log('scannedCode', this.scannedCode)
         } else {
-            if (event.key === 'ö'){
+            if (event.key === 'ö') {
                 this.scanTemp += '0'
             }
             else if (/^[0-9]$/i.test(event.key)) {

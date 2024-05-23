@@ -3,19 +3,29 @@
         <div class="card px-0 py-0">
             <p-toast></p-toast>
 
-            <p-table #dt [value]="guests" responsiveLayout="scroll" [rows]="10" [globalFilterFields]="['firstName', 'lastName']" [paginator]="true" [rowsPerPageOptions]="[10,20,30]" [showCurrentPageReport]="true" currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése" [(selection)]="selectedGuests" selectionMode="multiple" [rowHover]="true" dataKey="id">
+            <p-table #dt [value]="guests" [columns]="cols" responsiveLayout="scroll" [rows]="rowsPerPage"
+                [totalRecords]="totalRecords" [globalFilterFields]="['lastName', 'firstName']" [paginator]="true"
+                [rowsPerPageOptions]="rowsPerPageOptions" [showCurrentPageReport]="true"
+                currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
+                [(selection)]="selectedGuests" selectionMode="multiple" [rowHover]="true" [loading]="loading"
+                (onLazyLoad)="onLazyLoad($event)" [lazy]="true" dataKey="id">
                 <ng-template pTemplate="caption">
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
                         <h5 class="m-0">Vendégek</h5>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
                             <i class="pi pi-search"></i>
-                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."  class="w-full sm:w-auto"/>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."
+                                class="w-full sm:w-auto" />
                         </span>
                         <span class="block mt-2 md:mt-0">
-                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
-                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="deleteSelectedGuests()" [disabled]="!selectedGuests || !selectedGuests.length"></button>
+                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2"
+                                (click)="openNew()"></button>
+                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2"
+                                (click)="deleteSelectedGuests()"
+                                [disabled]="!selectedGuests || !selectedGuests.length"></button>
                             <!-- <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block"></p-fileUpload> -->
-                            <button pButton pRipple label="Export" icon="pi pi-upload" class="p-button-help" (click)="dt.exportCSV()"></button>
+                            <button pButton pRipple label="Export" icon="pi pi-upload" class="p-button-help"
+                                (click)="dt.exportCSV()"></button>
                         </span>
                     </div>
                 </ng-template>
@@ -27,14 +37,41 @@
                         <th pSortableColumn="lastName">Név <p-sortIcon field="lastName"></p-sortIcon></th>
                         <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
                         <th pSortableColumn="diet">Étrend <p-sortIcon field="diet"></p-sortIcon></th>
-                        <th pSortableColumn="conferenceName">Konferencia <p-sortIcon field="conferenceName"></p-sortIcon></th>
+                        <th pSortableColumn="conferenceName">Konferencia <p-sortIcon
+                                field="conferenceName"></p-sortIcon></th>
                         <th pSortableColumn="rfid">RFID <p-sortIcon field="rfid"></p-sortIcon></th>
-                        <th pSortableColumn="lastRfidUsage">RFID használat<p-sortIcon field="lastRfidUsage"></p-sortIcon></th>
-                        <!-- <th pSortableColumn="birthDate">Születési dátum <p-sortIcon field="birthDate"></p-sortIcon></th>
-                        <th pSortableColumn="erkezesDate">Érkezés <p-sortIcon field="erkezesDate"></p-sortIcon></th>
-                        <th pSortableColumn="tavozasDate">Távozás <p-sortIcon field="tavozasDate"></p-sortIcon></th> -->
+                        <th pSortableColumn="lastRfidUsage">RFID használat<p-sortIcon
+                                field="lastRfidUsage"></p-sortIcon></th>
+
                         <th></th>
                     </tr>
+                    <tr>
+                        <th>
+                        </th>
+                        <th>
+                            <input pInputText type="text" (input)="onFilter($event, 'lastName')"
+                                placeholder="Keresés Név..." />
+                        </th>
+                        <th>
+                            <input pInputText type="text" (input)="onFilter($event, 'roomNum')"
+                                placeholder="Keresés Szoba..." />
+                        </th>
+                        <th>
+                            <input pInputText type="text" (input)="onFilter($event, 'diet')"
+                                placeholder="Keresés Étrend..." />
+                        </th>
+                        <th>
+                            <input pInputText type="text" (input)="onFilter($event, 'conferenceName')"
+                                placeholder="Keresés Konferencia..." />
+                        </th>
+                        <th>
+                            <input pInputText type="text" (input)="onFilter($event, 'rfid')"
+                                placeholder="Keresés RFID..." />
+                        </th>
+
+                        <th></th>
+                    </tr>
+
                 </ng-template>
                 <ng-template pTemplate="body" let-guest>
                     <tr>
@@ -51,8 +88,7 @@
                         </td>
                         <td style="width:14%; min-width:10rem;">
                             <span class="p-column-title">Étrend</span>
-                            <p-tag [value]="guest.diet"
-                                   [style]="{'background': getDietColor(guest.diet)}">
+                            <p-tag [value]="guest.diet" [style]="{'background': getDietColor(guest.diet)}">
                             </p-tag>
                         </td>
                         <td style="width:20%; min-width:15rem;">
@@ -81,9 +117,13 @@
                         </td> -->
                         <td>
                             <div class="flex">
-                                <button pButton pRipple icon="pi pi-tags" class="p-button-rounded p-button-success mr-2" (click)="assignTag(guest)"></button>
-                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editProduct(product)"></button>
-                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteGuest(guest)"></button>
+                                <button pButton pRipple icon="pi pi-tags" class="p-button-rounded p-button-success mr-2"
+                                    (click)="assignTag(guest)"></button>
+                                <button pButton pRipple icon="pi pi-pencil"
+                                    class="p-button-rounded p-button-success mr-2"
+                                    (click)="editProduct(product)"></button>
+                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning"
+                                    (click)="deleteGuest(guest)"></button>
                             </div>
                         </td>
                     </tr>
@@ -91,13 +131,16 @@
             </p-table>
         </div>
 
-        <p-dialog [(visible)]="productDialog" [style]="{width: '450px'}" header="Vendég adatai" [modal]="true" class="p-fluid">
+        <p-dialog [(visible)]="productDialog" [style]="{width: '450px'}" header="Vendég adatai" [modal]="true"
+            class="p-fluid">
             <ng-template pTemplate="content">
-                <img [src]="'assets/demo/images/product/' + product.image" [alt]="product.image" width="150" class="mt-0 mx-auto mb-5 block shadow-2" *ngIf="product.image">
+                <img [src]="'assets/demo/images/product/' + product.image" [alt]="product.image" width="150"
+                    class="mt-0 mx-auto mb-5 block shadow-2" *ngIf="product.image">
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="price">Vezetéknév</label>
-                        <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD" locale="en-US"></p-inputNumber>
+                        <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD"
+                            locale="en-US"></p-inputNumber>
                     </div>
                     <div class="field col">
                         <label for="quantity">Keresztnév</label>
@@ -107,7 +150,8 @@
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="price">Szoba</label>
-                        <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD" locale="en-US"></p-inputNumber>
+                        <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD"
+                            locale="en-US"></p-inputNumber>
                     </div>
                     <div class="field col">
                         <label for="quantity">Étrend</label>
@@ -117,9 +161,11 @@
 
                 <div class="field">
                     <label for="status">Étrend</label>
-                    <p-dropdown [(ngModel)]="product.inventoryStatus" inputId="inventoryStatus" optionValue="label" [options]="statuses" placeholder="Válasszon étrendet...">
+                    <p-dropdown [(ngModel)]="product.inventoryStatus" inputId="inventoryStatus" optionValue="label"
+                        [options]="statuses" placeholder="Válasszon étrendet...">
                         <ng-template pTemplate="selectedItem">
-                            <span *ngIf="product && product.inventoryStatus" [class]="'product-badge status-' + product.inventoryStatus.toString().toLowerCase()">{{product.inventoryStatus}}</span>
+                            <span *ngIf="product && product.inventoryStatus"
+                                [class]="'product-badge status-' + product.inventoryStatus.toString().toLowerCase()">{{product.inventoryStatus}}</span>
                         </ng-template>
                         <ng-template let-option pTemplate="item">
                             <span [class]="'product-badge status-' + option.value">{{option.label}}</span>
@@ -130,7 +176,8 @@
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="price">Gyülekezet</label>
-                        <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD" locale="en-US"></p-inputNumber>
+                        <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD"
+                            locale="en-US"></p-inputNumber>
                     </div>
                     <div class="field col">
                         <label for="quantity">Telefon</label>
@@ -141,7 +188,8 @@
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="price">Érkezés</label>
-                        <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD" locale="en-US"></p-inputNumber>
+                        <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD"
+                            locale="en-US"></p-inputNumber>
                     </div>
                     <div class="field col">
                         <label for="quantity">Távozás</label>
@@ -151,8 +199,10 @@
             </ng-template>
 
             <ng-template pTemplate="footer">
-                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
-                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="saveProduct()"></button>
+                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text"
+                    (click)="hideDialog()"></button>
+                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text"
+                    (click)="saveProduct()"></button>
             </ng-template>
         </p-dialog>
 
@@ -162,8 +212,10 @@
                 <span *ngIf="product">Biztosan törölni akarja <b>{{product.name}}</b>?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="deleteGuestDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="confirmDelete()"></button>
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem"
+                    (click)="deleteGuestDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen"
+                    (click)="confirmDelete()"></button>
             </ng-template>
         </p-dialog>
 
@@ -173,12 +225,15 @@
                 <span>Biztosan törölni akarja a kiválasztott vendégeket?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="deleteGuestsDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="confirmDeleteSelected()"></button>
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem"
+                    (click)="deleteGuestsDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen"
+                    (click)="confirmDeleteSelected()"></button>
             </ng-template>
         </p-dialog>
 
-        <p-dialog [(visible)]="tagDialog" [style]="{width: '450px'}" header="RFID címke vendéghez rendelés" [modal]="true" class="p-fluid">
+        <p-dialog [(visible)]="tagDialog" [style]="{width: '450px'}" header="RFID címke vendéghez rendelés"
+            [modal]="true" class="p-fluid">
             <ng-template pTemplate="content">
                 <p-messages [(value)]="messages1" [enableService]="false" [closable]="false"></p-messages>
                 <div class="formgrid grid">
@@ -189,12 +244,15 @@
                     </div>
                 </div>
                 <div class="text-center">
-                    <button pButton pRipple label="Címke visszavétel" icon="pi pi-trash" class="p-button-danger" (click)="unAssignTag()" [disabled]="!guest.rfid?.length"></button>
+                    <button pButton pRipple label="Címke visszavétel" icon="pi pi-trash" class="p-button-danger"
+                        (click)="unAssignTag()" [disabled]="!guest.rfid?.length"></button>
                 </div>
             </ng-template>
             <ng-template pTemplate="footer">
-                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="hideTagDialog()"></button>
-                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="save()"></button>
+                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text"
+                    (click)="hideTagDialog()"></button>
+                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text"
+                    (click)="save()"></button>
             </ng-template>
         </p-dialog>
     </div>
