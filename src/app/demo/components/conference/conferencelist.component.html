@@ -12,7 +12,9 @@
                             <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."  class="w-full sm:w-auto"/>
                         </span>
                         <span class="block mt-2 md:mt-0">
-                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
+                            <a routerLink="/conference/create" class="p-button p-button-success p-ripple font-normal mr-2 hover:bg-green-600 hover:border-green-600">
+                                <i class="pi pi-plus x mr-2"></i> Új
+                            </a>
                             <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="deleteSelectedKonferencia()" [disabled]="!selectedKonferencia || !selectedKonferencia.length"></button>
                             <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block"></p-fileUpload>
                             <button pButton pRipple label="Export" icon="pi pi-upload" class="p-button-help" (click)="dt.exportCSV()"></button>
