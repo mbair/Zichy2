@@ -1,14 +1,7 @@
 <div class="grid">
     <div class="col-12">
         <div class="col-12 px-0">
-            <p-dropdown
-                [options]="conferences"
-                [(ngModel)]="selectedConference"
-                optionLabel="name"
-                [showClear]="true"
-                (onChange)="onConferenceChange()"
-                placeholder="Válasszon konferenciát...">
-            </p-dropdown>
+
 
             <!-- <p-tag [style]="{ 'background': 'linear-gradient(-225deg,#AC32E4 0%,#7918F2 48%,#4801FF 100%)'}">
                 <div class="flex align-items-center gap-2">
@@ -22,9 +15,11 @@
             <p-toast></p-toast>
             <p-table #dt
                      dataKey="id"
-                     [value]="filteredGuests"
+                     [value]="guests"
+                     [columns]="cols"
                      responsiveLayout="scroll"
-                     [rows]="20"
+                     [rows]="rowsPerPage"
+                     [totalRecords]="totalRecords"
                      [globalFilterFields]="['firstName', 'lastName', 'rfid', 'roomNum', 'diet', 'birthDate', 'dateOfArrival', 'dateOfDeparture', 'firstMeal', 'lastMeal']"
                      [paginator]="true"
                      [rowsPerPageOptions]="rowsPerPageOptions"
@@ -32,22 +27,29 @@
                      currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
                      [(selection)]="selectedGuests"
                      selectionMode="multiple"
-                     [rowHover]="true"
                      [expandedRowKeys]="expandedRows"
-                     (onRowExpand)="onRowExpand($event)"
-                     (onRowCollapse)="onRowCollapse($event)">
+                     [rowHover]="true"
+                     [loading]="loading"
+                     (onLazyLoad)="onLazyLoad($event)"
+                     [lazy]="true" >
 
                 <ng-template pTemplate="caption">
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
                         <h5 class="m-0">Vendégek</h5>
+                        <span class="block mt-2 md:mt-0">
+                            <p-dropdown
+                                [options]="conferences"
+                                [(ngModel)]="selectedConference"
+                                optionLabel="name"
+                                [showClear]="true"
+                                (onChange)="onConferenceChange()"
+                                placeholder="Válasszon konferenciát...">
+                            </p-dropdown>
+                        </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
                             <i class="pi pi-search"></i>
                             <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."  class="w-full sm:w-auto"/>
                         </span>
-                        <!-- <div class="flex flex-wrap justify-content-end gap-2">
-                            <p-button label="Expand All" icon="pi pi-plus" text (onClick)="expandAll()" />
-                            <p-button label="Collapse All" icon="pi pi-minus" text (onClick)="collapseAll()" />
-                        </div> -->
                         <span class="block mt-2 md:mt-0">
                             <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
                             <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="deleteSelectedGuests()" [disabled]="!selectedGuests || !selectedGuests.length"></button>
@@ -67,12 +69,32 @@
                         <th pSortableColumn="diet">Étrend <p-sortIcon field="diet"></p-sortIcon></th>
                         <th pSortableColumn="rfid">RFID <p-sortIcon field="rfid"></p-sortIcon></th>
                         <th pSortableColumn="lastRfidUsage">RFID használat<p-sortIcon field="lastRfidUsage"></p-sortIcon></th>
-                        <!-- <th pSortableColumn="birthDate">Születési dátum <p-sortIcon field="birthDate"></p-sortIcon></th> -->
                         <th pSortableColumn="dateOfArrival">Érkezés <p-sortIcon field="dateOfArrival"></p-sortIcon></th>
-                        <!-- <th pSortableColumn="firstMeal">Első étkezés <p-sortIcon field="firstMeal"></p-sortIcon></th> -->
                         <th pSortableColumn="dateOfDeparture">Távozás <p-sortIcon field="dateOfDeparture"></p-sortIcon></th>
-                        <!-- <th pSortableColumn="lastMeal">Utolsó étkezés <p-sortIcon field="lastMeal"></p-sortIcon></th> -->
-                        <!-- <th pSortableColumn="conferenceName">Konferencia <p-sortIcon field="conferenceName"></p-sortIcon></th> -->
+                        <th></th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th>
+                            <input pInputText type="text" (input)="onFilter($event, 'lastName')"
+                                placeholder="Keresés..." />
+                        </th>
+                        <th>
+                            <input pInputText type="text" (input)="onFilter($event, 'roomNum')"
+                                placeholder="Keresés..." />
+                        </th>
+                        <th>
+                            <input pInputText type="text" (input)="onFilter($event, 'diet')"
+                                placeholder="Keresés..." />
+                        </th>
+                        <th>
+                            <input pInputText type="text" (input)="onFilter($event, 'rfid')"
+                                placeholder="Keresés..." />
+                        </th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
                         <th></th>
                     </tr>
                 </ng-template>
@@ -160,6 +182,10 @@
                                     <tr>
                                         <td class="font-medium">Utolsó étkezés:</td>
                                         <td>{{guest.lastMeal}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">Konferencia:</td>
+                                        <td>{{guest.conferenceName}}</td>
                                     </tr>
                                     <tr>
                                         <td class="font-medium">Extra:</td>
@@ -269,7 +295,7 @@
         <p-dialog [(visible)]="deleteGuestDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span *ngIf="product">Biztosan törölni akarja <b>{{product.name}}</b>?</span>
+                <span *ngIf="guest">Biztosan törölni akarja <b>{{guest.lastName}} {{guest.firstName}}</b>-t?</span>
             </div>
             <ng-template pTemplate="footer">
                 <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="deleteGuestDialog = false"></button>

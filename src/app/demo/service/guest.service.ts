@@ -2,6 +2,8 @@ import { HttpClient, HttpHeaders, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, of, tap } from 'rxjs';
 import { Guest } from '../api/guest';
+import { ApiService } from './api.service';
+import { Response } from '../api/ApiResponse';
 
 @Injectable({
     providedIn: 'root',
@@ -18,12 +20,12 @@ export class GuestService {
     private guestData$: BehaviorSubject<any>
     private serviceMessage$: BehaviorSubject<any>
 
-    constructor(private http: HttpClient) {
+    constructor(private apiService: ApiService) {
         this.guestData$ = new BehaviorSubject<any>(null)
         this.serviceMessage$ = new BehaviorSubject<any>(null)
     }
 
-    public get guestObs(): Observable<any> {
+    public get guestObs(): Observable<Response | null> {
         return this.guestData$.asObservable()
     }
 
@@ -31,30 +33,60 @@ export class GuestService {
         return this.serviceMessage$.asObservable()
     }
 
-    public getGuests(): void {
-        this.http.get(this.API + '/get/0/9999', {
-            observe: 'response',
-            responseType: 'json'
-        })
+    public getGuests(page: number, rowsPerPage: number, sort: any): void {
+        let pageSort: string = '';
+        if (sort !== '') {
+            const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC';
+            pageSort = sort.sortField != "" ? `?sort=${sort.sortField}&order=${sortOrder}` : '';
+        }
+
+        this.apiService.get<Response>(`guest/get/${pageSort !== '' ? 0 : page}/${rowsPerPage}${pageSort}`)
             .subscribe({
-                next: (response: any) => {
-                    this.guestData$.next(response.body.rows)
+                next: (response: Response) => {
+                    this.guestData$.next(response);
                 },
                 error: (error: any) => {
-                    this.serviceMessage$.next(error)
+                    this.serviceMessage$.next(error);
                 }
-            })
+            });
+    }
+
+    public getGuestsBySearch(globalFilter: string, sort: any): void {
+        let pageSort: string = '';
+        if (sort !== '') {
+            const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC';
+            pageSort = sort.sortField != "" ? `?sort=${sort.sortField}&order=${sortOrder}` : '';
+        }
+
+        this.apiService.get<Response>(`guest/search/${globalFilter}${pageSort}`)
+            .subscribe({
+                next: (response: Response) => {
+                    this.guestData$.next(response);
+                },
+                error: (error: any) => {
+                    this.serviceMessage$.next(error);
+                }
+            });
+    }
+
+    public getGuestsBySearchQuery(filters: string): void {
+        this.apiService.get<Response>(`guest/searchquery?${filters}`)
+            .subscribe({
+                next: (response: Response) => {
+                    this.guestData$.next(response);
+                },
+                error: (error: any) => {
+                    this.serviceMessage$.next(error);
+                }
+            });
     }
 
     public getByRFID(rfid: string): Observable<any> {
-        return this.http.get(`${this.API}/getbyrfid/${rfid}`);
+        return this.apiService.get(`/guest/getbyrfid/${rfid}`);
     }
 
     public createGuest(guest: Guest): void {
-        this.http.post(this.API + '/create', guest, {
-            observe: 'response',
-            responseType: 'json'
-        })
+        this.apiService.post(`/guest/create/`, guest)
             .subscribe({
                 next: (response: any) => {
                     this.serviceMessage$.next('success')
@@ -66,12 +98,9 @@ export class GuestService {
     }
 
     public updateGuest(modifiedGuest: Guest): void {
-        this.http.put(this.API + '/update/' + modifiedGuest.id, modifiedGuest, {
-            observe: 'response',
-            responseType: 'json'
-        })
+        this.apiService.put(`/guest/update/${modifiedGuest.id}`, modifiedGuest)
             .subscribe({
-                next: (response: any) => {
+                next: () => {
                     this.serviceMessage$.next('success')
                 },
                 error: (error: any) => {
@@ -81,17 +110,15 @@ export class GuestService {
     }
 
     public updateGuest2(modifiedGuest: Guest): Observable<any> {
-        return this.http.put(this.API + '/update/' + modifiedGuest.id, modifiedGuest, this.httpOptions).pipe(
-            tap(_ => console.log(`updated guest id=${modifiedGuest.id}`)),
-            catchError(this.handleError<any>('updateGuest2'))
-        )
+        return this.apiService.put(`/guest/update/${modifiedGuest.id}`, modifiedGuest)
+            .pipe(
+                tap(() => console.log(`updated guest id=${modifiedGuest.id}`)),
+                catchError(this.handleError<any>('updateGuest2'))
+            );
     }
 
     public deleteGuest(guest: Guest): void {
-        this.http.delete(this.API + '/delete/' + guest.id, {
-            observe: 'response',
-            responseType: 'json'
-        })
+        this.apiService.delete(`/guest/delete/${guest.id}`)
             .subscribe({
                 next: (response: any) => {
                     this.serviceMessage$.next(response)
@@ -107,14 +134,7 @@ export class GuestService {
             ids: guests.map(guest => guest.id)
         }
 
-        const req = new HttpRequest(
-            'POST',
-            this.API + '/bulkdelete',
-            params,
-            { responseType: 'json' }
-        )
-
-        this.http.request(req)
+        this.apiService.post('/guest/bulkdelete', params)
             .subscribe({
                 next: (response: any) => {
                     this.serviceMessage$.next(response)
@@ -136,13 +156,13 @@ export class GuestService {
         return (error: any): Observable<T> => {
 
             // TODO: send the error to remote logging infrastructure
-            console.error(error); // log to console instead
+            console.error(error) // log to console instead
 
             // TODO: better job of transforming error for user consumption
-            console.error(`${operation} failed: ${error.message}`);
+            console.error(`${operation} failed: ${error.message}`)
 
             // Let the app keep running by returning an empty result.
-            return of(result as T);
+            return of(result as T)
         }
     }
 }

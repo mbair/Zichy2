@@ -61,7 +61,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             }
         })
         // Get guests to define current meals number
-        this.guestService.getGuests()
+        // this.guestService.getGuests() // TODO: what is this
 
         // Listen to meal changes
         this.mealService.mealChanged.subscribe(() => {
@@ -86,10 +86,6 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             diet: '',
             conferenceName: '',
         }
-    }
-
-    public incMealsCount() {
-        this.mealsNumber++
     }
 
     @HostListener('window:keypress', ['$event'])
@@ -306,6 +302,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         }
     }
 
+    // Don't delete this, its needed from a performance point of view,
     ngOnDestroy() {
     }
 }
