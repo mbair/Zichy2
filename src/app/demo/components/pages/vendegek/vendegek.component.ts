@@ -57,6 +57,8 @@ export class VendegekComponent implements OnInit {
     globalFilter: string = ''; // Global filter
     filterValues: { [key: string]: string } = {};
 
+    private debouncer: { [key: string]: any } = {};
+
 
     constructor(private guestService: GuestService, private messageService: MessageService) { }
 
@@ -86,14 +88,14 @@ export class VendegekComponent implements OnInit {
         this.loading = true;
 
         const filters = Object.keys(this.filterValues)
-            .map(key => this.filterValues[key].length>0 ? `${key}=${this.filterValues[key]}` : '');
+            .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '');
         const queryParams = filters.filter(x => x.length > 0).join('&');
 
         if (this.globalFilter !== '') {
             return this.guestService.getGuestsBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder });
         }
-        
-        if(queryParams.length>0){
+
+        if (queryParams.length > 0) {
             return this.guestService.getGuestsBySearchQuery(queryParams);
         }
 
@@ -102,7 +104,15 @@ export class VendegekComponent implements OnInit {
 
     onFilter(event: any, field: string) {
         this.filterValues[field] = event.target.value;
-        this.loadGuests();
+        if (this.debouncer[field]) {
+            clearTimeout(this.debouncer[field]);
+        }
+        this.debouncer[field] = setTimeout(() => {
+            if (this.filterValues[field] === event.target.value) {
+                this.loadGuests();
+            }
+        }, 300);
+
     }
 
     onLazyLoad(event: any) {
