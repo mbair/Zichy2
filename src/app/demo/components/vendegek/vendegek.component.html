@@ -75,9 +75,11 @@
                         <th>
                             <p-dropdown
                                 inputId="dietFilter"
-                                optionValue="label"
                                 [options]="diets"
+                                optionLabel="name"
+                                optionValue="name"
                                 placeholder="Keresés étrendre..."
+                                emptyMessage="Nincs találat..."
                                 (onChange)="onFilter($event, 'diet')">
                                 <ng-template pTemplate="selectedItem">
                                     <p-tag [value]="filterValues['diet']"
@@ -85,8 +87,8 @@
                                     </p-tag>
                                 </ng-template>
                                 <ng-template let-option pTemplate="item">
-                                    <p-tag [value]="option.label"
-                                           [style]="{'background': 'var(--'+getDietColor(option.label)+')'}">
+                                    <p-tag [value]="option.name"
+                                           [style]="{'background': 'var(--'+getDietColor(option.name)+')'}">
                                     </p-tag>
                                 </ng-template>
                             </p-dropdown>

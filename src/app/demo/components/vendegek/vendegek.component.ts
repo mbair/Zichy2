@@ -1,13 +1,14 @@
 import { Component, OnInit, HostListener, isDevMode } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
-import { GuestService } from 'src/app/demo/service/guest.service';
-import { LogService } from 'src/app/demo/service/log.service';
 import { Message, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
+import { GuestService } from '../../service/guest.service';
+import { DietService } from '../../service/diet.service';
+import { LogService } from '../../service/log.service';
 import { ApiResponse } from '../../api/ApiResponse';
-import { Guest } from 'src/app/demo/api/guest';
-import { Tag } from 'src/app/demo/api/tag';
+import { Guest } from '../../api/guest';
+import { Tag } from '../../api/tag';
 
 @Component({
     selector: 'guests',
@@ -48,15 +49,20 @@ export class VendegekComponent implements OnInit {
     globalFilter: string = '';                 // Global filter
     filterValues: {[key: string]: string} = {} // Table filter conditions
 
-    guestsObs$: Observable<any> | undefined;
-    serviceMessageObs$: Observable<any> | undefined;
+    private guestObs$: Observable<any> | undefined;
+    private dietObs$: Observable<any> | undefined;
+    private serviceMessageObs$: Observable<any> | undefined;
     private debounce: {[key: string]: any} = {};
 
-    constructor(private guestService: GuestService, private messageService: MessageService, private logService: LogService) { }
+    constructor(private guestService: GuestService,
+                private dietService: DietService,
+                private messageService: MessageService,
+                private logService: LogService) { }
 
     ngOnInit() {
-        this.guestsObs$ = this.guestService.guestObs;
-        this.guestsObs$.subscribe((data: ApiResponse) => {
+        // Guests
+        this.guestObs$ = this.guestService.guestObs;
+        this.guestObs$.subscribe((data: ApiResponse) => {
             this.loading = false
             if (data) {
                 this.guests = data.rows || [];
@@ -70,6 +76,16 @@ export class VendegekComponent implements OnInit {
                 }
             }
         })
+
+        // Diets
+        this.dietObs$ = this.dietService.dietObs;
+        this.dietObs$.subscribe((data: ApiResponse) => {
+            this.loading = false
+            if (data && data.rows) {
+                this.diets = data.rows
+            }
+        })
+        this.dietService.getDiets(0, 999, '')
 
         // Message
         this.serviceMessageObs$ = this.guestService.serviceMessageObs;
@@ -87,17 +103,6 @@ export class VendegekComponent implements OnInit {
             { name: '20240518-20240520 - Észak-Buda Golgota' },
             { name: '20240518-20240520 - Esztergomi Golgota gyülekezeti hétvége' },
             { name: '20240517-20240519 - Szegedi Gimi 10B osztálykirándulás' }
-        ]
-
-        // TODO: Get diets from DB with service
-        this.diets = [
-            { label: 'normál', value: 'normál' },
-            { label: 'tejmentes', value: 'tejmentes' },
-            { label: 'laktózmentes', value: 'laktózmentes' },
-            { label: 'gluténmentes', value: 'gluténmentes' },
-            { label: 'glutén-, laktóz-, tejmentes', value: 'glutén-, laktóz-, tejmentes' },
-            { label: 'vegetáriánus', value: 'vegetáriánus' },
-            { label: 'nem kér étkezést', value: 'nem kér étkezést' }
         ]
 
         // Table columns
@@ -122,14 +127,14 @@ export class VendegekComponent implements OnInit {
         const queryParams = filters.filter(x => x.length > 0).join('&')
 
         if (this.globalFilter !== '') {
-            return this.guestService.getGuestsBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
+            this.guestService.getGuestsBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
         }
 
         if (queryParams.length > 0) {
-            return this.guestService.getGuestsBySearchQuery(queryParams)
+            this.guestService.getGuestsBySearchQuery(queryParams)
         }
 
-        return this.guestService.getGuests(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder })
+        this.guestService.getGuests(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder })
     }
 
     onFilter(event: any, field: string) {
@@ -140,7 +145,7 @@ export class VendegekComponent implements OnInit {
         }
 
         this.debounce[field] = setTimeout(() => {
-            if (this.filterValues[field] === event.value || event.target.value) {
+            if (this.filterValues[field] === (event.value || event.target.value)) {
                 this.doQuery()
             }
         }, 500)
@@ -321,22 +326,7 @@ export class VendegekComponent implements OnInit {
     }
 
     getDietColor(diet: string): string {
-        switch (diet) {
-            case 'tejmentes':
-                return 'blue-400';
-            case 'laktózmentes':
-                return 'blue-400'
-            case 'gluténmentes':
-                return 'yellow-300'
-            case 'glutén-, laktóz-, tejmentes':
-                return 'red-500'
-            case 'vegetáriánus':
-                return 'teal-500'
-            case 'nem kér étkezést':
-                return 'gray-300'
-            default:
-                return 'gray-700'
-        }
+        return this.dietService.getDietColor(diet)
     }
 
     @HostListener('window:keypress', ['$event'])

@@ -78,9 +78,10 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
         })
 
         // Fetch diets
-        this.dietService.getDiets().then(diets => {
-            this.diets = diets
-        })
+        // TODO: Fix this
+        // this.dietService.getDiets().then(diets => {
+        //     this.diets = diets
+        // })
 
         this.payments = [
             { label: 'Banki átutalás', value: 'Banki átutalás' },
