@@ -1,0 +1,330 @@
+<div class="grid">
+    <div class="col-12">
+        <div class="card px-0 py-0">
+            <p-toast></p-toast>
+            <p-table #dt
+                     dataKey="id"
+                     [value]="guests"
+                     [columns]="cols"
+                     responsiveLayout="scroll"
+                     [rows]="rowsPerPage"
+                     [totalRecords]="totalRecords"
+                     [globalFilterFields]="['firstName', 'lastName', 'rfid', 'roomNum', 'diet', 'birthDate', 'dateOfArrival', 'dateOfDeparture', 'firstMeal', 'lastMeal']"
+                     [paginator]="true"
+                     [rowsPerPageOptions]="rowsPerPageOptions"
+                     [showCurrentPageReport]="true"
+                     currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
+                     [(selection)]="selectedGuests"
+                     selectionMode="multiple"
+                     [rowHover]="true"
+                     [loading]="loading"
+                     (onLazyLoad)="onLazyLoad($event)"
+                     [lazy]="true" >
+
+                <ng-template pTemplate="caption">
+                    <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                        <h5 class="m-0">Vendégek</h5>
+                        <span class="block mt-2 md:mt-0">
+                            <p-dropdown
+                                [options]="conferences"
+                                [(ngModel)]="selectedConference"
+                                optionLabel="name"
+                                [showClear]="true"
+                                (onChange)="onConferenceChange()"
+                                placeholder="Válasszon konferenciát...">
+                            </p-dropdown>
+                        </span>
+                        <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <i class="pi pi-search"></i>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."  class="w-full sm:w-auto"/>
+                        </span>
+                        <span class="block mt-2 md:mt-0">
+                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
+                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="deleteSelectedGuests()" [disabled]="!selectedGuests || !selectedGuests.length"></button>
+                            <!-- <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block"></p-fileUpload> -->
+                            <button pButton pRipple label="Export" icon="pi pi-upload" class="p-button-help" (click)="dt.exportCSV()"></button>
+                        </span>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th style="width: 3rem">
+                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                        </th>
+                        <th style="width: 3rem"></th>
+                        <th pSortableColumn="lastName">Név <p-sortIcon field="lastName"></p-sortIcon></th>
+                        <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
+                        <th pSortableColumn="diet">Étrend <p-sortIcon field="diet"></p-sortIcon></th>
+                        <th pSortableColumn="rfid">RFID <p-sortIcon field="rfid"></p-sortIcon></th>
+                        <th pSortableColumn="lastRfidUsage">RFID használat<p-sortIcon field="lastRfidUsage"></p-sortIcon></th>
+                        <th pSortableColumn="dateOfArrival">Érkezés <p-sortIcon field="dateOfArrival"></p-sortIcon></th>
+                        <th pSortableColumn="dateOfDeparture">Távozás <p-sortIcon field="dateOfDeparture"></p-sortIcon></th>
+                        <th></th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th>
+                            <input pInputText type="text" (input)="onFilter($event, 'lastName')"
+                                placeholder="Keresés..." />
+                        </th>
+                        <th>
+                            <input pInputText type="text" (input)="onFilter($event, 'roomNum')"
+                                placeholder="Keresés..." />
+                        </th>
+                        <th>
+                            <input pInputText type="text" (input)="onFilter($event, 'diet')"
+                                placeholder="Keresés..." />
+                        </th>
+                        <th>
+                            <input pInputText type="text" (input)="onFilter($event, 'rfid')"
+                                placeholder="Keresés..." />
+                        </th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-guest let-expanded="expanded">
+                    <tr>
+                        <td>
+                            <p-tableCheckbox [value]="guest"></p-tableCheckbox>
+                        </td>
+                        <td>
+                            <p-button type="button" styleClass="p-button-rounded p-button-text" pRipple [pRowToggler]="guest" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+                        </td>
+                        <td style="width:14%; min-width:10rem;">
+                            <span class="p-column-title">Név</span>
+                            {{guest.lastName}} {{guest.firstName}}
+                            <span *ngIf="guest.rfid" class="pi pi-tag"></span>
+                        </td>
+                        <td class="text-center" style="width:8%; min-width:6rem;">
+                            <span class="p-column-title">Szoba</span>
+                            {{guest.roomNum}}
+                        </td>
+                        <td style="width:12%; min-width:9rem;">
+                            <span class="p-column-title">Étrend</span>
+                            <p-tag [value]="guest.diet"
+                                   [style]="{'background': getDietColor(guest.diet)}">
+                            </p-tag>
+                        </td>
+                        <td>
+                            <span class="p-column-title">RFID</span>
+                            {{guest.rfid}}
+                        </td>
+                        <td style="width:14%; min-width:10rem;">
+                            <span class="p-column-title">Utolsó RFID használat</span>
+                            {{guest.lastRfidUsage | date:'yyyy.MM.dd HH:mm:ss':'UTC' }}
+                        </td>
+                        <td style="width:9%; min-width:8rem;">
+                            <span class="p-column-title">Érkezés</span>
+                            {{guest.dateOfArrival | date:'yyyy.MM.dd'}}
+                        </td>
+                        <td style="width:9%; min-width:8rem;">
+                            <span class="p-column-title">Távozás</span>
+                            {{guest.dateOfDeparture | date:'yyyy.MM.dd'}}
+                        </td>
+                        <td>
+                            <div class="flex">
+                                <button pButton pRipple icon="pi pi-tags" class="p-button-rounded p-button-success mr-2" (click)="assignTag(guest)"></button>
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editGuest(guest)"></button>
+                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteGuest(guest)"></button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="rowexpansion" let-guest>
+                    <tr>
+                        <td colspan="10">
+                            <div class="p-2">
+                                <table cellspacing="0" cellpadding="5">
+                                    <tr>
+                                        <td class="font-medium">Születési dátum</td>
+                                        <td>{{guest.birthDate | date:'yyyy.MM.dd'}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">Nem:</td>
+                                        <td>{{guest.gender == 1 ? 'Férfi' : 'Nő'}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">Nemzetiség:</td>
+                                        <td>{{guest.nationality}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">Ország:</td>
+                                        <td>{{guest.country}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">Irányítószám:</td>
+                                        <td>{{guest.zipCode}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">SZÉP kártya:</td>
+                                        <td>{{guest.szepCard == true ? 'Igen' : 'Nem'}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">Első étkezés:</td>
+                                        <td>{{guest.firstMeal}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">Utolsó étkezés:</td>
+                                        <td>{{guest.lastMeal}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">Konferencia:</td>
+                                        <td>{{guest.conferenceName}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">Extra:</td>
+                                        <td>{{guest.accommodationExtra}}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+
+        <p-dialog [(visible)]="guestDialog" [style]="{width: '450px'}" header="Vendég adatai" [modal]="true" class="p-fluid">
+            <ng-template pTemplate="content">
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="lastName">Vezetéknév</label>
+                        <input type="text" pInputText [(ngModel)]="guest.lastName" />
+                    </div>
+                    <div class="field col">
+                        <label for="firstName">Keresztnév</label>
+                        <input type="text" pInputText [(ngModel)]="guest.firstName" />
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="roomNum">Szoba</label>
+                        <input type="text" pInputText [(ngModel)]="guest.roomNum" />
+                    </div>
+                    <div class="field col">
+                        <label for="rfid">RFID</label>
+                        <input type="text" pInputText [(ngModel)]="guest.rfid" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="diet">Étrend</label>
+                    <p-dropdown [(ngModel)]="guest.diet" inputId="diet" optionValue="label" [options]="diets" placeholder="Válasszon étrendet...">
+                        <ng-template pTemplate="selectedItem">
+                            <span *ngIf="guest && guest.diet">{{guest.diet}}</span>
+                        </ng-template>
+                        <ng-template let-option pTemplate="item">
+                            <span>{{option.label}}</span>
+                        </ng-template>
+                    </p-dropdown>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="dateOfArrival">Érkezés</label>
+                        <input type="text" pInputText [(ngModel)]="guest.dateOfArrival" />
+                    </div>
+                    <div class="field col">
+                        <label for="firstMeal">Első étkezés</label>
+                        <input type="text" pInputText [(ngModel)]="guest.firstMeal" />
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="dateOfDeparture">Távozás</label>
+                        <input type="text" pInputText [(ngModel)]="guest.dateOfDeparture" />
+                    </div>
+                    <div class="field col">
+                        <label for="lastMeal">Utolsó étkezés</label>
+                        <input type="text" pInputText [(ngModel)]="guest.lastMeal" />
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="gender">Nem</label>
+                        <input type="text" pInputText [(ngModel)]="guest.gender" />
+                    </div>
+                    <div class="field col">
+                        <label for="birthDate">Születési dátum</label>
+                        <input type="text" pInputText [(ngModel)]="guest.birthDate" />
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="country">Ország</label>
+                        <input type="text" pInputText [(ngModel)]="guest.country" />
+                    </div>
+                    <div class="field col">
+                        <label for="nationality">Nemzetiség</label>
+                        <input type="text" pInputText [(ngModel)]="guest.nationality" />
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="szepCard">SZÉP kártya</label>
+                        <input type="text" pInputText [(ngModel)]="guest.szepCard" />
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="accommodationExtra">Extra</label>
+                        <textarea rows="5" cols="30" pInputTextarea [(ngModel)]="guest.accommodationExtra"></textarea>
+                    </div>
+                </div>
+            </ng-template>
+
+            <ng-template pTemplate="footer">
+                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="saveGuest()"></button>
+            </ng-template>
+        </p-dialog>
+
+        <p-dialog [(visible)]="deleteGuestDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
+            <div class="flex align-items-center justify-content-center">
+                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+                <span *ngIf="guest">Biztosan törölni akarja <b>{{guest.lastName}} {{guest.firstName}}</b>-t?</span>
+            </div>
+            <ng-template pTemplate="footer">
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="deleteGuestDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="confirmDelete()"></button>
+            </ng-template>
+        </p-dialog>
+
+        <p-dialog [(visible)]="deleteGuestsDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+            <div class="flex align-items-center justify-content-center">
+                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+                <span>Biztosan törölni akarja a kiválasztott vendégeket?</span>
+            </div>
+            <ng-template pTemplate="footer">
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="deleteGuestsDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="confirmDeleteSelected()"></button>
+            </ng-template>
+        </p-dialog>
+
+        <p-dialog [(visible)]="tagDialog" [style]="{width: '450px'}" header="RFID címke vendéghez rendelés" [modal]="true" class="p-fluid">
+            <ng-template pTemplate="content">
+                <p-messages [(value)]="messages" [enableService]="false" [closable]="false"></p-messages>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="identifier">Címke azonosító</label>
+                        <input pInputText type="text" id="identifier" [(ngModel)]="scannedCode" readonly autofocus />
+                        <!-- <span>{{scannedCode.length}}</span> -->
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button pButton pRipple label="Címke visszavétel" icon="pi pi-trash" class="p-button-danger" (click)="unAssignTag()" [disabled]="!guest.rfid?.length"></button>
+                </div>
+            </ng-template>
+            <ng-template pTemplate="footer">
+                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="hideTagDialog()"></button>
+                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="save()"></button>
+            </ng-template>
+        </p-dialog>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<p-blockUI [autoZIndex]="true" [blocked]="loading">
+    <p-progressSpinner></p-progressSpinner>
+</p-blockUI>

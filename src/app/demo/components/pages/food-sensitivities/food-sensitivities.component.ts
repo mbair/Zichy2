@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { Product } from 'src/app/demo/api/product';
-import { FoodSensitivity } from 'src/app/demo/api/food-sensitivity';
-import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
-import { ProductService } from 'src/app/demo/service/product.service';
+import { FoodSensitivity } from 'src/app/demo/api/food-sensitivity';
+import { FoodSensitivityService } from 'src/app/demo/service/foodsensitivity.service';
+import { MessageService } from 'primeng/api';
 
 @Component({
     templateUrl: './food-sensitivities.component.html',
@@ -11,166 +10,102 @@ import { ProductService } from 'src/app/demo/service/product.service';
 })
 export class FoodSensitivitiesComponent implements OnInit {
 
-    productDialog: boolean = false;
-
-    deleteProductDialog: boolean = false;
-
-    deleteProductsDialog: boolean = false;
-
-    products: Product[] = [];
-
-    product: Product = {};
-
-    FoodSensitivities: FoodSensitivity[] = [];
-
-    foodSensitivity: FoodSensitivity[] = [];
-
-    selectedProducts: Product[] = [];
-
+    foodSensitivity: FoodSensitivity;
+    foodSensitivities: FoodSensitivity[] = [];
+    foodSensitivityDialog: boolean = false;
+    deletefoodSensitivityDialog: boolean = false;
+    deletefoodSensitivitiesDialog: boolean = false;
+    selectedFoodSensitivities: FoodSensitivity[] = [];
     submitted: boolean = false;
-
     cols: any[] = [];
-
-    statuses: any[] = [];
-
     rowsPerPageOptions = [5, 10, 20];
 
-    constructor(private productService: ProductService, private messageService: MessageService) { }
+    constructor(private foodSensitivityService: FoodSensitivityService, private messageService: MessageService) { }
 
     ngOnInit() {
-        this.productService.getProducts().then(data => this.products = data);
+        this.foodSensitivityService.getFoodSensitivities().then(data => this.foodSensitivities = data);
 
         this.cols = [
-            { field: 'product', header: 'Product' },
-            { field: 'price', header: 'Price' },
-            { field: 'category', header: 'Category' },
-            { field: 'rating', header: 'Reviews' },
-            { field: 'inventoryStatus', header: 'Status' }
-        ];
-
-        this.statuses = [
-            { label: 'FOGLALHATO', value: 'FOGLALHATO' },
-            { label: 'MAJDNEMTELE', value: 'MAJDNEMTELE' },
-            { label: 'MEGTELT', value: 'MEGTELT' }
-        ];
-
-        this.FoodSensitivities = [
-            {
-                id: '1',
-                name: 'Normál',
-                enabled: true,
-            },
-            {
-                id: '2',
-                name: 'Gluténmentes',
-                enabled: true,
-            },
-            {
-                id: '3',
-                name: 'Laktózmentes',
-                enabled: true,
-            },
-            {
-                id: '4',
-                name: 'Tejmentes',
-                enabled: true,
-            },
-            {
-                id: '5',
-                name: 'Glutén és tej/laktózmentes',
-                enabled: true,
-            },
-            {
-                id: '6',
-                name: 'Vegetáriánus',
-                enabled: true,
-            },
+            { field: 'name', header: 'Étrend neve' },
+            { field: 'color', header: 'Karszalag szín' },
+            { field: 'enabled', header: 'Engedélyezve' },
         ]
     }
 
     openNew() {
-        this.product = {};
+        this.foodSensitivity = {};
         this.submitted = false;
-        this.productDialog = true;
+        this.foodSensitivityDialog = true;
     }
 
-    deleteSelectedProducts() {
-        this.deleteProductsDialog = true;
+    deleteSelectedFoodsensitivities() {
+        this.deletefoodSensitivitiesDialog = true;
     }
 
-    editProduct(product: Product) {
-        this.product = { ...product };
-        this.productDialog = true;
+    editFoodsensitivity(sensitivity: FoodSensitivity) {
+        // this.foodSensitivities = { ...sensitivity };
+        this.foodSensitivityDialog = true;
     }
 
-    deleteProduct(product: Product) {
-        this.deleteProductDialog = true;
-        this.product = { ...product };
+    deleteFoodsensitivity(sensitivity: FoodSensitivity) {
+        this.deletefoodSensitivityDialog = true;
+        this.foodSensitivity = { ...sensitivity };
     }
 
     confirmDeleteSelected() {
-        this.deleteProductsDialog = false;
-        this.products = this.products.filter(val => !this.selectedProducts.includes(val));
-        this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
-        this.selectedProducts = [];
+        this.deletefoodSensitivityDialog = false;
+        this.foodSensitivities = this.foodSensitivities.filter(val => !this.selectedFoodSensitivities.includes(val));
+        this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Foodsensitivity Deleted', life: 3000 });
+        this.selectedFoodSensitivities = [];
     }
 
     confirmDelete() {
-        this.deleteProductDialog = false;
-        this.products = this.products.filter(val => val.id !== this.product.id);
-        this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 });
-        this.product = {};
+        this.deletefoodSensitivityDialog = false;
+        this.foodSensitivities = this.foodSensitivities.filter(val => val.id !== this.foodSensitivity.id);
+        this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Foodsensitivity Deleted', life: 3000 });
+        this.foodSensitivity = {};
     }
 
     hideDialog() {
-        this.productDialog = false;
+        this.foodSensitivityDialog = false;
         this.submitted = false;
     }
 
-    saveProduct() {
-        this.submitted = true;
+    // saveProduct() {
+    //     this.submitted = true;
 
-        if (this.product.name?.trim()) {
-            if (this.product.id) {
-                // @ts-ignore
-                this.product.inventoryStatus = this.product.inventoryStatus.value ? this.product.inventoryStatus.value : this.product.inventoryStatus;
-                this.products[this.findIndexById(this.product.id)] = this.product;
-                this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
-            } else {
-                this.product.id = this.createId();
-                this.product.code = this.createId();
-                this.product.image = 'product-placeholder.svg';
-                // @ts-ignore
-                this.product.inventoryStatus = this.product.inventoryStatus ? this.product.inventoryStatus.value : 'FOGLALHATO';
-                this.products.push(this.product);
-                this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
-            }
+    //     if (this.product.name?.trim()) {
+    //         if (this.product.id) {
+    //             // @ts-ignore
+    //             this.product.inventoryStatus = this.product.inventoryStatus.value ? this.product.inventoryStatus.value : this.product.inventoryStatus;
+    //             this.products[this.findIndexById(this.product.id)] = this.product;
+    //             this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
+    //         } else {
+    //             this.product.id = this.createId();
+    //             this.product.code = this.createId();
+    //             this.product.image = 'product-placeholder.svg';
+    //             // @ts-ignore
+    //             this.product.inventoryStatus = this.product.inventoryStatus ? this.product.inventoryStatus.value : 'FOGLALHATO';
+    //             this.products.push(this.product);
+    //             this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
+    //         }
 
-            this.products = [...this.products];
-            this.productDialog = false;
-            this.product = {};
-        }
-    }
+    //         this.products = [...this.products];
+    //         this.productDialog = false;
+    //         this.product = {};
+    //     }
+    // }
 
     findIndexById(id: string): number {
         let index = -1;
-        for (let i = 0; i < this.products.length; i++) {
-            if (this.products[i].id === id) {
+        for (let i = 0; i < this.foodSensitivities.length; i++) {
+            if (this.foodSensitivities[i].id === id) {
                 index = i;
                 break;
             }
         }
 
         return index;
-    }
-
-    createId(): string {
-        let id = '';
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        for (let i = 0; i < 5; i++) {
-            id += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return id;
     }
 
     onGlobalFilter(table: Table, event: Event) {

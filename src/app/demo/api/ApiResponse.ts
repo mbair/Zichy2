@@ -1,7 +1,6 @@
-import { Vendeg } from "./vendeg"
-export interface Response {
+export interface ApiResponse {
     currentPage?: number,
-    rows?: Vendeg[],
+    rows?: any[],
     totalItems?: number,
     totalPages?: number
 }

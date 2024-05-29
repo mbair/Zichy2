@@ -1,0 +1,46 @@
+{
+    "data": [
+        {
+            "id": 1,
+            "name": "Normál",
+            "color": "gray-700",
+            "enabled": true
+        },
+        {
+            "id": 2,
+            "name": "Gluténmentes",
+            "color": "yellow-300",
+            "enabled": true
+        },
+        {
+            "id": 3,
+            "name": "Laktózmentes",
+            "color": "blue-400",
+            "enabled": true
+        },
+        {
+            "id": 4,
+            "name": "Tejmentes",
+            "color": "blue-400",
+            "enabled": true
+        },
+        {
+            "id": 5,
+            "name": "Glutén és tej/laktózmentes",
+            "color": "red-500",
+            "enabled": true
+        },
+        {
+            "id": 6,
+            "name": "Vegetáriánus",
+            "color": "teal-500",
+            "enabled": true
+        },
+        {
+            "id": 7,
+            "name": "Nem kér étkezést",
+            "color": "gray-300",
+            "enabled": true
+        }
+    ]
+}

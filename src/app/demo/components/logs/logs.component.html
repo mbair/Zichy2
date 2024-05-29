@@ -1,0 +1,52 @@
+<div class="grid">
+    <div class="col-12">
+        <div class="card px-0 py-0">
+            <p-table #dt
+                    [value]="logs"
+                    [sortOrder]="-1"
+                    sortField="name"
+                    responsiveLayout="createdAt"
+                    [rows]="50"
+                    [globalFilterFields]="['name','createdAt']"
+                    [paginator]="true"
+                    [rowsPerPageOptions]="[50,100,200]"
+                    [showCurrentPageReport]="true"
+                    currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
+                    [rowHover]="true"
+                    dataKey="id">
+                <ng-template pTemplate="caption">
+                    <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                        <h5 class="m-0">Logok</h5>
+                        <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <i class="pi pi-search"></i>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."  class="w-full sm:w-auto"/>
+                        </span>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th pSortableColumn="createdAt">Rögzítve <p-sortIcon field="createdAt"></p-sortIcon></th>
+                        <th pSortableColumn="name">Szöveg <p-sortIcon field="name"></p-sortIcon></th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-logs>
+                    <tr>
+                        <td>
+                            <span class="p-column-title">Rögzítve</span>
+                            {{ logs.createdAt | date:'yyyy.MM.dd HH:mm:ss' }}
+                        </td>
+                        <td>
+                            <span class="p-column-title">Szöveg</span>
+                            {{ logs.name }}
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<p-blockUI [autoZIndex]="true" [blocked]="loading">
+    <p-progressSpinner></p-progressSpinner>
+</p-blockUI>
