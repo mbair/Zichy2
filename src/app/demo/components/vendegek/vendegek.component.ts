@@ -1,19 +1,14 @@
 import { Component, OnInit, HostListener, isDevMode } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
-import { Product } from 'src/app/demo/api/product';
 import { GuestService } from 'src/app/demo/service/guest.service';
 import { LogService } from 'src/app/demo/service/log.service';
-import { Message, MessageService, LazyLoadEvent } from 'primeng/api';
-import { Table, TableRowCollapseEvent, TableRowExpandEvent } from 'primeng/table';
-import { Tag } from 'src/app/demo/api/tag';
+import { Message, MessageService } from 'primeng/api';
+import { Table } from 'primeng/table';
+import { ApiResponse } from '../../api/ApiResponse';
 import { Guest } from 'src/app/demo/api/guest';
-import { Response } from '../../api/ApiResponse';
+import { Tag } from 'src/app/demo/api/tag';
 
-interface TagColor {
-    name: string;
-    code: string;
-}
 @Component({
     selector: 'guests',
     templateUrl: './vendegek.component.html',
@@ -26,104 +21,75 @@ interface TagColor {
 
 export class VendegekComponent implements OnInit {
 
-    loading: boolean = true;           // Loading overlay trigger value
-    tag: Tag = {};
-    tagDialog: boolean = false;
-    selectedTagColor: TagColor | undefined;
-    guestDialog: boolean = false;
-    deleteGuestDialog: boolean = false;
-    deleteGuestsDialog: boolean = false;
-    guests: Guest[] = [];
-    guest: Guest = {};
-    selectedGuests: Guest[] = [];
-    submitted: boolean = false;
-    cols: any[] = [];
-    diets: any[] = [];
-    statuses: any[] = [];
-    tagColors: TagColor[] = []
-    messages1: Message[] = [];
-    successfullMessage: Message[] = [];
-    scanTemp: string = '';
-    scannedCode: string = '';
-    tableData: any;
-    expandedRows = {};
-    filteredGuests: Guest[] = [...this.guests];
-
-    conferences: any[];
-    selectedConference: any;
-
-    //pagination and sortin g and seraching:
-    rowsPerPageOptions = [20, 50, 100];
-    rowsPerPage: number = 10; // Default rows per page
-    totalRecords: number = 0;
-    page: number = 0;
-    sortField: string = ''; // Current sort field
-    sortOrder: number = 1; // Current sort order
-    globalFilter: string = ''; // Global filter
-    filterValues: { [key: string]: string } = {};
+    loading: boolean = true;                   // Loading overlay trigger value
+    tableData: Guest[] = [];                   // Data set displayed in a table
+    messages: Message[] = [];                  // A message used for notifications and displaying errors
+    successfulMessage: Message[] = [];         // Message displayed on success
+    tag: Tag = {};                             // NFC tag
+    tagDialog: boolean = false;                // Tag assignment popup
+    conferences: any[];                        // Optional conferences
+    selectedConference: any;                   // Conference chosen by user
+    guest: Guest = {};                         // One guest object
+    guests: Guest[] = [];                      // All guests who appear in the table
+    guestDialog: boolean = false;              // Guests maintenance popup
+    deleteGuestDialog: boolean = false;        // Popup for deleting guest
+    deleteGuestsDialog: boolean = false;       // Popup for deleting guests
+    selectedGuests: Guest[] = [];              // Guest chosen by user
+    cols: any[] = [];                          // Table columns
+    diets: any[] = [];                         // Possible diets
+    scanTemp: string = '';                     // Temporary storage used during NFC reading
+    scannedCode: string = '';                  // Scanned Tag Id
+    rowsPerPageOptions = [20, 50, 100];        // Possible rows per page
+    rowsPerPage: number = 20;                  // Default rows per page
+    totalRecords: number = 0;                  // Total number of rows in the table
+    page: number = 0;                          // Current page
+    sortField: string = '';                    // Current sort field
+    sortOrder: number = 1;                     // Current sort order
+    globalFilter: string = '';                 // Global filter
+    filterValues: {[key: string]: string} = {} // Table filter conditions
 
     guestsObs$: Observable<any> | undefined;
     serviceMessageObs$: Observable<any> | undefined;
+    private debounce: {[key: string]: any} = {};
 
     constructor(private guestService: GuestService, private messageService: MessageService, private logService: LogService) { }
 
     ngOnInit() {
         this.guestsObs$ = this.guestService.guestObs;
-        this.guestsObs$.subscribe((data: Response) => {
+        this.guestsObs$.subscribe((data: ApiResponse) => {
             this.loading = false
             if (data) {
-                // this.guests = data
-                // this.filteredGuests = data
                 this.guests = data.rows || [];
                 this.totalRecords = data.totalItems || 0;
                 this.page = data.currentPage || 0;
 
                 // Filter out test users on production
+                // TODO: add test column to Guest
                 if (!isDevMode()) {
                     this.guests = data.rows?.filter((guest: any) => guest.lastName !== "Gábris") || []
                 }
             }
         })
 
-        // Get all Guests
-        // this.loading = true;
-        // this.guestService.getGuests()
-
         // Message
         this.serviceMessageObs$ = this.guestService.serviceMessageObs;
         this.serviceMessageObs$.subscribe((data) => {
             this.loading = false;
             if (data) {
-                this.messages1 = this.successfullMessage
+                this.messages = this.successfulMessage
             }
         })
 
         // Actual conferences
+        // TODO: Get conferences from DB with service
         this.conferences = [
             { name: '20240518-20240520 - KMGY Pünkösdi Hétvége' },
             { name: '20240518-20240520 - Észak-Buda Golgota' },
             { name: '20240518-20240520 - Esztergomi Golgota gyülekezeti hétvége' },
             { name: '20240517-20240519 - Szegedi Gimi 10B osztálykirándulás' }
-        ];
-
-        this.cols = [
-            { field: 'name', header: 'Név' },  // lastName + firstName
-            { field: 'roomNum', header: 'Szoba' },
-            { field: 'diet', header: 'Étrend' },
-            { field: 'rfid', header: 'RFID' },
-            { field: 'lastRfidUsage', header: 'RFID használat' },
-            { field: 'dateOfArrival', header: 'Érkezés' },
-            { field: 'dateOfDeparture', header: 'Távozás' }
         ]
 
-        this.tagColors = [
-            { name: 'fekete', code: 'black' },
-            { name: 'sárga', code: 'yellow' },
-            { name: 'piros', code: 'red' },
-            { name: 'zöld', code: 'green' },
-            { name: 'kék', code: 'blue' }
-        ]
-
+        // TODO: Get diets from DB with service
         this.diets = [
             { label: 'normál', value: 'normál' },
             { label: 'tejmentes', value: 'tejmentes' },
@@ -133,29 +99,51 @@ export class VendegekComponent implements OnInit {
             { label: 'vegetáriánus', value: 'vegetáriánus' },
             { label: 'nem kér étkezést', value: 'nem kér étkezést' }
         ]
+
+        // Table columns
+        this.cols = [
+            { field: 'name', header: 'Név' },  // lastName + firstName
+            { field: 'roomNum', header: 'Szoba' },
+            { field: 'diet', header: 'Étrend' },
+            { field: 'rfid', header: 'RFID' },
+            { field: 'lastRfidUsage', header: 'RFID használat' },
+            { field: 'dateOfArrival', header: 'Érkezés' },
+            { field: 'dateOfDeparture', header: 'Távozás' }
+        ]
     }
 
-    loadGuests() {
+
+    // Load filtered Guests data into the Table
+    doQuery() {
         this.loading = true;
 
         const filters = Object.keys(this.filterValues)
-            .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '');
-        const queryParams = filters.filter(x => x.length > 0).join('&');
+                              .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
+        const queryParams = filters.filter(x => x.length > 0).join('&')
 
         if (this.globalFilter !== '') {
-            return this.guestService.getGuestsBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder });
+            return this.guestService.getGuestsBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
         }
 
         if (queryParams.length > 0) {
-            return this.guestService.getGuestsBySearchQuery(queryParams);
+            return this.guestService.getGuestsBySearchQuery(queryParams)
         }
 
-        return this.guestService.getGuests(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder });
+        return this.guestService.getGuests(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder })
     }
 
     onFilter(event: any, field: string) {
-        this.filterValues[field] = event.target.value;
-        this.loadGuests();
+        this.filterValues[field] = event.target.value
+
+        if (this.debounce[field]) {
+            clearTimeout(this.debounce[field])
+        }
+
+        this.debounce[field] = setTimeout(() => {
+            if (this.filterValues[field] === event.target.value) {
+                this.doQuery()
+            }
+        }, 750)
     }
 
     onLazyLoad(event: any) {
@@ -164,17 +152,16 @@ export class VendegekComponent implements OnInit {
         this.sortField = event.sortField ?? '';
         this.sortOrder = event.sortOrder ?? 1;
         this.globalFilter = event.globalFilter ?? '';
-        this.loadGuests();
+        this.doQuery();
     }
 
     onConferenceChange() {
         this.filterValues['conferenceName'] = this.selectedConference?.name || ''
-        this.loadGuests()
+        this.doQuery()
     }
 
     openNew() {
         this.guest = {};
-        this.submitted = false;
         this.guestDialog = true;
     }
 
@@ -214,23 +201,18 @@ export class VendegekComponent implements OnInit {
 
     hideDialog() {
         this.guestDialog = false;
-        this.submitted = false;
     }
 
     hideTagDialog() {
         this.tagDialog = false;
-        this.submitted = false;
     }
 
     saveGuest() {
-        this.submitted = true;
-
         if (this.guest.firstName?.trim()) {
             if (this.guest.id) {
                 this.guestService.updateGuest(this.guest)
                 this.guests[this.findIndexById(this.guest.id)] = this.guest;
-                this.submitted = true;
-                this.successfullMessage = [{
+                this.successfulMessage = [{
                     severity: 'success',
                     summary: '',
                     detail: 'Sikeres vendégmódosítás!'
@@ -238,8 +220,7 @@ export class VendegekComponent implements OnInit {
             } else {
                 this.guestService.createGuest(this.guest)
                 this.guests.push(this.guest)
-                this.submitted = true;
-                this.successfullMessage = [{
+                this.successfulMessage = [{
                     severity: 'success',
                     summary: '',
                     detail: 'Sikeres vendég rögzítés!'
@@ -282,7 +263,7 @@ export class VendegekComponent implements OnInit {
         this.scanTemp = '';
         this.scannedCode = this.guest.rfid || '';
         this.guest = { ...guest };
-        this.messages1 = [
+        this.messages = [
             { severity: 'info', summary: '', detail: 'Tartsa az RFID címkét az olvasóhoz...' },
         ]
         this.tagDialog = true;
@@ -295,8 +276,7 @@ export class VendegekComponent implements OnInit {
         let guestsClone = JSON.parse(JSON.stringify(this.guests))
         guestsClone[this.findIndexById(this.guest.id)] = this.guest;
         this.guests = guestsClone
-        this.submitted = true;
-        this.successfullMessage = [{
+        this.successfulMessage = [{
             severity: 'success',
             summary: '',
             detail: 'A címkét eltávolítottuk a vendégtől!'
@@ -320,7 +300,7 @@ export class VendegekComponent implements OnInit {
             let guestsClone = JSON.parse(JSON.stringify(this.guests))
             guestsClone[this.findIndexById(this.guest.id)] = this.guest;
             this.guests = guestsClone
-            this.successfullMessage = [{
+            this.successfulMessage = [{
                 severity: 'success',
                 summary: '',
                 detail: 'Sikeresen hozzárendelte a címkét a vendéghez!'
@@ -335,7 +315,6 @@ export class VendegekComponent implements OnInit {
                 capacity: 0
             })
 
-            this.submitted = true;
             this.scannedCode = '';
             this.guest = {}
         })

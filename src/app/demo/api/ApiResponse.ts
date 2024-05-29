@@ -1,4 +1,4 @@
-export interface Response {
+export interface ApiResponse {
     currentPage?: number,
     rows?: any[],
     totalItems?: number,

@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, of, tap } from 'rxjs';
 import { Guest } from '../api/guest';
 import { ApiService } from './api.service';
-import { Response } from '../api/ApiResponse';
+import { ApiResponse } from '../api/ApiResponse';
 
 @Injectable({
     providedIn: 'root',
@@ -16,7 +16,6 @@ export class GuestService {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     }
 
-    private API = 'https://nfcreserve.hu/api/guest'
     private guestData$: BehaviorSubject<any>
     private serviceMessage$: BehaviorSubject<any>
 
@@ -25,7 +24,7 @@ export class GuestService {
         this.serviceMessage$ = new BehaviorSubject<any>(null)
     }
 
-    public get guestObs(): Observable<Response | null> {
+    public get guestObs(): Observable<ApiResponse | null> {
         return this.guestData$.asObservable()
     }
 
@@ -40,9 +39,9 @@ export class GuestService {
             pageSort = sort.sortField != "" ? `?sort=${sort.sortField}&order=${sortOrder}` : '';
         }
 
-        this.apiService.get<Response>(`guest/get/${pageSort !== '' ? 0 : page}/${rowsPerPage}${pageSort}`)
+        this.apiService.get<ApiResponse>(`guest/get/${pageSort !== '' ? 0 : page}/${rowsPerPage}${pageSort}`)
             .subscribe({
-                next: (response: Response) => {
+                next: (response: ApiResponse) => {
                     this.guestData$.next(response);
                 },
                 error: (error: any) => {
@@ -58,9 +57,9 @@ export class GuestService {
             pageSort = sort.sortField != "" ? `?sort=${sort.sortField}&order=${sortOrder}` : '';
         }
 
-        this.apiService.get<Response>(`guest/search/${globalFilter}${pageSort}`)
+        this.apiService.get<ApiResponse>(`guest/search/${globalFilter}${pageSort}`)
             .subscribe({
-                next: (response: Response) => {
+                next: (response: ApiResponse) => {
                     this.guestData$.next(response);
                 },
                 error: (error: any) => {
@@ -70,9 +69,9 @@ export class GuestService {
     }
 
     public getGuestsBySearchQuery(filters: string): void {
-        this.apiService.get<Response>(`guest/searchquery?${filters}`)
+        this.apiService.get<ApiResponse>(`guest/searchquery?${filters}`)
             .subscribe({
-                next: (response: Response) => {
+                next: (response: ApiResponse) => {
                     this.guestData$.next(response);
                 },
                 error: (error: any) => {
