@@ -73,8 +73,23 @@
                                 placeholder="Keresés..." />
                         </th>
                         <th>
-                            <input pInputText type="text" (input)="onFilter($event, 'diet')"
-                                placeholder="Keresés..." />
+                            <p-dropdown
+                                inputId="dietFilter"
+                                optionValue="label"
+                                [options]="diets"
+                                placeholder="Keresés étrendre..."
+                                (onChange)="onFilter($event, 'diet')">
+                                <ng-template pTemplate="selectedItem">
+                                    <p-tag [value]="filterValues['diet']"
+                                           [style]="{'background': 'var(--'+getDietColor(filterValues['diet'])+')'}">
+                                    </p-tag>
+                                </ng-template>
+                                <ng-template let-option pTemplate="item">
+                                    <p-tag [value]="option.label"
+                                           [style]="{'background': 'var(--'+getDietColor(option.label)+')'}">
+                                    </p-tag>
+                                </ng-template>
+                            </p-dropdown>
                         </th>
                         <th>
                             <input pInputText type="text" (input)="onFilter($event, 'rfid')"
@@ -106,7 +121,7 @@
                         <td style="width:12%; min-width:9rem;">
                             <span class="p-column-title">Étrend</span>
                             <p-tag [value]="guest.diet"
-                                   [style]="{'background': getDietColor(guest.diet)}">
+                                   [style]="{'background': 'var(--'+getDietColor(guest.diet)+')'}">
                             </p-tag>
                         </td>
                         <td>

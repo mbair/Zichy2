@@ -133,17 +133,17 @@ export class VendegekComponent implements OnInit {
     }
 
     onFilter(event: any, field: string) {
-        this.filterValues[field] = event.target.value
+        this.filterValues[field] = event.value || event.target.value
 
         if (this.debounce[field]) {
             clearTimeout(this.debounce[field])
         }
 
         this.debounce[field] = setTimeout(() => {
-            if (this.filterValues[field] === event.target.value) {
+            if (this.filterValues[field] === event.value || event.target.value) {
                 this.doQuery()
             }
-        }, 750)
+        }, 500)
     }
 
     onLazyLoad(event: any) {
@@ -323,19 +323,19 @@ export class VendegekComponent implements OnInit {
     getDietColor(diet: string): string {
         switch (diet) {
             case 'tejmentes':
-                return 'blue';
+                return 'blue-400';
             case 'laktózmentes':
-                return 'blue'
+                return 'blue-400'
             case 'gluténmentes':
-                return 'yellow'
+                return 'yellow-300'
             case 'glutén-, laktóz-, tejmentes':
-                return 'red'
+                return 'red-500'
             case 'vegetáriánus':
-                return 'green'
+                return 'teal-500'
             case 'nem kér étkezést':
-                return 'silver'
+                return 'gray-300'
             default:
-                return 'black'
+                return 'gray-700'
         }
     }
 
