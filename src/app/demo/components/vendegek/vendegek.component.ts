@@ -151,7 +151,7 @@ export class VendegekComponent implements OnInit {
 
     onLazyLoad(event: any) {
         this.page = event.first! / event.rows!;
-        this.rowsPerPage = event.rows ?? 20;
+        this.rowsPerPage = event.rows ?? this.rowsPerPage;
         this.sortField = event.sortField ?? '';
         this.sortOrder = event.sortOrder ?? 1;
         this.globalFilter = event.globalFilter ?? '';
