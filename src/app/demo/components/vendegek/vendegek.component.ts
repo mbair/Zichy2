@@ -99,10 +99,7 @@ export class VendegekComponent implements OnInit {
         // Actual conferences
         // TODO: Get conferences from DB with service
         this.conferences = [
-            { name: '20240518-20240520 - KMGY Pünkösdi Hétvége' },
-            { name: '20240518-20240520 - Észak-Buda Golgota' },
-            { name: '20240518-20240520 - Esztergomi Golgota gyülekezeti hétvége' },
-            { name: '20240517-20240519 - Szegedi Gimi 10B osztálykirándulás' }
+            { name: '20240530-20240531 - Zöldliget Iskola osztálykirándulás' },
         ]
 
         // Table columns
