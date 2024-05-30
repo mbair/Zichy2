@@ -75,11 +75,11 @@ export class GuestService {
     }
 
     public getByRFID(rfid: string): Observable<any> {
-        return this.apiService.get(`/guest/getbyrfid/${rfid}`);
+        return this.apiService.get(`guest/getbyrfid/${rfid}`);
     }
 
     public createGuest(guest: Guest): void {
-        this.apiService.post(`/guest/create/`, guest)
+        this.apiService.post(`guest/create/`, guest)
             .subscribe({
                 next: (response: any) => {
                     this.serviceMessage$.next('success')
@@ -91,7 +91,7 @@ export class GuestService {
     }
 
     public updateGuest(modifiedGuest: Guest): void {
-        this.apiService.put(`/guest/update/${modifiedGuest.id}`, modifiedGuest)
+        this.apiService.put(`guest/update/${modifiedGuest.id}`, modifiedGuest)
             .subscribe({
                 next: () => {
                     this.serviceMessage$.next('success')
@@ -103,7 +103,7 @@ export class GuestService {
     }
 
     public updateGuest2(modifiedGuest: Guest): Observable<any> {
-        return this.apiService.put(`/guest/update/${modifiedGuest.id}`, modifiedGuest)
+        return this.apiService.put(`guest/update/${modifiedGuest.id}`, modifiedGuest)
             .pipe(
                 tap(() => console.log(`updated guest id=${modifiedGuest.id}`)),
                 catchError(this.handleError<any>('updateGuest2'))
@@ -111,7 +111,7 @@ export class GuestService {
     }
 
     public deleteGuest(guest: Guest): void {
-        this.apiService.delete(`/guest/delete/${guest.id}`)
+        this.apiService.delete(`guest/delete/${guest.id}`)
             .subscribe({
                 next: (response: any) => {
                     this.serviceMessage$.next(response)
@@ -127,7 +127,7 @@ export class GuestService {
             ids: guests.map(guest => guest.id)
         }
 
-        this.apiService.post('/guest/bulkdelete', params)
+        this.apiService.post('guest/bulkdelete', params)
             .subscribe({
                 next: (response: any) => {
                     this.serviceMessage$.next(response)
