@@ -155,7 +155,7 @@ export class VendegekComponent implements OnInit {
         this.sortField = event.sortField ?? '';
         this.sortOrder = event.sortOrder ?? 1;
         this.globalFilter = event.globalFilter ?? '';
-        this.doQuery();
+        this.doQuery()
     }
 
     onConferenceChange() {

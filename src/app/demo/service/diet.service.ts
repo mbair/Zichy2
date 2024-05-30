@@ -49,31 +49,15 @@ export class DietService {
     /**
      * Get Diet color by diet name
      * We are using PrimeNG colors as default
-     * @return color as string
+     * @return diet color as string
      */
     public getDietColor(dietName: string): string {
-        return this.dataCache.map((diet: Diet) => {
+        let dietColor: string = ''
+        this.dataCache.map((diet: Diet) => {
             if (dietName.toLowerCase() == diet.name?.toLowerCase()) {
-                return diet.color
+                dietColor = diet.color ?? ''
             }
-            return ''
         })
-
-        // switch (diet) {
-        //     case 'tejmentes':
-        //         return 'blue-400';
-        //     case 'laktózmentes':
-        //         return 'blue-400'
-        //     case 'gluténmentes':
-        //         return 'yellow-300'
-        //     case 'glutén-, laktóz-, tejmentes':
-        //         return 'red-500'
-        //     case 'vegetáriánus':
-        //         return 'teal-500'
-        //     case 'nem kér étkezést':
-        //         return 'gray-300'
-        //     default:
-        //         return 'gray-700'
-        // }
+        return dietColor
     }
 }
