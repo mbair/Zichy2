@@ -1,20 +1,14 @@
-import { HttpClient, HttpHeaders, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, of, tap } from 'rxjs';
-import { Guest } from '../api/guest';
-import { ApiService } from './api.service';
 import { ApiResponse } from '../api/ApiResponse';
+import { ApiService } from './api.service';
+import { Guest } from '../api/guest';
 
 @Injectable({
     providedIn: 'root',
 })
 
-
 export class GuestService {
-
-    httpOptions = {
-        headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-    }
 
     private guestData$: BehaviorSubject<any>
     private serviceMessage$: BehaviorSubject<any>
@@ -42,12 +36,12 @@ export class GuestService {
         this.apiService.get<ApiResponse>(`guest/get/${pageSort !== '' ? 0 : page}/${rowsPerPage}${pageSort}`)
             .subscribe({
                 next: (response: ApiResponse) => {
-                    this.guestData$.next(response);
+                    this.guestData$.next(response)
                 },
                 error: (error: any) => {
-                    this.serviceMessage$.next(error);
+                    this.serviceMessage$.next(error)
                 }
-            });
+            })
     }
 
     public getGuestsBySearch(globalFilter: string, sort: any): void {

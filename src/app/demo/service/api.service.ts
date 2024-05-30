@@ -1,15 +1,30 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { Inject, Injectable, isDevMode } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { DOCUMENT } from '@angular/common';
 
 @Injectable({
     providedIn: 'root'
 })
-export class ApiService {
-    private apiUrl = 'https://test.nfcreserve.hu/api';  // TODO: itt nem maradhat test (talán dinamikusan kellene, prod-on test nélkül)
 
-    constructor(private http: HttpClient) { }
+export class ApiService {
+
+    private hostname: string;
+    private apiUrl: string;  // Path to the backend API
+    private productionURL = 'https://nfcreserve.hu/api'
+    private developmentURL = 'https://test.nfcreserve.hu/api'
+
+    constructor(@Inject(DOCUMENT) private document: any, private http: HttpClient) {
+        // API URL starts with "test." when App is in Dev or in Test
+        this.hostname = this.document.location.hostname;
+        console.log(this.hostname);
+        if (isDevMode() || this.hostname == 'test.nfcreserve.hu') {
+            this.apiUrl = this.developmentURL
+        } else {
+            this.apiUrl = this.productionURL
+        }
+    }
 
     private handleError(error: HttpErrorResponse) {
         console.error('An error occurred:', error.message);

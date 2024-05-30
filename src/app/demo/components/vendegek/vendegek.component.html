@@ -73,8 +73,25 @@
                                 placeholder="Keresés..." />
                         </th>
                         <th>
-                            <input pInputText type="text" (input)="onFilter($event, 'diet')"
-                                placeholder="Keresés..." />
+                            <p-dropdown
+                                inputId="dietFilter"
+                                [options]="diets"
+                                optionLabel="name"
+                                optionValue="name"
+                                placeholder="Keresés étrendre..."
+                                emptyMessage="Nincs találat..."
+                                (onChange)="onFilter($event, 'diet')">
+                                <ng-template pTemplate="selectedItem">
+                                    <p-tag [value]="filterValues['diet']"
+                                           [style]="{'background': 'var(--'+getDietColor(filterValues['diet'])+')'}">
+                                    </p-tag>
+                                </ng-template>
+                                <ng-template let-option pTemplate="item">
+                                    <p-tag [value]="option.name"
+                                           [style]="{'background': 'var(--'+getDietColor(option.name)+')'}">
+                                    </p-tag>
+                                </ng-template>
+                            </p-dropdown>
                         </th>
                         <th>
                             <input pInputText type="text" (input)="onFilter($event, 'rfid')"
@@ -106,7 +123,7 @@
                         <td style="width:12%; min-width:9rem;">
                             <span class="p-column-title">Étrend</span>
                             <p-tag [value]="guest.diet"
-                                   [style]="{'background': getDietColor(guest.diet)}">
+                                   [style]="{'background': 'var(--'+getDietColor(guest.diet)+')'}">
                             </p-tag>
                         </td>
                         <td>
