@@ -128,10 +128,11 @@ export class VendegekComponent implements OnInit {
 
         if (this.globalFilter !== '') {
             this.guestService.getGuestsBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
+            return
         }
-
         if (queryParams.length > 0) {
             this.guestService.getGuestsBySearchQuery(queryParams)
+            return
         }
 
         this.guestService.getGuests(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder })
@@ -153,7 +154,7 @@ export class VendegekComponent implements OnInit {
 
     onLazyLoad(event: any) {
         this.page = event.first! / event.rows!;
-        this.rowsPerPage = event.rows ?? 10;
+        this.rowsPerPage = event.rows ?? 20;
         this.sortField = event.sortField ?? '';
         this.sortOrder = event.sortOrder ?? 1;
         this.globalFilter = event.globalFilter ?? '';
