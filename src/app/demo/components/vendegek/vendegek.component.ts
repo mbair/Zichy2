@@ -38,6 +38,7 @@ export class VendegekComponent implements OnInit {
     selectedGuests: Guest[] = [];              // Guest chosen by user
     cols: any[] = [];                          // Table columns
     diets: any[] = [];                         // Possible diets
+    genders: any[] = [];                       // Possible genders
     scanTemp: string = '';                     // Temporary storage used during NFC reading
     scannedCode: string = '';                  // Scanned Tag Id
     rowsPerPageOptions = [20, 50, 100];        // Possible rows per page
@@ -82,7 +83,10 @@ export class VendegekComponent implements OnInit {
         this.dietObs$.subscribe((data: ApiResponse) => {
             this.loading = false
             if (data && data.rows) {
-                this.diets = data.rows
+                data.rows.map((diet: any) => {
+                    diet.name = diet.name.toLowerCase()
+                    this.diets.push(diet)
+                })
             }
         })
         this.dietService.getDiets(0, 999, '')
@@ -99,7 +103,14 @@ export class VendegekComponent implements OnInit {
         // Actual conferences
         // TODO: Get conferences from DB with service
         this.conferences = [
-            { name: '20240530-20240531 - Zöldliget Iskola osztálykirándulás' },
+            { name: 'Zöldliget Iskola osztálykirándulás' },
+        ]
+
+        // Genders
+        // TODO: Get genders from DB with service
+        this.genders = [
+            { code: 1, name: 'Férfi' },
+            { code: 2, name: 'Nő' },
         ]
 
         // Table columns
