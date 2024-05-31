@@ -11,6 +11,8 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
 import { FileSendEvent, UploadEvent } from 'primeng/fileupload';
+import * as moment from 'moment';
+moment.locale('hu')
 
 @Component({
     selector: 'guests',
@@ -52,6 +54,7 @@ export class VendegekComponent implements OnInit {
     sortOrder: number = 1;                     // Current sort order
     globalFilter: string = '';                 // Global filter
     filterValues: {[key: string]: string} = {} // Table filter conditions
+    localeCalendar: any;                       // Locale calendar values
 
     private guestObs$: Observable<any> | undefined;
     private genderObs$: Observable<any> | undefined;
@@ -146,6 +149,19 @@ export class VendegekComponent implements OnInit {
             { field: 'dateOfArrival', header: 'Érkezés' },
             { field: 'dateOfDeparture', header: 'Távozás' }
         ]
+
+        this.localeCalendar = {
+            firstDayOfWeek: 1,
+            dayNames: ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"],
+            dayNamesShort: ["Vas", "Hét", "Ked", "Sze", "Csü", "Pén", "Szo"],
+            dayNamesMin: ["Va","Hé","Ke","Sz","Cs","Pé","Sz"],
+            monthNames: [ "Január","Február","Március","Április","Május","Június","Július","Augusztus","Szeptember","Október","November","December" ],
+            monthNamesShort: [ "Jan", "Feb", "Már", "Ápr", "Máj", "Jún","Júl", "Aug", "Sze", "Okt", "Nov", "Dec" ],
+            today: 'Ma',
+            clear: 'Törlés',
+            dateFormat: 'yy.mm.dd',
+            weekHeader: 'Wk'
+        }
     }
 
 
@@ -167,11 +183,20 @@ export class VendegekComponent implements OnInit {
     onFilter(event: any, field: string) {
         this.loading = true;
         let filterValue = '';
-        if (event && (event.value || event.target?.value)) {
-            filterValue = event.value || event.target?.value
+
+        // Calendar date as String
+        if (event instanceof Date) {
+            const date = moment(event);
+            const formattedDate = date.format('YYYY.MM.DD');
+            filterValue = formattedDate
         } else {
-            this.filterValues[field] = ''
+            if (event && (event.value || event.target?.value)) {
+                filterValue = event.value || event.target?.value
+            } else {
+                this.filterValues[field] = ''
+            }
         }
+
         this.filterValues[field] = filterValue
 
         if (this.debounce[field]) {

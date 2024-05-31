@@ -54,7 +54,7 @@
                                 [maxFileSize]="1000000"
                                 (onSend)="onSend($event)"
                                 (onUpload)="onUpload($event)" />
-                            <button pButton pRipple label="Export" icon="pi pi-download" class="p-button-help" (click)="dt.exportCSV()"></button>
+                            <!-- <button pButton pRipple label="Export" icon="pi pi-download" class="p-button-help" (click)="dt.exportCSV()"></button> -->
                         </span>
                     </div>
                 </ng-template>
@@ -119,9 +119,40 @@
                                    placeholder="Keresés..."
                                    style="width:12%; min-width:9rem;"/>
                         </th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
+                        <th>
+                            <p-calendar
+                                (onSelect)="onFilter($event, 'lastRfidUsage')"
+                                (onClear)="onFilter($event, 'lastRfidUsage')"
+                                today="ma"
+                                clear="törlés"
+                                [firstDayOfWeek]=1
+                                [showButtonBar]="true"
+                                dateFormat="yy.mm.dd">
+                            </p-calendar>
+                        </th>
+                        <th>
+                            <p-calendar
+                                (onSelect)="onFilter($event, 'dateOfArrival')"
+                                (onClear)="onFilter($event, 'dateOfArrival')"
+                                [locale]="localeCalendar"
+                                today="ma"
+                                clear="törlés"
+                                [firstDayOfWeek]=1
+                                [showButtonBar]="true"
+                                dateFormat="yy.mm.dd">
+                            </p-calendar>
+                        </th>
+                        <th>
+                            <p-calendar
+                                (onSelect)="onFilter($event, 'dateOfDeparture')"
+                                (onClear)="onFilter($event, 'dateOfDeparture')"
+                                today="ma"
+                                clear="törlés"
+                                [firstDayOfWeek]=1
+                                [showButtonBar]="true"
+                                dateFormat="yy.mm.dd">
+                            </p-calendar>
+                        </th>
                         <th></th>
                     </tr>
                 </ng-template>
