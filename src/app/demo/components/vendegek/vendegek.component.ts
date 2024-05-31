@@ -103,6 +103,7 @@ export class VendegekComponent implements OnInit {
         // TODO: Get conferences from DB with service
         this.conferences = [
             { name: 'Zöldliget Iskola osztálykirándulás' },
+            { name: 'Golgota gyüli a parkban' },
         ]
 
         // Genders
@@ -134,15 +135,10 @@ export class VendegekComponent implements OnInit {
         const queryParams = filters.filter(x => x.length > 0).join('&')
 
         if (this.globalFilter !== '') {
-            this.guestService.getGuestsBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
-            return
-        }
-        if (queryParams.length > 0) {
-            this.guestService.getGuestsBySearchQuery(queryParams)
-            return
+            return this.guestService.getGuestsBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
         }
 
-        this.guestService.getGuests(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder })
+        return this.guestService.getGuests(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
     }
 
     onFilter(event: any, field: string) {
