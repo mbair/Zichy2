@@ -45,6 +45,7 @@ export class VendegekComponent implements OnInit {
     rowsPerPageOptions = [20, 50, 100];        // Possible rows per page
     rowsPerPage: number = 20;                  // Default rows per page
     totalRecords: number = 0;                  // Total number of rows in the table
+    totalTaggedGuests: number = 0;             // Total number of tagged Guests
     page: number = 0;                          // Current page
     sortField: string = '';                    // Current sort field
     sortOrder: number = 1;                     // Current sort order
@@ -76,10 +77,13 @@ export class VendegekComponent implements OnInit {
                 this.page = data.currentPage || 0;
 
                 // Filter out test users on production
-                // TODO: add test column to Guest
                 if (!isDevMode()) {
-                    this.tableData = data.rows?.filter((guest: any) => guest.lastName !== "Gábris") || []
+                    this.tableData = data.rows?.filter((guest: any) => guest.is_test == false) || []
                 }
+
+                // Define tagged users number
+                let taggedGuests = data.rows?.filter((guest: any) => guest.rfid !== null)
+                this.totalTaggedGuests = taggedGuests?.length || 0
             }
         })
 
