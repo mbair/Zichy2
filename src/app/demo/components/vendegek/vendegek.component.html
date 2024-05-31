@@ -122,12 +122,12 @@
                         <td>
                             <p-button type="button" styleClass="p-button-rounded p-button-text" pRipple [pRowToggler]="guest" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
                         </td>
-                        <td >
+                        <td>
                             <span class="p-column-title">Név</span>
                             {{guest.lastName}} {{guest.firstName}}
                             <span *ngIf="guest.rfid" class="pi pi-tag"></span>
                         </td>
-                        <td class="text-center" >
+                        <td class="text-center" style="white-space: break-spaces">
                             <span class="p-column-title">Szoba</span>
                             {{guest.roomNum}}
                         </td>
