@@ -99,7 +99,7 @@ export class VendegekComponent implements OnInit {
             }
         })
         // Get all Diets
-        this.dietService.getDiets(0, 999, '')
+        this.dietService.getDiets(0, 999, { sortField: 'id', sortOrder: 1 })
 
         // Message
         this.serviceMessageObs$ = this.guestService.serviceMessageObs;
@@ -300,8 +300,8 @@ export class VendegekComponent implements OnInit {
     }
 
     unAssignTag() {
-        this.guest.rfid = '';
-        this.guest.lastRfidUsage = '';
+        this.guest.rfid = null;
+        this.guest.lastRfidUsage = null;
         this.guestService.updateGuest(this.guest);
         let guestsClone = JSON.parse(JSON.stringify(this.tableData))
         guestsClone[this.findIndexById(this.guest.id)] = this.guest;
