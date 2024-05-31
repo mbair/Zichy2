@@ -87,6 +87,7 @@
                                 optionValue="name"
                                 placeholder="Keresés étrendre..."
                                 emptyMessage="Nincs találat..."
+                                [showClear]="true"
                                 (onChange)="onFilter($event, 'diet')">
                                 <ng-template pTemplate="selectedItem">
                                     <p-tag [value]="filterValues['diet']"

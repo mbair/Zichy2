@@ -18,7 +18,6 @@ export class ApiService {
     constructor(@Inject(DOCUMENT) private document: any, private http: HttpClient) {
         // API URL starts with "test." when App is in Dev or in Test
         this.hostname = this.document.location.hostname;
-        console.log(this.hostname);
         if (isDevMode() || this.hostname == 'test.nfcreserve.hu') {
             this.apiUrl = this.developmentURL
         } else {

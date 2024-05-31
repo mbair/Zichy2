@@ -142,14 +142,20 @@ export class VendegekComponent implements OnInit {
     }
 
     onFilter(event: any, field: string) {
-        this.filterValues[field] = event.value || event.target.value
+        let filterValue = ''
+        if (event && (event.value || event.target?.value)) {
+            filterValue = event.value || event.target?.value
+        } else {
+            this.filterValues[field] = ''
+        }
+        this.filterValues[field] = filterValue
 
         if (this.debounce[field]) {
             clearTimeout(this.debounce[field])
         }
 
         this.debounce[field] = setTimeout(() => {
-            if (this.filterValues[field] === (event.value || event.target.value)) {
+            if (this.filterValues[field] === filterValue) {
                 this.doQuery()
             }
         }, 500)
