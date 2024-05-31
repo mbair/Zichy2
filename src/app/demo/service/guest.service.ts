@@ -26,14 +26,18 @@ export class GuestService {
         return this.serviceMessage$.asObservable()
     }
 
-    public getGuests(page: number, rowsPerPage: number, sort: any): void {
+    public getGuests(page: number, rowsPerPage: number, sort: any, queryParams: string): void {
         let pageSort: string = '';
         if (sort !== '') {
             const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC';
-            pageSort = sort.sortField != "" ? `?sort=${sort.sortField}&order=${sortOrder}` : '';
+            pageSort = sort.sortField != "" ? `sort=${sort.sortField}&order=${sortOrder}` : '';
         }
 
-        this.apiService.get<ApiResponse>(`guest/get/${pageSort !== '' ? 0 : page}/${rowsPerPage}${pageSort}`)
+        const query = pageSort !== '' && queryParams !== '' ? pageSort+"&"+queryParams :
+         pageSort !== '' && queryParams ==='' ? pageSort : 
+         pageSort === '' && queryParams !=='' ? queryParams : '';
+        const url = `${pageSort !== '' ? 0 : page}/${rowsPerPage}${query!=='' ? "?"+query : ''}`;
+        this.apiService.get<ApiResponse>(`guest/get/${url}`)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.guestData$.next(response)

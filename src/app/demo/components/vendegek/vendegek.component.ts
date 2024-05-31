@@ -47,17 +47,17 @@ export class VendegekComponent implements OnInit {
     sortField: string = '';                    // Current sort field
     sortOrder: number = 1;                     // Current sort order
     globalFilter: string = '';                 // Global filter
-    filterValues: {[key: string]: string} = {} // Table filter conditions
+    filterValues: { [key: string]: string } = {} // Table filter conditions
 
     private guestObs$: Observable<any> | undefined;
     private dietObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
-    private debounce: {[key: string]: any} = {};
+    private debounce: { [key: string]: any } = {};
 
     constructor(private guestService: GuestService,
-                private dietService: DietService,
-                private messageService: MessageService,
-                private logService: LogService) { }
+        private dietService: DietService,
+        private messageService: MessageService,
+        private logService: LogService) { }
 
     ngOnInit() {
         // Guests
@@ -130,19 +130,14 @@ export class VendegekComponent implements OnInit {
         this.loading = true;
 
         const filters = Object.keys(this.filterValues)
-                              .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
+            .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
         const queryParams = filters.filter(x => x.length > 0).join('&')
 
         if (this.globalFilter !== '') {
-            this.guestService.getGuestsBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
-            return
-        }
-        if (queryParams.length > 0) {
-            this.guestService.getGuestsBySearchQuery(queryParams)
-            return
+            return this.guestService.getGuestsBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
         }
 
-        this.guestService.getGuests(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder })
+        return this.guestService.getGuests(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
     }
 
     onFilter(event: any, field: string) {
