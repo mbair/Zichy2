@@ -298,7 +298,14 @@
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="gender">Nem</label>
-                        <input type="text" pInputText [(ngModel)]="guest.gender" />
+                        <p-dropdown
+                            [options]="genders"
+                            [(ngModel)]="guest.gender"
+                            optionLabel="name"
+                            optionValue="code"
+                            placeholder="Válassz nemet..."
+                            emptyMessage="Nincs találat...">
+                        </p-dropdown>
                     </div>
                     <div class="field col">
                         <label for="birthDate">Születési dátum</label>
@@ -323,7 +330,7 @@
                 </div>
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="accommodationExtra">Extra</label>
+                        <label for="accommodationExtra">Szállás extra</label>
                         <textarea rows="5" cols="30" pInputTextarea [(ngModel)]="guest.accommodationExtra"></textarea>
                     </div>
                 </div>

@@ -4,6 +4,7 @@ import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { Message, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { GuestService } from '../../service/guest.service';
+import { GenderService } from '../../service/gender.service';
 import { DietService } from '../../service/diet.service';
 import { LogService } from '../../service/log.service';
 import { ApiResponse } from '../../api/ApiResponse';
@@ -53,12 +54,14 @@ export class VendegekComponent implements OnInit {
     filterValues: {[key: string]: string} = {} // Table filter conditions
 
     private guestObs$: Observable<any> | undefined;
+    private genderObs$: Observable<any> | undefined;
     private dietObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
     private debounce: {[key: string]: any} = {};
 
 
     constructor(private guestService: GuestService,
+                private genderService: GenderService,
                 private dietService: DietService,
                 private messageService: MessageService,
                 private logService: LogService) { }
@@ -86,6 +89,15 @@ export class VendegekComponent implements OnInit {
                 this.totalTaggedGuests = taggedGuests?.length || 0
             }
         })
+
+        // Genders
+        this.genderObs$ = this.genderService.genderObs;
+        this.genderObs$.subscribe((data: any) => {
+            this.loading = false
+            this.genders = data
+        })
+        // Get all Genders
+        this.genderService.getGenders(0, 999, { sortField: 'id', sortOrder: 1 })
 
         // Diets
         this.dietObs$ = this.dietService.dietObs;
