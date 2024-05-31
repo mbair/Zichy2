@@ -31,7 +31,6 @@ export class VendegekComponent implements OnInit {
     conferences: any[];                        // Optional conferences
     selectedConference: any;                   // Conference chosen by user
     guest: Guest = {};                         // One guest object
-    guests: Guest[] = [];                      // All guests who appear in the table
     guestDialog: boolean = false;              // Guests maintenance popup
     deleteGuestDialog: boolean = false;        // Popup for deleting guest
     deleteGuestsDialog: boolean = false;       // Popup for deleting guests
@@ -66,14 +65,14 @@ export class VendegekComponent implements OnInit {
         this.guestObs$.subscribe((data: ApiResponse) => {
             this.loading = false
             if (data) {
-                this.guests = data.rows || [];
+                this.tableData = data.rows || [];
                 this.totalRecords = data.totalItems || 0;
                 this.page = data.currentPage || 0;
 
                 // Filter out test users on production
                 // TODO: add test column to Guest
                 if (!isDevMode()) {
-                    this.guests = data.rows?.filter((guest: any) => guest.lastName !== "Gábris") || []
+                    this.tableData = data.rows?.filter((guest: any) => guest.lastName !== "Gábris") || []
                 }
             }
         })
@@ -197,7 +196,7 @@ export class VendegekComponent implements OnInit {
         this.loading = true;
         this.deleteGuestsDialog = false;
         this.guestService.deleteGuests(this.selectedGuests)
-        this.guests = this.guests.filter(val => !this.selectedGuests.includes(val))
+        this.tableData = this.tableData.filter(val => !this.selectedGuests.includes(val))
         this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendégek törölve', life: 3000 })
         this.selectedGuests = []
         this.loading = false;
@@ -206,7 +205,7 @@ export class VendegekComponent implements OnInit {
     confirmDelete() {
         this.loading = true;
         this.deleteGuestDialog = false;
-        this.guests = this.guests.filter(val => val.id !== this.guest.id);
+        this.tableData = this.tableData.filter(val => val.id !== this.guest.id);
         this.guestService.deleteGuest(this.guest)
         this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendég törölve', life: 3000 });
         this.guest = {};
@@ -225,7 +224,7 @@ export class VendegekComponent implements OnInit {
         if (this.guest.firstName?.trim()) {
             if (this.guest.id) {
                 this.guestService.updateGuest(this.guest)
-                this.guests[this.findIndexById(this.guest.id)] = this.guest;
+                this.tableData[this.findIndexById(this.guest.id)] = this.guest;
                 this.successfulMessage = [{
                     severity: 'success',
                     summary: '',
@@ -233,7 +232,7 @@ export class VendegekComponent implements OnInit {
                 }]
             } else {
                 this.guestService.createGuest(this.guest)
-                this.guests.push(this.guest)
+                this.tableData.push(this.guest)
                 this.successfulMessage = [{
                     severity: 'success',
                     summary: '',
@@ -241,7 +240,7 @@ export class VendegekComponent implements OnInit {
                 }]
             }
 
-            this.guests = [...this.guests]
+            this.tableData = [...this.tableData]
             this.guestDialog = false
             this.guest = {}
         }
@@ -249,8 +248,8 @@ export class VendegekComponent implements OnInit {
 
     findIndexById(id: string | undefined): number {
         let index = -1;
-        for (let i = 0; i < this.guests.length; i++) {
-            if (this.guests[i].id === id) {
+        for (let i = 0; i < this.tableData.length; i++) {
+            if (this.tableData[i].id === id) {
                 index = i;
                 break;
             }
@@ -287,9 +286,9 @@ export class VendegekComponent implements OnInit {
         this.guest.rfid = '';
         this.guest.lastRfidUsage = '';
         this.guestService.updateGuest(this.guest);
-        let guestsClone = JSON.parse(JSON.stringify(this.guests))
+        let guestsClone = JSON.parse(JSON.stringify(this.tableData))
         guestsClone[this.findIndexById(this.guest.id)] = this.guest;
-        this.guests = guestsClone
+        this.tableData = guestsClone
         this.successfulMessage = [{
             severity: 'success',
             summary: '',
@@ -311,9 +310,9 @@ export class VendegekComponent implements OnInit {
         this.guest.rfid = this.scannedCode;
         // this.guestService.updateGuest({ id: this.guest.id, rfid: this.scannedCode})
         this.guestService.updateGuest2(this.guest).subscribe(() => {
-            let guestsClone = JSON.parse(JSON.stringify(this.guests))
+            let guestsClone = JSON.parse(JSON.stringify(this.tableData))
             guestsClone[this.findIndexById(this.guest.id)] = this.guest;
-            this.guests = guestsClone
+            this.tableData = guestsClone
             this.successfulMessage = [{
                 severity: 'success',
                 summary: '',
