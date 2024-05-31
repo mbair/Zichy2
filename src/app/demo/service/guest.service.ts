@@ -10,10 +10,12 @@ import { Guest } from '../api/guest';
 
 export class GuestService {
 
+    public  apiURL: string
     private guestData$: BehaviorSubject<any>
     private serviceMessage$: BehaviorSubject<any>
 
     constructor(private apiService: ApiService) {
+        this.apiURL = apiService.apiURL
         this.guestData$ = new BehaviorSubject<any>(null)
         this.serviceMessage$ = new BehaviorSubject<any>(null)
     }

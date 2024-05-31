@@ -10,8 +10,8 @@ import { DOCUMENT } from '@angular/common';
 
 export class ApiService {
 
+    public  apiURL: string;  // Path to the backend API
     private hostname: string;
-    private apiUrl: string;  // Path to the backend API
     private productionURL = 'https://nfcreserve.hu/api'
     private developmentURL = 'https://test.nfcreserve.hu/api'
 
@@ -19,9 +19,9 @@ export class ApiService {
         // API URL starts with "test." when App is in Dev or in Test
         this.hostname = this.document.location.hostname;
         if (isDevMode() || this.hostname == 'test.nfcreserve.hu') {
-            this.apiUrl = this.developmentURL
+            this.apiURL = this.developmentURL
         } else {
-            this.apiUrl = this.productionURL
+            this.apiURL = this.productionURL
         }
     }
 
@@ -31,22 +31,22 @@ export class ApiService {
     }
 
     get<T>(endpoint: string): Observable<T> {
-        return this.http.get<T>(`${this.apiUrl}/${endpoint}`)
+        return this.http.get<T>(`${this.apiURL}/${endpoint}`)
             .pipe(catchError(this.handleError))
     }
 
     post<T>(endpoint: string, body: any): Observable<T> {
-        return this.http.post<T>(`${this.apiUrl}/${endpoint}`, body)
+        return this.http.post<T>(`${this.apiURL}/${endpoint}`, body)
             .pipe(catchError(this.handleError))
     }
 
     put<T>(endpoint: string, body: any): Observable<T> {
-        return this.http.put<T>(`${this.apiUrl}/${endpoint}`, body)
+        return this.http.put<T>(`${this.apiURL}/${endpoint}`, body)
             .pipe(catchError(this.handleError))
     }
 
     delete<T>(endpoint: string): Observable<T> {
-        return this.http.delete<T>(`${this.apiUrl}/${endpoint}`)
+        return this.http.delete<T>(`${this.apiURL}/${endpoint}`)
             .pipe(catchError(this.handleError))
     }
 }

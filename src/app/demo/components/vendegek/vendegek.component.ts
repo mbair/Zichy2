@@ -9,6 +9,7 @@ import { LogService } from '../../service/log.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
+import { FileSendEvent, UploadEvent } from 'primeng/fileupload';
 
 @Component({
     selector: 'guests',
@@ -22,6 +23,7 @@ import { Tag } from '../../api/tag';
 
 export class VendegekComponent implements OnInit {
 
+    apiURL: string;                            // API URL depending on whether we are working on test or production
     loading: boolean = true;                   // Loading overlay trigger value
     tableData: Guest[] = [];                   // Data set displayed in a table
     messages: Message[] = [];                  // A message used for notifications and displaying errors
@@ -54,12 +56,16 @@ export class VendegekComponent implements OnInit {
     private serviceMessageObs$: Observable<any> | undefined;
     private debounce: {[key: string]: any} = {};
 
+
     constructor(private guestService: GuestService,
                 private dietService: DietService,
                 private messageService: MessageService,
                 private logService: LogService) { }
 
     ngOnInit() {
+        // Set API URL
+        this.apiURL = this.guestService.apiURL
+
         // Guests
         this.guestObs$ = this.guestService.guestObs;
         this.guestObs$.subscribe((data: ApiResponse) => {
@@ -88,6 +94,7 @@ export class VendegekComponent implements OnInit {
                 })
             }
         })
+        // Get all Diets
         this.dietService.getDiets(0, 999, '')
 
         // Message
@@ -102,8 +109,8 @@ export class VendegekComponent implements OnInit {
         // Actual conferences
         // TODO: Get conferences from DB with service
         this.conferences = [
-            { name: 'Zöldliget Iskola osztálykirándulás' },
             { name: 'Golgota gyüli a parkban' },
+            { name: 'Zöldliget Iskola osztálykirándulás' },
         ]
 
         // Genders
@@ -142,7 +149,8 @@ export class VendegekComponent implements OnInit {
     }
 
     onFilter(event: any, field: string) {
-        let filterValue = ''
+        this.loading = true;
+        let filterValue = '';
         if (event && (event.value || event.target?.value)) {
             filterValue = event.value || event.target?.value
         } else {
@@ -198,10 +206,13 @@ export class VendegekComponent implements OnInit {
         this.loading = true;
         this.deleteGuestsDialog = false;
         this.guestService.deleteGuests(this.selectedGuests)
-        this.tableData = this.tableData.filter(val => !this.selectedGuests.includes(val))
+        // this.tableData = this.tableData.filter(val => !this.selectedGuests.includes(val))
         this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendégek törölve', life: 3000 })
         this.selectedGuests = []
         this.loading = false;
+        setTimeout(() => {
+            this.doQuery()
+        }, 300);
     }
 
     confirmDelete() {
@@ -333,6 +344,31 @@ export class VendegekComponent implements OnInit {
             this.scannedCode = '';
             this.guest = {}
         })
+    }
+
+    /**
+     * An event indicating that the request was sent to the server.
+     * Useful when a request may be retried multiple times,
+     * to distinguish between retries on the final event stream.
+     * @param event
+     */
+    onSend(event: FileSendEvent) {
+        this.loading = true
+    }
+
+    /**
+     * Callback to invoke when file upload is complete.
+     * @param event
+     */
+    onUpload(event: UploadEvent) {
+        this.loading = false
+        this.messages = this.successfulMessage
+        this.doQuery()
+        this.successfulMessage = [{
+            severity: 'success',
+            summary: '',
+            detail: 'Sikeres vendég importálás!'
+        }]
     }
 
     getDietColor(diet: string): string {
