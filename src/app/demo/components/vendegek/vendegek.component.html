@@ -115,7 +115,8 @@
                         <th>
                             <input pInputText
                                    type="text"
-                                   (input)="onFilter($event, 'rfid')"
+                                   [(ngModel)]="rfidFilterValue"
+                                   (input)="rfidFilterValue = rfidFilterValue.replaceAll('ö', '0'); onFilter($event, 'rfid')"
                                    placeholder="Keresés..."
                                    style="width:12%; min-width:9rem;"/>
                         </th>

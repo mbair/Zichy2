@@ -1,5 +1,5 @@
 import { Component, OnInit, HostListener, isDevMode } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, filter } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { Message, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
@@ -55,6 +55,7 @@ export class VendegekComponent implements OnInit {
     globalFilter: string = '';                 // Global filter
     filterValues: {[key: string]: string} = {} // Table filter conditions
     localeCalendar: any;                       // Locale calendar values
+    rfidFilterValue: any;                      // Store for RFID filter value
 
     private guestObs$: Observable<any> | undefined;
     private genderObs$: Observable<any> | undefined;
@@ -129,14 +130,6 @@ export class VendegekComponent implements OnInit {
         // TODO: Get conferences from DB with service
         this.conferences = [
             { name: 'Golgota gyüli a parkban' },
-            { name: 'Zöldliget Iskola osztálykirándulás' },
-        ]
-
-        // Genders
-        // TODO: Get genders from DB with service
-        this.genders = [
-            { code: 1, name: 'Férfi' },
-            { code: 2, name: 'Nő' },
         ]
 
         // Table columns
@@ -191,7 +184,11 @@ export class VendegekComponent implements OnInit {
             filterValue = formattedDate
         } else {
             if (event && (event.value || event.target?.value)) {
-                filterValue = event.value || event.target?.value
+                if (field == "rfid" && event.target?.value.length == 10) {
+                    filterValue = event.target?.value.replaceAll('ö','0')
+                } else {
+                    filterValue = event.value || event.target?.value
+                }
             } else {
                 this.filterValues[field] = ''
             }
@@ -354,7 +351,7 @@ export class VendegekComponent implements OnInit {
 
         // Logging
         this.logService.createLog({
-            name: "Unassign Tag from " + this.guest.lastName + " " + this.guest.firstName,
+            name: "Unassign Tag from " + this.guest.lastName + " " + this.guest.firstName + " | Lang: " + navigator.language,
             capacity: 0
         })
     }
@@ -378,7 +375,7 @@ export class VendegekComponent implements OnInit {
 
             // Logging
             this.logService.createLog({
-                name: "Assign Tag " + this.guest.rfid + " to " + this.guest.lastName + " " + this.guest.firstName,
+                name: "Assign Tag " + this.guest.rfid + " to " + this.guest.lastName + " " + this.guest.firstName + " | Lang: " + navigator.language,
                 capacity: 0
             })
 
