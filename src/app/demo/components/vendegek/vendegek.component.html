@@ -222,7 +222,7 @@
                                     </tr>
                                     <tr>
                                         <td class="font-medium">SZÉP kártya:</td>
-                                        <td>{{guest.szepCard == true ? 'Igen' : 'Nem'}}</td>
+                                        <td>{{guest.szepCard?.toLowerCase() == 'true' ? 'Igen' : 'Nem'}}</td>
                                     </tr>
                                     <tr>
                                         <td class="font-medium">Első étkezés:</td>
@@ -308,7 +308,11 @@
                     </div>
                     <div class="field col">
                         <label for="firstMeal">Első étkezés</label>
-                        <input type="text" pInputText [(ngModel)]="guest.firstMeal" />
+                        <p-dropdown
+                            [options]="meals"
+                            [(ngModel)]="guest.firstMeal"
+                            placeholder="Válassz...">
+                        </p-dropdown>
                     </div>
                 </div>
                 <div class="formgrid grid">
@@ -322,7 +326,11 @@
                     </div>
                     <div class="field col">
                         <label for="lastMeal">Utolsó étkezés</label>
-                        <input type="text" pInputText [(ngModel)]="guest.lastMeal" />
+                        <p-dropdown
+                            [options]="meals"
+                            [(ngModel)]="guest.lastMeal"
+                            placeholder="Válassz...">
+                        </p-dropdown>
                     </div>
                 </div>
                 <div class="formgrid grid">
@@ -350,19 +358,66 @@
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="country">Ország</label>
-                        <input type="text" pInputText [(ngModel)]="guest.country" />
+                        <p-dropdown inputId="country"
+                                    [(ngModel)]="guest.country"
+                                    [options]="countries"
+                                    optionLabel="huname"
+                                    optionValue="huname"
+                                    [filter]="true"
+                                    filterBy="huname"
+                                    placeholder="Válasszon..."
+                                    [virtualScroll]="true"
+                                    [virtualScrollItemSize]="30">
+                            <ng-template let-country pTemplate="selectedItem">
+                                <div class="flex align-items-center gap-2" *ngIf="guest.country">
+                                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code.toLowerCase()" style="width: 18px"/>
+                                    <div>{{guest.country}}</div>
+                                </div>
+                            </ng-template>
+                            <ng-template let-country pTemplate="item">
+                                <div class="flex align-items-center">
+                                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + country.code.toLowerCase()" style="width:18px"/>
+                                    <div>{{country.huname}}</div>
+                                </div>
+                            </ng-template>
+                        </p-dropdown>
                     </div>
                     <div class="field col">
                         <label for="nationality">Nemzetiség</label>
-                        <input type="text" pInputText [(ngModel)]="guest.nationality" />
+                        <p-dropdown inputId="nationality"
+                                    [(ngModel)]="guest.nationality"
+                                    [options]="countries"
+                                    optionLabel="hunationality"
+                                    optionValue="hunationality"
+                                    [filter]="true"
+                                    filterBy="hunationality"
+                                    placeholder="Válasszon..."
+                                    [virtualScroll]="true"
+                                    [virtualScrollItemSize]="30">
+                            <ng-template let-country pTemplate="selectedItem">
+                                <div class="flex align-items-center gap-2" *ngIf="guest.nationality">
+                                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code.toLowerCase()" style="width: 18px"/>
+                                    <div>{{guest.nationality}}</div>
+                                </div>
+                            </ng-template>
+                            <ng-template let-country pTemplate="item">
+                                <div class="flex align-items-center">
+                                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + country.code.toLowerCase()" style="width:18px"/>
+                                    <div>{{country.hunationality}}</div>
+                                </div>
+                            </ng-template>
+                        </p-dropdown>
                     </div>
                 </div>
+
+                <!-- TODO: Use Boolean for szepCard in DB -->
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="szepCard">SZÉP kártya</label>
                         <input type="text" pInputText [(ngModel)]="guest.szepCard" />
                     </div>
                 </div>
+
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="accommodationExtra">Szállás extra</label>

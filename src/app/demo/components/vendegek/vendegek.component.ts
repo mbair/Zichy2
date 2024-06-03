@@ -1,17 +1,20 @@
 import { Component, OnInit, HostListener, isDevMode } from '@angular/core';
-import { Observable, filter } from 'rxjs';
+import { Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { Message, MessageService } from 'primeng/api';
+import { FileSendEvent, UploadEvent } from 'primeng/fileupload';
 import { Table } from 'primeng/table';
 import { GuestService } from '../../service/guest.service';
 import { GenderService } from '../../service/gender.service';
 import { DietService } from '../../service/diet.service';
+import { MealService } from '../../service/meal.service';
+import { CountryService } from '../../service/country.service';
 import { LogService } from '../../service/log.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
-import { FileSendEvent, UploadEvent } from 'primeng/fileupload';
 import * as moment from 'moment';
+
 moment.locale('hu')
 
 @Component({
@@ -42,7 +45,9 @@ export class VendegekComponent implements OnInit {
     selectedGuests: Guest[] = [];              // Guest chosen by user
     cols: any[] = [];                          // Table columns
     diets: any[] = [];                         // Possible diets
+    meals: any[] = [];                         // Possible meals
     genders: any[] = [];                       // Possible genders
+    countries: any[] = [];                     // Possible countries
     scanTemp: string = '';                     // Temporary storage used during NFC reading
     scannedCode: string = '';                  // Scanned Tag Id
     rowsPerPageOptions = [20, 50, 100];        // Possible rows per page
@@ -53,22 +58,22 @@ export class VendegekComponent implements OnInit {
     sortField: string = '';                    // Current sort field
     sortOrder: number = 1;                     // Current sort order
     globalFilter: string = '';                 // Global filter
-    filterValues: {[key: string]: string} = {} // Table filter conditions
-    localeCalendar: any;                       // Locale calendar values
+    filterValues: { [key: string]: string } = {} // Table filter conditions
     rfidFilterValue: any;                      // Store for RFID filter value
+    debounce: { [key: string]: any } = {}      // Search delay in filter field
 
     private guestObs$: Observable<any> | undefined;
     private genderObs$: Observable<any> | undefined;
     private dietObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
-    private debounce: {[key: string]: any} = {};
-
 
     constructor(private guestService: GuestService,
-                private genderService: GenderService,
-                private dietService: DietService,
-                private messageService: MessageService,
-                private logService: LogService) { }
+        private genderService: GenderService,
+        private dietService: DietService,
+        private mealService: MealService,
+        private countryService: CountryService,
+        private messageService: MessageService,
+        private logService: LogService) { }
 
     ngOnInit() {
         // Set API URL
@@ -116,6 +121,15 @@ export class VendegekComponent implements OnInit {
         // Get all Diets
         this.dietService.getDiets(0, 999, { sortField: 'id', sortOrder: 1 })
 
+
+        // Get meals for selector
+        this.meals = this.mealService.getMealsForSelector()
+
+        // Get countries for selector
+        this.countryService.getCountries().then(countries => {
+            this.countries = countries
+        })
+
         // Message
         this.serviceMessageObs$ = this.guestService.serviceMessageObs;
         this.serviceMessageObs$.subscribe((data) => {
@@ -141,28 +155,14 @@ export class VendegekComponent implements OnInit {
             { field: 'dateOfArrival', header: 'Érkezés' },
             { field: 'dateOfDeparture', header: 'Távozás' }
         ]
-
-        this.localeCalendar = {
-            firstDayOfWeek: 1,
-            dayNames: ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"],
-            dayNamesShort: ["Vas", "Hét", "Ked", "Sze", "Csü", "Pén", "Szo"],
-            dayNamesMin: ["Va","Hé","Ke","Sz","Cs","Pé","Sz"],
-            monthNames: [ "Január","Február","Március","Április","Május","Június","Július","Augusztus","Szeptember","Október","November","December" ],
-            monthNamesShort: [ "Jan", "Feb", "Már", "Ápr", "Máj", "Jún","Júl", "Aug", "Sze", "Okt", "Nov", "Dec" ],
-            today: 'Ma',
-            clear: 'Törlés',
-            dateFormat: 'yy.mm.dd',
-            weekHeader: 'Wk'
-        }
     }
-
 
     // Load filtered Guests data into the Table
     doQuery() {
         this.loading = true;
 
         const filters = Object.keys(this.filterValues)
-                              .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
+            .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
         const queryParams = filters.filter(x => x.length > 0).join('&')
 
         if (this.globalFilter !== '') {
@@ -184,7 +184,7 @@ export class VendegekComponent implements OnInit {
         } else {
             if (event && (event.value || event.target?.value)) {
                 if (field == "rfid" && event.target?.value.length == 10) {
-                    filterValue = event.target?.value.replaceAll('ö','0')
+                    filterValue = event.target?.value.replaceAll('ö', '0')
                 } else {
                     filterValue = event.value || event.target?.value
                 }
