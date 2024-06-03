@@ -97,7 +97,6 @@ export class VendegekComponent implements OnInit {
         // Genders
         this.genderObs$ = this.genderService.genderObs;
         this.genderObs$.subscribe((data: any) => {
-            this.loading = false
             this.genders = data
         })
         // Get all Genders

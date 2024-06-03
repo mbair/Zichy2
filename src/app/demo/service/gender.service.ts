@@ -29,10 +29,13 @@ export class GenderService {
 
     public getGenders(page: number, rowsPerPage: number, sort: any): any {
 
-        return [
+        let response = [
             { code: 1, name: 'Férfi' },
             { code: 2, name: 'Nő' },
         ]
+
+        this.genderData$.next(response)
+
         // let pageSort: string = '';
         // if (sort !== '') {
         //     const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC';
