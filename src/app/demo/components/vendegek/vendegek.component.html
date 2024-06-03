@@ -176,7 +176,8 @@
                         </td>
                         <td>
                             <span class="p-column-title">Étrend</span>
-                            <p-tag [value]="guest.diet"
+                            <p-tag *ngIf="guest.diet"
+                                   [value]="guest.diet"
                                    [style]="{'background': 'var(--'+getDietColor(guest.diet)+')'}">
                             </p-tag>
                         </td>

@@ -322,6 +322,7 @@ export class VendegekComponent implements OnInit {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
 
+    // TODO: Ne lehessen kiosztani ugyanazt a karszalagot két különböző vendégnek
     assignTag(guest: any) {
         // Empty previous scanned codes
         this.scanTemp = '';
