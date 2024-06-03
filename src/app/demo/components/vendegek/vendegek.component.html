@@ -123,35 +123,24 @@
                         <th>
                             <p-calendar
                                 (onSelect)="onFilter($event, 'lastRfidUsage')"
-                                (onClear)="onFilter($event, 'lastRfidUsage')"
-                                today="ma"
-                                clear="törlés"
-                                [firstDayOfWeek]=1
-                                [showButtonBar]="true"
-                                dateFormat="yy.mm.dd">
+                                (onClearClick)="onFilter($event, 'lastRfidUsage')"
+                                [showButtonBar]="true">
                             </p-calendar>
                         </th>
                         <th>
                             <p-calendar
                                 (onSelect)="onFilter($event, 'dateOfArrival')"
-                                (onClear)="onFilter($event, 'dateOfArrival')"
-                                [locale]="localeCalendar"
-                                today="ma"
-                                clear="törlés"
-                                [firstDayOfWeek]=1
-                                [showButtonBar]="true"
-                                dateFormat="yy.mm.dd">
+                                (onClearClick)="onFilter($event, 'dateOfArrival')"
+                                appendTo="body"
+                                [showButtonBar]="true">
                             </p-calendar>
                         </th>
                         <th>
                             <p-calendar
                                 (onSelect)="onFilter($event, 'dateOfDeparture')"
-                                (onClear)="onFilter($event, 'dateOfDeparture')"
-                                today="ma"
-                                clear="törlés"
-                                [firstDayOfWeek]=1
-                                [showButtonBar]="true"
-                                dateFormat="yy.mm.dd">
+                                (onClearClick)="onFilter($event, 'dateOfDeparture')"
+                                appendTo="body"
+                                [showButtonBar]="true">
                             </p-calendar>
                         </th>
                         <th></th>
@@ -311,7 +300,11 @@
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="dateOfArrival">Érkezés</label>
-                        <input type="text" pInputText [(ngModel)]="guest.dateOfArrival" />
+                        <p-calendar
+                            [(ngModel)]="guest.dateOfArrival"
+                            appendTo="body"
+                            [showButtonBar]="true">
+                        </p-calendar>
                     </div>
                     <div class="field col">
                         <label for="firstMeal">Első étkezés</label>
@@ -321,7 +314,11 @@
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="dateOfDeparture">Távozás</label>
-                        <input type="text" pInputText [(ngModel)]="guest.dateOfDeparture" />
+                        <p-calendar
+                            [(ngModel)]="guest.dateOfDeparture"
+                            appendTo="body"
+                            [showButtonBar]="true">
+                        </p-calendar>
                     </div>
                     <div class="field col">
                         <label for="lastMeal">Utolsó étkezés</label>
@@ -342,7 +339,12 @@
                     </div>
                     <div class="field col">
                         <label for="birthDate">Születési dátum</label>
-                        <input type="text" pInputText [(ngModel)]="guest.birthDate" />
+                        <p-calendar
+                            [(ngModel)]="guest.birthDate"
+                            appendTo="body"
+                            [showButtonBar]="true"
+                            dateFormat="yy-mm-dd">
+                        </p-calendar>
                     </div>
                 </div>
                 <div class="formgrid grid">
