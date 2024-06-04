@@ -20,6 +20,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { TagModule } from 'primeng/tag';
 import { TreeTableModule } from 'primeng/treetable';
+import { TooltipModule } from 'primeng/tooltip';
 import { CheckboxModule } from 'primeng/checkbox';
 import { CalendarModule } from 'primeng/calendar';
 
@@ -45,6 +46,7 @@ import { CalendarModule } from 'primeng/calendar';
         BlockUIModule,
         TagModule,
         TreeTableModule,
+        TooltipModule,
         CheckboxModule,
         CalendarModule,
     ],

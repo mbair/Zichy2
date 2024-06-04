@@ -1,8 +1,8 @@
-import { Component, OnInit, HostListener, isDevMode } from '@angular/core';
+import { Component, OnInit, HostListener, isDevMode, ViewChild } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { Message, MessageService } from 'primeng/api';
-import { FileSendEvent, UploadEvent } from 'primeng/fileupload';
+import { FileSendEvent, FileUpload, FileUploadErrorEvent, UploadEvent } from 'primeng/fileupload';
 import { Table } from 'primeng/table';
 import { GuestService } from '../../service/guest.service';
 import { GenderService } from '../../service/gender.service';
@@ -14,7 +14,6 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
 import * as moment from 'moment';
-
 moment.locale('hu')
 
 @Component({
@@ -399,18 +398,47 @@ export class VendegekComponent implements OnInit {
     }
 
     /**
+     * Callback to invoke on upload error.
+     * @param event
+     */
+    onUploadError(event: FileUploadErrorEvent, fileUpload: FileUpload) {
+        this.loading = false
+        this.messageService.add({
+            severity: 'error',
+            summary: 'Hibás Excel!',
+            detail: 'Kérlek próbáld a megfelelő Excelt importálni',
+            life: 3000
+        })
+
+        // Clear wrong files from the uploading list
+        fileUpload.clear()
+
+        // Logging
+        this.logService.createLog({
+            name: "Error while importing Excel | File: " + event.files[0].name + ", Size: " + event.files[0].size,
+            capacity: 0
+        })
+    }
+
+    /**
      * Callback to invoke when file upload is complete.
      * @param event
      */
-    onUpload(event: UploadEvent) {
+    onUpload(event: any) {  // Files were missing from UploadEvent, although they are included
         this.loading = false
-        this.messages = this.successfulMessage
         this.doQuery()
-        this.successfulMessage = [{
+        this.messageService.add({
             severity: 'success',
             summary: '',
-            detail: 'Sikeres vendég importálás!'
-        }]
+            detail: 'Sikeres vendég importálás',
+            life: 3000
+        })
+
+        // Logging
+        this.logService.createLog({
+            name: "Successful Excel importing | File: " + event.files[0].name + ", Size: " + event.files[0].size,
+            capacity: 0
+        })
     }
 
     getDietColor(diet: string): string {

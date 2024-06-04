@@ -16,8 +16,6 @@
                                 <i class="pi pi-plus x mr-2"></i> Új
                             </a>
                             <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="deleteSelectedKonferencia()" [disabled]="!selectedKonferencia || !selectedKonferencia.length"></button>
-                            <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block"></p-fileUpload>
-                            <button pButton pRipple label="Export" icon="pi pi-upload" class="p-button-help" (click)="dt.exportCSV()"></button>
                         </span>
                     </div>
                 </ng-template>
