@@ -279,7 +279,8 @@
                     <label for="diet">Konferencia</label>
                     <p-dropdown
                         [options]="conferences"
-
+                        optionLabel="name"
+                        optionValue="name"
                         [(ngModel)]="guest.conferenceName"
                         placeholder="Válasszon konferenciát...">
                     </p-dropdown>
@@ -312,6 +313,7 @@
                         <p-calendar
                             [(ngModel)]="guest.dateOfArrival"
                             appendTo="body"
+                            dateFormat="yy-mm-dd"
                             [showButtonBar]="true">
                         </p-calendar>
                     </div>
@@ -330,6 +332,7 @@
                         <p-calendar
                             [(ngModel)]="guest.dateOfDeparture"
                             appendTo="body"
+                            dateFormat="yy-mm-dd"
                             [showButtonBar]="true">
                         </p-calendar>
                     </div>
@@ -371,7 +374,7 @@
                                     [(ngModel)]="guest.country"
                                     [options]="countries"
                                     optionLabel="huname"
-                                    optionValue="huname"
+                                    optionValue="name"
                                     [filter]="true"
                                     filterBy="huname"
                                     placeholder="Válasszon..."
@@ -397,7 +400,7 @@
                                     [(ngModel)]="guest.nationality"
                                     [options]="countries"
                                     optionLabel="hunationality"
-                                    optionValue="hunationality"
+                                    optionValue="code"
                                     [filter]="true"
                                     filterBy="hunationality"
                                     placeholder="Válasszon..."
