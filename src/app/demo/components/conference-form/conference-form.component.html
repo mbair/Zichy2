@@ -3,8 +3,6 @@
     <div class="bg-circle hidden lg:flex" style="top: 50px; right:-800px; transform: rotate(60deg)"></div>
     <div class="landing-wrapper">
 
-
-
         <div class="py-6 px-4 mx-0 md:mx-6 lg:mx-8 lg:px-8 z-2">
 
             <div id="home"
@@ -94,7 +92,7 @@
                                         <!-- Születési dátum -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="birthdate" class="font-medium text-900">Születési dátum</label>
-                                            <p-calendar formControlName="birthdate" dateFormat="yy.mm.dd" [ngClass]="{
+                                            <p-calendar formControlName="birthdate" dateFormat="yy.mm.dd" appendTo="body" [ngClass]="{
                                                 'ng-invalid': birthdate.invalid && (birthdate.dirty || birthdate.touched),
                                                 'ng-dirty': birthdate.dirty || birthdate.touched
                                               }"></p-calendar>
@@ -104,10 +102,19 @@
                                         <!-- Állampolgárság -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="nationality" class="font-medium text-900">Állampolgárság</label>
-                                            <p-dropdown inputId="nationality" formControlName="nationality" [options]="countries" optionLabel="name" [filter]="true" filterBy="hunationality" [showClear]="true" placeholder="Válasszon..." [ngClass]="{
-                                                'ng-invalid': nationality.invalid && (nationality.dirty || nationality.touched),
-                                                'ng-dirty': nationality.dirty || nationality.touched
-                                              }">
+                                            <p-dropdown inputId="nationality"
+                                                        formControlName="nationality"
+                                                        [options]="countries"
+                                                        optionLabel="name"
+                                                        [filter]="true"
+                                                        filterBy="hunationality"
+                                                        placeholder="Válasszon..."
+                                                        [virtualScroll]="true"
+                                                        [virtualScrollItemSize]="30"
+                                                        [ngClass]="{
+                                                            'ng-invalid': nationality.invalid && (nationality.dirty || nationality.touched),
+                                                            'ng-dirty': nationality.dirty || nationality.touched
+                                                        }">
                                                 <ng-template let-country pTemplate="selectedItem">
                                                     <div class="flex align-items-center gap-2" *ngIf="nationality">
                                                         <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code.toLowerCase()" style="width: 18px"/>
@@ -127,10 +134,19 @@
                                         <!-- Lakóhely - ország -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="country" class="font-medium text-900">Lakóhely - ország</label>
-                                            <p-dropdown inputId="country" formControlName="country" [options]="countries" optionLabel="name" [filter]="true" filterBy="huname" [showClear]="true" placeholder="Válasszon..." [ngClass]="{
-                                                'ng-invalid': country.invalid && (country.dirty || country.touched),
-                                                'ng-dirty': country.dirty || country.touched
-                                              }">
+                                            <p-dropdown inputId="country"
+                                                        formControlName="country"
+                                                        [options]="countries"
+                                                        optionLabel="name"
+                                                        [filter]="true"
+                                                        filterBy="huname"
+                                                        placeholder="Válasszon..."
+                                                        [virtualScroll]="true"
+                                                        [virtualScrollItemSize]="30"
+                                                        [ngClass]="{
+                                                            'ng-invalid': country.invalid && (country.dirty || country.touched),
+                                                            'ng-dirty': country.dirty || country.touched
+                                                        }">
                                                 <ng-template let-country pTemplate="selectedItem">
                                                     <div class="flex align-items-center gap-2" *ngIf="country">
                                                         <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code.toLowerCase()" style="width: 18px"/>
@@ -191,42 +207,91 @@
                                         <!-- Érkezés dátuma -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['arrivalDate'].invalid && (conferenceForm.controls['arrivalDate'].dirty || conferenceForm.controls['arrivalDate'].touched) }">
                                             <label for="beginDate" class="font-medium text-900">Érkezés dátuma</label>
-                                            <p-calendar id="beginDate" formControlName="arrivalDate" dateFormat="yy.mm.dd"></p-calendar>
+                                            <p-calendar id="beginDate"
+                                                        formControlName="arrivalDate"
+                                                        dateFormat="yy.mm.dd"
+                                                        appendTo="body">
+                                            </p-calendar>
                                             <div *ngIf="conferenceForm.controls['arrivalDate'].invalid && (conferenceForm.controls['arrivalDate'].dirty || conferenceForm.controls['arrivalDate'].touched)" class="text-red-500">Kérjük, adja meg az érkezés dátumát!</div>
                                         </div>
 
                                         <!-- Első étkezés -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['firstMeal'].invalid && (conferenceForm.controls['firstMeal'].dirty || conferenceForm.controls['firstMeal'].touched) }">
                                             <label for="firstMeal" class="font-medium text-900">Első étkezés</label>
-                                            <p-dropdown id="firstMeal" formControlName="firstMeal" [options]="meals" optionLabel="label" optionValue="value" placeholder="Válasszon..."></p-dropdown>
+                                            <p-dropdown id="firstMeal"
+                                                        formControlName="firstMeal"
+                                                        [options]="meals"
+                                                        optionLabel="label"
+                                                        optionValue="value"
+                                                        placeholder="Válasszon..."
+                                                        appendTo="body">
+                                            </p-dropdown>
                                             <div *ngIf="conferenceForm.controls['firstMeal'].invalid && (conferenceForm.controls['firstMeal'].dirty || conferenceForm.controls['firstMeal'].touched)" class="text-red-500">Kérjük, válassza ki az első étkezését!</div>
                                         </div>
 
                                         <!-- Étrend -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['diet'].invalid && (conferenceForm.controls['diet'].dirty || conferenceForm.controls['diet'].touched) }">
                                             <label for="zipcode" class="font-medium text-900">Étrend</label>
-                                            <p-dropdown id="diets" formControlName="diet" [options]="diets" optionLabel="name" optionValue="value" placeholder="Válasszon..."></p-dropdown>
+                                            <p-dropdown
+                                                inputId="dialogDiet"
+                                                [options]="diets"
+                                                formControlName="diet"
+                                                optionLabel="name"
+                                                optionValue="name"
+                                                appendTo="body"
+                                                placeholder="Válasszon..."
+                                                emptyMessage="Nincs találat...">
+                                                <ng-template pTemplate="selectedItem">
+                                                    <p-tag [value]="conferenceForm.get('diet')?.value"
+                                                           [style]="{'background': 'var(--'+getDietColor(conferenceForm.get('diet')?.value || '')+')'}">
+                                                    </p-tag>
+                                                </ng-template>
+                                                <ng-template let-option pTemplate="item">
+                                                    <p-tag [value]="option.name"
+                                                           [style]="{'background': 'var(--'+getDietColor(option.name)+')'}">
+                                                    </p-tag>
+                                                </ng-template>
+                                            </p-dropdown>
                                             <div *ngIf="conferenceForm.controls['diet'].invalid && (conferenceForm.controls['diet'].dirty || conferenceForm.controls['diet'].touched)" class="text-red-500">Kérjük, válassza ki az étrendjét!</div>
                                         </div>
 
                                         <!-- Távozás dátuma -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['departureDate'].invalid && (conferenceForm.controls['departureDate'].dirty || conferenceForm.controls['departureDate'].touched) }">
                                             <label for="endDate" class="font-medium text-900">Távozás dátuma</label>
-                                            <p-calendar id="endDate" formControlName="departureDate" dateFormat="yy.mm.dd"></p-calendar>
+                                            <p-calendar id="endDate"
+                                                        formControlName="departureDate"
+                                                        dateFormat="yy.mm.dd"
+                                                        appendTo="body">
+                                            </p-calendar>
                                             <div *ngIf="conferenceForm.controls['departureDate'].invalid && (conferenceForm.controls['departureDate'].dirty || conferenceForm.controls['departureDate'].touched)" class="text-red-500">Kérjük, adja meg a távozás dátumát!</div>
                                         </div>
 
                                         <!-- Utolsó étkezés -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['lastMeal'].invalid && (conferenceForm.controls['lastMeal'].dirty || conferenceForm.controls['lastMeal'].touched) }">
                                             <label for="lastMeal" class="font-medium text-900">Utolsó étkezés</label>
-                                            <p-dropdown id="lastMeal" formControlName="lastMeal" [options]="meals" optionLabel="label" optionValue="value"></p-dropdown>
+                                            <p-dropdown id="lastMeal"
+                                                        formControlName="lastMeal"
+                                                        [options]="meals"
+                                                        optionLabel="label"
+                                                        optionValue="value"
+                                                        appendTo="body">
+                                            </p-dropdown>
                                             <div *ngIf="conferenceForm.controls['lastMeal'].invalid && (conferenceForm.controls['lastMeal'].dirty || conferenceForm.controls['lastMeal'].touched)" class="text-red-500">Kérjük, válassza ki az utolsó étkezését!</div>
                                         </div>
 
                                         <!-- Szállástípus -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['roomType'].invalid && (conferenceForm.controls['roomType'].dirty || conferenceForm.controls['roomType'].touched) }">
                                             <label for="roomType" class="font-medium text-900">Szállástípus</label>
-                                            <p-dropdown id="roomType" formControlName="roomType" [options]="roomTypes" optionLabel="label" optionValue="value" pTooltip="A preferenciákat igyekszünk figyelembe venni, de mivel korlátozott mennyiségben van a szállás, ezért nem tudjuk megígérni, hogy biztosan a megjelölt szállástípusra osztunk be" tooltipPosition="top" placeholder="Válasszon..."></p-dropdown>
+                                            <p-dropdown id="roomType"
+                                                        formControlName="roomType"
+                                                        [options]="roomTypes"
+                                                        optionLabel="label"
+                                                        optionValue="value"
+                                                        pTooltip="A preferenciákat igyekszünk figyelembe venni, de mivel korlátozott mennyiségben van a szállás, ezért nem tudjuk megígérni, hogy biztosan a megjelölt szállástípusra osztunk be"
+                                                        tooltipPosition="top"
+                                                        placeholder="Válasszon..."
+                                                        appendTo="body">
+                                            </p-dropdown>
                                             <div *ngIf="conferenceForm.controls['roomType'].invalid && (conferenceForm.controls['roomType'].dirty || conferenceForm.controls['roomType'].touched)" class="text-red-500">Kérjük válassza ki a szállástípust!</div>
                                         </div>
 
@@ -239,7 +304,15 @@
                                         <!-- Fizetési mód -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['payment'].invalid && (conferenceForm.controls['payment'].dirty || conferenceForm.controls['payment'].touched) }">
                                             <label for="payment" class="font-medium text-900">Fizetési mód</label>
-                                            <p-dropdown id="payment" formControlName="payment" [options]="payments" optionLabel="label" optionValue="value" pTooltip="A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen" tooltipPosition="top"></p-dropdown>
+                                            <p-dropdown id="payment"
+                                                        formControlName="payment"
+                                                        [options]="payments"
+                                                        optionLabel="label"
+                                                        optionValue="value"
+                                                        pTooltip="A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen"
+                                                        tooltipPosition="top"
+                                                        appendTo="body">
+                                            </p-dropdown>
                                             <div *ngIf="conferenceForm.controls['payment'].invalid && (conferenceForm.controls['payment'].dirty || conferenceForm.controls['payment'].touched)" class="text-red-500">Kérjük válassza ki a fizetési módot!</div>
                                         </div>
 
