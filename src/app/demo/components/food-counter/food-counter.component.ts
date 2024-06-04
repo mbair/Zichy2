@@ -7,6 +7,9 @@ import { MealService } from '../../service/meal.service';
 import { LogService } from '../../service/log.service';
 import { Observable } from 'rxjs';
 import * as moment from 'moment';
+import { FoodCounterWebSocket } from '../../service/foodCounterWebSocket.service';
+
+
 moment.locale('hu')
 
 
@@ -40,10 +43,16 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     guestsObs$: Observable<any> | undefined;
     serviceMessageObs$: Observable<any> | undefined;
 
+    // WebSocket
+    message: string;
+    messages: string[] = [];
+
+
     constructor(public router: Router,
         private guestService: GuestService,
         private mealService: MealService,
         private logService: LogService,
+        private foodCountWebSocket: FoodCounterWebSocket,
         private messageService: MessageService) {
 
         // Tablet size: 854 x 534 px
@@ -75,7 +84,31 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         // TODO: TESZT
         // setTimeout(() => {
         //     this.getGuestByRFID('127921')
-        // }, 500);
+        // }, 500);  
+
+        
+        const socketRoom = this.currentMeal==='reggeli' ? 'breakfast' : 
+        this.currentMeal==='ebéd' ? 'lunch' : 
+        this.currentMeal==='vacsora' ? 'dinner' : 
+        "nothin";
+        this.foodCountWebSocket.joinRoom(socketRoom);
+
+        this.foodCountWebSocket.getMealsNumber().subscribe((message: any) => {
+           // this.messages.push(message);
+            this.mealsNumber=message;
+            console.log(message)
+        });
+
+        this.foodCountWebSocket.getDefData().subscribe((message: any) => {
+            console.log(message)
+            this.messages.push(message);
+           
+        });
+    }
+
+    sendMessage() {
+        this.foodCountWebSocket.sendMessage(this.message);
+        this.message = '';
     }
 
     public resetGuest() {
