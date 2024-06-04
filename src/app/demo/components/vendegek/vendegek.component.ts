@@ -134,7 +134,9 @@ export class VendegekComponent implements OnInit {
         this.serviceMessageObs$ = this.guestService.serviceMessageObs;
         this.serviceMessageObs$.subscribe((data) => {
             this.loading = false;
-            if (data) {
+            if (data == 'ERROR') {
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Hiba történt!' });
+            } else {
                 this.messages = this.successfulMessage
             }
         })
@@ -272,6 +274,7 @@ export class VendegekComponent implements OnInit {
 
     saveGuest() {
         if (this.guest.firstName?.trim()) {
+            // UPDATE
             if (this.guest.id) {
                 this.guestService.updateGuest(this.guest)
                 this.tableData[this.findIndexById(this.guest.id)] = this.guest;
@@ -280,6 +283,7 @@ export class VendegekComponent implements OnInit {
                     summary: '',
                     detail: 'Sikeres vendégmódosítás!'
                 }]
+            // INSERT
             } else {
                 this.guestService.createGuest(this.guest)
                 this.tableData.push(this.guest)

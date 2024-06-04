@@ -276,6 +276,15 @@
                     </div>
                 </div>
                 <div class="field">
+                    <label for="diet">Konferencia</label>
+                    <p-dropdown
+                        [options]="conferences"
+
+                        [(ngModel)]="guest.conferenceName"
+                        placeholder="Válasszon konferenciát...">
+                    </p-dropdown>
+                </div>
+                <div class="field">
                     <label for="diet">Étrend</label>
                     <p-dropdown
                         inputId="dialogDiet"
@@ -480,3 +489,5 @@
 <p-blockUI [autoZIndex]="true" [blocked]="loading">
     <p-progressSpinner></p-progressSpinner>
 </p-blockUI>
+
+<p-toast></p-toast>

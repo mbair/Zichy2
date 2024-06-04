@@ -27,7 +27,7 @@ export class ApiService {
 
     private handleError(error: HttpErrorResponse) {
         console.error('An error occurred:', error.message);
-        return throwError('Something went wrong; please try again later.')
+        return throwError('ERROR')
     }
 
     get<T>(endpoint: string): Observable<T> {
