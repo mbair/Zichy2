@@ -54,7 +54,7 @@ export class DietService {
     public getDietColor(dietName: string): string {
         let dietColor: string = ''
         this.dataCache.map((diet: Diet) => {
-            if (dietName.toLowerCase() == diet.name?.toLowerCase()) {
+            if (dietName?.toLowerCase() == diet.name?.toLowerCase()) {
                 dietColor = diet.color ?? ''
             }
         })

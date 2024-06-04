@@ -11,13 +11,13 @@ export interface Guest {
     firstMeal?: string;
     dateOfDeparture?: string;
     lastMeal?: string;
-    szepCard?: number;
+    szepCard?: boolean;
     accommodationExtra?: string;
     birthDate?: string;
-    rfid?: string;
+    rfid?: string | null;
     enabled?: number;
     conferenceName?: string;
     diet?: string;
-    lastRfidUsage?: string;
-    rfidColor?: string;
+    lastRfidUsage?: string | null;
+    rfidColor?: string | null;
 }

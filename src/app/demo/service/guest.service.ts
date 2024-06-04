@@ -10,10 +10,12 @@ import { Guest } from '../api/guest';
 
 export class GuestService {
 
+    public  apiURL: string
     private guestData$: BehaviorSubject<any>
     private serviceMessage$: BehaviorSubject<any>
 
     constructor(private apiService: ApiService) {
+        this.apiURL = apiService.apiURL
         this.guestData$ = new BehaviorSubject<any>(null)
         this.serviceMessage$ = new BehaviorSubject<any>(null)
     }
@@ -33,10 +35,10 @@ export class GuestService {
             pageSort = sort.sortField != "" ? `sort=${sort.sortField}&order=${sortOrder}` : '';
         }
 
-        const query = pageSort !== '' && queryParams !== '' ? pageSort+"&"+queryParams :
-         pageSort !== '' && queryParams ==='' ? pageSort : 
-         pageSort === '' && queryParams !=='' ? queryParams : '';
-        const url = `${pageSort !== '' ? 0 : page}/${rowsPerPage}${query!=='' ? "?"+query : ''}`;
+        const query = pageSort !== '' && queryParams !== '' ? pageSort + "&" + queryParams :
+                      pageSort !== '' && queryParams === '' ? pageSort :
+                      pageSort === '' && queryParams !== '' ? queryParams : '';
+        const url = `${pageSort !== '' ? 0 : page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
         this.apiService.get<ApiResponse>(`guest/get/${url}`)
             .subscribe({
                 next: (response: ApiResponse) => {

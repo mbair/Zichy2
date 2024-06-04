@@ -8,6 +8,7 @@ import { MessageService } from 'primeng/api';
 import { CountryService } from 'src/app/demo/service/country.service';
 import { Diet } from 'src/app/demo/api/diet';
 import { DietService } from 'src/app/demo/service/diet.service';
+import { ApiResponse } from '../../api/ApiResponse';
 
 
 @Component({
@@ -32,7 +33,8 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
     meals: any[] = [];
     roomTypes: any[] = [];
     diets: Diet[] = [];
-    // diet: Diet = <Diet>{};
+
+    private dietObs$: Observable<any> | undefined;
 
     constructor(public router: Router,
         private layoutService: LayoutService,
@@ -72,16 +74,25 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+
+        // Diets
+        this.dietObs$ = this.dietService.dietObs;
+        this.dietObs$.subscribe((data: ApiResponse) => {
+            this.loading = false
+            if (data && data.rows) {
+                data.rows.map((diet: any) => {
+                    diet.name = diet.name.toLowerCase()
+                    this.diets.push(diet)
+                })
+            }
+        })
+        // Get all Diets
+        this.dietService.getDiets(0, 999, { sortField: 'id', sortOrder: 1 })
+
         // Fetch countries
         this.countryService.getCountries().then(countries => {
             this.countries = countries
         })
-
-        // Fetch diets
-        // TODO: Fix this
-        // this.dietService.getDiets().then(diets => {
-        //     this.diets = diets
-        // })
 
         this.payments = [
             { label: 'Banki átutalás', value: 'Banki átutalás' },
@@ -95,15 +106,6 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
             { label: 'Vacsora', value: 'vacsora' },
             { label: 'Nem kérek étkezést', value: 'nem kér' },
         ]
-
-        // this.diets = [
-        //     { label: 'Normál', value: 'normal' },
-        //     { label: 'Gluténmentes', value: 'glutenFree' },
-        //     { label: 'Laktózmentes', value: 'lactoseFree' },
-        //     { label: 'Tejmentes', value: 'milkFree' },
-        //     { label: 'Glutén és tej/laktózmentes', value: 'glutenAndLactoseFree' },
-        //     { label: 'Vegetáriánus', value: 'vegetarian' }
-        // ]
 
         this.roomTypes = [
             { label: 'Nem kérek szállást', value: 'Nem kérek szállást' },
@@ -147,6 +149,10 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
     get idCard() { return this.conferenceForm.controls['idCard'] }
     get privacy() { return this.conferenceForm.controls['privacy'] }
 
+
+    getDietColor(diet: string): string {
+        return this.dietService.getDietColor(diet)
+    }
 
     onSubmit(): void {
         console.log('onSubmit')

@@ -107,7 +107,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
             // Logging scannedCode
             this.logService.createLog({
-                name: "FoodCounter scannedCode: " + this.scannedCode,
+                name: "FoodCounter scannedCode: " + this.scannedCode + " | Lang: " + navigator.language,
                 capacity: 0
             })
 
@@ -215,7 +215,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                         // Logging error
                         this.logService.createLog({
-                            name: "FoodCounter Already received food: " + this.guest.lastName + " " + this.guest.firstName + " " + this.scannedCode,
+                            name: "FoodCounter Already received food: " + this.guest.lastName + " " + this.guest.firstName + " " + this.scannedCode + " | Lang: " + navigator.language,
                             capacity: 0
                         })
                     }
@@ -241,7 +241,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                     // Logging error
                     this.logService.createLog({
-                        name: "FoodCounter Unknown Device: " + this.scannedCode,
+                        name: "FoodCounter Unknown Device: " + this.scannedCode + " | Lang: " + navigator.language,
                         capacity: 0
                     })
                 }

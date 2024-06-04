@@ -55,6 +55,14 @@ export class MealService {
         return "Jelenleg nincs étkeztetés"
     }
 
+    getMealsForSelector(): any {
+        let meals = []
+        for (const mealName in this.meals) {
+            meals.push(this.translateMealName(mealName))
+        }
+        return meals
+    }
+
     translateMealName(mealName: string): string {
         const translations: any = {
             breakfast: 'reggeli',
