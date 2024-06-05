@@ -10,26 +10,13 @@ import { io } from 'socket.io-client';
 })
 
 export class FoodCounterWebSocket {
-
-   
-    public  apiURL: string;  // Path to the backend API
-    private hostname: string;
-    private productionURL = 'https://nfcreserve.hu/api'
+  
     private developmentURL = 'https://test.nfcreserve.hu/api'
-    private socket 
-    constructor(@Inject(DOCUMENT) private document: any, private http: HttpClient) {
-        // API URL starts with "test." when App is in Dev or in Test
-        this.hostname = this.document.location.hostname;
-        if (isDevMode() || this.hostname == 'test.nfcreserve.hu') {
-            this.socket=io(this.developmentURL)
-        } else {
-            this.socket=io(this.productionURL);
-        }
-
-        
-    }
+    private socket = io(this.developmentURL)
+    
 
     joinRoom(dinerType: string) {
+        console.log(dinerType,'-------')
         this.socket.emit('join-room', dinerType);
     }
 
