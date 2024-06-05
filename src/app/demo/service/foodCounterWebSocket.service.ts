@@ -21,7 +21,7 @@ export class FoodCounterWebSocket {
     }
 
     sendMessage(message: string) {
-        this.socket.emit('message', message);
+        this.socket.emit('mealsNumber', message);
     }
 
     getMealsNumber() {

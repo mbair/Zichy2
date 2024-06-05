@@ -93,15 +93,14 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         "nothin";
         this.foodCountWebSocket.joinRoom(socketRoom);
 
-        this.foodCountWebSocket.getMealsNumber().subscribe((message: any) => {
-           // this.messages.push(message);
-            this.mealsNumber=message;
-            console.log(message)
+        this.foodCountWebSocket.getDefData().subscribe((mealnum: any) => {
+            console.log(mealnum,"-- Def data --")
+            this.mealsNumber = mealnum
         });
 
-        this.foodCountWebSocket.getDefData().subscribe((message: any) => {
-            console.log(message,"-- Def data --")
-           // this.messages.push(message);
+        this.foodCountWebSocket.getMealsNumber().subscribe((mealnum: any) => {
+            this.mealsNumber=mealnum;
+            console.log(mealnum)
         });
     }
 
@@ -175,6 +174,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         }
     }
 
+    
     getGuestByRFID(rfid: string): void {
         this.guestService.getByRFID(rfid).subscribe({
             next: (data) => {
