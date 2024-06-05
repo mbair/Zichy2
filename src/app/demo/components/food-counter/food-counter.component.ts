@@ -100,9 +100,8 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         });
 
         this.foodCountWebSocket.getDefData().subscribe((message: any) => {
-            console.log(message)
-            this.messages.push(message);
-           
+            console.log(message,"-- Def data --")
+           // this.messages.push(message);
         });
     }
 
