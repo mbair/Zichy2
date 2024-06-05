@@ -105,9 +105,8 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         });
     }
 
-    sendMessage() {
-        this.foodCountWebSocket.sendMessage(this.message);
-        this.message = '';
+    sendMessage(sendMsg : any) {
+        this.foodCountWebSocket.sendMessage(sendMsg);
     }
 
     public resetGuest() {
@@ -255,7 +254,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                 // The guest is eating for the first time at this meal
                 this.mealsNumber++
-
+                this.sendMessage(this.mealsNumber);
                 // Insert Timestamp to lastRfidUsage
                 this.guest.lastRfidUsage = moment().format('YYYY-MM-DD HH:mm:ss');
                 this.guestService.updateGuest(this.guest)
