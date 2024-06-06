@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { TranslateModule } from '@ngx-translate/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { AppLayoutModule } from './layout/app.layout.module';
@@ -14,7 +15,10 @@ import { ErrorInterceptor } from './demo/interceptors/error.interceptor';
     imports: [
         AppRoutingModule,
         AppLayoutModule,
-        HttpClientModule
+        HttpClientModule,
+        TranslateModule.forRoot({
+            defaultLanguage: 'hu'
+        })
     ],
     providers: [
         ApiService,

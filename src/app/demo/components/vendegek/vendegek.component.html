@@ -42,6 +42,7 @@
                             <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
                             <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="deleteSelectedGuests()" [disabled]="!selectedGuests || !selectedGuests.length"></button>
                             <p-fileUpload
+                                #fileUpload
                                 mode="basic"
                                 label="Import"
                                 chooseLabel="Import"
@@ -51,9 +52,12 @@
                                 url="{{apiURL}}/guest/import"
                                 accept=".xlsx"
                                 [auto]="true"
-                                [maxFileSize]="1000000"
+                                [maxFileSize]="9999999"
                                 (onSend)="onSend($event)"
-                                (onUpload)="onUpload($event)" />
+                                (onError)="onUploadError($event, fileUpload)"
+                                (onUpload)="onUpload($event)"
+                                pTooltip="Kizárólag a táblázathoz tartozó Excel fájl importálható"
+                                tooltipPosition="top"/>
                             <!-- <button pButton pRipple label="Export" icon="pi pi-download" class="p-button-help" (click)="dt.exportCSV()"></button> -->
                         </span>
                     </div>
@@ -118,6 +122,8 @@
                                    [(ngModel)]="rfidFilterValue"
                                    (input)="rfidFilterValue = rfidFilterValue.replaceAll('ö', '0'); onFilter($event, 'rfid')"
                                    placeholder="Keresés..."
+                                   pTooltip="Azonosítóra kereshet csippantással és manuális gépeléssel is"
+                                   tooltipPosition="top"
                                    style="width:12%; min-width:9rem;"/>
                         </th>
                         <th>
