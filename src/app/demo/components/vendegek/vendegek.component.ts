@@ -143,7 +143,7 @@ export class VendegekComponent implements OnInit {
         // Actual conferences
         // TODO: Get conferences from DB with service
         this.conferences = [
-            { name: 'Golgota gyüli a parkban' },
+            { name: '20240607-20240609 - MEE házaspárok' },
         ]
 
         // Table columns
