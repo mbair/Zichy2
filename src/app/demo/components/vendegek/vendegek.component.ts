@@ -144,6 +144,8 @@ export class VendegekComponent implements OnInit {
         // TODO: Get conferences from DB with service
         this.conferences = [
             { name: '20240607-20240609 - MEE házaspárok' },
+            { name: '20240607-20240609 - Teérted hétvége bemerítéssel' },
+            { name: '20240609-20240614 - IFES' },
         ]
 
         // Table columns
