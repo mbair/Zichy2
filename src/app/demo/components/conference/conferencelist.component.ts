@@ -1,72 +1,166 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener, isDevMode } from '@angular/core';
+import { Observable } from 'rxjs';
+import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
+import { Message, MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { Table } from 'primeng/table';
-import { Customer } from 'src/app/demo/api/customer';
-import { CustomerService } from 'src/app/demo/service/customer.service';
-import { Konferencia } from 'src/app/demo/api/konferencia';
-import { KonferenciaService } from 'src/app/demo/service/konferencia.service';
-import { MessageService } from 'primeng/api';
+import { LogService } from '../../service/log.service';
+import { ApiResponse } from '../../api/ApiResponse';
+import { Conference } from '../../api/conference';
+import { ConferenceService } from '../../service/conference.service';
+import { Guest } from '../../api/guest';
+import { GuestService } from '../../service/guest.service';
+import * as moment from 'moment';
+moment.locale('hu')
 
 @Component({
     templateUrl: './conferencelist.component.html',
     providers: [MessageService]
 })
+
+// Makes unsubscribe automatically, don't need to do manually in ngOnDestroy
+// BUT!!! Don't delete ngOnDestroy, it has to stay here!
+@AutoUnsubscribe()
+
 export class ConferenceListComponent implements OnInit {
 
-    customers: Customer[] = [];
+    apiURL: string;                              // API URL depending on whether we are working on test or production
+    loading: boolean = true;                     // Loading overlay trigger value
+    cols: any[] = [];                            // Table columns
+    tableItem: Conference = {};                  // One conference object
+    tableData: Conference[] = [];                // Data set displayed in a table
+    rowsPerPageOptions = [20, 50, 100];          // Possible rows per page
+    rowsPerPage: number = 20;                    // Default rows per page
+    totalRecords: number = 0;                    // Total number of rows in the table
+    page: number = 0;                            // Current page
+    sortField: string = '';                      // Current sort field
+    sortOrder: number = 1;                       // Current sort order
+    globalFilter: string = '';                   // Global filter
+    filterValues: { [key: string]: string } = {} // Table filter conditions
+    messages: Message[] = [];                    // A message used for notifications and displaying errors
+    successfulMessage: Message[] = [];           // Message displayed on success
+    debounce: { [key: string]: any } = {}        // Search delay in filter field
+    dialog: boolean = false;                     // Table item maintenance modal
+    deleteDialog: boolean = false;               // Popup for deleting table item
+    deleteMultipleDialog: boolean = false;       // Popup for deleting table items
+    selected: Conference[] = [];                 // Table items chosen by user
 
-    productDialog: boolean = false;
-
-    deleteProductDialog: boolean = false;
-
-    deleteProductsDialog: boolean = false;
-
-    konferenciak: Konferencia[] = [];
-
-    konferencia: Konferencia = {};
-
-    selectedKonferencia: Konferencia[] = [];
-
-    submitted: boolean = false;
-
-    cols: any[] = [];
-
-    statuses: any[] = [];
-
-    canBeBooked: any[] = [];
-
-    rowsPerPageOptions = [5, 10, 20];
+    private conferenceObs$: Observable<any> | undefined;
+    private guestObs$: Observable<any> | undefined;
+    private serviceMessageObs$: Observable<any> | undefined;
 
     constructor(
-        private konferenciaService: KonferenciaService,
+        private conferenceService: ConferenceService,
+        private guestService: GuestService,
         private messageService: MessageService,
-        private customerService: CustomerService,
+        private logService: LogService,
         private router: Router) { }
 
     ngOnInit() {
-        this.customerService.getCustomersLarge().then(customers => this.customers = customers);
+        // Set API URL
+        this.apiURL = this.conferenceService.apiURL
 
-        this.konferenciaService.getKonferenciak().then(data => this.konferenciak = data);
-
+        // Table columns
         this.cols = [
-            { field: 'product', header: 'Product' },
-            { field: 'price', header: 'Price' },
-            { field: 'category', header: 'Category' },
-            { field: 'rating', header: 'Reviews' },
-            { field: 'inventoryStatus', header: 'Status' }
-        ];
+            { field: 'name', header: 'Név' },
+            { field: 'beginDate', header: 'Kezdete' },
+            { field: 'endDate', header: 'Vége' },
+            { field: 'guestsNumber', header: 'Létszám' }, // Ötlet: Jelentkezettek / létszám
+        ]
 
-        this.statuses = [
-            { label: 'FOGLALHATO', value: 'FOGLALHATO' },
-            { label: 'MAJDNEMTELE', value: 'MAJDNEMTELE' },
-            { label: 'MEGTELT', value: 'MEGTELT' }
-        ];
+        // Conferences
+        this.conferenceObs$ = this.conferenceService.conferenceObs;
+        this.conferenceObs$.subscribe((data: ApiResponse) => {
+            this.loading = false
+            if (data) {
+                this.tableData = data.rows || [];
+                this.totalRecords = data.totalItems || 0;
+                this.page = data.currentPage || 0;
+            }
+        })
 
-        this.canBeBooked = [
-            { label: 'can be booked', value: 'can be booked' },
-            { label: 'almost full', value: 'almost full' },
-            { label: 'full', value: 'full' }
-        ];
+        // Guests
+        this.guestObs$ = this.guestService.guestObs;
+        this.guestObs$.subscribe((data: ApiResponse) => {
+            this.loading = false
+            if (data) {
+                // Filter out test users on production
+                if (!isDevMode()) {
+                    let notTestGuests = data.rows?.filter((guest: any) => guest.is_test == false) || []
+                }
+            }
+        })
+
+        // Message
+        this.serviceMessageObs$ = this.conferenceService.messageObs;
+        this.serviceMessageObs$.subscribe((data) => {
+            this.loading = false;
+            if (data == 'ERROR') {
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Hiba történt!' });
+            } else {
+                this.messages = this.successfulMessage
+
+                this.messageService.add(data)
+            }
+        })
+    }
+
+    // Load filtered data into the Table
+    doQuery() {
+        this.loading = true;
+
+        const filters = Object.keys(this.filterValues)
+            .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
+        const queryParams = filters.filter(x => x.length > 0).join('&')
+
+        if (this.globalFilter !== '') {
+            return this.conferenceService.getBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
+        }
+
+        return this.conferenceService.get(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
+    }
+
+    onFilter(event: any, field: string) {
+        this.loading = true;
+        let filterValue = '';
+
+        // Calendar date as String
+        if (event instanceof Date) {
+            const date = moment(event);
+            const formattedDate = date.format('YYYY.MM.DD');
+            filterValue = formattedDate
+        } else {
+            if (event && (event.value || event.target?.value)) {
+                if (field == "rfid" && event.target?.value.length == 10) {
+                    filterValue = event.target?.value.replaceAll('ö', '0')
+                } else {
+                    filterValue = event.value || event.target?.value
+                }
+            } else {
+                this.filterValues[field] = ''
+            }
+        }
+
+        this.filterValues[field] = filterValue
+
+        if (this.debounce[field]) {
+            clearTimeout(this.debounce[field])
+        }
+
+        this.debounce[field] = setTimeout(() => {
+            if (this.filterValues[field] === filterValue) {
+                this.doQuery()
+            }
+        }, 500)
+    }
+
+    onLazyLoad(event: any) {
+        this.page = event.first! / event.rows!;
+        this.rowsPerPage = event.rows ?? this.rowsPerPage;
+        this.sortField = event.sortField ?? '';
+        this.sortOrder = event.sortOrder ?? 1;
+        this.globalFilter = event.globalFilter ?? '';
+        this.doQuery()
     }
 
     onGlobalFilter(table: Table, event: Event) {
@@ -78,94 +172,95 @@ export class ConferenceListComponent implements OnInit {
         this.router.navigateByUrl("/conference-form");
     }
 
-
-    navigateToCreateUser(){
+    navigateToCreateConference(){
         this.router.navigate(['conference/create'])
     }
 
     openNew() {
-        this.konferencia = {};
-        this.submitted = false;
-        this.productDialog = true;
+        this.tableItem = {};
+        this.dialog = true;
     }
 
-    deleteSelectedKonferencia() {
-        this.deleteProductsDialog = true;
+    deleteSelected() {
+        this.deleteMultipleDialog = true;
     }
 
-    editProduct(konferencia: Konferencia) {
-        this.konferencia = { ...konferencia };
-        this.productDialog = true;
+    edit(item: Conference) {
+        this.tableItem = { ...item };
+        this.dialog = true;
     }
 
-    deleteProduct(konferencia: Konferencia) {
-        this.deleteProductDialog = true;
-        this.konferencia = { ...konferencia };
+    delete(item: Conference) {
+        this.deleteDialog = true;
+        this.tableItem = { ...item };
     }
 
     confirmDeleteSelected() {
-        this.deleteProductsDialog = false;
-        this.konferenciak = this.konferenciak.filter(val => !this.selectedKonferencia.includes(val));
-        this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
-        this.selectedKonferencia = [];
+        this.loading = true;
+        this.deleteDialog = false;
+        this.conferenceService.bulkdelete(this.selected)
+        this.selected = []
+        this.loading = false;
+        setTimeout(() => {
+            this.doQuery()
+        }, 300);
     }
 
     confirmDelete() {
-        this.deleteProductDialog = false;
-        this.konferenciak = this.konferenciak.filter(val => val.id !== this.konferencia.id);
-        this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 });
-        this.konferencia = {};
+        this.loading = true;
+        this.deleteDialog = false;
+        this.tableData = this.tableData.filter(val => val.id !== this.tableItem.id);
+        this.conferenceService.delete(this.tableItem)
+        this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendég törölve', life: 3000 });
+        this.tableItem = {};
+        this.loading = false;
     }
 
     hideDialog() {
-        this.productDialog = false;
-        this.submitted = false;
+        this.dialog = false;
     }
 
-    saveProduct() {
-        this.submitted = true;
-
-        if (this.konferencia.name?.trim()) {
-            if (this.konferencia.id) {
-                // @ts-ignore
-                this.product.inventoryStatus = this.product.inventoryStatus.value ? this.konferencia.inventoryStatus.value : this.konferencia.inventoryStatus;
-                this.konferenciak[this.findIndexById(this.konferencia.id)] = this.konferencia;
-                this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
+    save() {
+        if (this.tableItem.name?.trim()) {
+            // UPDATE
+            if (this.tableItem.id) {
+                this.conferenceService.update(this.tableItem)
+                this.tableData[this.findIndexById(this.tableItem.id)] = this.tableItem;
+                this.successfulMessage = [{
+                    severity: 'success',
+                    summary: '',
+                    detail: 'Sikeres konferenciamódosítás!'
+                }]
+            // INSERT
             } else {
-                this.konferencia.id = this.createId();
-                this.konferencia.code = this.createId();
-                this.konferencia.image = 'product-placeholder.svg';
-                // @ts-ignore
-                this.product.inventoryStatus = this.product.inventoryStatus ? this.product.inventoryStatus.value : 'FOGLALHATO';
-                this.konferenciak.push(this.konferencia);
-                this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
+                this.conferenceService.create(this.tableItem)
+                this.tableData.push(this.tableItem)
+                this.successfulMessage = [{
+                    severity: 'success',
+                    summary: '',
+                    detail: 'Sikeres konferencia rögzítés!'
+                }]
             }
 
-            this.konferenciak = [...this.konferenciak];
-            this.productDialog = false;
-            this.konferencia = {};
+            this.tableData = [...this.tableData]
+            this.dialog = false
+            this.tableItem = {}
         }
     }
 
-    findIndexById(id: string): number {
+    findIndexById(id: string | undefined): number {
         let index = -1;
-        for (let i = 0; i < this.konferenciak.length; i++) {
-            if (this.konferenciak[i].id === id) {
+        for (let i = 0; i < this.tableData.length; i++) {
+            if (this.tableData[i].id === id) {
                 index = i;
                 break;
             }
         }
 
-        return index;
+        return index
     }
 
-    createId(): string {
-        let id = '';
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        for (let i = 0; i < 5; i++) {
-            id += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return id;
+    // Don't delete this, its needed from a performance point of view,
+    ngOnDestroy(): void {
     }
-
 }

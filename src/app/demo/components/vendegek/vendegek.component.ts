@@ -1,8 +1,8 @@
-import { Component, OnInit, HostListener, isDevMode, ViewChild } from '@angular/core';
+import { Component, OnInit, HostListener, isDevMode } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { Message, MessageService } from 'primeng/api';
-import { FileSendEvent, FileUpload, FileUploadErrorEvent, UploadEvent } from 'primeng/fileupload';
+import { FileSendEvent, FileUpload, FileUploadErrorEvent } from 'primeng/fileupload';
 import { Table } from 'primeng/table';
 import { GuestService } from '../../service/guest.service';
 import { GenderService } from '../../service/gender.service';
@@ -311,15 +311,6 @@ export class VendegekComponent implements OnInit {
         }
 
         return index;
-    }
-
-    createId(): string {
-        let id = '';
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        for (let i = 0; i < 5; i++) {
-            id += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return id;
     }
 
     onGlobalFilter(table: Table, event: Event) {

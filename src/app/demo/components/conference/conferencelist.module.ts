@@ -17,28 +17,39 @@ import { DropdownModule } from 'primeng/dropdown';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
-import { CalendarModule } from "primeng/calendar";
-import { ProgressBarModule } from 'primeng/progressbar';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { BlockUIModule } from 'primeng/blockui';
+import { TagModule } from 'primeng/tag';
+import { TreeTableModule } from 'primeng/treetable';
+import { TooltipModule } from 'primeng/tooltip';
+import { CheckboxModule } from 'primeng/checkbox';
+import { CalendarModule } from 'primeng/calendar';
 
 @NgModule({
 	imports: [
 		CommonModule,
 		ConferenceListRoutingModule,
-		RippleModule,
-		ButtonModule,
-		InputTextModule,
 		TableModule,
-		ProgressBarModule,
         FileUploadModule,
+        FormsModule,
+        ButtonModule,
+        RippleModule,
         ToastModule,
         ToolbarModule,
         RatingModule,
+        InputTextModule,
         InputTextareaModule,
         DropdownModule,
         RadioButtonModule,
         InputNumberModule,
         DialogModule,
-        CalendarModule
+        ProgressSpinnerModule,
+        BlockUIModule,
+        TagModule,
+        TreeTableModule,
+        TooltipModule,
+        CheckboxModule,
+        CalendarModule,
 	],
 	declarations: [ConferenceListComponent]
 })
