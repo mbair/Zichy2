@@ -14,4 +14,14 @@ export interface Conference {
     attendees?: number;
     canBeBooked?: boolean;
     enabled?: boolean;
+
+    firstMeal?: string;
+    lastMeal?: string;
+    contractorName?: string;
+    contractorAddress?: string;
+    contractorTaxNumber?: string;
+    contactName?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+    registrationEndDate?: string | null;
 }

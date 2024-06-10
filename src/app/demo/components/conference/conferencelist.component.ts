@@ -8,8 +8,8 @@ import { LogService } from '../../service/log.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { ConferenceService } from '../../service/conference.service';
-import { Guest } from '../../api/guest';
 import { GuestService } from '../../service/guest.service';
+import { MealService } from '../../service/meal.service';
 import * as moment from 'moment';
 moment.locale('hu')
 
@@ -42,8 +42,9 @@ export class ConferenceListComponent implements OnInit {
     debounce: { [key: string]: any } = {}        // Search delay in filter field
     dialog: boolean = false;                     // Table item maintenance modal
     deleteDialog: boolean = false;               // Popup for deleting table item
-    deleteMultipleDialog: boolean = false;       // Popup for deleting table items
+    bulkDeleteDialog: boolean = false;           // Popup for deleting table items
     selected: Conference[] = [];                 // Table items chosen by user
+    meals: any[] = [];                           // Possible meals
 
     private conferenceObs$: Observable<any> | undefined;
     private guestObs$: Observable<any> | undefined;
@@ -52,6 +53,7 @@ export class ConferenceListComponent implements OnInit {
     constructor(
         private conferenceService: ConferenceService,
         private guestService: GuestService,
+        private mealService: MealService,
         private messageService: MessageService,
         private logService: LogService,
         private router: Router) { }
@@ -78,6 +80,9 @@ export class ConferenceListComponent implements OnInit {
                 this.page = data.currentPage || 0;
             }
         })
+
+        // Get meals for selector
+        this.meals = this.mealService.getMealsForSelector()
 
         // Guests
         this.guestObs$ = this.guestService.guestObs;
@@ -182,7 +187,7 @@ export class ConferenceListComponent implements OnInit {
     }
 
     deleteSelected() {
-        this.deleteMultipleDialog = true;
+        this.bulkDeleteDialog = true;
     }
 
     edit(item: Conference) {
