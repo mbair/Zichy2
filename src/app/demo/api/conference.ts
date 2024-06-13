@@ -1,20 +1,11 @@
 export interface Conference {
     id?: string;
-    code?: string;
     name?: string;
-    description?: string;
-    image?: string;
-    price?: number;
-    category?: string;
-    quantity?: number;
-    inventoryStatus?: string;
-    rating?: number,
     beginDate?: string | null;
     endDate?: string | null;
-    attendees?: number;
-    canBeBooked?: boolean;
     enabled?: boolean;
 
+    // New fields
     firstMeal?: string;
     lastMeal?: string;
     contractorName?: string;
@@ -23,5 +14,18 @@ export interface Conference {
     contactName?: string;
     contactEmail?: string;
     contactPhone?: string;
+    formURL?: string;
     registrationEndDate?: string | null;
+
+    // Can be deleted
+    code?: string;
+    description?: string;
+    image?: string;
+    price?: number;
+    category?: string;
+    quantity?: number;
+    inventoryStatus?: string;
+    rating?: number;
+    attendees?: number;
+    canBeBooked?: boolean;
 }
