@@ -1,7 +1,7 @@
 import { Component, OnInit, HostListener, isDevMode } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
-import { Message, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { Table } from 'primeng/table';
 import { LogService } from '../../service/log.service';
@@ -231,20 +231,10 @@ export class ConferenceListComponent implements OnInit {
             if (this.tableItem.id) {
                 this.conferenceService.update(this.tableItem)
                 this.tableData[this.findIndexById(this.tableItem.id)] = this.tableItem;
-                this.successfulMessage = [{
-                    severity: 'success',
-                    summary: '',
-                    detail: 'Sikeres konferenciamódosítás!'
-                }]
             // INSERT
             } else {
                 this.conferenceService.create(this.tableItem)
                 this.tableData.push(this.tableItem)
-                this.successfulMessage = [{
-                    severity: 'success',
-                    summary: '',
-                    detail: 'Sikeres konferencia rögzítés!'
-                }]
             }
 
             this.tableData = [...this.tableData]
