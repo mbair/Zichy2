@@ -28,6 +28,13 @@ export class ConferenceService {
         return this.message$.asObservable()
     }
 
+    /**
+     * Get conferences
+     * @param page
+     * @param rowsPerPage
+     * @param sort
+     * @param queryParams
+     */
     public get(page: number, rowsPerPage: number, sort: any, queryParams: string): void {
         let pageSort: string = '';
         if (sort !== '') {
@@ -50,6 +57,11 @@ export class ConferenceService {
             })
     }
 
+    /**
+     * Get conferences by Search
+     * @param globalFilter
+     * @param sort
+     */
     public getBySearch(globalFilter: string, sort: any): void {
         let pageSort: string = '';
         if (sort !== '') {
@@ -68,23 +80,35 @@ export class ConferenceService {
             });
     }
 
+    /**
+     * Get conferences by Search query
+     * @param filters
+     */
     public getBySearchQuery(filters: string): void {
         this.apiService.get<ApiResponse>(`conference/searchquery?${filters}`)
             .subscribe({
                 next: (response: ApiResponse) => {
-                    this.data$.next(response);
+                    this.data$.next(response)
                 },
                 error: (error: any) => {
-                    this.message$.next(error);
+                    this.message$.next(error)
                 }
-            });
+            })
     }
 
+    /**
+     * Conference create
+     * @param conference
+     */
     public create(conference: Conference): void {
         this.apiService.post(`conference/create/`, conference)
             .subscribe({
                 next: (response: any) => {
-                    this.message$.next('success')
+                    this.message$.next({
+                        severity: 'success',
+                        summary: 'Sikeres konferencia rögzítés',
+                        detail: `${conference.name} rögzítve`,
+                    })
                 },
                 error: (error: any) => {
                     this.message$.next(error)
@@ -92,11 +116,19 @@ export class ConferenceService {
             })
     }
 
+    /**
+     * Conference update
+     * @param conference
+     */
     public update(modifiedConference: Conference): void {
         this.apiService.put(`conference/update/${modifiedConference.id}`, modifiedConference)
             .subscribe({
                 next: () => {
-                    this.message$.next('success')
+                    this.message$.next({
+                        severity: 'success',
+                        summary: 'Sikeres konferencia módosítás',
+                        detail: `${modifiedConference.name} módosítva`,
+                    })
                 },
                 error: (error: any) => {
                     this.message$.next(error)
@@ -104,19 +136,19 @@ export class ConferenceService {
             })
     }
 
-    public update2(modifiedConference: Conference): Observable<any> {
-        return this.apiService.put(`conference/update/${modifiedConference.id}`, modifiedConference)
-            .pipe(
-                tap(() => console.log(`updated conference id=${modifiedConference.id}`)),
-                catchError(this.handleError<any>('updateConference2'))
-            )
-    }
-
+    /**
+     * Conference delete
+     * @param conference
+     */
     public delete(conference: Conference): void {
         this.apiService.delete(`conference/delete/${conference.id}`)
             .subscribe({
                 next: (response: any) => {
-                    this.message$.next(response)
+                    this.message$.next({
+                        severity: 'success',
+                        summary: 'Sikeres konferencia törlés',
+                        detail: `${conference.name} törölve`,
+                    })
                 },
                 error: (error: any) => {
                     this.message$.next(error)
@@ -124,6 +156,10 @@ export class ConferenceService {
             })
     }
 
+    /**
+     * Bulk delete of conferences
+     * @param conferences
+     */
     public bulkdelete(conferences: Conference[]): void {
         let params = {
             ids: conferences.map(conference => conference.id)
@@ -133,9 +169,8 @@ export class ConferenceService {
                 next: (response: any) => {
                     this.message$.next({
                         severity: 'success',
-                        summary: 'Sikeres törlés',
-                        detail: 'Konferenciák törölve',
-                        life: 3000
+                        summary: 'Sikeres konferencia törlés',
+                        detail: `${conferences.length} konferencia törölve`,
                     })
                 },
                 error: (error: any) => {

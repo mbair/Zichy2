@@ -37,8 +37,6 @@ export class ConferenceListComponent implements OnInit {
     sortOrder: number = 1;                       // Current sort order
     globalFilter: string = '';                   // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
-    messages: Message[] = [];                    // A message used for notifications and displaying errors
-    successfulMessage: Message[] = [];           // Message displayed on success
     debounce: { [key: string]: any } = {}        // Search delay in filter field
     dialog: boolean = false;                     // Table item maintenance modal
     deleteDialog: boolean = false;               // Popup for deleting table item
@@ -101,10 +99,12 @@ export class ConferenceListComponent implements OnInit {
         this.serviceMessageObs$.subscribe((data) => {
             this.loading = false;
             if (data == 'ERROR') {
-                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Hiba történt!' });
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Hiba történt!'
+                })
             } else {
-                this.messages = this.successfulMessage
-
                 this.messageService.add(data)
             }
         })
