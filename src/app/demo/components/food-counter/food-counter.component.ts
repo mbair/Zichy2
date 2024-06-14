@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { Guest } from '../../api/guest';
+import { FoodCounterWebSocket } from '../../service/foodCounterWebSocket.service';
 import { GuestService } from '../../service/guest.service';
 import { MealService } from '../../service/meal.service';
 import { LogService } from '../../service/log.service';
@@ -37,6 +38,10 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     windowHeight: number;
     backgroundColor: string = 'surface-ground';
 
+    // WebSocket
+    message: string;
+    messages: string[] = [];
+
     guestsObs$: Observable<any> | undefined;
     serviceMessageObs$: Observable<any> | undefined;
 
@@ -44,6 +49,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         private guestService: GuestService,
         private mealService: MealService,
         private logService: LogService,
+        private foodCountWebSocket: FoodCounterWebSocket,
         private messageService: MessageService) {
 
         // Tablet size: 854 x 534 px
@@ -76,6 +82,27 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         // setTimeout(() => {
         //     this.getGuestByRFID('127921')
         // }, 500);
+
+        const socketRoom = this.currentMeal === 'reggeli' ? 'breakfast' :
+            this.currentMeal === 'ebéd' ? 'lunch' :
+                this.currentMeal === 'vacsora' ? 'dinner' : "nothing";
+
+        this.foodCountWebSocket.joinRoom(socketRoom);
+
+        this.foodCountWebSocket.getDefData().subscribe((mealnum: any) => {
+            console.log(mealnum, "-- Def data --")
+            this.mealsNumber = mealnum
+        })
+
+        this.foodCountWebSocket.getMealsNumber().subscribe((mealnum: any) => {
+            this.mealsNumber = mealnum;
+            console.log(mealnum)
+        })
+    }
+
+    sendMessage() {
+        this.foodCountWebSocket.sendMessage(this.message);
+        this.message = '';
     }
 
     public resetGuest() {
