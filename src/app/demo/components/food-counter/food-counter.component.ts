@@ -8,11 +8,7 @@ import { MealService } from '../../service/meal.service';
 import { LogService } from '../../service/log.service';
 import { Observable } from 'rxjs';
 import * as moment from 'moment';
-import { FoodCounterWebSocket } from '../../service/foodCounterWebSocket.service';
-
-
 moment.locale('hu')
-
 
 const ADULT_DOSAGE_AGE_LIMIT: number = 10;  // From the age of 10, we give an adult dose
 
@@ -47,11 +43,6 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
     guestsObs$: Observable<any> | undefined;
     serviceMessageObs$: Observable<any> | undefined;
-
-    // WebSocket
-    message: string;
-    messages: string[] = [];
-
 
     constructor(public router: Router,
         private guestService: GuestService,
@@ -109,7 +100,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     }
 
     sendMessage() {
-        this.foodCountWebSocket.sendMessage(this.message);
+        this.foodCountWebSocket.sendMessage(this.mealsNumber.toString())
         this.message = '';
     }
 
@@ -259,7 +250,8 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                 // The guest is eating for the first time at this meal
                 this.mealsNumber++
-                this.sendMessage(this.mealsNumber);
+                this.sendMessage()
+
                 // Insert Timestamp to lastRfidUsage
                 this.guest.lastRfidUsage = moment().format('YYYY-MM-DD HH:mm:ss');
                 this.guestService.updateGuest(this.guest)
