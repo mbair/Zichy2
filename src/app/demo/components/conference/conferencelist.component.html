@@ -1,9 +1,25 @@
 <div class="grid">
     <div class="col-12">
         <div class="card px-0 py-0">
-            <p-toast></p-toast>
+            <p-table #dt
+                     dataKey="id"
+                     [value]="tableData"
+                     [columns]="cols"
+                     responsiveLayout="scroll"
+                     [rows]="rowsPerPage"
+                     [totalRecords]="totalRecords"
+                     [globalFilterFields]="['name', 'beginDate', 'endDate']"
+                     [paginator]="true"
+                     [rowsPerPageOptions]="rowsPerPageOptions"
+                     [showCurrentPageReport]="true"
+                     currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
+                     [(selection)]="selected"
+                     selectionMode="multiple"
+                     [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
+                     [rowHover]="true"
+                     (onLazyLoad)="onLazyLoad($event)"
+                     [lazy]="true" >
 
-            <p-table #dt [value]="konferenciak" [columns]="cols" responsiveLayout="scroll" [rows]="10" [globalFilterFields]="['name','country.name','representative.name','status']" [paginator]="true" [rowsPerPageOptions]="[10,20,30]" [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [(selection)]="selectedKonferencia" selectionMode="multiple" [rowHover]="true" dataKey="id">
                 <ng-template pTemplate="caption">
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
                         <h5 class="m-0">Konferenciák</h5>
@@ -12,89 +28,241 @@
                             <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."  class="w-full sm:w-auto"/>
                         </span>
                         <span class="block mt-2 md:mt-0">
-                            <a routerLink="/conference/create" class="p-button p-button-success p-ripple font-normal mr-2 hover:bg-green-600 hover:border-green-600">
+                            <!-- Open new page -->
+                            <!-- <a routerLink="/conference/create" class="p-button p-button-success p-ripple font-normal mr-2 hover:bg-green-600 hover:border-green-600">
                                 <i class="pi pi-plus x mr-2"></i> Új
-                            </a>
-                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="deleteSelectedKonferencia()" [disabled]="!selectedKonferencia || !selectedKonferencia.length"></button>
+                            </a> -->
+                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
+                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="deleteSelected()" [disabled]="!selected || !selected.length"></button>
                         </span>
                     </div>
                 </ng-template>
                 <ng-template pTemplate="header">
                     <tr>
+                        <th></th>
+                        <th pSortableColumn="name">Név <p-sortIcon field="name"></p-sortIcon></th>
+                        <th pSortableColumn="beginDate">Kezdete <p-sortIcon field="beginDate"></p-sortIcon></th>
+                        <th pSortableColumn="firstMeal">Első étkezés <p-sortIcon field="beginDate"></p-sortIcon></th>
+                        <th pSortableColumn="endDate">Vége <p-sortIcon field="endDate"></p-sortIcon></th>
+                        <th pSortableColumn="lastMeal">Utolsó étkezés <p-sortIcon field="endDate"></p-sortIcon></th>
+                        <th pSortableColumn="guestsNumber">Létszám <p-sortIcon field="guestsNumber"></p-sortIcon></th>
+                        <th></th>
+                    </tr>
+                    <tr>
                         <th style="width: 3rem">
                             <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                         </th>
-                        <th pSortableColumn="name">Név <p-sortIcon field="name"></p-sortIcon></th>
-                        <th pSortableColumn="price">Ár <p-sortIcon field="price"></p-sortIcon></th>
-                        <th pSortableColumn="beginDate">Kezdete <p-sortIcon field="beginDate"></p-sortIcon></th>
-                        <th pSortableColumn="endDate">Vége <p-sortIcon field="endDate"></p-sortIcon></th>
-                        <th pSortableColumn="inventoryStatus">Létszám <p-sortIcon field="inventoryStatus"></p-sortIcon></th>
-                        <!-- <th pSortableColumn="inventoryStatus">Foglalható <p-sortIcon field="inventoryStatus"></p-sortIcon></th> -->
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'name')"
+                                   placeholder="Keresés..."
+                                   style="width:30%; min-width:15rem;"/>
+                        </th>
+                        <th>
+                            <p-calendar
+                                (onSelect)="onFilter($event, 'beginDate')"
+                                (onClearClick)="onFilter($event, 'beginDate')"
+                                appendTo="body"
+                                [showButtonBar]="true">
+                            </p-calendar>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'firstMeal')"
+                                   placeholder="Keresés..."
+                                   style="width:30%; min-width:15rem;"/>
+                        </th>
+                        <th>
+                            <p-calendar
+                                (onSelect)="onFilter($event, 'endDate')"
+                                (onClearClick)="onFilter($event, 'endDate')"
+                                appendTo="body"
+                                [showButtonBar]="true">
+                            </p-calendar>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'lastMeal')"
+                                   placeholder="Keresés..."
+                                   style="width:30%; min-width:15rem;"/>
+                        </th>
+                        <th></th>
                         <th></th>
                     </tr>
                 </ng-template>
-                <ng-template pTemplate="body" let-konferencia>
+                <ng-template pTemplate="body" let-conference>
                     <tr>
                         <td>
-                            <p-tableCheckbox [value]="konferencia"></p-tableCheckbox>
+                            <p-tableCheckbox [value]="tableItem"></p-tableCheckbox>
                         </td>
-                        <td style="width:24%; min-width:14rem;">
-                            <span class="p-column-title">Konferencia neve</span>
-                            {{konferencia.name}}
-                        </td>
-                        <td style="width:14%; min-width:8rem;">
-                            <span class="p-column-title">Ár</span>
-                            {{konferencia.price}} Ft
+                        <td style="width:30%; min-width:15rem;">
+                            <span class="p-column-title">Név</span>
+                            {{conference.name}}
                         </td>
                         <td style="width:14%; min-width:10rem;">
                             <span class="p-column-title">Kezdete</span>
-                            {{konferencia.beginDate}}
+                            {{conference.beginDate | date:'yyyy.MM.dd'}}
+                        </td>
+                        <td style="width:14%; min-width:10rem;">
+                            <span class="p-column-title">Első étkezés</span>
+                            {{conference.firstMeal}}
                         </td>
                         <td style="width:14%; min-width:10rem;">
                             <span class="p-column-title">Vége</span>
-                            {{konferencia.endDate}}
+                            {{conference.endDate | date:'yyyy.MM.dd'}}
+                        </td>
+                        <td style="width:14%; min-width:10rem;">
+                            <span class="p-column-title">Utolsó étkezés</span>
+                            {{conference.lastMeal}}
                         </td>
                         <td style="width:14%; min-width:10rem;">
                             <span class="p-column-title">Létszám</span>
-                            {{konferencia.attendees}}
+                            {{conference.attendees}}
                         </td>
-
-                        <!-- <td style="width:14%; min-width: 10rem;"><span class="p-column-title">Foglalható</span>
-                            <span [class]="'product-badge status-' + (konferencia.canBeBooked ? konferencia.canBeBooked : '')">{{konferencia.canBeBooked}}</span>
-                        </td> -->
-
                         <td>
                             <div class="flex">
-                                <button pButton pRipple icon="pi pi-search" class="p-button-rounded p-button-success mr-2" (click)="navigateToConferenceForm(konferencia)"></button>
-                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editProduct(konferencia)"></button>
-                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteProduct(konferencia)"></button>
+                                <button pButton pRipple icon="pi pi-search" class="p-button-rounded p-button-success mr-2" (click)="navigateToConferenceForm(conference)"></button>
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(conference)"></button>
+                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="delete(conference)"></button>
                             </div>
                         </td>
+                    </tr>
+
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td [attr.colspan]="cols.length + 2" class="text-center">Nincs találat...</td>
                     </tr>
                 </ng-template>
             </p-table>
         </div>
 
-        <p-dialog [(visible)]="deleteProductDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+        <!-- New / Update dialog -->
+        <p-dialog [(visible)]="dialog" header="Konferencia adatai" [modal]="true" [style]="{width:'450px'}" class="p-fluid">
+            <ng-template pTemplate="content">
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="name">Konferencia neve</label>
+                        <input type="text" pInputText [(ngModel)]="tableItem.name"/>
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="name">Konferencia URL</label>
+                        <input type="text" pInputText [(ngModel)]="tableItem.code"/>
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="beginDate">Kezdete</label>
+                        <p-calendar
+                            [(ngModel)]="tableItem.beginDate"
+                            appendTo="body"
+                            dateFormat="yy-mm-dd"
+                            [showButtonBar]="true">
+                        </p-calendar>
+                    </div>
+                    <div class="field col">
+                        <label for="firstMeal">Első étkezés</label>
+                        <p-dropdown
+                            [options]="meals"
+                            [(ngModel)]="tableItem.firstMeal"
+                            placeholder="Válassz...">
+                        </p-dropdown>
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="endDate">Vége</label>
+                        <p-calendar
+                            [(ngModel)]="tableItem.endDate"
+                            appendTo="body"
+                            dateFormat="yy-mm-dd"
+                            [showButtonBar]="true">
+                        </p-calendar>
+                    </div>
+                    <div class="field col">
+                        <label for="lastMeal">Utolsó étkezés</label>
+                        <p-dropdown
+                            [options]="meals"
+                            [(ngModel)]="tableItem.lastMeal"
+                            placeholder="Válassz...">
+                        </p-dropdown>
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="contractorName">Szerződő neve</label>
+                        <input type="text" pInputText [(ngModel)]="tableItem.contractorName"/>
+                    </div>
+                    <div class="field col">
+                        <label for="contractorTaxNumber">Szerződő adószáma</label>
+                        <input type="text" pInputText [(ngModel)]="tableItem.contractorTaxNumber"/>
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="contractorName">Szerződő címe</label>
+                        <input type="text" pInputText [(ngModel)]="tableItem.contractorAddress"/>
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="contactName">Kapcsolattartó neve</label>
+                        <input type="text" pInputText [(ngModel)]="tableItem.contactName"/>
+                    </div>
+                    <div class="field col">
+                        <label for="contactPhone">Kapcsolattartó telefon</label>
+                        <input type="text" pInputText [(ngModel)]="tableItem.contactPhone"/>
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="contactEmail">Kapcsolattartó e-mail</label>
+                        <input type="text" pInputText [(ngModel)]="tableItem.contactEmail"/>
+                    </div>
+                </div>
+            </ng-template>
+
+            <ng-template pTemplate="footer">
+                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="dialog = false"></button>
+                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="save()"></button>
+            </ng-template>
+        </p-dialog>
+
+        <!-- Delete dialog -->
+        <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span *ngIf="konferencia">Are you sure you want to delete <b>{{konferencia.name}}</b>?</span>
+                <span *ngIf="tableItem">Biztosan törölni akarja <b>{{tableItem.name}}</b>?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteProductDialog = false"></button>
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteDialog = false"></button>
                 <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDelete()"></button>
             </ng-template>
         </p-dialog>
 
-        <p-dialog [(visible)]="deleteProductsDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+        <!-- Bulk Delete dialog -->
+        <p-dialog [(visible)]="bulkDeleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span>Are you sure you want to delete selected products?</span>
+                <span>Biztosan törölni akarja a kiválasztott konferenciákat?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteProductsDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDeleteSelected()"></button>
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="bulkDeleteDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="confirmDeleteSelected()"></button>
             </ng-template>
         </p-dialog>
     </div>
 </div>
+
+<!-- Loading Overlay -->
+<p-blockUI [autoZIndex]="true" [blocked]="loading">
+    <p-progressSpinner></p-progressSpinner>
+</p-blockUI>
+
+<!-- Notifications -->
+<p-toast></p-toast>
