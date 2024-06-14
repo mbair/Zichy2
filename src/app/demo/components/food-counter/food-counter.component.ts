@@ -10,7 +10,6 @@ import { Observable } from 'rxjs';
 import * as moment from 'moment';
 moment.locale('hu')
 
-
 const ADULT_DOSAGE_AGE_LIMIT: number = 10;  // From the age of 10, we give an adult dose
 
 @Component({
@@ -101,7 +100,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     }
 
     sendMessage() {
-        this.foodCountWebSocket.sendMessage(this.message);
+        this.foodCountWebSocket.sendMessage(this.mealsNumber.toString())
         this.message = '';
     }
 
@@ -170,6 +169,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             this.mealsNumber = 0
         }
     }
+
 
     getGuestByRFID(rfid: string): void {
         this.guestService.getByRFID(rfid).subscribe({
@@ -250,6 +250,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                 // The guest is eating for the first time at this meal
                 this.mealsNumber++
+                this.sendMessage()
 
                 // Insert Timestamp to lastRfidUsage
                 this.guest.lastRfidUsage = moment().format('YYYY-MM-DD HH:mm:ss');
