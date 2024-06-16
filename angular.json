@@ -17,6 +17,11 @@
                 "build": {
                     "builder": "@angular-devkit/build-angular:browser",
                     "options": {
+                        "allowedCommonJsDependencies": [
+                            "lodash",
+                            "moment",
+                            "quill-delta"
+                        ],
                         "outputPath": "dist/nfc-reserve",
                         "index": "src/index.html",
                         "main": "src/main.ts",
