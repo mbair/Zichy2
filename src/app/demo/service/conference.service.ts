@@ -72,12 +72,12 @@ export class ConferenceService {
         this.apiService.get<ApiResponse>(`conference/search/${globalFilter}${pageSort}`)
             .subscribe({
                 next: (response: ApiResponse) => {
-                    this.data$.next(response);
+                    this.data$.next(response)
                 },
                 error: (error: any) => {
-                    this.message$.next(error);
+                    this.message$.next(error)
                 }
-            });
+            })
     }
 
     /**

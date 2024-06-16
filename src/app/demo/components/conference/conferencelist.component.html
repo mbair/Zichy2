@@ -32,8 +32,8 @@
                             <!-- <a routerLink="/conference/create" class="p-button p-button-success p-ripple font-normal mr-2 hover:bg-green-600 hover:border-green-600">
                                 <i class="pi pi-plus x mr-2"></i> Új
                             </a> -->
-                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
-                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="deleteSelected()" [disabled]="!selected || !selected.length"></button>
+                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="tableItem = {}; dialog = true"></button>
+                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="bulkDeleteDialog = true" [disabled]="!selected || !selected.length"></button>
                         </span>
                     </div>
                 </ng-template>
@@ -127,8 +127,8 @@
                         <td>
                             <div class="flex">
                                 <button pButton pRipple icon="pi pi-search" class="p-button-rounded p-button-success mr-2" (click)="navigateToConferenceForm(conference)"></button>
-                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(conference)"></button>
-                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="delete(conference)"></button>
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="tableItem = conference; dialog = true"></button>
+                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = conference; deleteDialog = true"></button>
                             </div>
                         </td>
                     </tr>
@@ -239,11 +239,11 @@
         <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span *ngIf="tableItem">Biztosan törölni akarja <b>{{tableItem.name}}</b>?</span>
+                <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.name}}</b> konferenciát?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDelete()"></button>
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="deleteDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="delete()"></button>
             </ng-template>
         </p-dialog>
 
@@ -255,7 +255,7 @@
             </div>
             <ng-template pTemplate="footer">
                 <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="bulkDeleteDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="confirmDeleteSelected()"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="deleteSelected()"></button>
             </ng-template>
         </p-dialog>
     </div>
