@@ -24,7 +24,6 @@ moment.locale('hu')
 
 export class ConferenceListComponent implements OnInit {
 
-    apiURL: string;                              // API URL depending on whether we are working on test or production
     loading: boolean = true;                     // Loading overlay trigger value
     cols: any[] = [];                            // Table columns
     tableItem: Conference = {};                  // One conference object
@@ -57,9 +56,6 @@ export class ConferenceListComponent implements OnInit {
         private router: Router) { }
 
     ngOnInit() {
-        // Set API URL
-        this.apiURL = this.conferenceService.apiURL
-
         // Table columns
         this.cols = [
             { field: 'name', header: 'Név' },
@@ -105,7 +101,15 @@ export class ConferenceListComponent implements OnInit {
                     detail: 'Hiba történt!'
                 })
             } else {
+                // Show service response message
                 this.messageService.add(data)
+
+                // Reset selected table Item(s)
+                this.tableItem = {}
+                this.selected = []
+
+                // Query for data changes
+                this.doQuery()
             }
         })
     }
@@ -181,48 +185,16 @@ export class ConferenceListComponent implements OnInit {
         this.router.navigate(['conference/create'])
     }
 
-    openNew() {
-        this.tableItem = {};
-        this.dialog = true;
+    delete() {
+        this.loading = true;
+        this.deleteDialog = false;
+        this.conferenceService.delete(this.tableItem)
     }
 
     deleteSelected() {
-        this.bulkDeleteDialog = true;
-    }
-
-    edit(item: Conference) {
-        this.tableItem = { ...item };
-        this.dialog = true;
-    }
-
-    delete(item: Conference) {
-        this.deleteDialog = true;
-        this.tableItem = { ...item };
-    }
-
-    confirmDeleteSelected() {
         this.loading = true;
         this.deleteDialog = false;
         this.conferenceService.bulkdelete(this.selected)
-        this.selected = []
-        this.loading = false;
-        setTimeout(() => {
-            this.doQuery()
-        }, 300);
-    }
-
-    confirmDelete() {
-        this.loading = true;
-        this.deleteDialog = false;
-        this.tableData = this.tableData.filter(val => val.id !== this.tableItem.id);
-        this.conferenceService.delete(this.tableItem)
-        this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendég törölve', life: 3000 });
-        this.tableItem = {};
-        this.loading = false;
-    }
-
-    hideDialog() {
-        this.dialog = false;
     }
 
     save() {
@@ -230,29 +202,12 @@ export class ConferenceListComponent implements OnInit {
             // UPDATE
             if (this.tableItem.id) {
                 this.conferenceService.update(this.tableItem)
-                this.tableData[this.findIndexById(this.tableItem.id)] = this.tableItem;
             // INSERT
             } else {
                 this.conferenceService.create(this.tableItem)
-                this.tableData.push(this.tableItem)
             }
-
-            this.tableData = [...this.tableData]
             this.dialog = false
-            this.tableItem = {}
         }
-    }
-
-    findIndexById(id: string | undefined): number {
-        let index = -1;
-        for (let i = 0; i < this.tableData.length; i++) {
-            if (this.tableData[i].id === id) {
-                index = i;
-                break;
-            }
-        }
-
-        return index
     }
 
     // Don't delete this, its needed from a performance point of view,
