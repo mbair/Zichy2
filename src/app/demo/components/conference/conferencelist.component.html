@@ -68,11 +68,12 @@
                             </p-calendar>
                         </th>
                         <th>
-                            <input pInputText
-                                   type="text"
-                                   (input)="onFilter($event, 'firstMeal')"
-                                   placeholder="Keresés..."
-                                   style="width:30%; min-width:15rem;"/>
+                            <p-dropdown
+                                inputId="firstMealFilter"
+                                [options]="meals"
+                                placeholder="Keresés étkezésre"
+                                (onChange)="onFilter($event, 'firstMeal')">
+                            </p-dropdown>
                         </th>
                         <th>
                             <p-calendar
@@ -83,11 +84,12 @@
                             </p-calendar>
                         </th>
                         <th>
-                            <input pInputText
-                                   type="text"
-                                   (input)="onFilter($event, 'lastMeal')"
-                                   placeholder="Keresés..."
-                                   style="width:30%; min-width:15rem;"/>
+                            <p-dropdown
+                                inputId="lastMealFilter"
+                                [options]="meals"
+                                placeholder="Keresés étkezésre"
+                                (onChange)="onFilter($event, 'lastMeal')">
+                            </p-dropdown>
                         </th>
                         <th></th>
                         <th></th>
