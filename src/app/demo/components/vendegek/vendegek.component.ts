@@ -138,9 +138,11 @@ export class VendegekComponent implements OnInit {
         this.conferenceObs$ = this.conferenceService.conferenceObs;
         this.conferenceObs$.subscribe((data: any) => {
             if (data && data.rows) {
+                let conferencesArray: Conference[] = []
                 data.rows.map((conference: Conference) => {
-                    this.conferences.push(conference)
+                    conferencesArray.push(conference)
                 })
+                this.conferences = conferencesArray
             }
         })
         // Get conferences for selector
