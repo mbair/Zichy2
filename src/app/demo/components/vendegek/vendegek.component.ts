@@ -5,15 +5,19 @@ import { Message, MessageService } from 'primeng/api';
 import { FileSendEvent, FileUpload, FileUploadErrorEvent } from 'primeng/fileupload';
 import { Table } from 'primeng/table';
 import { GuestService } from '../../service/guest.service';
+import { ConferenceService } from '../../service/conference.service';
 import { GenderService } from '../../service/gender.service';
 import { DietService } from '../../service/diet.service';
 import { MealService } from '../../service/meal.service';
 import { CountryService } from '../../service/country.service';
 import { LogService } from '../../service/log.service';
 import { ApiResponse } from '../../api/ApiResponse';
+import { Conference } from '../../api/conference';
 import { Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
 import * as moment from 'moment';
+
+
 moment.locale('hu')
 
 @Component({
@@ -35,7 +39,7 @@ export class VendegekComponent implements OnInit {
     successfulMessage: Message[] = [];         // Message displayed on success
     tag: Tag = {};                             // NFC tag
     tagDialog: boolean = false;                // Tag assignment popup
-    conferences: any[];                        // Optional conferences
+    conferences: any[] = [];                   // Optional conferences
     selectedConference: any;                   // Conference chosen by user
     guest: Guest = {};                         // One guest object
     guestDialog: boolean = false;              // Guests maintenance popup
@@ -62,11 +66,13 @@ export class VendegekComponent implements OnInit {
     debounce: { [key: string]: any } = {}      // Search delay in filter field
 
     private guestObs$: Observable<any> | undefined;
+    private conferenceObs$: Observable<any> | undefined;
     private genderObs$: Observable<any> | undefined;
     private dietObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
 
     constructor(private guestService: GuestService,
+        private conferenceService: ConferenceService,
         private genderService: GenderService,
         private dietService: DietService,
         private mealService: MealService,
@@ -103,7 +109,7 @@ export class VendegekComponent implements OnInit {
         this.genderObs$.subscribe((data: any) => {
             this.genders = data
         })
-        // Get all Genders
+        // Get genders for selector
         this.genderService.getGenders(0, 999, { sortField: 'id', sortOrder: 1 })
 
         // Diets
@@ -117,9 +123,8 @@ export class VendegekComponent implements OnInit {
                 })
             }
         })
-        // Get all Diets
+        // Get diets for selector
         this.dietService.getDiets(0, 999, { sortField: 'id', sortOrder: 1 })
-
 
         // Get meals for selector
         this.meals = this.mealService.getMealsForSelector()
@@ -128,6 +133,18 @@ export class VendegekComponent implements OnInit {
         this.countryService.getCountries().then(countries => {
             this.countries = countries
         })
+
+        // Conferences
+        this.conferenceObs$ = this.conferenceService.conferenceObs;
+        this.conferenceObs$.subscribe((data: any) => {
+            if (data && data.rows) {
+                data.rows.map((conference: Conference) => {
+                    this.conferences.push(conference)
+                })
+            }
+        })
+        // Get conferences for selector
+        this.conferenceService.get(0, 999, '', '' )
 
         // Message
         this.serviceMessageObs$ = this.guestService.serviceMessageObs;
@@ -139,14 +156,6 @@ export class VendegekComponent implements OnInit {
                 this.messages = this.successfulMessage
             }
         })
-
-        // Actual conferences
-        // TODO: Get conferences from DB with service
-        this.conferences = [
-            { name: '20240607-20240609 - MEE házaspárok' },
-            { name: '20240607-20240609 - Teérted hétvége bemerítéssel' },
-            { name: '20240609-20240614 - IFES' },
-        ]
 
         // Table columns
         this.cols = [
