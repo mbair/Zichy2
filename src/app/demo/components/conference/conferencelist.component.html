@@ -71,6 +71,7 @@
                             <p-dropdown
                                 inputId="firstMealFilter"
                                 [options]="meals"
+                                [showClear]="true"
                                 placeholder="Keresés étkezésre"
                                 (onChange)="onFilter($event, 'firstMeal')">
                             </p-dropdown>
@@ -87,6 +88,7 @@
                             <p-dropdown
                                 inputId="lastMealFilter"
                                 [options]="meals"
+                                [showClear]="true"
                                 placeholder="Keresés étkezésre"
                                 (onChange)="onFilter($event, 'lastMeal')">
                             </p-dropdown>
@@ -98,7 +100,7 @@
                 <ng-template pTemplate="body" let-conference>
                     <tr>
                         <td>
-                            <p-tableCheckbox [value]="tableItem"></p-tableCheckbox>
+                            <p-tableCheckbox [value]="conference"></p-tableCheckbox>
                         </td>
                         <td style="width:30%; min-width:15rem;">
                             <span class="p-column-title">Név</span>
@@ -170,6 +172,7 @@
                     <div class="field col">
                         <label for="firstMeal">Első étkezés</label>
                         <p-dropdown
+                            inputId="firstMealFilter"
                             [options]="meals"
                             [(ngModel)]="tableItem.firstMeal"
                             placeholder="Válassz...">
@@ -189,6 +192,7 @@
                     <div class="field col">
                         <label for="lastMeal">Utolsó étkezés</label>
                         <p-dropdown
+                            inputId="lastMealFilter"
                             [options]="meals"
                             [(ngModel)]="tableItem.lastMeal"
                             placeholder="Válassz...">
