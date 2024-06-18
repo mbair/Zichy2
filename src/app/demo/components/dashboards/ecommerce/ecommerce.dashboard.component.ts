@@ -1,8 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { Product } from 'src/app/demo/api/product';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
-import { ProductService } from 'src/app/demo/service/product.service';
 import { ActivityService } from 'src/app/demo/service/activity.service';
 import { Table } from 'primeng/table';
 
@@ -27,13 +25,13 @@ export class EcommerceDashboardComponent implements OnInit, OnDestroy {
 
     pieOptions: any;
 
-    products: Product[] = [];
+    products: any[] = [];
 
     subscription: Subscription;
 
     cols: any[] = [];
 
-    constructor(private activityService: ActivityService, private productService: ProductService, private layoutService: LayoutService) {
+    constructor(private activityService: ActivityService/*, private productService: ProductService,*/, private layoutService: LayoutService) {
         this.subscription = this.layoutService.configUpdate$.subscribe(config => {
             this.initCharts();
         });
@@ -55,7 +53,7 @@ export class EcommerceDashboardComponent implements OnInit, OnDestroy {
 
         this.selectedWeek = this.weeks[0];
         this.initCharts();
-        this.productService.getProductsSmall().then(data => this.products = data);
+        // this.productService.getProductsSmall().then(data => this.products = data);
 
         this.cols = [
             {header: 'Név', field: 'name'},
