@@ -99,8 +99,7 @@ export class VendegekComponent implements OnInit {
                 }
 
                 // Define tagged users number
-                let taggedGuests = data.rows?.filter((guest: any) => guest.rfid !== null)
-                this.totalTaggedGuests = taggedGuests?.length || 0
+                this.totalTaggedGuests = data.rfidCount || 0
             }
         })
 
