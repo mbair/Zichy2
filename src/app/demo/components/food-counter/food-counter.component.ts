@@ -290,6 +290,9 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     }
 
     setCurrentMealsNumber(): void {
+
+        if (!this.guests) return;
+
         // Find guests who has used their RFID's
         this.guests.map(guest => {
 
