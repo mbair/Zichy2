@@ -351,6 +351,7 @@ export class VendegekComponent implements OnInit {
             summary: '',
             detail: 'A címkét eltávolítottuk a vendégtől!'
         }]
+        this.totalTaggedGuests--;
         setTimeout(() => {
             this.tagDialog = false
         }, 200)
@@ -375,6 +376,7 @@ export class VendegekComponent implements OnInit {
                 summary: '',
                 detail: 'Sikeresen hozzárendelte a címkét a vendéghez!'
             }]
+            this.totalTaggedGuests++;
             setTimeout(() => {
                 this.tagDialog = false
             }, 200);
