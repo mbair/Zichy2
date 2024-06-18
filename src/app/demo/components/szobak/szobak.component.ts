@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { Product } from 'src/app/demo/api/product';
 import { Szoba } from 'src/app/demo/api/szoba';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
@@ -14,8 +13,8 @@ export class SzobakComponent implements OnInit {
   roomDialog: boolean = false;
   deleteRoomDialog: boolean = false;
   deleteRoomsDialog: boolean = false;
-  products: Product[] = [];
-  product: Product = {};
+  products: any[] = [];
+  product: any = {};
   szobak: Szoba[] = [];
   szoba: Szoba = <Szoba>{};
   szobaKodok: any;

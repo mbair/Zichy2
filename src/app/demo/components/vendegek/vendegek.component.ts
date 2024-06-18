@@ -99,8 +99,7 @@ export class VendegekComponent implements OnInit {
                 }
 
                 // Define tagged users number
-                let taggedGuests = data.rows?.filter((guest: any) => guest.rfid !== null)
-                this.totalTaggedGuests = taggedGuests?.length || 0
+                this.totalTaggedGuests = data.rfidCount || 0
             }
         })
 
@@ -352,6 +351,7 @@ export class VendegekComponent implements OnInit {
             summary: '',
             detail: 'A címkét eltávolítottuk a vendégtől!'
         }]
+        this.totalTaggedGuests--;
         setTimeout(() => {
             this.tagDialog = false
         }, 200)
@@ -376,6 +376,7 @@ export class VendegekComponent implements OnInit {
                 summary: '',
                 detail: 'Sikeresen hozzárendelte a címkét a vendéghez!'
             }]
+            this.totalTaggedGuests++;
             setTimeout(() => {
                 this.tagDialog = false
             }, 200);

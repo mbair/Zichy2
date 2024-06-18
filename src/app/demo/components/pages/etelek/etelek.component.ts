@@ -1,9 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { Product } from 'src/app/demo/api/product';
 import { Etel } from 'src/app/demo/api/etel';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
-import { ProductService } from 'src/app/demo/service/product.service';
 
 @Component({
     templateUrl: './etelek.component.html',
@@ -17,15 +15,15 @@ export class EtelekComponent implements OnInit {
 
     deleteProductsDialog: boolean = false;
 
-    products: Product[] = [];
+    products: any[] = [];
 
-    product: Product = {};
+    product: any = {};
 
     etelek: Etel[] = [];
 
     etel: Etel[] = [];
 
-    selectedProducts: Product[] = [];
+    selectedProducts: any[] = [];
 
     submitted: boolean = false;
 
@@ -35,10 +33,10 @@ export class EtelekComponent implements OnInit {
 
     rowsPerPageOptions = [5, 10, 20];
 
-    constructor(private productService: ProductService, private messageService: MessageService) { }
+    constructor(private messageService: MessageService) { }
 
     ngOnInit() {
-        this.productService.getProducts().then(data => this.products = data);
+        // this.productService.getProducts().then(data => this.products = data);
 
         this.cols = [
             { field: 'product', header: 'Product' },
@@ -113,12 +111,12 @@ export class EtelekComponent implements OnInit {
         this.deleteProductsDialog = true;
     }
 
-    editProduct(product: Product) {
+    editProduct(product: any) {
         this.product = { ...product };
         this.productDialog = true;
     }
 
-    deleteProduct(product: Product) {
+    deleteProduct(product: any) {
         this.deleteProductDialog = true;
         this.product = { ...product };
     }
