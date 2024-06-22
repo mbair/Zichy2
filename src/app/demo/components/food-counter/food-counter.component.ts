@@ -26,7 +26,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     currentMeal: string;
     mealsNumber: number = 0;
     guest: Guest;
-    guests: Guest[];
+    guests: Guest[] = [];
     loading: boolean = false;
     alreadyRecievedFood: boolean = false;
     canEat: boolean = false;
@@ -292,7 +292,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
     setCurrentMealsNumber(): void {
 
-        if (!this.guests) return;
+        if (!this.guests || !Array.isArray(this.guests)) return;
 
         // Find guests who has used their RFID's
         this.guests.map(guest => {
