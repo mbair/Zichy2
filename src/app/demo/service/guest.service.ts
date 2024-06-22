@@ -10,7 +10,7 @@ import { Guest } from '../api/guest';
 
 export class GuestService {
 
-    public  apiURL: string
+    public apiURL: string
     private guestData$: BehaviorSubject<any>
     private serviceMessage$: BehaviorSubject<any>
 
@@ -36,8 +36,8 @@ export class GuestService {
         }
 
         const query = pageSort !== '' && queryParams !== '' ? pageSort + "&" + queryParams :
-                      pageSort !== '' && queryParams === '' ? pageSort :
-                      pageSort === '' && queryParams !== '' ? queryParams : '';
+            pageSort !== '' && queryParams === '' ? pageSort :
+                pageSort === '' && queryParams !== '' ? queryParams : '';
         const url = `${pageSort !== '' ? 0 : page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
         this.apiService.get<ApiResponse>(`guest/get/${url}`)
             .subscribe({
@@ -60,28 +60,28 @@ export class GuestService {
         this.apiService.get<ApiResponse>(`guest/search/${globalFilter}${pageSort}`)
             .subscribe({
                 next: (response: ApiResponse) => {
-                    this.guestData$.next(response);
+                    this.guestData$.next(response)
                 },
                 error: (error: any) => {
-                    this.serviceMessage$.next(error);
+                    this.serviceMessage$.next(error)
                 }
-            });
+            })
     }
 
     public getGuestsBySearchQuery(filters: string): void {
         this.apiService.get<ApiResponse>(`guest/searchquery?${filters}`)
             .subscribe({
                 next: (response: ApiResponse) => {
-                    this.guestData$.next(response);
+                    this.guestData$.next(response)
                 },
                 error: (error: any) => {
-                    this.serviceMessage$.next(error);
+                    this.serviceMessage$.next(error)
                 }
-            });
+            })
     }
 
     public getByRFID(rfid: string): Observable<any> {
-        return this.apiService.get(`guest/getbyrfid/${rfid}`);
+        return this.apiService.get(`guest/getbyrfid/${rfid}`)
     }
 
     public createGuest(guest: Guest): void {
