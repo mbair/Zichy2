@@ -35,7 +35,7 @@
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left w-full sm:w-auto">
                             <i class="pi pi-search"></i>
-                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés bármely vendégadatra..." style="min-width: 300px;"/>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés bármely vendégadatra..." style="min-width: 300px;" pTooltip="RFID címkét a saját keresőmezőjébe csippantsd"/>
                         </span>
                         <span class="block mt-2 md:mt-0">
                             <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
@@ -121,7 +121,7 @@
                                    [(ngModel)]="rfidFilterValue"
                                    (input)="rfidFilterValue = rfidFilterValue.replaceAll('ö', '0'); onFilter($event, 'rfid')"
                                    placeholder="Keresés..."
-                                   pTooltip="Azonosítóra kereshet csippantással és manuális gépeléssel is"
+                                   pTooltip="RFID címkére kereshet csippantással és manuális gépeléssel"
                                    tooltipPosition="top"
                                    style="width:12%; min-width:9rem;"/>
                         </th>
@@ -170,10 +170,15 @@
                         </td>
                         <td>
                             <span class="p-column-title">Étrend</span>
-                            <p-tag *ngIf="guest.diet"
+                            <p-tag *ngIf="hasDietName(guest.diet)"
                                    [value]="guest.diet"
                                    [style]="{'background': 'var(--'+getDietColor(guest.diet)+')'}">
                             </p-tag>
+                            <p-tag *ngIf="!hasDietName(guest.diet)"
+                                    icon="pi pi-exclamation-triangle" 
+                                    severity="warning" 
+                                    value="Hibás étrend"
+                                    pTooltip="Kérem módosítsa az étrendet!" />
                         </td>
                         <td>
                             <span class="p-column-title">RFID</span>
@@ -215,11 +220,11 @@
                                     </tr>
                                     <tr>
                                         <td class="font-medium">Nemzetiség:</td>
-                                        <td>{{guest.nationality}}</td>
+                                        <td><img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + guest.nationality.toLowerCase()" style="width:18px"/>{{guest.nationality}}</td>
                                     </tr>
                                     <tr>
                                         <td class="font-medium">Ország:</td>
-                                        <td>{{guest.country}}</td>
+                                        <td><img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + guest.nationality.toLowerCase()" style="width:18px"/>{{guest.country}}</td>
                                     </tr>
                                     <tr>
                                         <td class="font-medium">Irányítószám:</td>

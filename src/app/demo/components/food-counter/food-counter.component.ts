@@ -261,6 +261,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             },
             error: (error) => {
                 console.error('Error:', error)
+                console.log('error status', error.status)
                 if (error.status === 404) {
                     this.guest = {
                         lastName: 'ISMERETLEN',
@@ -322,7 +323,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 return 'blue-400'
             case 'gluténmentes':
                 return 'yellow-300'
-            case 'glutén-, laktóz-, tejmentes':
+            case 'glutén és tej/laktózmentes':
                 return 'red-500'
             case 'vegetáriánus':
                 return 'teal-500'

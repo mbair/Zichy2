@@ -145,7 +145,7 @@ export class VendegekComponent implements OnInit {
             }
         })
         // Get conferences for selector
-        this.conferenceService.get(0, 999, '', '' )
+        this.conferenceService.get(0, 999, '', '')
 
         // Message
         this.serviceMessageObs$ = this.guestService.serviceMessageObs;
@@ -294,7 +294,7 @@ export class VendegekComponent implements OnInit {
                     summary: '',
                     detail: 'Sikeres vendégmódosítás!'
                 }]
-            // INSERT
+                // INSERT
             } else {
                 this.guestService.createGuest(this.guest)
                 this.tableData.push(this.guest)
@@ -444,6 +444,10 @@ export class VendegekComponent implements OnInit {
             name: "Successful Excel importing | File: " + event.files[0].name + ", Size: " + event.files[0].size,
             capacity: 0
         })
+    }
+
+    hasDietName(dietName: string): boolean {
+        return this.diets.some(diet => diet.name === dietName)
     }
 
     getDietColor(diet: string): string {
