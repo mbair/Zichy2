@@ -454,6 +454,13 @@ export class VendegekComponent implements OnInit {
         return this.dietService.getDietColor(diet)
     }
 
+    getAge(birthDate: string): string {
+        if (!birthDate) return "";
+        const birth = moment(birthDate)
+        const today = moment()
+        return today.diff(birth, 'years').toString()
+    }
+
     @HostListener('window:keypress', ['$event'])
     keyEvent(event: KeyboardEvent): void {
         if (event.key === 'Enter') {
