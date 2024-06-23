@@ -234,9 +234,20 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                 this.alreadyRecievedFood = false;
                 if (data.lastRfidUsage) {
-                    let lastRfidUsage = new Date(data.lastRfidUsage)
-                    let lastMeal = this.mealService.getMealNameByTime(lastRfidUsage)
+                    let lastRfidUsage = new Date(data.lastRfidUsage),
+                        lastRfidMoment = moment(lastRfidUsage),
+                        oneMinuteAgo = moment().subtract(1, 'minutes')
 
+                    // 1 minute has not yet passed since the last RFID use
+                    if (!lastRfidMoment.isBefore(oneMinuteAgo)) {
+                        this.logService.createLog({
+                            name: "FoodCounter 1 minute has not yet passed since the last RFID use: " + this.guest.lastName + " " + this.guest.firstName + " " + this.scannedCode + " | Lang: " + navigator.language,
+                            capacity: 0
+                        })
+                        return
+                    }
+
+                    let lastMeal = this.mealService.getMealNameByTime(lastRfidUsage)
                     if (this.currentMeal == lastMeal) {
                         this.alreadyRecievedFood = true
 
