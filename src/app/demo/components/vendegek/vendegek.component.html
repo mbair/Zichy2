@@ -161,7 +161,7 @@
                         </td>
                         <td>
                             <span class="p-column-title">Név</span>
-                            {{guest.lastName}} {{guest.firstName}}
+                            {{guest.lastName}} {{guest.firstName}} ({{getAge(guest.birthDate)}})
                             <span *ngIf="guest.rfid" class="pi pi-tag"></span>
                         </td>
                         <td class="text-center" style="white-space: break-spaces">
