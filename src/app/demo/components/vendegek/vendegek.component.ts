@@ -365,30 +365,50 @@ export class VendegekComponent implements OnInit {
 
     save() {
         if (!this.scannedCode) return;
-        this.guest.rfid = this.scannedCode;
-        // this.guestService.updateGuest({ id: this.guest.id, rfid: this.scannedCode})
-        this.guestService.updateGuest2(this.guest).subscribe(() => {
-            let guestsClone = JSON.parse(JSON.stringify(this.tableData))
-            guestsClone[this.findIndexById(this.guest.id)] = this.guest;
-            this.tableData = guestsClone
-            this.successfulMessage = [{
-                severity: 'success',
-                summary: '',
-                detail: 'Sikeresen hozzárendelte a címkét a vendéghez!'
-            }]
-            this.totalTaggedGuests++;
-            setTimeout(() => {
-                this.tagDialog = false
-            }, 200);
 
-            // Logging
-            this.logService.createLog({
-                name: "Assign Tag " + this.guest.rfid + " to " + this.guest.lastName + " " + this.guest.firstName + " | Lang: " + navigator.language,
-                capacity: 0
-            })
+        // Check if somebody has the same RFID number
+        this.guestService.getByRFID(this.scannedCode).subscribe({
+            next: (data) => {
 
-            this.scannedCode = '';
-            this.guest = {}
+                // If there is data, then somebody is using this RFID
+                this.messages = [
+                    { severity: 'error', summary: '', detail: data.lastName + ' ' + data.firstName + ' már használja a karszalagot!' },
+                ]
+                // Logging
+                this.logService.createLog({
+                    name: "Tag duplicate: " + data.rfid + " is used by " + data.lastName + " " + data.firstName + " | Lang: " + navigator.language,
+                    capacity: 0
+                })
+                return
+            },
+            // Strange, but this is the OK way
+            error: (error) => {
+                this.guest.rfid = this.scannedCode;
+                // this.guestService.updateGuest({ id: this.guest.id, rfid: this.scannedCode})
+                this.guestService.updateGuest2(this.guest).subscribe(() => {
+                    let guestsClone = JSON.parse(JSON.stringify(this.tableData))
+                    guestsClone[this.findIndexById(this.guest.id)] = this.guest;
+                    this.tableData = guestsClone
+                    this.successfulMessage = [{
+                        severity: 'success',
+                        summary: '',
+                        detail: 'Sikeresen hozzárendelte a címkét a vendéghez!'
+                    }]
+                    this.totalTaggedGuests++;
+                    setTimeout(() => {
+                        this.tagDialog = false
+                    }, 200);
+
+                    // Logging
+                    this.logService.createLog({
+                        name: "Assign Tag " + this.guest.rfid + " to " + this.guest.lastName + " " + this.guest.firstName + " | Lang: " + navigator.language,
+                        capacity: 0
+                    })
+
+                    this.scannedCode = '';
+                    this.guest = {}
+                })
+            }
         })
     }
 
