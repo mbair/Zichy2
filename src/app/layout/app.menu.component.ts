@@ -54,11 +54,11 @@ export class AppMenuComponent implements OnInit {
                         icon: 'pi pi-fw pi-pencil',
                         routerLink: ['/pages/food-sensitivities']
                     },
-                    {
-                        label: 'Ételpult',
-                        icon: 'pi pi-fw pi-tablet',
-                        routerLink: ['/food-counter']
-                    },
+                    // {
+                    //     label: 'Ételpult',
+                    //     icon: 'pi pi-fw pi-tablet',
+                    //     routerLink: ['/food-counter']
+                    // },
                     // {
                     //     label: 'Menük',
                     //     icon: 'pi pi-fw pi-circle',

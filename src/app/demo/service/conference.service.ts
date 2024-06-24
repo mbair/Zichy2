@@ -45,7 +45,9 @@ export class ConferenceService {
         const query = pageSort !== '' && queryParams !== '' ? pageSort + "&" + queryParams :
             pageSort !== '' && queryParams === '' ? pageSort :
                 pageSort === '' && queryParams !== '' ? queryParams : '';
-        const url = `${pageSort !== '' ? 0 : page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
+
+        const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
+
         this.apiService.get<ApiResponse>(`conference/get/${url}`)
             .subscribe({
                 next: (response: ApiResponse) => {
