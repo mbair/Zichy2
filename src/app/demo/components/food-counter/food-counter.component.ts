@@ -62,7 +62,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             this.loading = false;
             if (data) {
                 this.guests = data;
-                this.setCurrentMealsNumber()
+                // this.setCurrentMealsNumber()
             }
         })
         // Get guests to define current meals number
@@ -117,19 +117,20 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     @HostListener('window:keypress', ['$event'])
     keyEvent(event: KeyboardEvent): void {
         if (event.key === 'Enter') {
+
+            // If the RFID query is still running, with previously scanned code
+            // Avoid to querying again
+            if (this.guest.rfid === this.scanTemp) {
+                console.log('Előzővel azonos RFID kód')
+                this.scanTemp = ''
+                return
+            }
+
             // The QR/Bar code is ready here
             // Do something here with the scanned code
             this.scannedCode = this.scanTemp
             this.scanTemp = ''
             console.log('scannedCode', this.scannedCode)
-
-            // Show scannedCode in Toast message
-            // this.messageService.add({
-            //     severity: 'info',
-            //     summary: 'Beolvasott kód',
-            //     detail: this.scannedCode,
-            //     life: 10000
-            // })
 
             // Logging scannedCode
             this.logService.createLog({
@@ -166,10 +167,11 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         let mealName = this.mealService.getMealNameByTime(new Date())
         if (mealName !== this.currentMeal) {
             this.currentMeal = mealName
-            this.mealsNumber = 0
+
+            // Reload page to get the actual software version
+            // window.location.reload()
         }
     }
-
 
     getGuestByRFID(rfid: string): void {
         this.guestService.getByRFID(rfid).subscribe({
@@ -239,13 +241,13 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                         oneMinuteAgo = moment().subtract(1, 'minutes')
 
                     // 1 minute has not yet passed since the last RFID use
-                    if (!lastRfidMoment.isBefore(oneMinuteAgo)) {
-                        this.logService.createLog({
-                            name: "FoodCounter 1 minute has not yet passed since the last RFID use: " + this.guest.lastName + " " + this.guest.firstName + " " + this.scannedCode + " | Lang: " + navigator.language,
-                            capacity: 0
-                        })
-                        return
-                    }
+                    // if (!lastRfidMoment.isBefore(oneMinuteAgo)) {
+                    //     this.logService.createLog({
+                    //         name: "FoodCounter 1 minute has not yet passed since the last RFID use: " + this.guest.lastName + " " + this.guest.firstName + " " + this.guest.rfid + " | Lang: " + navigator.language,
+                    //         capacity: 0
+                    //     })
+                    //     return
+                    // }
 
                     let lastMeal = this.mealService.getMealNameByTime(lastRfidUsage)
                     if (this.currentMeal == lastMeal) {
@@ -253,9 +255,11 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                         // Logging error
                         this.logService.createLog({
-                            name: "FoodCounter Already received food: " + this.guest.lastName + " " + this.guest.firstName + " " + this.scannedCode + " | Lang: " + navigator.language,
+                            name: "FoodCounter Already received food: " + this.guest.lastName + " " + this.guest.firstName + " " + this.guest.rfid + " | Lang: " + navigator.language,
                             capacity: 0
                         })
+
+                        return
                     }
                 }
 
@@ -273,7 +277,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             error: (error) => {
                 console.error('Error:', error)
                 console.log('error status', error.status)
-                if (error.status === 404) {
+                // if (error.status === 404) {
                     this.guest = {
                         lastName: 'ISMERETLEN',
                         firstName: 'ESZKÖZ'
@@ -281,10 +285,10 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                     // Logging error
                     this.logService.createLog({
-                        name: "FoodCounter Unknown Device: " + this.scannedCode + " | Lang: " + navigator.language,
+                        name: "FoodCounter Unknown Device: " + rfid + " | Lang: " + navigator.language,
                         capacity: 0
                     })
-                }
+                // }
             }
         })
     }
@@ -301,33 +305,38 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         }
     }
 
-    setCurrentMealsNumber(): void {
+    /**
+     * Calculate meals number by RFID usage
+     * ITS DEPRECATED, WE ARE USING WebSocket Rooms for that
+     * @returns
+     */
+    // setCurrentMealsNumber(): void {
 
-        if (!this.guests || !Array.isArray(this.guests)) return;
+    //     if (!this.guests || !Array.isArray(this.guests)) return;
 
-        // Find guests who has used their RFID's
-        this.guests.map(guest => {
+    //     // Find guests who has used their RFID's
+    //     this.guests.map(guest => {
 
-            // Filter out test users
-            if (guest.lastName !== "Gábris") {
-                if (guest.lastRfidUsage) {
-                    let lastRfidUsage = moment(new Date(guest.lastRfidUsage))
+    //         // Filter out test users
+    //         if (guest.lastName !== "Gábris") {
+    //             if (guest.lastRfidUsage) {
+    //                 let lastRfidUsage = moment(new Date(guest.lastRfidUsage))
 
-                    // Usage was today
-                    let today = moment()
-                    if (lastRfidUsage.isSame(today, 'day')) {
-                        let lastMeal = this.mealService.getMealNameByTime(new Date(guest.lastRfidUsage))
-                        if (this.currentMeal == lastMeal) {
-                            this.mealsNumber++
-                        }
-                    }
-                }
-            }
-        })
-    }
+    //                 // Usage was today
+    //                 let today = moment()
+    //                 if (lastRfidUsage.isSame(today, 'day')) {
+    //                     let lastMeal = this.mealService.getMealNameByTime(new Date(guest.lastRfidUsage))
+    //                     if (this.currentMeal == lastMeal) {
+    //                         this.mealsNumber++
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     })
+    // }
 
     getDietColor(diet: string | undefined): string {
-        switch (this.guest.diet) {
+        switch (diet) {
             case 'tejmentes':
                 return 'blue-400';
             case 'laktózmentes':

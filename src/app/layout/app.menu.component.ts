@@ -94,6 +94,16 @@ export class AppMenuComponent implements OnInit {
         if (isDevMode()) {
             this.model.push(
                 {
+                    label: '',
+                    items: [
+                        {
+                            label: 'Ételpult',
+                            icon: 'pi pi-fw pi-tablet',
+                            routerLink: ['/food-counter']
+                        }
+                    ]
+                },
+                {
                     label: 'DEV',
                     items: [
                         {
