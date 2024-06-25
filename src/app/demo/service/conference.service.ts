@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, catchError, of, tap } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { Conference } from '../api/conference';
@@ -45,7 +45,9 @@ export class ConferenceService {
         const query = pageSort !== '' && queryParams !== '' ? pageSort + "&" + queryParams :
             pageSort !== '' && queryParams === '' ? pageSort :
                 pageSort === '' && queryParams !== '' ? queryParams : '';
-        const url = `${pageSort !== '' ? 0 : page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
+
+        const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
+
         this.apiService.get<ApiResponse>(`conference/get/${url}`)
             .subscribe({
                 next: (response: ApiResponse) => {
@@ -177,26 +179,5 @@ export class ConferenceService {
                     this.message$.next(error)
                 }
             })
-    }
-
-    /**
-     * Handle Http operation that failed.
-     * Let the app continue.
-     *
-     * @param operation - name of the operation that failed
-     * @param result - optional value to return as the observable result
-     */
-    private handleError<T>(operation = 'operation', result?: T) {
-        return (error: any): Observable<T> => {
-
-            // TODO: send the error to remote logging infrastructure
-            console.error(error) // log to console instead
-
-            // TODO: better job of transforming error for user consumption
-            console.error(`${operation} failed: ${error.message}`)
-
-            // Let the app keep running by returning an empty result.
-            return of(result as T)
-        }
     }
 }
