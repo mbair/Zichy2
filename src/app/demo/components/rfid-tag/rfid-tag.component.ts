@@ -82,7 +82,7 @@ export class RFIDTagComponent implements OnInit {
             // alert('CODE: ' + this.code)
             this.tag.identifier = this.code
         } else {
-            if (event.key === 'ö'){
+            if (event.key === 'ö' || event.key === 'Ö'){
                 this.code += '0'
             } else {
                 this.code += event.key
