@@ -119,7 +119,7 @@
                             <input pInputText
                                    type="text"
                                    [(ngModel)]="rfidFilterValue"
-                                   (input)="rfidFilterValue = rfidFilterValue.replaceAll('ö', '0'); onFilter($event, 'rfid')"
+                                   (input)="rfidFilterValue = rfidFilterValue.replaceAll('ö', '0').replaceAll('Ö', '0'); onFilter($event, 'rfid')"
                                    placeholder="Keresés..."
                                    pTooltip="RFID címkére kereshet csippantással és manuális gépeléssel"
                                    tooltipPosition="top"

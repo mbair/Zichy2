@@ -490,7 +490,7 @@ export class VendegekComponent implements OnInit {
             this.scanTemp = ''
             console.log('scannedCode', this.scannedCode)
         } else {
-            if (event.key === 'ö') {
+            if (event.key === 'ö' || event.key === 'Ö') {
                 this.scanTemp += '0'
             }
             else if (/^[0-9]$/i.test(event.key)) {
