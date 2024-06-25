@@ -26,9 +26,8 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     currentMeal: string;
     mealsNumber: number = 0;
     guest: Guest;
-    guests: Guest[] = [];
     loading: boolean = false;
-    alreadyRecievedFood: boolean = false;
+    alreadyReceivedFood: boolean = false;
     canEat: boolean = false;
     ageGroup: string = '';
     scanTemp: string = '';
@@ -36,10 +35,6 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     windowWidth: number;
     windowHeight: number;
     backgroundColor: string = 'surface-ground';
-
-    // WebSocket
-    message: string;
-    messages: string[] = [];
 
     guestsObs$: Observable<any> | undefined;
     serviceMessageObs$: Observable<any> | undefined;
@@ -57,71 +52,119 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        this.guestsObs$ = this.guestService.guestObs;
-        this.guestsObs$.subscribe((data) => {
-            this.loading = false;
-            if (data) {
-                this.guests = data;
-                // this.setCurrentMealsNumber()
-            }
-        })
-        // Get guests to define current meals number
-        // this.guestService.getGuests() // TODO: what is this
+        // Set Open/Closed state
+        this.isOpen = this.mealService.isOpen()
+
+        // Set actual meal name
+        this.currentMeal = this.mealService.getMealNameByTime(new Date())
 
         // Listen to meal changes
         this.mealService.mealChanged.subscribe(() => {
             this.updateCurrentMeal()
         })
-        this.updateCurrentMeal()
 
         // Initalize guest
         this.resetGuest()
+
+        // Set WebSocket room (room name is meal name)
+        this.setSocketRoom(this.currentMeal)
+
+        // Set default mealsNumber
+        this.foodCountWebSocket.getDefData().subscribe((mealsNumber: any) => {
+            this.mealsNumber = mealsNumber
+            console.log("Default mealsNumber", mealsNumber)
+        })
+
+        // Listen to mealsNumber change
+        this.foodCountWebSocket.getMealsNumber().subscribe((mealsNumber: any) => {
+            this.mealsNumber = mealsNumber
+            console.log("Actual mealsNumber", mealsNumber)
+        })
+
+        // Calculation of served meal has moved to WebSocket
+        // this.guestsObs$ = this.guestService.guestObs;
+        // this.guestsObs$.subscribe((data) => {
+        //     console.log('belefut', data)
+        //     this.loading = false;
+            // if (data) {
+                // this.guests = data;
+                // this.setCurrentMealsNumber()
+            // }
+        // })
+        // Get guests to define current meals number
+        // this.guestService.getGuests()
 
         // TODO: TESZT
         // setTimeout(() => {
         //     this.getGuestByRFID('127921')
         // }, 500);
-
-        const socketRoom = this.currentMeal === 'reggeli' ? 'breakfast' :
-            this.currentMeal === 'ebéd' ? 'lunch' :
-                this.currentMeal === 'vacsora' ? 'dinner' : "nothing";
-
-        this.foodCountWebSocket.joinRoom(socketRoom);
-
-        this.foodCountWebSocket.getDefData().subscribe((mealnum: any) => {
-            console.log(mealnum, "-- Def data --")
-            this.mealsNumber = mealnum
-        })
-
-        this.foodCountWebSocket.getMealsNumber().subscribe((mealnum: any) => {
-            this.mealsNumber = mealnum;
-            console.log(mealnum)
-        })
     }
 
+    /**
+     * Set websocket room
+     */
+    setSocketRoom(currentMeal: string) {
+        let socketRoom;
+        switch (currentMeal) {
+            case 'reggeli':
+                socketRoom = 'breakfast'
+                break;
+            case 'ebéd':
+                socketRoom = 'lunch'
+                break;
+            case 'vacsora':
+                socketRoom = 'dinner'
+                break;
+            default:
+                socketRoom = 'nothing'
+                break;
+        }
+
+        this.foodCountWebSocket.joinRoom(socketRoom)
+    }
+
+    /**
+     * WebSocket message sending
+     */
     sendMessage() {
+        // TODO: Send only increment not the value
         this.foodCountWebSocket.sendMessage(this.mealsNumber.toString())
-        this.message = '';
     }
 
-    public resetGuest() {
-        this.ageGroup = ''
+    /**
+     * Reset Guest data
+     */
+    resetGuest() {
         this.guest = {
             lastName: '',
             firstName: '',
             diet: '',
             conferenceName: '',
         }
+        this.ageGroup = '';
+        this.alreadyReceivedFood = false;
     }
 
+    /**
+     * RFID Read listener
+     * @param event
+     * @returns
+     */
     @HostListener('window:keypress', ['$event'])
     keyEvent(event: KeyboardEvent): void {
         if (event.key === 'Enter') {
 
             // If the RFID query is still running, with previously scanned code
             // Avoid to querying again
-            if (this.guest.rfid === this.scanTemp) {
+            if (this.scannedCode === this.scanTemp) {
                 console.log('Előzővel azonos RFID kód')
+
+                // Logging same RFID code
+                this.logService.createLog({
+                    name: "FoodCounter same code: " + this.scannedCode + " | Lang: " + navigator.language,
+                    capacity: 0
+                })
+
                 this.scanTemp = ''
                 return
             }
@@ -156,20 +199,26 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         }
     }
 
+    /**
+     * Window resize listener
+     * @param event
+     */
     @HostListener('window:resize', ['$event'])
     onResize(event: UIEvent) {
         this.windowWidth = window.innerWidth || document.documentElement.clientWidth
         this.windowHeight = window.innerHeight || document.documentElement.clientHeight
     }
 
+    /**
+     * Updates current meal by time
+     */
     updateCurrentMeal(): void {
-        this.isOpen = this.mealService.isOpen()
         let mealName = this.mealService.getMealNameByTime(new Date())
         if (mealName !== this.currentMeal) {
             this.currentMeal = mealName
 
             // Reload page to get the actual software version
-            // window.location.reload()
+            window.location.reload()
         }
     }
 
@@ -182,6 +231,9 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                 // Define AgeGroup
                 this.setAgeGroup(this.guest.birthDate)
+
+                // Set background color
+                this.backgroundColor = this.getDietColor(this.guest.diet)
 
                 // Check whether the guest has already received food in the given meal cycle
                 let today = moment(),
@@ -234,8 +286,8 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                     }
                 }
 
-                this.alreadyRecievedFood = false;
-                if (data.lastRfidUsage) {
+                // If Guest has used the RFID and it was today
+                if (data.lastRfidUsage && moment(data.lastRfidUsage).isSame(moment(), 'day')) {
                     let lastRfidUsage = new Date(data.lastRfidUsage),
                         lastRfidMoment = moment(lastRfidUsage),
                         oneMinuteAgo = moment().subtract(1, 'minutes')
@@ -251,7 +303,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                     let lastMeal = this.mealService.getMealNameByTime(lastRfidUsage)
                     if (this.currentMeal == lastMeal) {
-                        this.alreadyRecievedFood = true
+                        this.alreadyReceivedFood = true
 
                         // Logging error
                         this.logService.createLog({
@@ -268,11 +320,10 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.sendMessage()
 
                 // Insert Timestamp to lastRfidUsage
-                this.guest.lastRfidUsage = moment().format('YYYY-MM-DD HH:mm:ss');
+                this.guest.lastRfidUsage = moment().format('YYYY-MM-DD HH:mm:ss')
                 this.guestService.updateGuest(this.guest)
 
-                // Set background color
-                this.backgroundColor = this.getDietColor(this.guest.diet)
+
             },
             error: (error) => {
                 console.error('Error:', error)
