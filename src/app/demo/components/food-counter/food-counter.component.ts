@@ -127,8 +127,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
      * WebSocket message sending
      */
     sendMessage() {
-        // TODO: Send only increment not the value
-        this.foodCountWebSocket.sendMessage(this.mealsNumber.toString())
+        this.foodCountWebSocket.sendMessage('increase')
     }
 
     /**
