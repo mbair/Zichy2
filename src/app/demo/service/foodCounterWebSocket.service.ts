@@ -11,7 +11,7 @@ import { io } from 'socket.io-client';
 
 export class FoodCounterWebSocket {
 
-    private developmentURL = 'https://test.nfcreserve.hu/api'; // "http://localhost:3011/api" //
+    private developmentURL = 'https://nfcreserve.hu/api'; // "http://localhost:3011/api" //
     private socket = io(this.developmentURL)
 
 
