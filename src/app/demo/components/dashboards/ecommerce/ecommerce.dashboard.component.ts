@@ -10,31 +10,29 @@ import { Table } from 'primeng/table';
 export class EcommerceDashboardComponent implements OnInit, OnDestroy {
 
     activities: any[] = [];
-
     knobValue: number = 90;
-
     selectedWeek: any;
-
     weeks: any[] = [];
-
     barData: any;
-
     barOptions: any;
-
     pieData: any;
-
     pieOptions: any;
-
     products: any[] = [];
-
     subscription: Subscription;
-
     cols: any[] = [];
+
+    // Amounts of master data
+    amounts: any = {
+        conferences: 0,
+        guests: 0,
+        rooms: 0,
+        tags: 0,
+    }
 
     constructor(private activityService: ActivityService/*, private productService: ProductService,*/, private layoutService: LayoutService) {
         this.subscription = this.layoutService.configUpdate$.subscribe(config => {
-            this.initCharts();
-        });
+            this.initCharts()
+        })
     }
 
     ngOnInit(): void {

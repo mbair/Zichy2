@@ -1,7 +1,6 @@
-import { Inject, Injectable, isDevMode } from '@angular/core';
-import { DOCUMENT } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { ApiService } from './api.service';
 import { io } from 'socket.io-client';
 
 
@@ -11,9 +10,11 @@ import { io } from 'socket.io-client';
 
 export class FoodCounterWebSocket {
 
-    private developmentURL = 'https://nfcreserve.hu/api'; // "http://localhost:3011/api" //
-    private socket = io(this.developmentURL)
+    private socket: any;
 
+    constructor(apiService: ApiService) {
+        this.socket = io(apiService.apiURL)
+    }
 
     joinRoom(dinerType: string) {
         console.log(dinerType,'-------')
