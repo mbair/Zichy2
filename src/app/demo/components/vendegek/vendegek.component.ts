@@ -186,7 +186,6 @@ export class VendegekComponent implements OnInit {
     }
 
     onFilter(event: any, field: string) {
-        this.loading = true;
         let filterValue = '';
 
         // Calendar date as String
@@ -196,13 +195,12 @@ export class VendegekComponent implements OnInit {
             filterValue = formattedDate
         } else {
             if (event && (event.value || event.target?.value)) {
-                if (field == "rfid" && event.target?.value.length == 10) {
-                    filterValue = event.target?.value.replaceAll('ö', '0')
+                if (field == "rfid") {
+                    filterValue = event.target?.value.replaceAll('ö', '0').replaceAll('Ö', '0')
+                    this.rfidFilterValue = filterValue
                 } else {
                     filterValue = event.value || event.target?.value
                 }
-            } else {
-                this.filterValues[field] = ''
             }
         }
 
@@ -213,6 +211,7 @@ export class VendegekComponent implements OnInit {
         }
 
         this.debounce[field] = setTimeout(() => {
+            console.log('belefut', field, filterValue)
             if (this.filterValues[field] === filterValue) {
                 this.doQuery()
             }
