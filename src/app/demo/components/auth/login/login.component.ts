@@ -1,17 +1,39 @@
 import { Component } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 
 @Component({
-	templateUrl: './login.component.html'
+    templateUrl: './login.component.html'
 })
 export class LoginComponent {
 
-	rememberMe: boolean = false;
+    form: FormGroup;
 
-	constructor(private layoutService: LayoutService) {}
+    rememberMe: boolean = false;
 
-	get dark(): boolean {
-		return this.layoutService.config.colorScheme !== 'light';
-	}
+    constructor(
+        private fb: FormBuilder,
+        private authService: AuthService,
+        private router: Router) {
 
+        this.form = this.fb.group({
+            email: ['', Validators.required],
+            password: ['', Validators.required]
+        })
+    }
+
+    login() {
+        const val = this.form.value;
+
+        if (val.email && val.password) {
+            this.authService.login(val.email, val.password)
+                .subscribe(
+                    () => {
+                        console.log("User is logged in");
+                        this.router.navigateByUrl('/');
+                    }
+                );
+        }
+    }
 }
