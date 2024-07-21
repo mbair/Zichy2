@@ -236,8 +236,8 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                 // Check whether the guest has already received food in the given meal cycle
                 let today = moment(),
-                    dateOfArrival = moment(new Date(data.dateOfArrival).setHours(0)),
-                    dateOfDeparture = moment(new Date(data.dateOfDeparture).setHours(24));
+                    dateOfArrival = moment(new Date(data.dateOfArrival).setHours(1)),
+                    dateOfDeparture = moment(new Date(data.dateOfDeparture).setHours(23));
 
                 if (dateOfArrival <= today && today <= dateOfDeparture) {
 
@@ -261,7 +261,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                     }
 
                     // Intermediate days
-                    if (dateOfArrival !== today && today !== dateOfDeparture) {
+                    if (!dateOfArrival.isSame(today, 'day') && !dateOfDeparture.isSame(today, 'day')) {
                         this.canEat = true
                     }
 
@@ -321,8 +321,6 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 // Insert Timestamp to lastRfidUsage
                 this.guest.lastRfidUsage = moment().format('YYYY-MM-DD HH:mm:ss')
                 this.guestService.updateGuest(this.guest)
-
-
             },
             error: (error) => {
                 console.error('Error:', error)
