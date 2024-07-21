@@ -18,6 +18,8 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
 import { MessagesModule } from 'primeng/messages';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { BlockUIModule } from 'primeng/blockui';
 
 @NgModule({
     imports: [
@@ -38,7 +40,9 @@ import { MessagesModule } from 'primeng/messages';
         InputNumberModule,
         DialogModule,
         TagModule,
-        MessagesModule
+        MessagesModule,
+        ProgressSpinnerModule,
+        BlockUIModule
     ],
     declarations: [RFIDTagComponent]
 })

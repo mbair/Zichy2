@@ -483,7 +483,7 @@
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="identifier">Címke azonosító</label>
-                        <input pInputText type="text" id="identifier" [(ngModel)]="scannedCode" readonly autofocus />
+                        <input #identifier pInputText type="text" [(ngModel)]="scannedCode" readonly autofocus />
                         <!-- <span>{{scannedCode.length}}</span> -->
                     </div>
                 </div>
