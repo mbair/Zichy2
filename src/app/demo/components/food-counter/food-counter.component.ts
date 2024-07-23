@@ -285,6 +285,9 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                     }
                 }
 
+                // If the guest is not entitled to eat, we will not investigate further
+                if (!this.canEat) return
+
                 // If Guest has used the RFID and it was today
                 if (data.lastRfidUsage && moment(data.lastRfidUsage).isSame(moment(), 'day')) {
                     let lastRfidUsage = new Date(data.lastRfidUsage),
