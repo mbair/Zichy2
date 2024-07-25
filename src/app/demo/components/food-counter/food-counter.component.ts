@@ -22,6 +22,7 @@ const ADULT_DOSAGE_AGE_LIMIT: number = 10;  // From the age of 10, we give an ad
 
 export class FoodCounterComponent implements OnInit, OnDestroy {
 
+    version: string;
     isOpen: boolean;
     currentMeal: string;
     mealsNumber: number = 0;
@@ -49,6 +50,9 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         // Tablet size: 854 x 534 px
         this.windowWidth = window.innerWidth || document.documentElement.clientWidth;
         this.windowHeight = window.innerHeight || document.documentElement.clientHeight;
+
+        // Frontend version
+        this.version = 'v' + localStorage.getItem("APP_VERSION")
     }
 
     ngOnInit() {
@@ -63,7 +67,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             this.updateCurrentMeal()
         })
 
-        // Initalize guest
+        // Initialize guest
         this.resetGuest()
 
         // Set WebSocket room (room name is meal name)

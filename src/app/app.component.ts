@@ -3,6 +3,8 @@ import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { PrimeNGConfig } from 'primeng/api';
 import { TranslateService } from '@ngx-translate/core';
 
+declare const require: (path: string) => any;
+
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html'
@@ -25,6 +27,13 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
+
+        // Store App version globally
+        const APP_VERSION = require('../../package.json').version;
+        if (APP_VERSION) {
+            localStorage.setItem("APP_VERSION", APP_VERSION)
+        }
+
         this.primengConfig.ripple = true;
 
         this.translateService.setDefaultLang('hu');
