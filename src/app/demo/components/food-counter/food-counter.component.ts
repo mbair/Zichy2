@@ -145,6 +145,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             conferenceName: '',
         }
         this.ageGroup = '';
+        this.canEat = false;
         this.alreadyReceivedFood = false;
     }
 
@@ -290,7 +291,10 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 }
 
                 // If the guest is not entitled to eat, we will not investigate further
-                if (!this.canEat) return
+                if (!this.canEat) {
+                    this.canEat = false
+                    return
+                }
 
                 // If Guest has used the RFID and it was today
                 if (data.lastRfidUsage && moment(data.lastRfidUsage).isSame(moment(), 'day')) {
