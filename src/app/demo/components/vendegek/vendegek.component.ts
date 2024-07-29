@@ -420,6 +420,9 @@ export class VendegekComponent implements OnInit {
                     if (dietColor == 'gray') {
                         dietColor = 'black'
                     }
+                    if (dietColor == 'teal') {
+                        dietColor = 'green'
+                    }
 
                     // Wrong color
                     if (dietColor !== tag.color) {
