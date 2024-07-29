@@ -7,10 +7,14 @@ import { LayoutService } from './service/app.layout.service';
 })
 export class AppSidebarComponent {
     timeout: any = null;
+    version: string;
 
     @ViewChild('menuContainer') menuContainer!: ElementRef;
-    constructor(public layoutService: LayoutService, public el: ElementRef) {}
-    
+    constructor(public layoutService: LayoutService, public el: ElementRef) {
+        // Frontend version
+        this.version = 'v' + localStorage.getItem("APP_VERSION")
+    }
+
 
     onMouseEnter() {
         if (!this.layoutService.state.anchored) {
@@ -19,8 +23,8 @@ export class AppSidebarComponent {
                 this.timeout = null;
             }
             this.layoutService.state.sidebarActive = true;
-           
-    
+
+
         }
     }
 

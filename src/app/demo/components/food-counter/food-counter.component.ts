@@ -22,6 +22,7 @@ const ADULT_DOSAGE_AGE_LIMIT: number = 10;  // From the age of 10, we give an ad
 
 export class FoodCounterComponent implements OnInit, OnDestroy {
 
+    version: string;
     isOpen: boolean;
     currentMeal: string;
     mealsNumber: number = 0;
@@ -49,6 +50,9 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         // Tablet size: 854 x 534 px
         this.windowWidth = window.innerWidth || document.documentElement.clientWidth;
         this.windowHeight = window.innerHeight || document.documentElement.clientHeight;
+
+        // Frontend version
+        this.version = 'v' + localStorage.getItem("APP_VERSION")
     }
 
     ngOnInit() {
@@ -63,7 +67,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             this.updateCurrentMeal()
         })
 
-        // Initalize guest
+        // Initialize guest
         this.resetGuest()
 
         // Set WebSocket room (room name is meal name)
@@ -84,7 +88,6 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         // Calculation of served meal has moved to WebSocket
         // this.guestsObs$ = this.guestService.guestObs;
         // this.guestsObs$.subscribe((data) => {
-        //     console.log('belefut', data)
         //     this.loading = false;
             // if (data) {
                 // this.guests = data;
@@ -141,6 +144,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             conferenceName: '',
         }
         this.ageGroup = '';
+        this.canEat = false;
         this.alreadyReceivedFood = false;
     }
 
@@ -236,8 +240,8 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                 // Check whether the guest has already received food in the given meal cycle
                 let today = moment(),
-                    dateOfArrival = moment(new Date(data.dateOfArrival).setHours(0)),
-                    dateOfDeparture = moment(new Date(data.dateOfDeparture).setHours(24));
+                    dateOfArrival = moment(new Date(data.dateOfArrival).setHours(1)),
+                    dateOfDeparture = moment(new Date(data.dateOfDeparture).setHours(23));
 
                 if (dateOfArrival <= today && today <= dateOfDeparture) {
 
@@ -261,12 +265,13 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                     }
 
                     // Intermediate days
-                    if (dateOfArrival !== today && today !== dateOfDeparture) {
+                    if (!dateOfArrival.isSame(today, 'day') && !dateOfDeparture.isSame(today, 'day')) {
                         this.canEat = true
                     }
 
                     // The departure date is today
                     if (dateOfDeparture.isSame(today, 'day')) {
+                        this.canEat = false // Needed when arrival and departure are same day
                         if (this.currentMeal == 'reggeli') {
                             if (data.lastMeal == 'reggeli' || data.lastMeal == 'ebéd' || data.lastMeal == 'vacsora') {
                                 this.canEat = true
@@ -283,6 +288,12 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                             }
                         }
                     }
+                }
+
+                // If the guest is not entitled to eat, we will not investigate further
+                if (!this.canEat) {
+                    this.canEat = false
+                    return
                 }
 
                 // If Guest has used the RFID and it was today
@@ -321,8 +332,6 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 // Insert Timestamp to lastRfidUsage
                 this.guest.lastRfidUsage = moment().format('YYYY-MM-DD HH:mm:ss')
                 this.guestService.updateGuest(this.guest)
-
-
             },
             error: (error) => {
                 console.error('Error:', error)

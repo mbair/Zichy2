@@ -1,9 +1,25 @@
 <div class="grid">
     <div class="col-12">
         <div class="card px-0 py-0">
-            <p-toast></p-toast>
+            <p-table #dt
+                     dataKey="id"
+                     [value]="tableData"
+                     [columns]="cols"
+                     responsiveLayout="scroll"
+                     [rows]="rowsPerPage"
+                     [totalRecords]="totalRecords"
+                     [globalFilterFields]="['rfid']"
+                     [paginator]="true"
+                     [rowsPerPageOptions]="rowsPerPageOptions"
+                     [showCurrentPageReport]="true"
+                     currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
+                     [(selection)]="selected"
+                     selectionMode="multiple"
+                     [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
+                     [rowHover]="true"
+                     (onLazyLoad)="onLazyLoad($event)"
+                     [lazy]="true">
 
-            <p-table #dt [value]="tags" [columns]="cols" responsiveLayout="scroll" [rows]="10" [globalFilterFields]="['name','country.name','representative.name','status']" [paginator]="true" [rowsPerPageOptions]="[10,20,30]" [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [(selection)]="selectedTags" selectionMode="multiple" [rowHover]="true" dataKey="id">
                 <ng-template pTemplate="caption">
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
                         <h5 class="m-0">RFID címke</h5>
@@ -12,10 +28,8 @@
                             <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."  class="w-full sm:w-auto"/>
                         </span>
                         <span class="block mt-2 md:mt-0">
-                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
-                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="deleteSelectedTags()" [disabled]="!selectedTags || !selectedTags.length"></button>
-                            <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block"></p-fileUpload>
-                            <button pButton pRipple label="Export" icon="pi pi-upload" class="p-button-help" (click)="dt.exportCSV()"></button>
+                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="tableItem = {}; dialog = true"></button>
+                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="bulkDeleteDialog = true" [disabled]="!selected || !selected.length"></button>
                         </span>
                     </div>
                 </ng-template>
@@ -64,22 +78,28 @@
                         </td>
                         <td>
                             <div class="flex">
-                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editTag(tag)"></button>
-                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteTag(tag)"></button>
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="tableItem = tag; dialog = true"></button>
+                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = tag; deleteDialog = true"></button>
                             </div>
                         </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td [attr.colspan]="cols.length + 3" class="text-center">Nincs találat...</td>
                     </tr>
                 </ng-template>
             </p-table>
         </div>
 
-        <p-dialog [(visible)]="tagDialog" [style]="{width: '450px', height: '600px'}" header="RFID címke felvitel" [modal]="true" class="p-fluid">
+        <!-- New / Update dialog -->
+        <p-dialog [(visible)]="dialog" header="Konferencia adatai" [modal]="true" [style]="{width:'450px'}" class="p-fluid">
             <ng-template pTemplate="content">
-                <p-messages [(value)]="messages1" [enableService]="false" [closable]="false"></p-messages>
+                <!-- <p-messages [(value)]="messages" [enableService]="false" [closable]="false"></p-messages> -->
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="identifier">Azonosító</label>
-                        <input pInputText type="text" id="identifier" [(ngModel)]="tag.identifier" readonly autofocus />
+                        <input pInputText type="text" id="identifier" [(ngModel)]="tableItem.identifier" readonly autofocus />
                     </div>
                 </div>
                 <div class="formgrid grid">
@@ -91,31 +111,41 @@
             </ng-template>
 
             <ng-template pTemplate="footer">
-                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="dialog = false"></button>
                 <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="save()"></button>
             </ng-template>
         </p-dialog>
 
-        <p-dialog [(visible)]="deleteTagDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
+        <!-- Delete dialog -->
+        <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span *ngIf="tag">Biztosan törölni akarja a címkét?</span>
+                <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.identifier}}</b> címkét?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="deleteTagDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="confirmDelete()"></button>
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="deleteDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="delete()"></button>
             </ng-template>
         </p-dialog>
 
-        <p-dialog [(visible)]="deleteTagsDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+        <!-- Bulk Delete dialog -->
+        <p-dialog [(visible)]="bulkDeleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span>Biztosan törölni szeretné a kijelölt címkéket?</span>
+                <span>Biztosan törölni akarja a kiválasztott címkét?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteTagsDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDeleteSelected()"></button>
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="bulkDeleteDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="deleteSelected()"></button>
             </ng-template>
         </p-dialog>
     </div>
 </div>
+
+<!-- Loading Overlay -->
+<p-blockUI [autoZIndex]="true" [blocked]="loading">
+    <p-progressSpinner></p-progressSpinner>
+</p-blockUI>
+
+<!-- Notifications -->
+<p-toast></p-toast>
