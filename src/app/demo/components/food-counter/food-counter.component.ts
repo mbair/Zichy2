@@ -88,7 +88,6 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         // Calculation of served meal has moved to WebSocket
         // this.guestsObs$ = this.guestService.guestObs;
         // this.guestsObs$.subscribe((data) => {
-        //     console.log('belefut', data)
         //     this.loading = false;
             // if (data) {
                 // this.guests = data;
@@ -272,6 +271,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                     // The departure date is today
                     if (dateOfDeparture.isSame(today, 'day')) {
+                        this.canEat = false // Needed when arrival and departure are same day
                         if (this.currentMeal == 'reggeli') {
                             if (data.lastMeal == 'reggeli' || data.lastMeal == 'ebéd' || data.lastMeal == 'vacsora') {
                                 this.canEat = true
