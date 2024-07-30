@@ -12,14 +12,14 @@
             <span class="text-600 font-medium">Jelentkezzen be a folytatáshoz</span>
         </div>
         <div class="flex flex-column">
-            <form [formGroup]="form">
+            <form [formGroup]="loginForm">
                 <span class="p-input-icon-left w-full mb-4">
                     <i class="pi pi-envelope"></i>
-                    <input id="email" type="text" pInputText class="w-full md:w-25rem" placeholder="Email">
+                    <input id="email" type="text" pInputText class="w-full md:w-25rem" placeholder="Email" formControlName="email">
                 </span>
                 <span class="p-input-icon-left w-full mb-4">
                     <i class="pi pi-lock"></i>
-                    <input id="password" type="password" pInputText class="w-full md:w-25rem" placeholder="Jelszó">
+                    <input id="password" type="password" pInputText class="w-full md:w-25rem" placeholder="Jelszó" formControlName="password">
                 </span>
                 <div class="mb-4 flex flex-wrap gap-3">
                     <div>
@@ -28,7 +28,7 @@
                     </div>
                     <a class="text-600 cursor-pointer hover:text-primary cursor-pointer ml-auto transition-colors transition-duration-300">Elfelejtette jelszavát?</a>
                 </div>
-                <button pButton pRipple label="Bejelentkezés" class="w-full" [routerLink]="['/']"></button>
+                <button pButton pRipple label="Bejelentkezés" class="w-full" (click)="login()"></button>
             </form>
         </div>
     </div>
