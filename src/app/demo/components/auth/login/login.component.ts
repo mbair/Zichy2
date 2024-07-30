@@ -23,7 +23,8 @@ export class LoginComponent {
 
         this.loginForm = this.fb.group({
             email: ['', Validators.required],
-            password: ['', Validators.required]
+            password: ['', Validators.required],
+            rememberMe: [''],
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)

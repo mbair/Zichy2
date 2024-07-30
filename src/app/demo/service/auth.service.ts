@@ -1,22 +1,29 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { tap, shareReplay } from 'rxjs/operators'
-import { User } from "../api/user";
+import { tap, shareReplay } from "rxjs/operators";
+import { ApiService } from "./api.service";
 import * as moment from "moment";
 moment.locale('hu')
 
 @Injectable()
 export class AuthService {
 
-    constructor(private http: HttpClient) {
+    apiURL: string;
+
+    constructor(private http: HttpClient, private apiService: ApiService) {
+        // Set API URL
+        this.apiURL = this.apiService.apiURL
     }
 
     public login(email: string, password: string) {
-        return this.http.post<User>('/api/login', { email, password })
+        return this.http.post<any>(`${this.apiURL}/users/login`, { email, password }, {observe: 'response'})
             .pipe(
-                tap(authResult => this.setSession(authResult)),
-                // this is just the HTTP call,
-                // we still need to handle the reception of the token
+                tap(response => {
+                    const result =  response.body;
+                    this.setSession(result);
+                    const authHeader = response.headers.get('Authorization');
+                    console.log(authHeader);
+                }),
                 shareReplay()
             )
     }
@@ -35,9 +42,8 @@ export class AuthService {
     }
 
     private setSession(authResult: any) {
-        const expiresAt = moment().add(authResult.expiresIn, 'second');
-
-        localStorage.setItem('id_token', authResult.idToken);
+        const expiresAt = moment().add(authResult.expiresIn, 'second')
+        localStorage.setItem('id_token', authResult.idToken)
         localStorage.setItem("expires_at", JSON.stringify(expiresAt.valueOf()))
     }
 
