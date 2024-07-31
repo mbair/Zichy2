@@ -8,17 +8,21 @@ import { InputTextModule } from 'primeng/inputtext';
 import { RippleModule } from 'primeng/ripple';
 import { AppConfigModule } from 'src/app/layout/config/app.config.module';
 import { PasswordModule } from 'primeng/password';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MessagesModule } from 'primeng/messages';
 
 @NgModule({
     imports: [
         CommonModule,
         NewPasswordRoutingModule,
         FormsModule,
+        ReactiveFormsModule,
         ButtonModule,
         InputTextModule,
         RippleModule,
         AppConfigModule,
-        PasswordModule
+        PasswordModule,
+        MessagesModule
     ],
     declarations: [NewPasswordComponent]
 })

@@ -80,6 +80,7 @@ export class EcommerceDashboardComponent implements OnInit {
 
 
         this.activities = this.activityService.getActivities();
+        this.information = this.activityService.getInformation()
 
         this.weeks = [{
             label: 'Előző hét',

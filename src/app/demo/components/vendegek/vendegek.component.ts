@@ -1,5 +1,5 @@
-import { Component, OnInit, HostListener, isDevMode } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Component, OnInit, HostListener, isDevMode, ViewChild, ElementRef } from '@angular/core';
+import { catchError, Observable, of, switchMap, tap } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { Message, MessageService } from 'primeng/api';
 import { FileSendEvent, FileUpload, FileUploadErrorEvent } from 'primeng/fileupload';
@@ -7,6 +7,7 @@ import { Table } from 'primeng/table';
 import { GuestService } from '../../service/guest.service';
 import { ConferenceService } from '../../service/conference.service';
 import { GenderService } from '../../service/gender.service';
+import { TagService } from '../../service/tag.service';
 import { DietService } from '../../service/diet.service';
 import { MealService } from '../../service/meal.service';
 import { CountryService } from '../../service/country.service';
@@ -31,6 +32,7 @@ moment.locale('hu')
 @AutoUnsubscribe()
 
 export class VendegekComponent implements OnInit {
+    @ViewChild('identifier') identifierElement: ElementRef;
 
     apiURL: string;                            // API URL depending on whether we are working on test or production
     loading: boolean = true;                   // Loading overlay trigger value
@@ -72,6 +74,7 @@ export class VendegekComponent implements OnInit {
     private serviceMessageObs$: Observable<any> | undefined;
 
     constructor(private guestService: GuestService,
+        private tagService: TagService,
         private conferenceService: ConferenceService,
         private genderService: GenderService,
         private dietService: DietService,
@@ -186,7 +189,6 @@ export class VendegekComponent implements OnInit {
     }
 
     onFilter(event: any, field: string) {
-        this.loading = true;
         let filterValue = '';
 
         // Calendar date as String
@@ -196,13 +198,12 @@ export class VendegekComponent implements OnInit {
             filterValue = formattedDate
         } else {
             if (event && (event.value || event.target?.value)) {
-                if (field == "rfid" && event.target?.value.length == 10) {
-                    filterValue = event.target?.value.replaceAll('ö', '0')
+                if (field == "rfid") {
+                    filterValue = event.target?.value.replaceAll('ö', '0').replaceAll('Ö', '0')
+                    this.rfidFilterValue = filterValue
                 } else {
                     filterValue = event.value || event.target?.value
                 }
-            } else {
-                this.filterValues[field] = ''
             }
         }
 
@@ -327,14 +328,13 @@ export class VendegekComponent implements OnInit {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
 
-    // TODO: Ne lehessen kiosztani ugyanazt a karszalagot két különböző vendégnek
     assignTag(guest: any) {
         // Empty previous scanned codes
         this.scanTemp = '';
         this.scannedCode = this.guest.rfid || '';
         this.guest = { ...guest };
         this.messages = [
-            { severity: 'info', summary: '', detail: 'Tartsa az RFID címkét az olvasóhoz...' },
+            { severity: 'info', summary: '', detail: 'Tartsa a ' + guest.diet + ' étrendhez tartozó RFID címkét az olvasóhoz...' },
         ]
         this.tagDialog = true;
     }
@@ -366,48 +366,124 @@ export class VendegekComponent implements OnInit {
     save() {
         if (!this.scannedCode) return;
 
-        // Check if somebody has the same RFID number
-        this.guestService.getByRFID(this.scannedCode).subscribe({
+        // Check if RFID is according to the diet
+        // this.tagService.getByRFID(this.scannedCode)
+        //     .pipe(
+        //         switchMap((tagResult) => {
+        //             if (tagResult.rows && tagResult.rows.length > 0) {
+        //                 let tag = tagResult.rows[0]
+        //                 let dietColor = this.getDietColor(this.guest.diet || '')
+        //                 dietColor = dietColor.split('-')[0]
+        //                 if (dietColor == 'gray') {
+        //                     dietColor = 'black'
+        //                 }
+
+        //                 // Wrong color
+        //                 if (dietColor !== tag.color) {
+        //                     this.messages = [
+        //                         { severity: 'error', summary: '', detail: 'Nem megfelelő a karszalag színe!' },
+        //                     ]
+        //                     this.identifierElement.nativeElement.focus()
+
+        //                     // Right color
+        //                 }
+        //             }
+
+
+        //             if (tagResult.success) {
+        //                 return this.guestService.getByRFID(this.scannedCode)
+        //             } else {
+        //                 throw new Error('Service 1 failed')
+        //             }
+        //         }),
+        //         tap(guestResult => {
+        //             if (guestResult.success) {
+        //                 console.log('Both services completed successfully')
+        //             } else {
+        //                 throw new Error('Service 2 failed')
+        //             }
+        //         }),
+        //         catchError(error => {
+        //             console.error('Error occurred:', error)
+        //             return of(null) // This ensures that the operation can be handled even in the event of an error
+        //         })
+        //     )
+        //     .subscribe();
+
+        // Check if RFID is according to the diet
+        this.tagService.getByRFID(this.scannedCode).subscribe({
             next: (data) => {
+                if (data.rows && data.rows.length > 0) {
+                    let tag = data.rows[0]
+                    let dietColor = this.getDietColor(this.guest.diet || '')
+                    dietColor = dietColor.split('-')[0]
+                    if (dietColor == 'gray') {
+                        dietColor = 'black'
+                    }
+                    if (dietColor == 'teal') {
+                        dietColor = 'green'
+                    }
 
-                // If there is data, then somebody is using this RFID
-                this.messages = [
-                    { severity: 'error', summary: '', detail: data.lastName + ' ' + data.firstName + ' már használja a karszalagot!' },
-                ]
-                // Logging
-                this.logService.createLog({
-                    name: "Tag duplicate: " + data.rfid + " is used by " + data.lastName + " " + data.firstName + " | Lang: " + navigator.language,
-                    capacity: 0
-                })
-                return
+                    // Wrong color
+                    if (dietColor !== tag.color) {
+                        this.messages = [
+                            { severity: 'error', summary: '', detail: 'Nem megfelelő a karszalag színe!' },
+                        ]
+                        this.identifierElement.nativeElement.focus()
+                        return
+
+                        // Right color
+                    } else {
+
+                        // Check if somebody has the same RFID number
+                        this.guestService.getByRFID(this.scannedCode).subscribe({
+                            next: (data) => {
+
+                                // If there is data, then somebody is using this RFID
+                                this.messages = [
+                                    { severity: 'error', summary: '', detail: data.lastName + ' ' + data.firstName + ' már használja a karszalagot!' },
+                                ]
+                                // Logging
+                                this.logService.createLog({
+                                    name: "Tag duplicate: " + data.rfid + " is used by " + data.lastName + " " + data.firstName + " | Lang: " + navigator.language,
+                                    capacity: 0
+                                })
+                                return
+                            },
+                            // Strange, but this is the OK way
+                            error: (error) => {
+                                this.guest.rfid = this.scannedCode;
+                                // this.guestService.updateGuest({ id: this.guest.id, rfid: this.scannedCode})
+                                this.guestService.updateGuest2(this.guest).subscribe(() => {
+                                    let guestsClone = JSON.parse(JSON.stringify(this.tableData))
+                                    guestsClone[this.findIndexById(this.guest.id)] = this.guest;
+                                    this.tableData = guestsClone
+                                    this.successfulMessage = [{
+                                        severity: 'success',
+                                        summary: '',
+                                        detail: 'Sikeresen hozzárendelte a címkét a vendéghez!'
+                                    }]
+                                    this.totalTaggedGuests++;
+                                    setTimeout(() => {
+                                        this.tagDialog = false
+                                    }, 200);
+
+                                    // Logging
+                                    this.logService.createLog({
+                                        name: "Assign Tag " + this.guest.rfid + " to " + this.guest.lastName + " " + this.guest.firstName + " | Lang: " + navigator.language,
+                                        capacity: 0
+                                    })
+
+                                    this.scannedCode = '';
+                                    this.guest = {}
+                                })
+                            }
+                        })
+                    }
+                }
             },
-            // Strange, but this is the OK way
             error: (error) => {
-                this.guest.rfid = this.scannedCode;
-                // this.guestService.updateGuest({ id: this.guest.id, rfid: this.scannedCode})
-                this.guestService.updateGuest2(this.guest).subscribe(() => {
-                    let guestsClone = JSON.parse(JSON.stringify(this.tableData))
-                    guestsClone[this.findIndexById(this.guest.id)] = this.guest;
-                    this.tableData = guestsClone
-                    this.successfulMessage = [{
-                        severity: 'success',
-                        summary: '',
-                        detail: 'Sikeresen hozzárendelte a címkét a vendéghez!'
-                    }]
-                    this.totalTaggedGuests++;
-                    setTimeout(() => {
-                        this.tagDialog = false
-                    }, 200);
-
-                    // Logging
-                    this.logService.createLog({
-                        name: "Assign Tag " + this.guest.rfid + " to " + this.guest.lastName + " " + this.guest.firstName + " | Lang: " + navigator.language,
-                        capacity: 0
-                    })
-
-                    this.scannedCode = '';
-                    this.guest = {}
-                })
+                console.log('tagService.getByRFID error', error)
             }
         })
     }
