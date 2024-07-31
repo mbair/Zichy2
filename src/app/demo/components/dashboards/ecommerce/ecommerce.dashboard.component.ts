@@ -20,6 +20,7 @@ export class EcommerceDashboardComponent implements OnInit, OnDestroy {
     products: any[] = [];
     subscription: Subscription;
     cols: any[] = [];
+    information: any;
 
     // Amounts of master data
     amounts: any = {
@@ -37,6 +38,7 @@ export class EcommerceDashboardComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.activities = this.activityService.getActivities();
+        this.information = this.activityService.getInformation()
 
         this.weeks = [{
             label: 'Előző hét',

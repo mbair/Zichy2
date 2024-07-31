@@ -7,6 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MessagesModule } from 'primeng/messages';
 
 @NgModule({
     imports: [
@@ -17,6 +18,7 @@ import { ReactiveFormsModule } from '@angular/forms';
         CheckboxModule,
         FormsModule,
         ReactiveFormsModule,
+        MessagesModule,
     ],
     declarations: [LoginComponent]
 })

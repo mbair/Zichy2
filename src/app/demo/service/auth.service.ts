@@ -1,55 +1,63 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { tap, shareReplay } from "rxjs/operators";
+import { Router } from '@angular/router';
+import { tap, shareReplay, catchError } from "rxjs/operators";
 import { ApiService } from "./api.service";
 import * as moment from "moment";
+import { throwError } from "rxjs";
 moment.locale('hu')
 
 @Injectable()
 export class AuthService {
 
-    apiURL: string;
+    public apiURL: string;
 
-    constructor(private http: HttpClient, private apiService: ApiService) {
+    constructor(private http: HttpClient, private apiService: ApiService, private router: Router) {
         // Set API URL
         this.apiURL = this.apiService.apiURL
     }
 
     public login(email: string, password: string) {
-        return this.http.post<any>(`${this.apiURL}/users/login`, { email, password }, {observe: 'response'})
+        return this.http.post<any>(`${this.apiURL}/users/login`, { email, password }, { observe: 'response' })
             .pipe(
-                tap(response => {
-                    const result =  response.body;
-                    this.setSession(result);
-                    const authHeader = response.headers.get('Authorization');
-                    console.log(authHeader);
-                }),
-                shareReplay()
+                tap(response => this.setSession(response)),
+                shareReplay(),
+                catchError(this.handleError)
             )
     }
 
     public logout() {
-        localStorage.removeItem("id_token")
-        localStorage.removeItem("expires_at")
+        localStorage.removeItem("token")
+        localStorage.removeItem("userRole")
+        localStorage.removeItem("fullName")
     }
 
-    public isLoggedIn() {
-        return moment().isBefore(this.getExpiration())
+    public passwordReset(email: string) {
+        return this.http.get<any>(`${this.apiURL}/users/forgotpassrequest/${email}`, { observe: 'response' })
+            .pipe(
+                tap(response => console.log(response)),
+                shareReplay(),
+                catchError(this.handleError)
+            )
     }
 
-    public isLoggedOut() {
-        return !this.isLoggedIn()
+    public passwordRenew(password: string) {
+        // TODO: set correct api endpoint
+        return this.http.get<any>(`${this.apiURL}/users/xxxxxxxxxxxxx/${password}`, { observe: 'response' })
+            .pipe(
+                tap(response => console.log(response)),
+                shareReplay(),
+                catchError(this.handleError)
+            )
     }
 
     private setSession(authResult: any) {
-        const expiresAt = moment().add(authResult.expiresIn, 'second')
-        localStorage.setItem('id_token', authResult.idToken)
-        localStorage.setItem("expires_at", JSON.stringify(expiresAt.valueOf()))
+        localStorage.setItem("token", authResult.headers.get('Authorization') || '')
+        localStorage.setItem("userRole", authResult.body.userRole)
+        localStorage.setItem("fullName", authResult.body.fullName)
     }
 
-    private getExpiration() {
-        const expiration = localStorage.getItem("expires_at")
-        const expiresAt = expiration ? JSON.parse(expiration) : null
-        return moment(expiresAt)
+    private handleError(error: string) {
+        return throwError(JSON.parse(JSON.stringify(error)))
     }
 }
