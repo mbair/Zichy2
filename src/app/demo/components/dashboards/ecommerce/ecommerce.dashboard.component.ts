@@ -24,6 +24,7 @@ export class EcommerceDashboardComponent implements OnInit {
 
     loading: boolean = true;                     // Loading overlay trigger value
     activities: any[] = [];
+    information: any;
     selectedWeek: any;
     weeks: any[] = [];
     barData: any;
@@ -34,7 +35,14 @@ export class EcommerceDashboardComponent implements OnInit {
     subscription: Subscription;
     cols: any[] = [];
     rfidPercentage: number = 85;
-    tags: any;
+
+    conferences: any = { active: 0, inactive: 0 };
+    guests: any = { active: 0, inactive: 0 };
+    rooms: any = { active: 0, inactive: 0 };
+    tags: any = { active: 0, inactive: 0 };
+
+    adults: Number = 0;
+    childrens: Number = 0;
 
     // Totals of master data
     totals: any = {
@@ -65,15 +73,21 @@ export class EcommerceDashboardComponent implements OnInit {
         // Dashboard Informations
         this.dashboardObs$ = this.dashboardService.dashboardObs;
         this.dashboardObs$.subscribe((data: any) => {
+            console.log('data', data)
             this.loading = false
-            if (data && data.totals) {
+            if (data) {
                 console.log('data', data)
-                data.totals.active.rooms = 106 // Temporary solution (its not yet stored in DB)
-                this.totals = data.totals
+                this.conferences = data.conferences
+                this.guests = data.guests
+                this.rooms.active = 106 // Temporary solution (its not yet stored in DB)
                 this.tags = data.tags
 
-                let rfidPercentage = (data.tags.used / data.totals.active.tags) * 100
+                let rfidPercentage = (data.tags.used / data.tags.active) * 100
                 this.rfidPercentage = Number(rfidPercentage.toFixed(0))
+
+                this.adults = Number(this.guests.guestsAge[0].adults)
+                this.childrens = parseFloat(this.guests.guestsAge[0].childrens)
+                this.initCharts()
             }
         })
         this.dashboardService.getInformations()
@@ -135,7 +149,7 @@ export class EcommerceDashboardComponent implements OnInit {
             labels: ['Felnőtt', 'Gyerek'],
             datasets: [
                 {
-                    data: [300, 50],
+                    data: [this.adults, this.childrens],
                     backgroundColor: [
                         documentStyle.getPropertyValue('--primary-700'),
                         documentStyle.getPropertyValue('--primary-100')
