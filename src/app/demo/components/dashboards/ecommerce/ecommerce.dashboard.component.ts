@@ -1,16 +1,29 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
+import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
+import { MessageService } from 'primeng/api';
 import { Subscription } from 'rxjs';
+import { DashboardService } from 'src/app/demo/service/dashboard.service';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { ActivityService } from 'src/app/demo/service/activity.service';
+import { ApiResponse } from 'src/app/demo/api/ApiResponse';
 import { Table } from 'primeng/table';
+import * as moment from 'moment';
+moment.locale('hu')
 
 @Component({
-    templateUrl: './ecommerce.dashboard.component.html'
+    templateUrl: './ecommerce.dashboard.component.html',
+    providers: [MessageService]
 })
-export class EcommerceDashboardComponent implements OnInit, OnDestroy {
 
+// Makes unsubscribe automatically, don't need to do manually in ngOnDestroy
+// BUT!!! Don't delete ngOnDestroy, it has to stay here!
+@AutoUnsubscribe()
+
+export class EcommerceDashboardComponent implements OnInit {
+
+    loading: boolean = true;                     // Loading overlay trigger value
     activities: any[] = [];
-    knobValue: number = 90;
     selectedWeek: any;
     weeks: any[] = [];
     barData: any;
@@ -20,23 +33,52 @@ export class EcommerceDashboardComponent implements OnInit, OnDestroy {
     products: any[] = [];
     subscription: Subscription;
     cols: any[] = [];
-    information: any;
+    rfidPercentage: number = 85;
+    tags: any;
 
-    // Amounts of master data
-    amounts: any = {
-        conferences: 0,
-        guests: 0,
-        rooms: 0,
-        tags: 0,
+    // Totals of master data
+    totals: any = {
+        active: {
+            conferences: 0,
+            guests: 0,
+            rooms: 0,
+            tags: 0,
+        }
     }
 
-    constructor(private activityService: ActivityService/*, private productService: ProductService,*/, private layoutService: LayoutService) {
+
+
+    private dashboardObs$: Observable<any> | undefined;
+    private rfidCountObs$: Observable<any> | undefined;
+    private serviceMessageObs$: Observable<any> | undefined;
+
+    constructor(private dashboardService: DashboardService,
+                private activityService: ActivityService,
+                private layoutService: LayoutService) {
+
         this.subscription = this.layoutService.configUpdate$.subscribe(config => {
             this.initCharts()
         })
     }
 
     ngOnInit(): void {
+        // Dashboard Informations
+        this.dashboardObs$ = this.dashboardService.dashboardObs;
+        this.dashboardObs$.subscribe((data: any) => {
+            this.loading = false
+            if (data && data.totals) {
+                console.log('data', data)
+                data.totals.active.rooms = 106 // Temporary solution (its not yet stored in DB)
+                this.totals = data.totals
+                this.tags = data.tags
+
+                let rfidPercentage = (data.tags.used / data.totals.active.tags) * 100
+                this.rfidPercentage = Number(rfidPercentage.toFixed(0))
+            }
+        })
+        this.dashboardService.getInformations()
+
+
         this.activities = this.activityService.getActivities();
         this.information = this.activityService.getInformation()
 
@@ -90,13 +132,12 @@ export class EcommerceDashboardComponent implements OnInit, OnDestroy {
         };
 
         this.pieData = {
-            labels: ['Kártyás fizetés', 'SZÉP kártya', 'Készpénz'],
+            labels: ['Felnőtt', 'Gyerek'],
             datasets: [
                 {
-                    data: [300, 50, 100],
+                    data: [300, 50],
                     backgroundColor: [
                         documentStyle.getPropertyValue('--primary-700'),
-                        documentStyle.getPropertyValue('--primary-400'),
                         documentStyle.getPropertyValue('--primary-100')
                     ],
                     hoverBackgroundColor: [
@@ -181,10 +222,7 @@ export class EcommerceDashboardComponent implements OnInit, OnDestroy {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
 
+    // Don't delete this, its needed from a performance point of view,
     ngOnDestroy(): void {
-        if (this.subscription) {
-            this.subscription.unsubscribe();
-        }
     }
-
 }
