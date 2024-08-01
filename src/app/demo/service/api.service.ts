@@ -1,5 +1,5 @@
 import { Inject, Injectable, isDevMode } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { DOCUMENT } from '@angular/common';
@@ -12,7 +12,6 @@ export class ApiService {
 
     public  apiURL: string;  // Path to the backend API
     private hostname: string;
-    private headers: HttpHeaders;
     private productionURL = 'https://nfcreserve.hu/api'
     private developmentURL = 'https://test.nfcreserve.hu/api'
 
@@ -24,14 +23,10 @@ export class ApiService {
         } else {
             this.apiURL = this.productionURL
         }
-
-        // Set Authorization token
-        const token = localStorage.getItem('token')
-        this.headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : new HttpHeaders()
     }
 
     get<T>(endpoint: string): Observable<T> {
-        return this.http.get<T>(`${this.apiURL}/${endpoint}`, { headers: this.headers, observe: 'response' })
+        return this.http.get<T>(`${this.apiURL}/${endpoint}`, { observe: 'response' }) // { observe: 'response' } gives back everything, not only the req.body
             .pipe(
                 tap(response => this.refreshToken(response)),
                 map(response => response.body as T),
@@ -39,7 +34,7 @@ export class ApiService {
     }
 
     post<T>(endpoint: string, body: any): Observable<T> {
-        return this.http.post<T>(`${this.apiURL}/${endpoint}`, body, { headers: this.headers, observe: 'response' })
+        return this.http.post<T>(`${this.apiURL}/${endpoint}`, body, { observe: 'response' })
             .pipe(
                 tap(response => this.refreshToken(response)),
                 map(response => response.body as T),
@@ -47,7 +42,7 @@ export class ApiService {
     }
 
     put<T>(endpoint: string, body: any): Observable<T> {
-        return this.http.put<T>(`${this.apiURL}/${endpoint}`, body, { headers: this.headers, observe: 'response' })
+        return this.http.put<T>(`${this.apiURL}/${endpoint}`, body, { observe: 'response' })
             .pipe(
                 tap(response => this.refreshToken(response)),
                 map(response => response.body as T),
@@ -55,7 +50,7 @@ export class ApiService {
     }
 
     delete<T>(endpoint: string): Observable<T> {
-        return this.http.delete<T>(`${this.apiURL}/${endpoint}`, { headers: this.headers, observe: 'response' })
+        return this.http.delete<T>(`${this.apiURL}/${endpoint}`, { observe: 'response' })
             .pipe(
                 tap(response => this.refreshToken(response)),
                 map(response => response.body as T),
