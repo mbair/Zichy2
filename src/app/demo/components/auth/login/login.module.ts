@@ -8,6 +8,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MessagesModule } from 'primeng/messages';
+import { PasswordModule } from 'primeng/password';
 
 @NgModule({
     imports: [
@@ -19,6 +20,7 @@ import { MessagesModule } from 'primeng/messages';
         FormsModule,
         ReactiveFormsModule,
         MessagesModule,
+        PasswordModule,
     ],
     declarations: [LoginComponent]
 })

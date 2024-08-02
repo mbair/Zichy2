@@ -21,8 +21,16 @@
                     <input id="email" type="text" pInputText class="w-full md:w-25rem" placeholder="Email" formControlName="email">
                 </span>
                 <span class="p-input-icon-left w-full mb-4">
-                    <i class="pi pi-lock"></i>
-                    <input id="password" type="password" pInputText class="w-full md:w-25rem" placeholder="Jelszó" formControlName="password">
+                    <i class="pi pi-lock z-2"></i>
+                    <p-password id="password"
+                                formControlName="password"
+                                placeholder="Jelszó"
+                                styleClass="w-full"
+                                [inputStyle]="{paddingLeft: '2.5rem'}"
+                                inputStyleClass="w-full md:w-25rem"
+                                [toggleMask]="true"
+                                [feedback]="false">
+                    </p-password>
                 </span>
                 <div class="mb-4 flex flex-wrap gap-3">
                     <a [routerLink]="['/auth/forgotpassword']" class="text-600 cursor-pointer hover:text-primary cursor-pointer ml-auto transition-colors transition-duration-300">Elfelejtette jelszavát?</a>
