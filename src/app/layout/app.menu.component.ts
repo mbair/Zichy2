@@ -92,7 +92,7 @@ export class AppMenuComponent implements OnInit {
                 items: [
                     {
                         label: 'Felhasználók',
-                        icon: 'pi pi-fw pi-list',
+                        icon: 'pi pi-fw pi-users',
                         routerLink: ['/user']
                     },
                     {

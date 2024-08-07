@@ -4,16 +4,13 @@ import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { UserService } from '../../service/user.service';
+import { RoleService } from '../../service/role.service';
 import { LogService } from '../../service/log.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { User } from '../../api/user';
+import { Role } from '../../api/role';
 import * as moment from 'moment';
 moment.locale('hu')
-
-interface UserRole {
-    name: string;
-    code: string;
-}
 
 @Component({
     templateUrl: './user.component.html',
@@ -43,14 +40,16 @@ export class UserComponent implements OnInit {
     deleteDialog: boolean = false;               // Popup for deleting table item
     bulkDeleteDialog: boolean = false;           // Popup for deleting table items
     selected: User[] = [];                       // Table items chosen by user
-    selectedUserRole: UserRole | undefined;      // User Role chosen by user
-    userRoles: UserRole[] = []                   // Possible user roles
+    selectedUserRole: string;                    // User Role chosen by user
+    roles: any[] = []                           // Possible roles
 
     private userObs$: Observable<any> | undefined;
+    private roleObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
 
     constructor(
         private userService: UserService,
+        private roleService: RoleService,
         private messageService: MessageService,
         private logService: LogService) { }
 
@@ -66,11 +65,11 @@ export class UserComponent implements OnInit {
         ]
 
         // User roles
-        this.userRoles = [
-            { name: 'Super admin', code: 'admin' },
-            { name: 'Nagy admin', code: 'nagyadmin' },
-            { name: 'Kis admin', code: 'kisadmin' },
-        ]
+        // this.userRoles = [
+        //     { name: 'Super Admin', code: 'admin', color: 'red-500' },
+        //     { name: 'Nagy Admin', code: 'nagyadmin', color: 'yellow-300' },
+        //     { name: 'Kis Admin', code: 'kisadmin', color: 'teal-500' },
+        // ]
 
         // Users
         this.userObs$ = this.userService.userObs;
@@ -82,6 +81,21 @@ export class UserComponent implements OnInit {
                 this.page = data.currentPage || 0;
             }
         })
+
+        // Roles
+        this.roleObs$ = this.roleService.roleObs;
+        this.roleObs$.subscribe((data: any) => {
+            // TODO: DEMO DATA
+            data = [
+                { id: 1, name: 'Super Admin', description: '' },
+                { id: 2, name: 'Nagy Admin', description: '' },
+                { id: 3, name: 'Kis Admin', description: '' },
+            ]
+
+            this.roles = data
+        })
+        // Get roles for selector
+        this.roleService.get(0, 999, '', '')
 
         // Message
         this.serviceMessageObs$ = this.userService.messageObs;
@@ -123,7 +137,6 @@ export class UserComponent implements OnInit {
     }
 
     onFilter(event: any, field: string) {
-        this.loading = true;
         let filterValue = '';
 
         // Calendar date as String
@@ -133,13 +146,7 @@ export class UserComponent implements OnInit {
             filterValue = formattedDate
         } else {
             if (event && (event.value || event.target?.value)) {
-                if (field == "rfid" && event.target?.value.length == 10) {
-                    filterValue = event.target?.value.replaceAll('ö', '0')
-                } else {
-                    filterValue = event.value || event.target?.value
-                }
-            } else {
-                this.filterValues[field] = ''
+                filterValue = event.value || event.target?.value
             }
         }
 
@@ -182,7 +189,7 @@ export class UserComponent implements OnInit {
     }
 
     save() {
-        if (this.tableItem.id?.trim()) {
+        if (this.tableItem.fullname?.trim()) {
             // UPDATE
             if (this.tableItem.id) {
                 this.userService.update(this.tableItem)
@@ -192,6 +199,23 @@ export class UserComponent implements OnInit {
             }
             this.dialog = false
         }
+    }
+
+    /**
+     * Define the color associated with a user role
+     * @param role
+     * @returns
+     */
+    getRoleColor(role: string): string {
+        // TODO: move this logic to roleService which doesn't exist now
+        // return this.roleService.getRoleColor(role)
+        let roleColor: string = ''
+        // this.roles.map((role: Role) => {
+            // if (role?.toLowerCase() == userRole.name?.toLowerCase()) {
+            //     roleColor = userRole.color ?? ''
+            // }
+        // })
+        return roleColor
     }
 
     // Don't delete this, its needed from a performance point of view,

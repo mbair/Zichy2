@@ -6,4 +6,6 @@ export interface User {
     email?: string;
     phone?: string;
     role?: string;
+    user_role?: any;
+    user_rolesid?: any;
 }

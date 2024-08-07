@@ -38,48 +38,90 @@
                         <th style="width: 3rem">
                             <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                         </th>
-                        <th pSortableColumn="id">ID <p-sortIcon field="id"></p-sortIcon></th>
                         <th pSortableColumn="fullname">Név <p-sortIcon field="fullname"></p-sortIcon></th>
-                        <th pSortableColumn="user_role">Szerepkör <p-sortIcon field="user_role"></p-sortIcon></th>
+                        <th pSortableColumn="user_rolesid">Szerepkör <p-sortIcon field="user_rolesid"></p-sortIcon></th>
                         <th pSortableColumn="email">Email <p-sortIcon field="email"></p-sortIcon></th>
-                        <th pSortableColumn="createdAt">Létrehozva <p-sortIcon field="createdAt"></p-sortIcon></th>
-                        <th pSortableColumn="updatedAt">Módosítva <p-sortIcon field="updatedAt"></p-sortIcon></th>
+                        <th pSortableColumn="phone">Telefon <p-sortIcon field="phone"></p-sortIcon></th>
+                        <th></th>
+                    </tr>
+                    <tr>
+                        <th style="width: 3rem">
+                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'fullname')"
+                                   placeholder="Keresés..."
+                                   style="width:30%; min-width:20rem;"/>
+                        </th>
+                        <th>
+                            <p-dropdown
+                                inputId="rolefilter"
+                                [options]="roles"
+                                optionLabel="name"
+                                optionValue="name"
+                                placeholder="Keresés..."
+                                emptyMessage="Nincs találat..."
+                                [showClear]="true"
+                                (onChange)="onFilter($event, 'user_rolesid')">
+                                <ng-template pTemplate="selectedItem">
+                                    <p-tag [value]="filterValues['user_rolesid']"
+                                           [style]="{'background': 'var(--'+getRoleColor(filterValues['user_rolesid'])+')'}">
+                                    </p-tag>
+                                </ng-template>
+                                <ng-template let-option pTemplate="item">
+                                    <p-tag [value]="option.name"
+                                           [style]="{'background': 'var(--'+getRoleColor(option.name)+')'}">
+                                    </p-tag>
+                                </ng-template>
+                            </p-dropdown>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'email')"
+                                   placeholder="Keresés..."
+                                   style="width:30%; min-width:20rem;"/>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'phone')"
+                                   placeholder="Keresés..."
+                                   style="width:10%; min-width:10rem;"/>
+                        </th>
                         <th></th>
                     </tr>
                 </ng-template>
-                <ng-template pTemplate="body" let-tag>
+                <ng-template pTemplate="body" let-user>
                     <tr>
                         <td>
-                            <p-tableCheckbox [value]="tag"></p-tableCheckbox>
+                            <p-tableCheckbox [value]="user"></p-tableCheckbox>
                         </td>
-                        <td style="width:5%; min-width:5rem;">
-                            <span class="p-column-title">ID</span>
-                            {{tag.id}}
-                        </td>
-                        <td style="width:15%; min-width:15rem;">
+                        <td style="width:25%; min-width:15rem;">
                             <span class="p-column-title">Név</span>
-                            {{tag.fullname}}
+                            {{user.fullname}}
                         </td>
-                        <td style="width:15%; min-width:15rem;">
+                        <td style="width:10%; min-width:15rem;">
                             <span class="p-column-title">Szerepkör</span>
-                            {{tag.user_role.name}}
+                            <p-tag [value]="user.user_rolesid"
+                                   [style]="{'background': 'var(--'+getRoleColor(user.user_rolesid)+')'}">
+                            </p-tag>
+                            <!-- <span [class]="'user-role-badge role-' + replace(user.user_role.name, '', '').toLowerCase()">{{user.user_role.name}}</span> -->
                         </td>
-                        <td style="width:15%; min-width:15rem;">
+                        <td style="width:25%; min-width:15rem;">
                             <span class="p-column-title">Email</span>
-                            {{tag.email}}
+                            <a href="mailto:{{user.email}}">{{user.email}}</a>
                         </td>
-                        <td style="width:10%; min-width:10rem;">
-                            <span class="p-column-title">Létrehozva</span>
-                            {{tag.createdAt | date:"yyyy.MM.dd"}}
-                        </td>
-                        <td style="width:10%; min-width:10rem;">
-                            <span class="p-column-title">Módosítva</span>
-                            {{tag.updatedAt | date:"yyyy.MM.dd"}}
+                        <td style="width:10%; min-width:15rem;">
+                            <span class="p-column-title">Telefon</span>
+                            <a href="tel:{{user.phone}}">{{user.phone}}</a>
                         </td>
                         <td>
                             <div class="flex">
-                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="tableItem = tag; dialog = true"></button>
-                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = tag; deleteDialog = true"></button>
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="tableItem = user; dialog = true"></button>
+                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = user; deleteDialog = true"></button>
                             </div>
                         </td>
                     </tr>
@@ -104,8 +146,41 @@
                 </div>
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="identifier">Szerepkör</label>
-                        <p-dropdown [options]="userRoles" optionLabel="name" [(ngModel)]="selectedUserRole" [showClear]="true" placeholder="Válasszon szerepkört..."></p-dropdown>
+                        <label for="user-role">Szerepkör</label>
+                        <p-dropdown
+                                id="user-role"
+                                [options]="roles"
+                                optionLabel="name"
+                                optionValue="name"
+                                placeholder="Válasszon szerepkört..."
+                                emptyMessage="Nincs találat..."
+                                [showClear]="true"
+                                [(ngModel)]="tableItem.user_rolesid"
+                                [virtualScroll]="true"
+                                [virtualScrollItemSize]="30">
+                                <ng-template pTemplate="selectedItem">
+                                    <p-tag [value]="tableItem.user_rolesid"
+                                           [style]="{'background': 'var(--'+getRoleColor(tableItem.user_rolesid || '')+')'}">
+                                    </p-tag>
+                                </ng-template>
+                                <ng-template let-option pTemplate="item">
+                                    <p-tag [value]="option.name"
+                                           [style]="{'background': 'var(--'+getRoleColor(option.name)+')'}">
+                                    </p-tag>
+                                </ng-template>
+                            </p-dropdown>
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="email">Email</label>
+                        <input pInputText type="text" id="email" [(ngModel)]="tableItem.email" />
+                    </div>
+                </div>
+                <div class="formgrid grid">
+                    <div class="field col">
+                        <label for="phone">Telefon</label>
+                        <input pInputText type="text" id="v" [(ngModel)]="tableItem.phone" />
                     </div>
                 </div>
             </ng-template>

@@ -129,7 +129,7 @@ export class UserService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres felhasználó módosítás',
-                        detail: `${modifiedUser.id} módosítva`,
+                        detail: `${modifiedUser.fullname} módosítva`,
                     })
                 },
                 error: (error: any) => {
@@ -179,14 +179,5 @@ export class UserService {
                     this.message$.next(error)
                 }
             })
-    }
-
-    /**
-     * Get User by RFID identifier
-     * @param rfid
-     */
-    // TODO: Do on backend
-    public getByRFID(rfid: string): Observable<any> {
-        return this.apiService.get(`rfid/search/${rfid}`)
     }
 }

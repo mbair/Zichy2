@@ -108,4 +108,29 @@
     }
 }
 
+/* User roles */
+.user-role-badge {
+    border-radius: var(--border-radius);
+    padding: .25em .5rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .3px;
+
+    &.role-admin {
+        background: var(--purple-200);
+        color: var(--purple-800);
+    }
+
+    &.role-nagyadmin {
+        background: var(--orange-200);
+        color: var(--orange-800);
+    }
+
+    &.role-kisadmin {
+        background: var(--green-200);
+        color: var(--green-800);
+    }
+}
+
 /* TODO: Diet badges */

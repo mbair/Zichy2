@@ -48,7 +48,7 @@ export class RoleService {
 
         const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
 
-        this.apiService.get<ApiResponse>(`roles/get/${url}`)
+        this.apiService.get<ApiResponse>(`userrole/get/${url}`)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)
@@ -71,7 +71,7 @@ export class RoleService {
             pageSort = sort.sortField != "" ? `?sort=${sort.sortField}&order=${sortOrder}` : '';
         }
 
-        this.apiService.get<ApiResponse>(`roles/search/${globalFilter}${pageSort}`)
+        this.apiService.get<ApiResponse>(`userrole/search/${globalFilter}${pageSort}`)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)

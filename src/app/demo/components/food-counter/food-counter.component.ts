@@ -35,6 +35,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     scannedCode: string = '';
     windowWidth: number;
     windowHeight: number;
+    connectionStatus: boolean = false;
     backgroundColor: string = 'surface-ground';
 
     guestsObs$: Observable<any> | undefined;
@@ -85,14 +86,23 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             console.log("Actual mealsNumber", mealsNumber)
         })
 
+        this.foodCountWebSocket.getConnectionStatus().subscribe(status => {
+            this.connectionStatus = status;
+            console.log('Connection status:', status ? 'Connected' : 'Disconnected')
+        })
+
+        this.foodCountWebSocket.onMessage('data').subscribe(data => {
+            console.log('Received data:', data)
+        })
+
         // Calculation of served meal has moved to WebSocket
         // this.guestsObs$ = this.guestService.guestObs;
         // this.guestsObs$.subscribe((data) => {
         //     this.loading = false;
-            // if (data) {
-                // this.guests = data;
-                // this.setCurrentMealsNumber()
-            // }
+        // if (data) {
+        // this.guests = data;
+        // this.setCurrentMealsNumber()
+        // }
         // })
         // Get guests to define current meals number
         // this.guestService.getGuests()
@@ -337,16 +347,16 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 console.error('Error:', error)
                 console.log('error status', error.status)
                 // if (error.status === 404) {
-                    this.guest = {
-                        lastName: 'ISMERETLEN',
-                        firstName: 'ESZKÖZ'
-                    }
+                this.guest = {
+                    lastName: 'ISMERETLEN',
+                    firstName: 'ESZKÖZ'
+                }
 
-                    // Logging error
-                    this.logService.createLog({
-                        name: "FoodCounter Unknown Device: " + rfid + " | Lang: " + navigator.language,
-                        capacity: 0
-                    })
+                // Logging error
+                this.logService.createLog({
+                    name: "FoodCounter Unknown Device: " + rfid + " | Lang: " + navigator.language,
+                    capacity: 0
+                })
                 // }
             }
         })

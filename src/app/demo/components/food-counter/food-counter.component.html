@@ -1,13 +1,24 @@
 <div class="relative overflow-hidden flex flex-column justify-content-center">
 
     <div class="header" [ngClass]="isOpen ? 'bg-teal-500' : 'bg-red-500' ">
-        <div class="p-1 font-medium text-center text-2xl text-white white-space-nowrap">
-            {{ isOpen ? (currentMeal | titlecase) : "Jelenleg nincs étkeztetés!" }}
-        </div>
-        <div class="absolute top-0 right-0 p-2 text-white text-sm ">
-            <!-- {{ windowWidth }}x{{ windowHeight }} -->
-            <!-- {{ this.scannedCode }} -->
-            {{ this.version }}
+        <div class="flex flex-row flex-wrap align-items-center justify-content-between">
+            <div class="h-3rem flex align-items-center justify-content-center pl-3">
+                <span class="{{ connectionStatus ? 'bg-green-400' : 'bg-red-400' }} border-circle w-2rem h-2rem flex align-items-center justify-content-center text-white">
+                    <i class="pi pi-wifi" pBadge></i>
+                </span>
+            </div>
+            <div class="h-3rem flex align-items-center justify-content-center">
+                <div class="text-center font-medium text-2xl text-white white-space-nowrap px-3">
+                    {{ isOpen ? (currentMeal | titlecase) : "Jelenleg nincs étkeztetés!" }}
+                </div>
+            </div>
+            <div class="h-3rem flex align-items-center justify-content-center">
+                <div class="text-center pr-3 text-white text-sm">
+                    <!-- {{ windowWidth }}x{{ windowHeight }} -->
+                    <!-- {{ this.scannedCode }} -->
+                    {{ this.version }}
+                </div>
+            </div>
         </div>
     </div>
 
@@ -118,5 +129,21 @@
         </div>
     </div>
 </div>
+
+<p-dialog
+    header="Hiba"
+    [visible]="connectionStatus == false"
+    [modal]="true"
+    [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+    [style]="{ width: '50vw' }"
+    [draggable]="false"
+    [resizable]="false">
+        <p-messages severity="error">
+            <ng-template pTemplate>
+                <i class="pi pi-wifi" style="font-size: 2.5rem"></i>
+                <div class="ml-4 font-medium text-xl">Nincs internetkapcsolat</div>
+            </ng-template>
+        </p-messages>
+</p-dialog>
 
 <p-toast></p-toast>
