@@ -54,23 +54,6 @@ export class UserComponent implements OnInit {
         private logService: LogService) { }
 
     ngOnInit() {
-        // Table columns
-        this.cols = [
-            { field: 'id', header: 'ID' },
-            { field: 'color', header: 'Szín' },
-            { field: 'identifier', header: 'Azonosító' },
-            { field: 'enabled', header: 'Engedélyezve van' },
-            { field: 'createdAt', header: 'Létrehozva' },
-            { field: 'updatedAt', header: 'Módosítva' }
-        ]
-
-        // User roles
-        // this.userRoles = [
-        //     { name: 'Super Admin', code: 'admin', color: 'red-500' },
-        //     { name: 'Nagy Admin', code: 'nagyadmin', color: 'yellow-300' },
-        //     { name: 'Kis Admin', code: 'kisadmin', color: 'teal-500' },
-        // ]
-
         // Users
         this.userObs$ = this.userService.userObs;
         this.userObs$.subscribe((data: ApiResponse) => {
@@ -85,14 +68,7 @@ export class UserComponent implements OnInit {
         // Roles
         this.roleObs$ = this.roleService.roleObs;
         this.roleObs$.subscribe((data: any) => {
-            // TODO: DEMO DATA
-            data = [
-                { id: 1, name: 'Super Admin', description: '' },
-                { id: 2, name: 'Nagy Admin', description: '' },
-                { id: 3, name: 'Kis Admin', description: '' },
-            ]
-
-            this.roles = data
+            this.roles = data ? data.rows : []
         })
         // Get roles for selector
         this.roleService.get(0, 999, '', '')
@@ -141,12 +117,13 @@ export class UserComponent implements OnInit {
 
         // Calendar date as String
         if (event instanceof Date) {
-            const date = moment(event);
-            const formattedDate = date.format('YYYY.MM.DD');
+            const date = moment(event)
+            const formattedDate = date.format('YYYY.MM.DD')
             filterValue = formattedDate
         } else {
             if (event && (event.value || event.target?.value)) {
                 filterValue = event.value || event.target?.value
+                filterValue = filterValue.toString()
             }
         }
 
@@ -193,7 +170,7 @@ export class UserComponent implements OnInit {
             // UPDATE
             if (this.tableItem.id) {
                 this.userService.update(this.tableItem)
-            // INSERT
+                // INSERT
             } else {
                 this.userService.create(this.tableItem)
             }
@@ -202,20 +179,27 @@ export class UserComponent implements OnInit {
     }
 
     /**
-     * Define the color associated with a user role
+     * Define the name associated with a user role
+     * @param roleId
+     * @returns
+     */
+    getRoleName(roleId: any): string {
+        const role = this.roles.find(role => role.id === Number(roleId))
+        return role ? role.name : ''
+    }
+
+    /**
+     * Define the styleName for UserRole
      * @param role
      * @returns
      */
-    getRoleColor(role: string): string {
-        // TODO: move this logic to roleService which doesn't exist now
-        // return this.roleService.getRoleColor(role)
-        let roleColor: string = ''
-        // this.roles.map((role: Role) => {
-            // if (role?.toLowerCase() == userRole.name?.toLowerCase()) {
-            //     roleColor = userRole.color ?? ''
-            // }
-        // })
-        return roleColor
+    getRoleStyleClass(roleId: any): string {
+        let roleName: string = this.getRoleName(roleId),
+            roleStyleClass = "";
+
+        roleStyleClass = roleName.trim().toLowerCase().replace(/\s+/g, '')
+
+        return `user-role-badge role-${roleStyleClass}`
     }
 
     // Don't delete this, its needed from a performance point of view,

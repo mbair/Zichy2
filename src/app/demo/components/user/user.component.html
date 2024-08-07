@@ -60,20 +60,20 @@
                                 inputId="rolefilter"
                                 [options]="roles"
                                 optionLabel="name"
-                                optionValue="name"
+                                optionValue="id"
                                 placeholder="Keresés..."
                                 emptyMessage="Nincs találat..."
                                 [showClear]="true"
                                 (onChange)="onFilter($event, 'user_rolesid')">
-                                <ng-template pTemplate="selectedItem">
-                                    <p-tag [value]="filterValues['user_rolesid']"
-                                           [style]="{'background': 'var(--'+getRoleColor(filterValues['user_rolesid'])+')'}">
-                                    </p-tag>
-                                </ng-template>
                                 <ng-template let-option pTemplate="item">
-                                    <p-tag [value]="option.name"
-                                           [style]="{'background': 'var(--'+getRoleColor(option.name)+')'}">
-                                    </p-tag>
+                                    <span [ngClass]="getRoleStyleClass(option.id)">
+                                        {{option.name}}
+                                    </span>
+                                </ng-template>
+                                <ng-template pTemplate="selectedItem">
+                                    <span [ngClass]="getRoleStyleClass(filterValues['user_rolesid'])">
+                                        {{getRoleName(filterValues['user_rolesid'])}}
+                                    </span>
                                 </ng-template>
                             </p-dropdown>
                         </th>
@@ -105,10 +105,9 @@
                         </td>
                         <td style="width:10%; min-width:15rem;">
                             <span class="p-column-title">Szerepkör</span>
-                            <p-tag [value]="user.user_rolesid"
-                                   [style]="{'background': 'var(--'+getRoleColor(user.user_rolesid)+')'}">
-                            </p-tag>
-                            <!-- <span [class]="'user-role-badge role-' + replace(user.user_role.name, '', '').toLowerCase()">{{user.user_role.name}}</span> -->
+                            <span [ngClass]="getRoleStyleClass(user.user_rolesid)">
+                                {{getRoleName(user.user_rolesid)}}
+                            </span>
                         </td>
                         <td style="width:25%; min-width:15rem;">
                             <span class="p-column-title">Email</span>
@@ -135,7 +134,7 @@
         </div>
 
         <!-- New / Update dialog -->
-        <p-dialog [(visible)]="dialog" header="Konferencia adatai" [modal]="true" [style]="{width:'450px'}" class="p-fluid">
+        <p-dialog [(visible)]="dialog" header="Felhasználó adatai" [modal]="true" [style]="{width:'450px'}" class="p-fluid">
             <ng-template pTemplate="content">
                 <!-- <p-messages [(value)]="messages" [enableService]="false" [closable]="false"></p-messages> -->
                 <div class="formgrid grid">
@@ -148,27 +147,27 @@
                     <div class="field col">
                         <label for="user-role">Szerepkör</label>
                         <p-dropdown
-                                id="user-role"
-                                [options]="roles"
-                                optionLabel="name"
-                                optionValue="name"
-                                placeholder="Válasszon szerepkört..."
-                                emptyMessage="Nincs találat..."
-                                [showClear]="true"
-                                [(ngModel)]="tableItem.user_rolesid"
-                                [virtualScroll]="true"
-                                [virtualScrollItemSize]="30">
-                                <ng-template pTemplate="selectedItem">
-                                    <p-tag [value]="tableItem.user_rolesid"
-                                           [style]="{'background': 'var(--'+getRoleColor(tableItem.user_rolesid || '')+')'}">
-                                    </p-tag>
-                                </ng-template>
-                                <ng-template let-option pTemplate="item">
-                                    <p-tag [value]="option.name"
-                                           [style]="{'background': 'var(--'+getRoleColor(option.name)+')'}">
-                                    </p-tag>
-                                </ng-template>
-                            </p-dropdown>
+                            id="user-role"
+                            [options]="roles"
+                            optionLabel="name"
+                            optionValue="id"
+                            placeholder="Válasszon szerepkört..."
+                            emptyMessage="Nincs találat..."
+                            [showClear]="true"
+                            [(ngModel)]="tableItem.user_rolesid"
+                            [virtualScroll]="true"
+                            [virtualScrollItemSize]="30">
+                            <ng-template let-option pTemplate="item">
+                                <span [ngClass]="getRoleStyleClass(option.id)">
+                                    {{option.name}}
+                                </span>
+                            </ng-template>
+                            <ng-template pTemplate="selectedItem">
+                                <span [ngClass]="getRoleStyleClass(tableItem.user_rolesid)">
+                                    {{getRoleName(tableItem.user_rolesid)}}
+                                </span>
+                            </ng-template>
+                        </p-dropdown>
                     </div>
                 </div>
                 <div class="formgrid grid">
