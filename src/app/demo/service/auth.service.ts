@@ -52,8 +52,9 @@ export class AuthService {
     }
 
     private setSession(authResult: any) {
+        console.log('authResult', authResult)
         localStorage.setItem("token", authResult.headers.get('Authorization') || '')
-        localStorage.setItem("userRole", authResult.body.userRole)
+        localStorage.setItem("userRole", authResult.body.role)
         localStorage.setItem("fullName", authResult.body.fullName)
     }
 
