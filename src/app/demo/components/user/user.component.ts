@@ -49,7 +49,7 @@ export class UserComponent implements OnInit {
     private serviceMessageObs$: Observable<any> | undefined;
 
     constructor(
-        private userService: UserService,
+        public userService: UserService,
         private roleService: RoleService,
         private messageService: MessageService,
         private logService: LogService,

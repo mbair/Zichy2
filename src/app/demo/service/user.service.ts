@@ -185,13 +185,13 @@ export class UserService {
      * Get User Role
      * @returns
      */
-    public getUserRole(): string | null {
-        return localStorage.getItem('userRole')
+    public getUserRole(): string {
+        return localStorage.getItem('userRole') || "No Role"
     }
 
     // Role check
-    public hasRole(role: string): boolean {
+    public hasRole(roles: string[]): boolean {
         const userRole = this.getUserRole()
-        return userRole === role
+        return roles.includes(userRole)
     }
 }
