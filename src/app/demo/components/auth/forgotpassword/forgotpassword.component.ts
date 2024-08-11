@@ -18,7 +18,7 @@ export class ForgotPasswordComponent {
         private messageService: MessageService) {
 
             this.forgotPasswordForm = this.fb.group({
-                email: ['', [Validators.required, Validators.email, emailDomainValidator()]]
+                email: ['', [Validators.required, emailDomainValidator()]]
             })
     }
 

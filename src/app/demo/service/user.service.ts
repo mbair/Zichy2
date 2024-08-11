@@ -180,4 +180,18 @@ export class UserService {
                 }
             })
     }
+
+    /**
+     * Get User Role
+     * @returns
+     */
+    public getUserRole(): string | null {
+        return localStorage.getItem('userRole')
+    }
+
+    // Role check
+    public hasRole(role: string): boolean {
+        const userRole = this.getUserRole()
+        return userRole === role
+    }
 }

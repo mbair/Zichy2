@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { emailDomainValidator } from 'src/app/demo/utils/email-validator';
 import { Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MessageService } from 'primeng/api';
@@ -8,7 +10,6 @@ import { RoleService } from '../../service/role.service';
 import { LogService } from '../../service/log.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { User } from '../../api/user';
-import { Role } from '../../api/role';
 import * as moment from 'moment';
 moment.locale('hu')
 
@@ -24,7 +25,6 @@ moment.locale('hu')
 export class UserComponent implements OnInit {
 
     loading: boolean = true;                     // Loading overlay trigger value
-    cols: any[] = [];                            // Table columns
     tableItem: User = {};                        // One user object
     tableData: User[] = [];                      // Data set displayed in a table
     rowsPerPageOptions = [20, 50, 100];          // Possible rows per page
@@ -41,7 +41,8 @@ export class UserComponent implements OnInit {
     bulkDeleteDialog: boolean = false;           // Popup for deleting table items
     selected: User[] = [];                       // Table items chosen by user
     selectedUserRole: string;                    // User Role chosen by user
-    roles: any[] = []                           // Possible roles
+    roles: any[] = []                            // Possible roles
+    userForm: FormGroup;                         // Form for user registration and modification
 
     private userObs$: Observable<any> | undefined;
     private roleObs$: Observable<any> | undefined;
@@ -51,9 +52,35 @@ export class UserComponent implements OnInit {
         private userService: UserService,
         private roleService: RoleService,
         private messageService: MessageService,
-        private logService: LogService) { }
+        private logService: LogService,
+        private fb: FormBuilder) { }
 
     ngOnInit() {
+        // User form
+        this.userForm = this.fb.group({
+            id: [''],
+            username: [''],
+            fullname: ['', Validators.required],
+            user_rolesid: ['', [Validators.required]],
+            email: ['', [Validators.required, emailDomainValidator()]],
+            phone: ['', [Validators.required]],
+            password: ['', [Validators.required]],
+        })
+
+        // TODO: Remove username from backend
+        // Monitoring the changes in the email field
+        this.userForm.get('email')?.valueChanges.subscribe(value => {
+            this.userForm.get('username')?.setValue(value, { emitEvent: false })
+        })
+
+        // Monitor the changes in the id field
+        this.userForm.get('id')?.valueChanges.subscribe(idValue => {
+            this.setPasswordValidators(idValue)
+        })
+
+        // Initialize the password validators according to the initial value of the id
+        this.setPasswordValidators(this.userForm.get('id')?.value)
+
         // Users
         this.userObs$ = this.userService.userObs;
         this.userObs$.subscribe((data: ApiResponse) => {
@@ -97,7 +124,10 @@ export class UserComponent implements OnInit {
         })
     }
 
-    // Load filtered data into the Table
+    /**
+     * Load filtered data into the Table
+     * @returns
+     */
     doQuery() {
         this.loading = true;
 
@@ -112,6 +142,11 @@ export class UserComponent implements OnInit {
         return this.userService.get(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
     }
 
+    /**
+     * Filter table by column
+     * @param event
+     * @param field
+     */
     onFilter(event: any, field: string) {
         let filterValue = '';
 
@@ -140,6 +175,12 @@ export class UserComponent implements OnInit {
         }, 500)
     }
 
+    /**
+     * Lazy mode is handy to deal with large datasets, instead of loading
+     * the entire data, small chunks of data is loaded by invoking onLazyLoad
+     * callback every time paging, sorting and filtering happens.
+     * @param event
+     */
     onLazyLoad(event: any) {
         this.page = event.first! / event.rows!;
         this.rowsPerPage = event.rows ?? this.rowsPerPage;
@@ -149,33 +190,96 @@ export class UserComponent implements OnInit {
         this.doQuery()
     }
 
+    /**
+     * Filter table by any column
+     * @param table
+     * @param event
+     */
     onGlobalFilter(table: Table, event: Event) {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains')
     }
 
+    /**
+     * Create new User
+     */
+    create() {
+        this.userForm.reset()
+        this.dialog = true
+    }
+
+    /**
+     * Edit the User
+     * @param user
+     */
+    edit(user: User) {
+        this.userForm.patchValue(user)
+        this.dialog = true
+    }
+
+    /**
+     * Delete the User
+     */
     delete() {
         this.loading = true;
         this.deleteDialog = false;
         this.userService.delete(this.tableItem)
     }
 
+    /**
+     * Delete selected Users
+     */
     deleteSelected() {
         this.loading = true;
-        this.deleteDialog = false;
+        this.bulkDeleteDialog = false;
         this.userService.bulkdelete(this.selected)
     }
 
+    /**
+     * Saving the form
+     */
     save() {
-        if (this.tableItem.fullname?.trim()) {
+        if (this.userForm.valid) {
+            const formValues = this.userForm.value
+
+            // If the password field is empty, it is deleted from the object
+            if (!formValues.password) {
+                delete formValues.password
+            }
+
             // UPDATE
-            if (this.tableItem.id) {
-                this.userService.update(this.tableItem)
+            if (formValues.id) {
+                this.userService.update(formValues)
                 // INSERT
             } else {
-                this.userService.create(this.tableItem)
+                this.userService.create(formValues)
             }
             this.dialog = false
         }
+    }
+
+    /**
+     * Cancel saving the form
+     */
+    cancel() {
+        this.userForm.reset()
+        this.dialog = false
+    }
+
+    /**
+     * Setting up password verification
+     * @param idValue
+     */
+    setPasswordValidators(idValue: any) {
+        const passwordControl = this.userForm.get('password')
+
+        // At User create, it is mandatory to enter the password
+        if (!idValue) {
+            passwordControl?.setValidators([Validators.required])
+        // It is not mandatory for modification
+        } else {
+            passwordControl?.clearValidators()
+        }
+        passwordControl?.updateValueAndValidity()
     }
 
     /**

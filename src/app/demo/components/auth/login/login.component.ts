@@ -23,13 +23,13 @@ export class LoginComponent {
         private router: Router) {
 
         this.loginForm = this.fb.group({
-            email: ['gabris.balazs@gmail.com', Validators.required],
-            password: ['&ae[V*Ol', Validators.required],
+            email: ['', Validators.required],
+            password: ['', Validators.required],
         })
     }
 
     login() {
-        // Új üzenet hozzáadása előtt, először töröljük az összes meglévőt
+        // Before adding a new message, we first delete all existing ones
         this.messageService.clear()
         const val = this.loginForm.value;
 
