@@ -205,7 +205,11 @@
                     <div class="formgrid grid">
                         <div class="field col">
                             <label for="password">Jelszó</label>
-                            <input pInputText type="password" id="password" formControlName="password" />
+                            <p-password id="password"
+                                        formControlName="password"
+                                        [toggleMask]="true"
+                                        [feedback]="false">
+                            </p-password>
                             <div *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.dirty">
                                 <small *ngIf="userForm.get('password')?.errors?.['required']" class="p-error">Kötelező kitölteni</small>
                             </div>

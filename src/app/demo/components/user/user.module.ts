@@ -20,6 +20,7 @@ import { TagModule } from 'primeng/tag';
 import { MessagesModule } from 'primeng/messages';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
+import { PasswordModule } from 'primeng/password';
 
 @NgModule({
     imports: [
@@ -43,7 +44,8 @@ import { BlockUIModule } from 'primeng/blockui';
         TagModule,
         MessagesModule,
         ProgressSpinnerModule,
-        BlockUIModule
+        BlockUIModule,
+        PasswordModule
     ],
     declarations: [UserComponent]
 })
