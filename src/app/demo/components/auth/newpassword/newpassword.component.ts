@@ -22,7 +22,7 @@ export class NewPasswordComponent {
             this.newPasswordForm = this.fb.group({
                 password: ['', [Validators.required]],
                 password_again: ['', [Validators.required]],
-            }, { validators: passwordMatchValidator })
+            }, { validators: passwordMatchValidator() })
     }
 
     submit(event: Event) {

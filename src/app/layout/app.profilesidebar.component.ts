@@ -12,7 +12,7 @@ export class AppProfileSidebarComponent {
     fullName: string;
     userRole: string;
 
-    constructor(private router: Router, public layoutService: LayoutService) {
+    constructor(public router: Router, public layoutService: LayoutService) {
         this.fullName = localStorage.getItem('fullName') || ''
         this.userRole = localStorage.getItem('userRole') || ''
     }
@@ -27,6 +27,8 @@ export class AppProfileSidebarComponent {
 
     logout() {
         localStorage.removeItem('token')
+        localStorage.removeItem('fullName')
+        localStorage.removeItem('userRole')
         this.router.navigate(['/auth/login'])
     }
 }
