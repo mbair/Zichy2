@@ -224,7 +224,7 @@
                                     </tr>
                                     <tr>
                                         <td class="font-medium">Ország:</td>
-                                        <td><img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + guest.nationality.toLowerCase()" style="width:18px"/>{{guest.country}}</td>
+                                        <td><img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + getCountryCode(guest.country)" style="width:18px"/>{{guest.country}}</td>
                                     </tr>
                                     <tr>
                                         <td class="font-medium">Irányítószám:</td>

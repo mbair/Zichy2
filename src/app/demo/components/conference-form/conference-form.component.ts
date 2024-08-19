@@ -90,7 +90,7 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
         this.dietService.getDiets(0, 999, { sortField: 'id', sortOrder: 1 })
 
         // Fetch countries
-        this.countryService.getCountries().then(countries => {
+        this.countryService.getCountries().subscribe(countries => {
             this.countries = countries
         })
 

@@ -132,7 +132,7 @@ export class VendegekComponent implements OnInit {
         this.meals = this.mealService.getMealsForSelector()
 
         // Get countries for selector
-        this.countryService.getCountries().then(countries => {
+        this.countryService.getCountries().subscribe(countries => {
             this.countries = countries
         })
 
@@ -555,6 +555,13 @@ export class VendegekComponent implements OnInit {
         const birth = moment(birthDate)
         const today = moment()
         return today.diff(birth, 'years').toString()
+    }
+
+    getCountryCode(countryName: string): string | null {
+        const country = this.countries.find(c =>
+            c.name.toLowerCase() === countryName.toLowerCase()
+        )
+        return country ? country.code.toLowerCase() : null
     }
 
     @HostListener('window:keypress', ['$event'])
