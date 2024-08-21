@@ -340,8 +340,10 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.sendMessage()
 
                 // Insert Timestamp to lastRfidUsage
-                this.guest.lastRfidUsage = moment().format('YYYY-MM-DD HH:mm:ss')
-                this.guestService.updateGuest(this.guest)
+                // this.guest.lastRfidUsage = moment().format('YYYY-MM-DD HH:mm:ss')
+                // this.guestService.updateGuest(this.guest)
+                this.guestService.updateLastTagUsage(this.guest.id)
+
             },
             error: (error) => {
                 console.error('Error:', error)
