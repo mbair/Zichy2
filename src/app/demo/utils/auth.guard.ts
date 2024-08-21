@@ -1,22 +1,18 @@
-import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { CanActivateFn } from '@angular/router';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthGuard implements CanActivate {
+export const AuthGuard: CanActivateFn = (route, state) => {
+    const router = inject(Router)
+    const token = localStorage.getItem('token')
 
-  constructor(private router: Router) {}
-
-  canActivate(): boolean {
-    const token = localStorage.getItem('token');
+    // Check the validity of the token (e.g. decoding, checking the expiration date)
     if (token) {
-      // Ellenőrizd a token érvényességét (pl. dekódolás, lejárati idő ellenőrzése)
-      return true;
+        return true
+
+    // If there is no token, redirect to the login page
     } else {
-      // Ha nincs token, irányítsd át a bejelentkezési oldalra
-      this.router.navigate(['/auth/login']);
-      return false;
+        router.navigate(['/auth/login'])
+        return false
     }
-  }
 }
