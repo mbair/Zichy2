@@ -86,7 +86,22 @@ export class AppMenuComponent implements OnInit {
                     //     // routerLink: ['/pages/food-vouchers']
                     // },
                 ]
-            }
+            },
+            {
+                label: 'Rendszer',
+                items: [
+                    {
+                        label: 'Felhasználók',
+                        icon: 'pi pi-fw pi-users',
+                        routerLink: ['/user']
+                    },
+                    {
+                        label: 'Logok',
+                        icon: 'pi pi-fw pi-list',
+                        routerLink: ['/logs']
+                    }
+                ]
+            },
         ];
 
 
@@ -103,16 +118,7 @@ export class AppMenuComponent implements OnInit {
                         }
                     ]
                 },
-                {
-                    label: 'DEV',
-                    items: [
-                        {
-                            label: 'Logok',
-                            icon: 'pi pi-fw pi-list',
-                            routerLink: ['/logs']
-                        }
-                    ]
-                },
+
                 {
                     label: 'Pénzügyek',
                     icon: 'pi pi-fw pi-money',

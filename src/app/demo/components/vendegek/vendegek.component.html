@@ -99,7 +99,7 @@
                                 [options]="diets"
                                 optionLabel="name"
                                 optionValue="name"
-                                placeholder="Keresés étrendre..."
+                                placeholder="Keresés..."
                                 emptyMessage="Nincs találat..."
                                 [showClear]="true"
                                 (onChange)="onFilter($event, 'diet')">
@@ -129,6 +129,7 @@
                             <p-calendar
                                 (onSelect)="onFilter($event, 'lastRfidUsage')"
                                 (onClearClick)="onFilter($event, 'lastRfidUsage')"
+                                placeholder="Keresés..."
                                 [showButtonBar]="true">
                             </p-calendar>
                         </th>
@@ -137,6 +138,7 @@
                                 (onSelect)="onFilter($event, 'dateOfArrival')"
                                 (onClearClick)="onFilter($event, 'dateOfArrival')"
                                 appendTo="body"
+                                placeholder="Keresés..."
                                 [showButtonBar]="true">
                             </p-calendar>
                         </th>
@@ -145,6 +147,7 @@
                                 (onSelect)="onFilter($event, 'dateOfDeparture')"
                                 (onClearClick)="onFilter($event, 'dateOfDeparture')"
                                 appendTo="body"
+                                placeholder="Keresés..."
                                 [showButtonBar]="true">
                             </p-calendar>
                         </th>
@@ -224,7 +227,7 @@
                                     </tr>
                                     <tr>
                                         <td class="font-medium">Ország:</td>
-                                        <td><img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + guest.nationality.toLowerCase()" style="width:18px"/>{{guest.country}}</td>
+                                        <td><img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + getCountryCode(guest.country)" style="width:18px"/>{{guest.country}}</td>
                                     </tr>
                                     <tr>
                                         <td class="font-medium">Irányítószám:</td>

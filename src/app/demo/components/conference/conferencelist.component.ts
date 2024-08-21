@@ -130,13 +130,13 @@ export class ConferenceListComponent implements OnInit {
     }
 
     onFilter(event: any, field: string) {
-        this.loading = true;
+        const noWaitFields = ['beginDate','endDate','firstMeal', 'lastMeal']
         let filterValue = '';
 
         // Calendar date as String
         if (event instanceof Date) {
             const date = moment(event);
-            const formattedDate = date.format('YYYY.MM.DD');
+            const formattedDate = date.format('YYYY.MM.DD')
             filterValue = formattedDate
         } else {
             if (event && (event.value || event.target?.value)) {
@@ -152,15 +152,23 @@ export class ConferenceListComponent implements OnInit {
 
         this.filterValues[field] = filterValue
 
-        if (this.debounce[field]) {
-            clearTimeout(this.debounce[field])
-        }
-
-        this.debounce[field] = setTimeout(() => {
+        // If the field is a dropdown, run doQuery immediately
+        if (noWaitFields.includes(field)) {
             if (this.filterValues[field] === filterValue) {
                 this.doQuery()
             }
-        }, 500)
+        // otherwise wait for the debounce time
+        } else {
+            if (this.debounce[field]) {
+                clearTimeout(this.debounce[field])
+            }
+
+            this.debounce[field] = setTimeout(() => {
+                if (this.filterValues[field] === filterValue) {
+                    this.doQuery()
+                }
+            }, 500)
+        }
     }
 
     onLazyLoad(event: any) {

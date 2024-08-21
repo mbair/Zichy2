@@ -17,6 +17,7 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { DialogModule } from 'primeng/dialog';
 
 @NgModule({
     imports: [
@@ -36,6 +37,7 @@ import { TooltipModule } from 'primeng/tooltip';
         AppConfigModule,
         ToastModule,
         TooltipModule,
+        DialogModule,
     ],
     declarations: [
         FoodCounterComponent,

@@ -1,16 +1,30 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
+import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
+import { MessageService } from 'primeng/api';
 import { Subscription } from 'rxjs';
+import { DashboardService } from 'src/app/demo/service/dashboard.service';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { ActivityService } from 'src/app/demo/service/activity.service';
+import { ApiResponse } from 'src/app/demo/api/ApiResponse';
 import { Table } from 'primeng/table';
+import * as moment from 'moment';
+moment.locale('hu')
 
 @Component({
-    templateUrl: './ecommerce.dashboard.component.html'
+    templateUrl: './ecommerce.dashboard.component.html',
+    providers: [MessageService]
 })
-export class EcommerceDashboardComponent implements OnInit, OnDestroy {
 
+// Makes unsubscribe automatically, don't need to do manually in ngOnDestroy
+// BUT!!! Don't delete ngOnDestroy, it has to stay here!
+@AutoUnsubscribe()
+
+export class EcommerceDashboardComponent implements OnInit {
+
+    loading: boolean = true;                     // Loading overlay trigger value
     activities: any[] = [];
-    knobValue: number = 90;
+    information: any;
     selectedWeek: any;
     weeks: any[] = [];
     barData: any;
@@ -20,23 +34,67 @@ export class EcommerceDashboardComponent implements OnInit, OnDestroy {
     products: any[] = [];
     subscription: Subscription;
     cols: any[] = [];
+    rfidPercentage: number = 85;
 
-    // Amounts of master data
-    amounts: any = {
-        conferences: 0,
-        guests: 0,
-        rooms: 0,
-        tags: 0,
+    conferences: any = { active: 0, inactive: 0 };
+    guests: any = { active: 0, inactive: 0 };
+    rooms: any = { active: 0, inactive: 0 };
+    tags: any = { active: 0, inactive: 0 };
+
+    adults: Number = 0;
+    childrens: Number = 0;
+
+    // Totals of master data
+    totals: any = {
+        active: {
+            conferences: 0,
+            guests: 0,
+            rooms: 0,
+            tags: 0,
+        }
     }
 
-    constructor(private activityService: ActivityService/*, private productService: ProductService,*/, private layoutService: LayoutService) {
+
+
+    private dashboardObs$: Observable<any> | undefined;
+    private rfidCountObs$: Observable<any> | undefined;
+    private serviceMessageObs$: Observable<any> | undefined;
+
+    constructor(private dashboardService: DashboardService,
+                private activityService: ActivityService,
+                private layoutService: LayoutService) {
+
         this.subscription = this.layoutService.configUpdate$.subscribe(config => {
             this.initCharts()
         })
     }
 
     ngOnInit(): void {
+        // Dashboard Informations
+        this.dashboardObs$ = this.dashboardService.dashboardObs;
+        this.dashboardObs$.subscribe((data: any) => {
+            console.log('data', data)
+            this.loading = false
+            if (data) {
+                console.log('data', data)
+                this.conferences = data.conferences
+                this.guests = data.guests
+                this.rooms.active = 106 // Temporary solution (its not yet stored in DB)
+                this.tags = data.tags
+
+                let rfidPercentage = (data.tags.used / data.tags.active) * 100
+                this.rfidPercentage = Number(rfidPercentage.toFixed(0))
+
+                this.adults = Number(this.guests.guestsAge[0].adults)
+                this.childrens = parseFloat(this.guests.guestsAge[0].childrens)
+                this.initCharts()
+            }
+        })
+        this.dashboardService.getInformations()
+
+
         this.activities = this.activityService.getActivities();
+        this.information = this.activityService.getInformation()
 
         this.weeks = [{
             label: 'Előző hét',
@@ -88,13 +146,12 @@ export class EcommerceDashboardComponent implements OnInit, OnDestroy {
         };
 
         this.pieData = {
-            labels: ['Kártyás fizetés', 'SZÉP kártya', 'Készpénz'],
+            labels: ['Felnőtt', 'Gyerek'],
             datasets: [
                 {
-                    data: [300, 50, 100],
+                    data: [this.adults, this.childrens],
                     backgroundColor: [
                         documentStyle.getPropertyValue('--primary-700'),
-                        documentStyle.getPropertyValue('--primary-400'),
                         documentStyle.getPropertyValue('--primary-100')
                     ],
                     hoverBackgroundColor: [
@@ -179,10 +236,7 @@ export class EcommerceDashboardComponent implements OnInit, OnDestroy {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
 
+    // Don't delete this, its needed from a performance point of view,
     ngOnDestroy(): void {
-        if (this.subscription) {
-            this.subscription.unsubscribe();
-        }
     }
-
 }
