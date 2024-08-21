@@ -79,7 +79,7 @@ export class FoodCounterWebSocket {
                 observer.next(data)
             })
 
-            // Leiratkozás esetén távolítsuk el az eseményfigyelőt
+            // Remove event listener in case of unsubscribe
             return () => this.socket.off(event)
         })
     }

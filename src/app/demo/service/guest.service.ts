@@ -38,7 +38,7 @@ export class GuestService {
         const query = pageSort !== '' && queryParams !== '' ? pageSort + "&" + queryParams :
             pageSort !== '' && queryParams === '' ? pageSort :
                 pageSort === '' && queryParams !== '' ? queryParams : '';
-                const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
+        const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
         this.apiService.get<ApiResponse>(`guest/get/${url}`)
             .subscribe({
                 next: (response: ApiResponse) => {
@@ -82,6 +82,17 @@ export class GuestService {
 
     public getByRFID(rfid: string): Observable<any> {
         return this.apiService.get(`guest/getbyrfid/${rfid}`)
+    }
+
+    public updateLastTagUsage(guestId: string | undefined): void {
+        console.log('updateLastTagUsage', guestId);
+        this.apiService.get<ApiResponse>(`guest/updatelasttagusage/${guestId}`)
+            .subscribe({
+                next: (response: ApiResponse) => { },
+                error: (error: any) => {
+                    this.serviceMessage$.next(error)
+                }
+            })
     }
 
     public createGuest(guest: Guest): void {
