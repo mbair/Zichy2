@@ -33,13 +33,13 @@
                             [virtualScroll]="true"
                             [virtualScrollItemSize]="30">
                             <ng-template let-option pTemplate="item">
-                                <span [ngClass]="getRoleStyleClass(option.id)">
+                                <span [ngClass]="roleService.getRoleStyleClass(option.id)">
                                     {{option.name}}
                                 </span>
                             </ng-template>
                             <ng-template pTemplate="selectedItem">
-                                <span [ngClass]="getRoleStyleClass(userForm.get('user_rolesid')?.value)">
-                                    {{getRoleName(userForm.get('user_rolesid')?.value)}}
+                                <span [ngClass]="roleService.getRoleStyleClass(userForm.get('user_rolesid')?.value)">
+                                    {{roleService.getRoleName(userForm.get('user_rolesid')?.value)}}
                                 </span>
                             </ng-template>
                         </p-dropdown>

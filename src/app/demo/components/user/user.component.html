@@ -65,13 +65,13 @@
                                 [showClear]="true"
                                 (onChange)="onFilter($event, 'user_rolesid')">
                                 <ng-template let-option pTemplate="item">
-                                    <span [ngClass]="getRoleStyleClass(option.id)">
+                                    <span [ngClass]="roleService.getRoleStyleClass(option.id)">
                                         {{option.name}}
                                     </span>
                                 </ng-template>
                                 <ng-template pTemplate="selectedItem">
-                                    <span [ngClass]="getRoleStyleClass(filterValues['user_rolesid'])">
-                                        {{getRoleName(filterValues['user_rolesid'])}}
+                                    <span [ngClass]="roleService.getRoleStyleClass(filterValues['user_rolesid'])">
+                                        {{roleService.getRoleName(filterValues['user_rolesid'])}}
                                     </span>
                                 </ng-template>
                             </p-dropdown>
@@ -104,8 +104,8 @@
                         </td>
                         <td>
                             <span class="p-column-title">Szerepkör</span>
-                            <span [ngClass]="getRoleStyleClass(user.user_rolesid)">
-                                {{getRoleName(user.user_rolesid)}}
+                            <span [ngClass]="roleService.getRoleStyleClass(user.user_rolesid)">
+                                {{roleService.getRoleName(user.user_rolesid)}}
                             </span>
                         </td>
                         <td>
@@ -168,13 +168,13 @@
                                 [virtualScroll]="true"
                                 [virtualScrollItemSize]="30">
                                 <ng-template let-option pTemplate="item">
-                                    <span [ngClass]="getRoleStyleClass(option.id)">
+                                    <span [ngClass]="roleService.getRoleStyleClass(option.id)">
                                         {{option.name}}
                                     </span>
                                 </ng-template>
                                 <ng-template pTemplate="selectedItem">
-                                    <span [ngClass]="getRoleStyleClass(userForm.get('user_rolesid')?.value)">
-                                        {{getRoleName(userForm.get('user_rolesid')?.value)}}
+                                    <span [ngClass]="roleService.getRoleStyleClass(userForm.get('user_rolesid')?.value)">
+                                        {{roleService.getRoleName(userForm.get('user_rolesid')?.value)}}
                                     </span>
                                 </ng-template>
                             </p-dropdown>
