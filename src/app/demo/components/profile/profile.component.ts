@@ -8,6 +8,7 @@ import { MessageService } from 'primeng/api';
 import { UserService } from '../../service/user.service';
 import { RoleService } from '../../service/role.service';
 import { ApiResponse } from '../../api/ApiResponse';
+import { Role } from '../../api/role';
 
 @Component({
     templateUrl: './profile.component.html',
@@ -21,17 +22,16 @@ import { ApiResponse } from '../../api/ApiResponse';
 export class ProfileComponent implements OnInit {
 
     loading: boolean = true;                     // Loading overlay trigger value
-    roles: any[] = []                            // Possible roles
+    roles: Role[] = []                            // Possible roles
     userForm: FormGroup;                         // Form for User whose profile we are currently editing
     originalFormValues: any;                     // The original values ​​of the form
 
     private userObs$: Observable<any> | undefined;
-    private roleObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
 
     constructor(
         public userService: UserService,
-        private roleService: RoleService,
+        public roleService: RoleService,
         private messageService: MessageService,
         private fb: FormBuilder) { }
 
@@ -89,13 +89,12 @@ export class ProfileComponent implements OnInit {
             }
         })
 
-        // Roles
-        this.roleObs$ = this.roleService.roleObs;
-        this.roleObs$.subscribe((data: any) => {
-            this.roles = data ? data.rows : []
-        })
         // Get roles for selector
-        this.roleService.get(0, 999, '', '')
+        this.roleService.getRolesForSelector().subscribe({
+            next: (data) => {
+                this.roles = data
+            }
+        })
 
         // Message
         this.serviceMessageObs$ = this.userService.messageObs;
@@ -161,30 +160,6 @@ export class ProfileComponent implements OnInit {
             passwordControl?.clearValidators()
         }
         passwordControl?.updateValueAndValidity()
-    }
-
-    /**
-     * Define the name associated with a user role
-     * @param roleId
-     * @returns
-     */
-    getRoleName(roleId: any): string {
-        const role = this.roles.find(role => role.id === Number(roleId))
-        return role ? role.name : ''
-    }
-
-    /**
-     * Define the styleName for UserRole
-     * @param role
-     * @returns
-     */
-    getRoleStyleClass(roleId: any): string {
-        let roleName: string = this.getRoleName(roleId),
-            roleStyleClass = "";
-
-        roleStyleClass = roleName.trim().toLowerCase().replace(/\s+/g, '')
-
-        return `user-role-badge role-${roleStyleClass}`
     }
 
     // Don't delete this, its needed from a performance point of view,

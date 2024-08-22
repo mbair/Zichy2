@@ -51,6 +51,12 @@ export class UserService {
         this.apiService.get<ApiResponse>(`users/get/${url}`)
             .subscribe({
                 next: (response: ApiResponse) => {
+                    if (response && response.rows) {
+                        // Super admin users is visible only for Super Admin's
+                        if (!this.hasRole(['Super Admin'])) {
+                            response.rows = response.rows.filter((user: User) => user.user_rolesid !== 1)
+                        }
+                    }
                     this.data$.next(response)
                 },
                 error: (error: any) => {

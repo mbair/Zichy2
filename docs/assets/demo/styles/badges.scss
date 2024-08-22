@@ -131,6 +131,11 @@
         background: var(--green-200);
         color: var(--green-800);
     }
+
+    &.role-szervezo {
+        background: var(--cyan-200);
+        color: var(--cyan-800);
+    }
 }
 
 /* TODO: Diet badges */

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { RoleService } from '../demo/service/role.service';
 import { LayoutService } from './service/app.layout.service';
 
 
@@ -12,7 +13,10 @@ export class AppProfileSidebarComponent {
     fullName: string;
     userRole: string;
 
-    constructor(public router: Router, public layoutService: LayoutService) {
+    constructor(public router: Router,
+                public layoutService: LayoutService,
+                public roleService: RoleService) {
+
         this.fullName = localStorage.getItem('fullName') || ''
         this.userRole = localStorage.getItem('userRole') || ''
     }

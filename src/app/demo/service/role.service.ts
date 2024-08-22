@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
+import { UserService } from './user.service';
 import { Role } from '../api/role';
 
 @Injectable({
@@ -11,10 +13,11 @@ import { Role } from '../api/role';
 export class RoleService {
 
     public apiURL: string
+    private cache: Role[] = [];
     private data$: BehaviorSubject<any>
     private message$: BehaviorSubject<any>
 
-    constructor(private apiService: ApiService) {
+    constructor(private apiService: ApiService, private userService: UserService) {
         this.apiURL = apiService.apiURL
         this.data$ = new BehaviorSubject<any>(null)
         this.message$ = new BehaviorSubject<any>(null)
@@ -179,5 +182,59 @@ export class RoleService {
                     this.message$.next(error)
                 }
             })
+    }
+
+    /**
+     * Get roles for selector
+     * @returns
+     */
+    getRolesForSelector(): Observable<Role[]> {
+        // Check if there is already cached data
+        if (this.cache.length > 0) {
+            return of(this.cache)
+        }
+
+        this.get(0, 999, { sortField: 'id', sortOrder: 1 }, '')
+        return this.data$.asObservable().pipe(
+            map((data: any) => {
+                // Only Super Admins are allowed to chose Super Admin role
+                if (data && !this.userService.hasRole(['Super Admin'])) {
+                    data.rows = data.rows.filter((role: Role) => role.name !== 'Super Admin')
+                }
+                // Store roles in cache
+                const roles = data ? data.rows : []
+                this.cache = roles
+
+                return roles
+            })
+        )
+    }
+
+    /**
+     * Define the name associated with a user role
+     * @param roleId
+     * @returns
+     */
+    getRoleName(roleId: any): string {
+        const role = this.cache.find((role: Role) => Number(role.id) === Number(roleId))
+        return role && role.name ? role.name : ''
+    }
+
+    /**
+     * Define the styleName for UserRole
+     * @param role ID or NAME
+     * @returns
+     */
+    getRoleStyleClass(role: any): string {
+        let roleName: string = role,
+            roleStyleClass = "";
+
+        // If Role is ID
+        if(!isNaN(Number(role))) {
+            roleName = this.getRoleName(role)
+        }
+        roleStyleClass = roleName.trim().toLowerCase().replace(/\s+/g, '')
+
+        return `user-role-badge role-${roleStyleClass}`
     }
 }

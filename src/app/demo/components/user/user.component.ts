@@ -10,6 +10,7 @@ import { RoleService } from '../../service/role.service';
 import { LogService } from '../../service/log.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { User } from '../../api/user';
+import { Role } from '../../api/role';
 import * as moment from 'moment';
 moment.locale('hu')
 
@@ -41,7 +42,7 @@ export class UserComponent implements OnInit {
     bulkDeleteDialog: boolean = false;           // Popup for deleting table items
     selected: User[] = [];                       // Table items chosen by user
     selectedUserRole: string;                    // User Role chosen by user
-    roles: any[] = []                            // Possible roles
+    roles: Role[] = []                            // Possible roles
     userForm: FormGroup;                         // Form for user registration and modification
 
     private userObs$: Observable<any> | undefined;
@@ -50,9 +51,8 @@ export class UserComponent implements OnInit {
 
     constructor(
         public userService: UserService,
-        private roleService: RoleService,
+        public roleService: RoleService,
         private messageService: MessageService,
-        private logService: LogService,
         private fb: FormBuilder) { }
 
     ngOnInit() {
@@ -92,13 +92,12 @@ export class UserComponent implements OnInit {
             }
         })
 
-        // Roles
-        this.roleObs$ = this.roleService.roleObs;
-        this.roleObs$.subscribe((data: any) => {
-            this.roles = data ? data.rows : []
-        })
         // Get roles for selector
-        this.roleService.get(0, 999, '', '')
+        this.roleService.getRolesForSelector().subscribe({
+            next: (data) => {
+                this.roles = data
+            }
+        })
 
         // Message
         this.serviceMessageObs$ = this.userService.messageObs;
@@ -170,7 +169,7 @@ export class UserComponent implements OnInit {
             if (this.filterValues[field] === filterValue) {
                 this.doQuery()
             }
-        // otherwise wait for the debounce time
+            // otherwise wait for the debounce time
         } else {
             if (this.debounce[field]) {
                 clearTimeout(this.debounce[field])
@@ -284,35 +283,11 @@ export class UserComponent implements OnInit {
         // At User create, it is mandatory to enter the password
         if (!idValue) {
             passwordControl?.setValidators([Validators.required])
-        // It is not mandatory for modification
+            // It is not mandatory for modification
         } else {
             passwordControl?.clearValidators()
         }
         passwordControl?.updateValueAndValidity()
-    }
-
-    /**
-     * Define the name associated with a user role
-     * @param roleId
-     * @returns
-     */
-    getRoleName(roleId: any): string {
-        const role = this.roles.find(role => role.id === Number(roleId))
-        return role ? role.name : ''
-    }
-
-    /**
-     * Define the styleName for UserRole
-     * @param role
-     * @returns
-     */
-    getRoleStyleClass(roleId: any): string {
-        let roleName: string = this.getRoleName(roleId),
-            roleStyleClass = "";
-
-        roleStyleClass = roleName.trim().toLowerCase().replace(/\s+/g, '')
-
-        return `user-role-badge role-${roleStyleClass}`
     }
 
     // Don't delete this, its needed from a performance point of view,

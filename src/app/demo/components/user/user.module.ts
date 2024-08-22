@@ -21,6 +21,7 @@ import { MessagesModule } from 'primeng/messages';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { PasswordModule } from 'primeng/password';
+import { UserService } from '../../service/user.service';
 
 @NgModule({
     imports: [
@@ -47,6 +48,7 @@ import { PasswordModule } from 'primeng/password';
         BlockUIModule,
         PasswordModule
     ],
-    declarations: [UserComponent]
+    declarations: [UserComponent],
+    providers: [UserService]
 })
 export class UserModule { }
