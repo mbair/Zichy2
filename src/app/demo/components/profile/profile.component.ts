@@ -7,7 +7,6 @@ import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MessageService } from 'primeng/api';
 import { UserService } from '../../service/user.service';
 import { RoleService } from '../../service/role.service';
-import { LogService } from '../../service/log.service';
 import { ApiResponse } from '../../api/ApiResponse';
 
 @Component({
@@ -34,7 +33,6 @@ export class ProfileComponent implements OnInit {
         public userService: UserService,
         private roleService: RoleService,
         private messageService: MessageService,
-        private logService: LogService,
         private fb: FormBuilder) { }
 
     ngOnInit() {
@@ -47,12 +45,19 @@ export class ProfileComponent implements OnInit {
             id: [''],
             username: [''],
             fullname: ['', Validators.required],
-            user_rolesid: ['', [Validators.required]],
+            user_rolesid: [{ value: '', disabled: true }, Validators.required],
             email: ['', [Validators.required, emailDomainValidator()]],
             phone: ['', [Validators.required]],
             password: [''],
             password_again: [''],
         }, { validators: passwordMatchValidator() })
+
+        // Enabling/Disabling userRole dropdown by actual user role
+        if (this.userService.hasRole(['Super Admin', 'Nagy Admin'])) {
+            this.userForm.get('user_rolesid')?.enable()
+        } else {
+            this.userForm.get('user_rolesid')?.disable()
+        }
 
         // TODO: Remove username from backend
         // Monitoring the changes in the email field
