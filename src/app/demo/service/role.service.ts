@@ -194,7 +194,7 @@ export class RoleService {
             return of(this.cache)
         }
 
-        this.get(0, 999, '', '')
+        this.get(0, 999, { sortField: 'id', sortOrder: 1 }, '')
         return this.data$.asObservable().pipe(
             map((data: any) => {
                 // Only Super Admins are allowed to chose Super Admin role
