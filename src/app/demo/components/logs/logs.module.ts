@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { LogsRoutingModule } from './logs-routing.module';
 import { LogsComponent } from './logs.component';
 import { TableModule } from 'primeng/table';
@@ -14,9 +14,13 @@ import { DropdownModule } from 'primeng/dropdown';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
+import { TagModule } from 'primeng/tag';
+import { MessagesModule } from 'primeng/messages';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
-import { TagModule } from 'primeng/tag';
+import { CalendarModule } from 'primeng/calendar';
+import { ChipModule } from 'primeng/chip';
+import { LogService } from '../../service/log.service';
 
 @NgModule({
     imports: [
@@ -24,6 +28,7 @@ import { TagModule } from 'primeng/tag';
         LogsRoutingModule,
         TableModule,
         FormsModule,
+        ReactiveFormsModule,
         ButtonModule,
         RippleModule,
         ToastModule,
@@ -35,9 +40,13 @@ import { TagModule } from 'primeng/tag';
         InputNumberModule,
         DialogModule,
         TagModule,
+        MessagesModule,
         ProgressSpinnerModule,
         BlockUIModule,
+        CalendarModule,
+        ChipModule,
     ],
-    declarations: [LogsComponent]
+    declarations: [LogsComponent],
+    providers: [LogService]
 })
 export class LogsModule { }

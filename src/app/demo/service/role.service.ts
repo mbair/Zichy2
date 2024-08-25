@@ -13,7 +13,7 @@ import { Role } from '../api/role';
 export class RoleService {
 
     public apiURL: string
-    private cache: Role[] = [];
+    private cache: Role[] = []
     private data$: BehaviorSubject<any>
     private message$: BehaviorSubject<any>
 

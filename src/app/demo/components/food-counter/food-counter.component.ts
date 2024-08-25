@@ -173,9 +173,10 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 console.log('Előzővel azonos RFID kód')
 
                 // Logging same RFID code
-                this.logService.createLog({
-                    name: "FoodCounter same code: " + this.scannedCode + " | Lang: " + navigator.language,
-                    capacity: 0
+                this.logService.create({
+                    action_type: "Same code",
+                    table_name: "food_counter",
+                    original_data: "FoodCounter same code: " + this.scannedCode,
                 })
 
                 this.scanTemp = ''
@@ -189,9 +190,10 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             console.log('scannedCode', this.scannedCode)
 
             // Logging scannedCode
-            this.logService.createLog({
-                name: "FoodCounter scannedCode: " + this.scannedCode + " | Lang: " + navigator.language,
-                capacity: 0
+            this.logService.create({
+                action_type: "Scanned code",
+                table_name: "food_counter",
+                original_data: "FoodCounter scannedCode: " + this.scannedCode,
             })
 
             // Reset Guest
@@ -326,9 +328,10 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                         this.alreadyReceivedFood = true
 
                         // Logging error
-                        this.logService.createLog({
-                            name: "FoodCounter Already received food: " + this.guest.lastName + " " + this.guest.firstName + " " + this.guest.rfid + " | Lang: " + navigator.language,
-                            capacity: 0
+                        this.logService.create({
+                            action_type: "Already received food",
+                            table_name: "food_counter",
+                            original_data: "FoodCounter Already received food: " + this.guest.lastName + " " + this.guest.firstName + " " + this.guest.rfid,
                         })
 
                         return
@@ -355,9 +358,10 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 }
 
                 // Logging error
-                this.logService.createLog({
-                    name: "FoodCounter Unknown Device: " + rfid + " | Lang: " + navigator.language,
-                    capacity: 0
+                this.logService.create({
+                    action_type: "Unknown Device",
+                    table_name: "food_counter",
+                    original_data: "FoodCounter Unknown Device: " + rfid,
                 })
                 // }
             }

@@ -134,8 +134,9 @@ export class ProfileComponent implements OnInit {
             // If the password field is empty, it is deleted from the object
             if (!formValues.password) {
                 delete formValues.password
-                delete formValues.password_again
             }
+
+            delete formValues.password_again
 
             // UPDATE
             if (formValues.id) {
