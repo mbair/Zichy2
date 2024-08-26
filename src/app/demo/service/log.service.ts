@@ -48,11 +48,18 @@ export class LogService {
 
         const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
 
+
+
         this.apiService.get<ApiResponse>(`logs/get/${url}`)
             .subscribe({
                 next: (response: ApiResponse) => {
                     if (response && response.rows?.length) {
                         response.rows.forEach(row => {
+
+                            row.expandable = this.isRowExpandable(row)
+                            if (!row.status) {
+                                row.response_data = row.original_data
+                            }
 
                             // OK
                             if (row.status == 200) {
@@ -62,10 +69,13 @@ export class LogService {
                                 if (message) {
                                     let original_data = JSON.parse(row.original_data)
                                     if (message == 'Success delete') {
-                                        row.response_data = original_data.fullname + ' felhasználó törölve'
+                                        row.response_data = `${original_data.fullname} felhasználó törölve`
                                     }
                                     else if (message == 'Update success') {
-                                        row.response_data = original_data.fullname + ' felhasználó módosítva'
+                                        row.response_data = `${original_data.fullname} felhasználó módosítva`
+                                    }
+                                    else if (message == 'Guest updated successfully') {
+                                        row.response_data = `${original_data.lastName} ${original_data.firstName} vendég módosítva`
                                     }
                                     else {
                                         row.response_data = message
@@ -237,5 +247,27 @@ export class LogService {
                     this.message$.next(error)
                 }
             })
+    }
+
+
+    /**
+     * System action type rows don't need to be expandable
+     * @param row
+     * @returns
+     */
+    isRowExpandable(row: Log): boolean {
+
+        if (!row.action_type) return false
+
+        const system_action_types = [
+            'scanned code',
+            'same code',
+            'assign tag',
+            'unassign'
+        ]
+
+        let expandable = !system_action_types.includes(row.action_type.toLowerCase())
+
+        return expandable
     }
 }

@@ -150,11 +150,16 @@
                 <ng-template pTemplate="body" let-logs let-expanded="expanded">
                     <tr>
                         <td>
-                            <p-button type="button" styleClass="p-button-rounded p-button-text" pRipple [pRowToggler]="logs" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+                            <p-button *ngIf="canRowBeExpanded(logs)"
+                                      type="button"
+                                      styleClass="p-button-rounded p-button-text"
+                                      pRipple
+                                      [pRowToggler]="logs"
+                                      [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
                         </td>
                         <td>
                             <span class="p-column-title">Rögzítve</span>
-                            {{ logs.createdAt.replace('Z', '') | date:'yyyy.MM.dd HH:mm:ss' }}
+                            {{ logs.createdAt | date:'yyyy.MM.dd HH:mm:ss' : 'UTC' }}
                         </td>
                         <td>
                             <span class="p-column-title">Modul</span>
@@ -180,7 +185,7 @@
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="rowexpansion" let-log>
-                    <tr>
+                    <tr *ngIf="log.table_name !== 'food_counter'">
                         <td colspan="7">
                             <div class="grid p-2">
 

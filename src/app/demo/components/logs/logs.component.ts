@@ -23,28 +23,28 @@ moment.locale('hu')
 
 export class LogsComponent implements OnInit {
 
-    loading: boolean = true;                     // Loading overlay trigger value
-    tableItem: Log = {};                         // One log object
-    tableData: Log[] = [];                       // Data set displayed in a table
-    rowsPerPageOptions = [20, 50, 100];          // Possible rows per page
-    rowsPerPage: number = 20;                    // Default rows per page
-    totalRecords: number = 0;                    // Total number of rows in the table
-    page: number = 0;                            // Current page
-    sortField: string = '';                      // Current sort field
-    sortOrder: number = 1;                       // Current sort order
-    globalFilter: string = '';                   // Global filter
-    filterValues: { [key: string]: string } = {} // Table filter conditions
-    debounce: { [key: string]: any } = {}        // Search delay in filter field
-    dialog: boolean = false;                     // Table item maintenance modal
-    deleteDialog: boolean = false;               // Popup for deleting table item
-    bulkDeleteDialog: boolean = false;           // Popup for deleting table items
-    selected: Log[] = [];                        // Table items chosen by user
-    selectedUser: User | undefined;              // User chosen by user
-    users: User[] = []                           // Possible users
-    action_types: any[] = []                     // Possible action types
-    modules: any[] = []                          // Possible modules
-    statuses: any[] = []                         // Possible HTTP statuses
-    logForm: FormGroup;                          // Form for log creation and modification
+    loading: boolean = true;                       // Loading overlay trigger value
+    tableItem: Log = {};                           // One log object
+    tableData: Log[] = [];                         // Data set displayed in a table
+    rowsPerPageOptions = [20, 50, 100];            // Possible rows per page
+    rowsPerPage: number = 20;                      // Default rows per page
+    totalRecords: number = 0;                      // Total number of rows in the table
+    page: number = 0;                              // Current page
+    sortField: string = '';                        // Current sort field
+    sortOrder: number = 1;                         // Current sort order
+    globalFilter: string = '';                     // Global filter
+    filterValues: { [key: string]: string } = {}   // Table filter conditions
+    debounce: { [key: string]: any } = {}          // Search delay in filter field
+    dialog: boolean = false;                       // Table item maintenance modal
+    deleteDialog: boolean = false;                 // Popup for deleting table item
+    bulkDeleteDialog: boolean = false;             // Popup for deleting table items
+    selected: Log[] = [];                          // Table items chosen by user
+    selectedUser: User | undefined;                // User chosen by user
+    users: User[] = []                             // Possible users
+    action_types: any[] = []                       // Possible action types
+    modules: any[] = []                            // Possible modules
+    statuses: any[] = []                           // Possible HTTP statuses
+    logForm: FormGroup;                            // Form for log creation and modification
 
     private logObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
@@ -90,7 +90,7 @@ export class LogsComponent implements OnInit {
 
         // Modules for selector
         this.modules = [
-            { name: 'Ételpult', code: 'food_counter', icon: 'pi pi-calendar' },
+            { name: 'Ételpult', code: 'food_counter', icon: 'pi pi-circle' },
             { name: 'Konferenciák', code: 'conference', icon: 'pi pi-calendar' },
             { name: 'Vendégek', code: 'guest', icon: 'pi pi-user' },
             { name: 'Szobák', code: 'room', icon: 'pi pi-building' },
@@ -104,7 +104,11 @@ export class LogsComponent implements OnInit {
         this.action_types = [
             'create',
             'update',
-            'delete'
+            'delete',
+            'scanned code',
+            'assign tag',
+            'unassign',
+            'same code'
         ]
 
         // HTTP statuses for selector
@@ -332,6 +336,10 @@ export class LogsComponent implements OnInit {
         } catch (e) {
             return false
         }
+    }
+
+    canRowBeExpanded(rowData: any): boolean {
+        return rowData.expandable
     }
 
     // Don't delete this, its needed from a performance point of view,
