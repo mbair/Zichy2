@@ -5,9 +5,10 @@ export interface Log {
     original_data?: string;
     new_data?: string;
     response_data?: string;
-    user_fullname?: string;
     status?: number;
     createdAt?: string;
     updatedAt?: string;
     userid?: number;
+    user_fullname?: string;
+    user_email?: string;
 }

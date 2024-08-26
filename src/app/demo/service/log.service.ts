@@ -170,6 +170,8 @@ export class LogService {
 
         // System logs can only be created by the SYSTEM user
         log.userid = 1
+        log.user_fullname = 'SYSTEM' // TODO: backend should fill this field
+        log.user_email = 'info@nfcreserve.com' // TODO: backend should fill this field
 
         this.apiService.post(`logs/create/`, log)
             .subscribe({
@@ -263,7 +265,8 @@ export class LogService {
             'scanned code',
             'same code',
             'assign tag',
-            'unassign'
+            'unassign',
+            'already received food',
         ]
 
         let expandable = !system_action_types.includes(row.action_type.toLowerCase())
