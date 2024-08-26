@@ -1,5 +1,5 @@
 export interface Log {
-    id?: string;
+    id?: number;
     action_type?: string;
     table_name?: string;
     original_data?: string;
@@ -9,5 +9,5 @@ export interface Log {
     status?: number;
     createdAt?: string;
     updatedAt?: string;
-    userid?: string;
+    userid?: number;
 }

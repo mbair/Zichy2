@@ -60,14 +60,36 @@ export class LogService {
                                 message = response_data.message
 
                                 if (message) {
-                                    row.response_data = message
+                                    let original_data = JSON.parse(row.original_data)
+                                    if (message == 'Success delete') {
+                                        row.response_data = original_data.fullname + ' felhasználó törölve'
+                                    }
+                                    else if (message == 'Update success') {
+                                        row.response_data = original_data.fullname + ' felhasználó módosítva'
+                                    }
+                                    else {
+                                        row.response_data = message
+                                    }
                                 }
                             }
 
                             // Successful create
                             if (row.status == 201) {
-                                let message = `${row.table_name} created successfully`
-                                message = message.charAt(0).toUpperCase() + message.slice(1)
+                                let new_data = JSON.parse(row.new_data)
+                                let message = ''
+                                // let message = `${row.table_name} created successfully`
+                                // message = message.charAt(0).toUpperCase() + message.slice(1) // TODO: ez már nem kell
+
+                                if (row.table_name == 'conference') {
+                                    message = `${new_data.name} konferencia létrehozva`
+                                }
+                                else if (row.table_name == 'guest') {
+                                    message = `${new_data.lastName} ${new_data.firstName} vendég létrehozva`
+                                }
+                                else if (row.table_name == 'users') {
+                                    message = `${new_data.fullname} felhasználó létrehozva`
+                                }
+
                                 row.response_data = message
                             }
 
@@ -135,6 +157,10 @@ export class LogService {
      * @param log
      */
     public create(log: Log): void {
+
+        // System logs can only be created by the SYSTEM user
+        log.userid = 1
+
         this.apiService.post(`logs/create/`, log)
             .subscribe({
                 next: (response: any) => {

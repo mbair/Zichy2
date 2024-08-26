@@ -42,6 +42,7 @@ export class LogsComponent implements OnInit {
     selectedUser: User | undefined;              // User chosen by user
     users: User[] = []                           // Possible users
     action_types: any[] = []                     // Possible action types
+    modules: any[] = []                          // Possible modules
     statuses: any[] = []                         // Possible HTTP statuses
     logForm: FormGroup;                          // Form for log creation and modification
 
@@ -86,6 +87,18 @@ export class LogsComponent implements OnInit {
                 this.users = data
             }
         })
+
+        // Modules for selector
+        this.modules = [
+            { name: 'Ételpult', code: 'food_counter', icon: 'pi pi-calendar' },
+            { name: 'Konferenciák', code: 'conference', icon: 'pi pi-calendar' },
+            { name: 'Vendégek', code: 'guest', icon: 'pi pi-user' },
+            { name: 'Szobák', code: 'room', icon: 'pi pi-building' },
+            { name: 'Címkék', code: 'rfid', icon: 'pi pi-tags' },
+            { name: 'Étrendek', code: 'diet', icon: 'pi pi-pencil' },
+            { name: 'Felhasználók', code: 'users', icon: 'pi pi-users' },
+            { name: 'Logok', code: 'logs', icon: 'pi pi-list' },
+        ]
 
         // Action types for selector
         this.action_types = [
@@ -150,7 +163,7 @@ export class LogsComponent implements OnInit {
      * @param field
      */
     onFilter(event: any, field: string) {
-        const noWaitFields = ['action_type','status','userid']
+        const noWaitFields = ['action_type', 'status', 'userid', 'table_name']
         let filterValue = ''
 
         // Calendar date as String
@@ -160,7 +173,11 @@ export class LogsComponent implements OnInit {
             filterValue = formattedDate
         } else {
             if (event && (event.value || event.target?.value)) {
-                filterValue = event.value || event.target?.value
+                if (typeof event.value === 'object') {
+                    filterValue = event.value.code
+                } else {
+                    filterValue = event.value || event.target?.value
+                }
                 filterValue = filterValue.toString()
             }
         }
@@ -172,7 +189,7 @@ export class LogsComponent implements OnInit {
             if (this.filterValues[field] === filterValue) {
                 this.doQuery()
             }
-        // otherwise wait for the debounce time
+            // otherwise wait for the debounce time
         } else {
             if (this.debounce[field]) {
                 clearTimeout(this.debounce[field])
@@ -277,6 +294,44 @@ export class LogsComponent implements OnInit {
     cancel() {
         this.logForm.reset()
         this.dialog = false
+    }
+
+    /**
+     * Get Module by Table name
+     */
+    getModuleByTableName(tableName: string) {
+        let module = this.modules.find(mod => mod.code === tableName)
+        return module ? module : null
+    }
+
+    /**
+     * Transform a table from horizontal to vertical
+     * @param obj
+     * @returns
+     */
+    transformData(obj: any): any {
+        if (obj && this.isValidJSON(obj)) {
+            const data = JSON.parse(obj)
+            const keys = Object.keys(data)
+
+            return keys.map(key => {
+                return { key: key, value: data[key] }
+            })
+        }
+    }
+
+    /**
+     * JSON validator
+     * @param str
+     * @returns
+     */
+    isValidJSON(str: string): boolean {
+        try {
+            JSON.parse(str)
+            return true
+        } catch (e) {
+            return false
+        }
     }
 
     // Don't delete this, its needed from a performance point of view,
