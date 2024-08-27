@@ -26,22 +26,26 @@
                         <p-dropdown
                                 inputId="statusfilter"
                                 [options]="statuses"
+                                optionLabel="name"
                                 placeholder="Válasszon státuszt..."
                                 emptyMessage="Nincs találat..."
                                 [showClear]="true"
                                 (onChange)="onFilter($event, 'status')">
                                 <ng-template let-option pTemplate="item">
-                                    <span [ngClass]="'http-status-badge status-' + option">
-                                        {{option}}
+                                    <span [ngClass]="'http-status-badge status-' + option.code">
+                                        <i *ngIf="['200','201'].includes(option.code)" class="pi pi-check"></i>
+                                        <i *ngIf="['400','500'].includes(option.code)" class="pi pi-times"></i>
+                                        {{ option.name }}
                                     </span>
                                 </ng-template>
                                 <ng-template pTemplate="selectedItem">
                                     <span [ngClass]="'http-status-badge status-' + filterValues['status']">
-                                        {{filterValues['status']}}
+                                        <i *ngIf="['200','201'].includes(filterValues['status'])" class="pi pi-check"></i>
+                                        <i *ngIf="['400','500'].includes(filterValues['status'])" class="pi pi-times"></i>
+                                        {{getStatusByCode(filterValues['status'])}}
                                     </span>
                                 </ng-template>
                             </p-dropdown>
-
 
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
                             <i class="pi pi-search"></i>

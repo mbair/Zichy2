@@ -114,10 +114,10 @@ export class LogsComponent implements OnInit {
 
         // HTTP statuses for selector
         this.statuses = [
-            200, // OK
-            201, // Created
-            400, // Bad request
-            500  // Internal server Error
+            { name: '200 - OK', code: '200', icon: 'pi pi-check' },
+            { name: '201 - Created', code: '201', icon: 'pi pi-check' },
+            { name: '400 - Bad request', code: '400', icon: 'pi pi-times' },
+            { name: '500 - Internal server Error', code: '500', icon: 'pi pi-times' },
         ]
 
         // Message
@@ -302,7 +302,19 @@ export class LogsComponent implements OnInit {
     }
 
     /**
+     * Get Status by code
+     * @param code
+     * @returns
+     */
+    getStatusByCode(code: string) {
+        let status = this.statuses.find(s => s.code === code)
+        return status ? status.name : null
+    }
+
+    /**
      * Get Module by Table name
+     * @param tableName
+     * @returns
      */
     getModuleByTableName(tableName: string) {
         let module = this.modules.find(mod => mod.code === tableName)
