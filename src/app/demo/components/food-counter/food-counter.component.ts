@@ -176,7 +176,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.logService.create({
                     action_type: "Same code",
                     table_name: "food_counter",
-                    original_data: `Guest: ${this.guest.lastName} ${this.guest.firstName} | Tag: ${this.scannedCode}`,
+                    original_data: `${this.guest.lastName} ${this.guest.firstName} (${this.scannedCode})`,
                 })
 
                 this.scanTemp = ''
@@ -193,7 +193,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             this.logService.create({
                 action_type: "Scanned code",
                 table_name: "food_counter",
-                original_data: `Tag: ${this.scannedCode}`,
+                original_data: `${this.scannedCode}`,
             })
 
             // Reset Guest
@@ -331,7 +331,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                         this.logService.create({
                             action_type: "Already received food",
                             table_name: "food_counter",
-                            original_data: `Guest: ${this.guest.lastName} ${this.guest.firstName} | Tag: ${this.guest.rfid}`,
+                            original_data: `${this.guest.lastName} ${this.guest.firstName} (${this.guest.rfid})`,
                         })
 
                         return
@@ -361,7 +361,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.logService.create({
                     action_type: "Unknown Device",
                     table_name: "food_counter",
-                    original_data: `Unknown Device | Tag: ${rfid}`,
+                    original_data: `Unknown Device (${rfid})`,
                 })
                 // }
             }
