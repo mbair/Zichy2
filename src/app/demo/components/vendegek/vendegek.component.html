@@ -223,7 +223,7 @@
                                     </tr>
                                     <tr>
                                         <td class="font-medium">Nemzetiség:</td>
-                                        <td><img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + guest.nationality.toLowerCase()" style="width:18px"/>{{guest.nationality}}</td>
+                                        <td><img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + guest.nationality?.toLowerCase()" style="width:18px"/>{{guest.nationality}}</td>
                                     </tr>
                                     <tr>
                                         <td class="font-medium">Ország:</td>
@@ -396,13 +396,13 @@
                                     [virtualScrollItemSize]="30">
                             <ng-template let-country pTemplate="selectedItem">
                                 <div class="flex align-items-center gap-2" *ngIf="guest.country">
-                                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code.toLowerCase()" style="width: 18px"/>
+                                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code?.toLowerCase()" style="width: 18px"/>
                                     <div>{{guest.country}}</div>
                                 </div>
                             </ng-template>
                             <ng-template let-country pTemplate="item">
                                 <div class="flex align-items-center">
-                                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + country.code.toLowerCase()" style="width:18px"/>
+                                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + country.code?.toLowerCase()" style="width:18px"/>
                                     <div>{{country.huname}}</div>
                                 </div>
                             </ng-template>
@@ -422,13 +422,13 @@
                                     [virtualScrollItemSize]="30">
                             <ng-template let-country pTemplate="selectedItem">
                                 <div class="flex align-items-center gap-2" *ngIf="guest.nationality">
-                                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code.toLowerCase()" style="width: 18px"/>
+                                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code?.toLowerCase()" style="width: 18px"/>
                                     <div>{{guest.nationality}}</div>
                                 </div>
                             </ng-template>
                             <ng-template let-country pTemplate="item">
                                 <div class="flex align-items-center">
-                                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + country.code.toLowerCase()" style="width:18px"/>
+                                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + country.code?.toLowerCase()" style="width:18px"/>
                                     <div>{{country.hunationality}}</div>
                                 </div>
                             </ng-template>

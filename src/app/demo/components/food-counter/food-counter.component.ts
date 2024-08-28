@@ -257,46 +257,84 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                 if (dateOfArrival <= today && today <= dateOfDeparture) {
 
-                    // The arrival date is today
-                    if (dateOfArrival.isSame(today, 'day')) {
-                        if (this.currentMeal == 'reggeli') {
-                            if (data.firstMeal == 'reggeli') {
-                                this.canEat = true
-                            }
-                        }
-                        else if (this.currentMeal == 'ebéd') {
-                            if (data.firstMeal == 'reggeli' || data.firstMeal == 'ebéd') {
-                                this.canEat = true
-                            }
-                        }
-                        else if (this.currentMeal == 'vacsora') {
-                            if (data.firstMeal == 'reggeli' || data.firstMeal == 'ebéd' || data.firstMeal == 'vacsora') {
-                                this.canEat = true
-                            }
-                        }
+                    // Don't ask for meal, we will not investigate further
+                    if (data.diet == 'nem kér étkezést') {
+                        this.canEat = false
+                        return
                     }
 
-                    // Intermediate days
-                    if (!dateOfArrival.isSame(today, 'day') && !dateOfDeparture.isSame(today, 'day')) {
-                        this.canEat = true
-                    }
+                    // VISITOR (NOT HOTEL GUEST)
+                    if (data.roomNum?.includes("látogató")){
 
-                    // The departure date is today
-                    if (dateOfDeparture.isSame(today, 'day')) {
-                        this.canEat = false // Needed when arrival and departure are same day
-                        if (this.currentMeal == 'reggeli') {
-                            if (data.lastMeal == 'reggeli' || data.lastMeal == 'ebéd' || data.lastMeal == 'vacsora') {
+                        // visitor + more meal
+                        if (data.roomNum == 'látogató +több étkezés') {
+                            this.canEat = true
+                        }
+
+                        // visitor +1 meal
+                        if (data.roomNum == 'látogató +1 étkezés') {
+                            // If visitor eat today, or
+                            // has used the RFID and it was not today
+                            if (!data.lastRfidUsage ||
+                                (data.lastRfidUsage && !moment(data.lastRfidUsage).isSame(moment(), 'day'))) {
+                                    this.canEat = true
+                            }
+                        }
+
+                        // visitor +2 meal
+                        if (data.roomNum == 'látogató +2 étkezés') {
+                            // First meal or Last meal is equivalent with current meal.
+                            // It works differently than with the guest, here it doesn't mean the first and last meal,
+                            // but when the visitor can eat during the day
+                            if (data.firstMeal == this.currentMeal || data.lastMeal == this.currentMeal) {
                                 this.canEat = true
                             }
                         }
-                        if (this.currentMeal == 'ebéd') {
-                            if (data.lastMeal == 'ebéd' || data.lastMeal == 'vacsora') {
-                                this.canEat = true
+
+                    // HOTEL GUEST
+                    } else {
+
+                        // The arrival date is today
+                        if (dateOfArrival.isSame(today, 'day')) {
+                            if (this.currentMeal == 'reggeli') {
+                                if (data.firstMeal == 'reggeli') {
+                                    this.canEat = true
+                                }
+                            }
+                            else if (this.currentMeal == 'ebéd') {
+                                if (data.firstMeal == 'reggeli' || data.firstMeal == 'ebéd') {
+                                    this.canEat = true
+                                }
+                            }
+                            else if (this.currentMeal == 'vacsora') {
+                                if (data.firstMeal == 'reggeli' || data.firstMeal == 'ebéd' || data.firstMeal == 'vacsora') {
+                                    this.canEat = true
+                                }
                             }
                         }
-                        else if (this.currentMeal == 'vacsora') {
-                            if (data.lastMeal == 'vacsora') {
-                                this.canEat = true
+
+                        // Intermediate days
+                        if (!dateOfArrival.isSame(today, 'day') && !dateOfDeparture.isSame(today, 'day')) {
+                            this.canEat = true
+                        }
+
+                        // The departure date is today
+                        if (dateOfDeparture.isSame(today, 'day')) {
+                            this.canEat = false // Needed when arrival and departure are same day
+                            if (this.currentMeal == 'reggeli') {
+                                if (data.lastMeal == 'reggeli' || data.lastMeal == 'ebéd' || data.lastMeal == 'vacsora') {
+                                    this.canEat = true
+                                }
+                            }
+                            if (this.currentMeal == 'ebéd') {
+                                if (data.lastMeal == 'ebéd' || data.lastMeal == 'vacsora') {
+                                    this.canEat = true
+                                }
+                            }
+                            else if (this.currentMeal == 'vacsora') {
+                                if (data.lastMeal == 'vacsora') {
+                                    this.canEat = true
+                                }
                             }
                         }
                     }

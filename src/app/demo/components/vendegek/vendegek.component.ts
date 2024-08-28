@@ -120,7 +120,7 @@ export class VendegekComponent implements OnInit {
             this.loading = false
             if (data && data.rows) {
                 data.rows.map((diet: any) => {
-                    diet.name = diet.name.toLowerCase()
+                    diet.name = diet.name?.toLowerCase()
                     this.diets.push(diet)
                 })
             }
@@ -574,9 +574,9 @@ export class VendegekComponent implements OnInit {
 
     getCountryCode(countryName: string): string | null {
         const country = this.countries.find(c =>
-            c.name.toLowerCase() === countryName.toLowerCase()
+            c.name.toLowerCase() === countryName?.toLowerCase()
         )
-        return country ? country.code.toLowerCase() : null
+        return country ? country.code?.toLowerCase() : null
     }
 
     @HostListener('window:keypress', ['$event'])

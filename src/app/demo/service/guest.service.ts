@@ -85,7 +85,6 @@ export class GuestService {
     }
 
     public updateLastTagUsage(guestId: string | undefined): void {
-        console.log('updateLastTagUsage', guestId);
         this.apiService.get<ApiResponse>(`guest/updatelasttagusage/${guestId}`)
             .subscribe({
                 next: (response: ApiResponse) => { },

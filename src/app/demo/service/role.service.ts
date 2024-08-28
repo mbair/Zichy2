@@ -233,7 +233,7 @@ export class RoleService {
         if(!isNaN(Number(role))) {
             roleName = this.getRoleName(role)
         }
-        roleStyleClass = roleName.trim().toLowerCase().replace(/\s+/g, '')
+        roleStyleClass = roleName.trim()?.toLowerCase().replace(/\s+/g, '')
 
         return `user-role-badge role-${roleStyleClass}`
     }

@@ -269,7 +269,7 @@ export class LogService {
             'already received food',
         ]
 
-        let expandable = !system_action_types.includes(row.action_type.toLowerCase())
+        let expandable = !system_action_types.includes(row.action_type?.toLowerCase())
 
         return expandable
     }

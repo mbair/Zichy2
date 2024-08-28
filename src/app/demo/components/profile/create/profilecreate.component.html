@@ -28,7 +28,7 @@
                     <p-dropdown inputId="country" [options]="countries" optionLabel="name" [filter]="true" filterBy="name" [showClear]="true" placeholder="Select a Country">
                         <ng-template let-country pTemplate="item">
                             <div class="flex align-items-center">
-                                <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + country.code.toLowerCase()" style="width:18px"/>
+                                <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + country.code?.toLowerCase()" style="width:18px"/>
                                 <div>{{country.name}}</div>
                             </div>
                         </ng-template>
@@ -46,7 +46,7 @@
                     <label for="website" class="font-medium text-900">Website</label>
                     <div class="p-inputgroup">
                         <span class="p-inputgroup-addon">www</span>
-                        <input id="website" type="text" pInputText>      
+                        <input id="website" type="text" pInputText>
                     </div>
                 </div>
                 <div class="col-12">

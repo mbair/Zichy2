@@ -58,8 +58,8 @@ export class ApiService {
     }
 
     private refreshToken(response: any) {
-        const token = response.headers.get('Authorization') || '';
-        localStorage.setItem("token", token)
+        const token = response.headers.get('Authorization')
+        if (token) localStorage.setItem("token", token)
     }
 
     private handleError(error: HttpErrorResponse) {
