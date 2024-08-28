@@ -13,7 +13,7 @@ import { Role } from '../api/role';
 export class RoleService {
 
     public apiURL: string
-    private cache: Role[] = [];
+    private cache: Role[] = []
     private data$: BehaviorSubject<any>
     private message$: BehaviorSubject<any>
 
@@ -233,7 +233,7 @@ export class RoleService {
         if(!isNaN(Number(role))) {
             roleName = this.getRoleName(role)
         }
-        roleStyleClass = roleName.trim().toLowerCase().replace(/\s+/g, '')
+        roleStyleClass = roleName.trim()?.toLowerCase().replace(/\s+/g, '')
 
         return `user-role-badge role-${roleStyleClass}`
     }

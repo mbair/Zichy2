@@ -120,7 +120,7 @@ export class VendegekComponent implements OnInit {
             this.loading = false
             if (data && data.rows) {
                 data.rows.map((diet: any) => {
-                    diet.name = diet.name.toLowerCase()
+                    diet.name = diet.name?.toLowerCase()
                     this.diets.push(diet)
                 })
             }
@@ -366,9 +366,10 @@ export class VendegekComponent implements OnInit {
         }, 200)
 
         // Logging
-        this.logService.createLog({
-            name: "Unassign Tag from " + this.guest.lastName + " " + this.guest.firstName + " | Lang: " + navigator.language,
-            capacity: 0
+        this.logService.create({
+            action_type: "unassign",
+            table_name: "guest",
+            original_data: "Unassign Tag from " + this.guest.lastName + " " + this.guest.firstName,
         })
     }
 
@@ -453,9 +454,10 @@ export class VendegekComponent implements OnInit {
                                     { severity: 'error', summary: '', detail: data.lastName + ' ' + data.firstName + ' már használja a karszalagot!' },
                                 ]
                                 // Logging
-                                this.logService.createLog({
-                                    name: "Tag duplicate: " + data.rfid + " is used by " + data.lastName + " " + data.firstName + " | Lang: " + navigator.language,
-                                    capacity: 0
+                                this.logService.create({
+                                    action_type: "Tag duplicate",
+                                    table_name: "guest",
+                                    original_data: "Tag duplicate: " + data.rfid + " is used by " + data.lastName + " " + data.firstName,
                                 })
                                 return
                             },
@@ -478,9 +480,10 @@ export class VendegekComponent implements OnInit {
                                     }, 200);
 
                                     // Logging
-                                    this.logService.createLog({
-                                        name: "Assign Tag " + this.guest.rfid + " to " + this.guest.lastName + " " + this.guest.firstName + " | Lang: " + navigator.language,
-                                        capacity: 0
+                                    this.logService.create({
+                                        action_type: "Assign Tag",
+                                        table_name: "guest",
+                                        original_data: "Assign Tag " + this.guest.rfid + " to " + this.guest.lastName + " " + this.guest.firstName,
                                     })
 
                                     this.scannedCode = '';
@@ -524,9 +527,11 @@ export class VendegekComponent implements OnInit {
         fileUpload.clear()
 
         // Logging
-        this.logService.createLog({
-            name: "Error while importing Excel | File: " + event.files[0].name + ", Size: " + event.files[0].size,
-            capacity: 0
+        this.logService.create({
+            action_type: "import",
+            table_name: "guest",
+            original_data: "Error while importing Excel | File: " + event.files[0].name + ", Size: " + event.files[0].size,
+            status: 500,
         })
     }
 
@@ -545,9 +550,10 @@ export class VendegekComponent implements OnInit {
         })
 
         // Logging
-        this.logService.createLog({
-            name: "Successful Excel importing | File: " + event.files[0].name + ", Size: " + event.files[0].size,
-            capacity: 0
+        this.logService.create({
+            action_type: "import",
+            table_name: "guest",
+            original_data: "Successful Excel importing | File: " + event.files[0].name + ", Size: " + event.files[0].size,
         })
     }
 
@@ -568,9 +574,9 @@ export class VendegekComponent implements OnInit {
 
     getCountryCode(countryName: string): string | null {
         const country = this.countries.find(c =>
-            c.name.toLowerCase() === countryName.toLowerCase()
+            c.name.toLowerCase() === countryName?.toLowerCase()
         )
-        return country ? country.code.toLowerCase() : null
+        return country ? country.code?.toLowerCase() : null
     }
 
     @HostListener('window:keypress', ['$event'])

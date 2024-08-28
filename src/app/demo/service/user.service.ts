@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { User } from '../api/user';
@@ -11,6 +12,7 @@ import { User } from '../api/user';
 export class UserService {
 
     public apiURL: string
+    private cache: User[] = []
     private data$: BehaviorSubject<any>
     private message$: BehaviorSubject<any>
 
@@ -199,5 +201,27 @@ export class UserService {
     public hasRole(roles: string[]): boolean {
         const userRole = this.getUserRole()
         return roles.includes(userRole)
+    }
+
+    /**
+     * Get users for selector
+     * @returns
+     */
+    getUsersForSelector(): Observable<User[]> {
+        // Check if there is already cached data
+        if (this.cache.length > 0) {
+            return of(this.cache)
+        }
+
+        this.get(0, 999, { sortField: 'fullname', sortOrder: 1 }, '')
+        return this.data$.asObservable().pipe(
+            map((data: any) => {
+                // Store users in cache
+                const roles = data ? data.rows : []
+                this.cache = roles
+
+                return roles
+            })
+        )
     }
 }

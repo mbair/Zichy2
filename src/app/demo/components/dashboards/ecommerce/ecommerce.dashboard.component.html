@@ -131,7 +131,7 @@
                             {{product.price | currency:'USD'}}</td>
                         <td>
                             <span class="p-column-title">Státusz</span>
-                            <span [class]="'product-badge status-' + product.inventoryStatus.toLowerCase()">{{product.inventoryStatus}}</span>
+                            <span [class]="'product-badge status-' + product.inventoryStatus?.toLowerCase()">{{product.inventoryStatus}}</span>
                         </td>
                         <td style="text-align: center">
                             <button pButton type="button" icon="pi pi-search" class="p-button-outlined p-button-rounded"></button>

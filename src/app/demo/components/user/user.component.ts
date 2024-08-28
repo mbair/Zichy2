@@ -7,7 +7,6 @@ import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { UserService } from '../../service/user.service';
 import { RoleService } from '../../service/role.service';
-import { LogService } from '../../service/log.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { User } from '../../api/user';
 import { Role } from '../../api/role';
@@ -46,7 +45,6 @@ export class UserComponent implements OnInit {
     userForm: FormGroup;                         // Form for user registration and modification
 
     private userObs$: Observable<any> | undefined;
-    private roleObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
 
     constructor(

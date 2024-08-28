@@ -138,4 +138,59 @@
     }
 }
 
+/* Action types */
+.action-type-badge {
+    border-radius: var(--border-radius);
+    padding: .25em .5rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .3px;
+
+    &.create {
+        background: var(--teal-200);
+        color: var(--teal-800);
+    }
+
+    &.update {
+        background: var(--yellow-200);
+        color: var(--yellow-800);
+    }
+
+    &.delete {
+        background: var(--red-200);
+        color: var(--red-800);
+    }
+}
+
+/* HTTP Statuses */
+.http-status-badge {
+    border-radius: var(--border-radius);
+    padding: .25em .5rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .3px;
+
+    &.status-200 {
+        background: var(--green-200);
+        color: var(--green-800);
+    }
+
+    &.status-201 {
+        background: var(--teal-200);
+        color: var(--teal-800);
+    }
+
+    &.status-400 {
+        background: var(--orange-200);
+        color: var(--orange-800);
+    }
+
+    &.status-500 {
+        background: var(--red-200);
+        color: var(--red-800);
+    }
+}
+
 /* TODO: Diet badges */

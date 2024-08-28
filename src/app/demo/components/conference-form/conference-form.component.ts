@@ -81,7 +81,7 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
             this.loading = false
             if (data && data.rows) {
                 data.rows.map((diet: any) => {
-                    diet.name = diet.name.toLowerCase()
+                    diet.name = diet.name?.toLowerCase()
                     this.diets.push(diet)
                 })
             }

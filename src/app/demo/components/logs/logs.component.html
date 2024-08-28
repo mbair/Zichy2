@@ -2,21 +2,51 @@
     <div class="col-12">
         <div class="card px-0 py-0">
             <p-table #dt
-                    [value]="logs"
-                    [sortOrder]="-1"
-                    sortField="name"
-                    responsiveLayout="createdAt"
-                    [rows]="50"
-                    [globalFilterFields]="['name','createdAt']"
-                    [paginator]="true"
-                    [rowsPerPageOptions]="[50,100,200]"
-                    [showCurrentPageReport]="true"
-                    currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
-                    [rowHover]="true"
-                    dataKey="id">
+                     dataKey="id"
+                     [value]="tableData"
+                     responsiveLayout="scroll"
+                     [rows]="rowsPerPage"
+                     [totalRecords]="totalRecords"
+                     [globalFilterFields]="['action_type','status','table_name','user_fullname']"
+                     [paginator]="true"
+                     [rowsPerPageOptions]="rowsPerPageOptions"
+                     [showCurrentPageReport]="true"
+                     currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
+                     [(selection)]="selected"
+                     selectionMode="multiple"
+                     [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
+                     [rowHover]="true"
+                     (onLazyLoad)="onLazyLoad($event)"
+                     [lazy]="true">
+
                 <ng-template pTemplate="caption">
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
                         <h5 class="m-0">Logok</h5>
+
+                        <p-dropdown
+                                inputId="statusfilter"
+                                [options]="statuses"
+                                optionLabel="name"
+                                placeholder="Válasszon státuszt..."
+                                emptyMessage="Nincs találat..."
+                                [showClear]="true"
+                                (onChange)="onFilter($event, 'status')">
+                                <ng-template let-option pTemplate="item">
+                                    <span [ngClass]="'http-status-badge status-' + option.code">
+                                        <i *ngIf="['200','201'].includes(option.code)" class="pi pi-check"></i>
+                                        <i *ngIf="['400','500'].includes(option.code)" class="pi pi-times"></i>
+                                        {{ option.name }}
+                                    </span>
+                                </ng-template>
+                                <ng-template pTemplate="selectedItem">
+                                    <span [ngClass]="'http-status-badge status-' + filterValues['status']">
+                                        <i *ngIf="['200','201'].includes(filterValues['status'])" class="pi pi-check"></i>
+                                        <i *ngIf="['400','500'].includes(filterValues['status'])" class="pi pi-times"></i>
+                                        {{getStatusByCode(filterValues['status'])}}
+                                    </span>
+                                </ng-template>
+                            </p-dropdown>
+
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
                             <i class="pi pi-search"></i>
                             <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."  class="w-full sm:w-auto"/>
@@ -25,20 +55,185 @@
                 </ng-template>
                 <ng-template pTemplate="header">
                     <tr>
+                        <th style="width: 3rem"></th>
                         <th pSortableColumn="createdAt">Rögzítve <p-sortIcon field="createdAt"></p-sortIcon></th>
-                        <th pSortableColumn="name">Szöveg <p-sortIcon field="name"></p-sortIcon></th>
+                        <th pSortableColumn="table_name">Modul <p-sortIcon field="table_name"></p-sortIcon></th>
+                        <th pSortableColumn="action_type">Művelet <p-sortIcon field="action_type"></p-sortIcon></th>
+                        <th pSortableColumn="response_data">Válasz <p-sortIcon field="response_data"></p-sortIcon></th>
+                        <th pSortableColumn="user_fullname">Felhasználó <p-sortIcon field="user_fullname"></p-sortIcon></th>
+                    </tr>
+
+                    <!-- Filters -->
+                    <tr>
+                        <th></th>
+                        <th>
+                            <p-calendar
+                                (onSelect)="onFilter($event, 'createdAt')"
+                                (onClearClick)="onFilter($event, 'createdAt')"
+                                placeholder="Keresés..."
+                                appendTo="body"
+                                [showButtonBar]="true"
+                                [style]="{'width':'20%', 'minWidth':'7rem'}"
+                                [inputStyle]="{'minWidth':'5rem'}">
+                            </p-calendar>
+                        </th>
+                        <th>
+                            <p-dropdown
+                                inputId="module_filter"
+                                [options]="modules"
+                                optionLabel="name"
+                                placeholder="Keresés..."
+                                emptyMessage="Nincs találat..."
+                                [showClear]="true"
+                                (onChange)="onFilter($event, 'table_name')">
+                                <ng-template let-option pTemplate="item">
+                                    <span>
+                                        <i [ngClass]="option.icon" style="color: slateblue"></i>
+                                        <span class="ml-2">{{ option.name }}</span>
+                                    </span>
+                                </ng-template>
+                                <ng-template pTemplate="selectedItem">
+                                    <span>
+                                        <i [ngClass]="getModuleByTableName(filterValues['table_name']).icon" style="color: slateblue"></i>
+                                        <span class="ml-2">{{ getModuleByTableName(filterValues['table_name']).name }}</span>
+                                    </span>
+                                </ng-template>
+                            </p-dropdown>
+                        </th>
+                        <th>
+                            <p-dropdown
+                                inputId="action_type_filter"
+                                [options]="action_types"
+                                placeholder="Keresés..."
+                                emptyMessage="Nincs találat..."
+                                [showClear]="true"
+                                (onChange)="onFilter($event, 'action_type')">
+                                <ng-template let-option pTemplate="item">
+                                    <span [ngClass]="'action-type-badge ' + option">
+                                        {{ option }}
+                                    </span>
+                                </ng-template>
+                                <ng-template pTemplate="selectedItem">
+                                    <span [ngClass]="'action-type-badge ' + filterValues['action_type']">
+                                        {{ filterValues['action_type'] }}
+                                    </span>
+                                </ng-template>
+                            </p-dropdown>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'response_data')"
+                                   placeholder="Keresés..."
+                                   style="min-width:23rem"/>
+                        </th>
+                        <th>
+                            <p-dropdown
+                                inputId="userfilter"
+                                [options]="users"
+                                optionLabel="fullname"
+                                optionValue="id"
+                                placeholder="Keresés..."
+                                emptyMessage="Nincs találat..."
+                                [showClear]="true"
+                                (onChange)="onUserSelected($event); onFilter($event, 'userid')"
+                                [style]="{'minWidth':'13rem'}">
+                                <ng-template let-option pTemplate="item">
+                                        {{ option.fullname }}
+                                </ng-template>
+                                <ng-template pTemplate="selectedItem">
+                                    <span *ngIf="selectedUser">
+                                        {{ selectedUser.fullname }}
+                                    </span>
+                                </ng-template>
+                            </p-dropdown>
+                        </th>
                     </tr>
                 </ng-template>
-                <ng-template pTemplate="body" let-logs>
+
+                <ng-template pTemplate="body" let-logs let-expanded="expanded">
                     <tr>
+                        <td>
+                            <p-button *ngIf="canRowBeExpanded(logs)"
+                                      type="button"
+                                      styleClass="p-button-rounded p-button-text"
+                                      pRipple
+                                      [pRowToggler]="logs"
+                                      [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+                        </td>
                         <td>
                             <span class="p-column-title">Rögzítve</span>
                             {{ logs.createdAt | date:'yyyy.MM.dd HH:mm:ss' }}
                         </td>
                         <td>
-                            <span class="p-column-title">Szöveg</span>
-                            {{ logs.name }}
+                            <span class="p-column-title">Modul</span>
+                            <i [ngClass]="getModuleByTableName(logs.table_name).icon" style="color: slateblue"></i>
+                            <span class="ml-2">{{ getModuleByTableName(logs.table_name).name }}</span>
                         </td>
+                        <td>
+                            <span class="p-column-title">Művelet</span>
+                            <span [ngClass]="'action-type-badge ' + logs.action_type">
+                                <i *ngIf="[200,201].includes(logs.status)" class="pi pi-check"></i>
+                                <i *ngIf="[400,500].includes(logs.status)" class="pi pi-times"></i>
+                                {{ logs.action_type }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Válasz</span>
+                            {{ logs.response_data }}
+                        </td>
+                        <td>
+                            <span class="p-column-title">Felhasználó</span>
+                            <p-chip [label]="logs.user_fullname" icon="pi pi-user" styleClass="m-1"></p-chip>
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="rowexpansion" let-log>
+                    <tr *ngIf="log.table_name !== 'food_counter'">
+                        <td colspan="7">
+                            <div class="grid p-2">
+
+                                <!-- Original data table -->
+                                <div class="col-6">
+                                    <p-table [value]="transformData(log.original_data)" responsiveLayout="scroll">
+                                        <ng-template pTemplate="header">
+                                            <tr>
+                                                <th colspan="2">Küldött adat</th>
+                                            </tr>
+                                        </ng-template>
+                                        <ng-template pTemplate="body" let-item>
+                                            <tr>
+                                                <td class="font-semibold">{{ item.key }}</td>
+                                                <td class="text-overflow-ellipsis">{{ item.value }}</td>
+                                            </tr>
+                                        </ng-template>
+                                    </p-table>
+                                </div>
+
+                                <!-- Response data table -->
+                                <div class="col-6">
+                                    <p-table [value]="transformData(log.new_data)" responsiveLayout="scroll">
+                                        <ng-template pTemplate="header">
+                                            <tr>
+                                                <th colspan="2">Kapott adat</th>
+                                            </tr>
+                                        </ng-template>
+                                        <ng-template pTemplate="body" let-item>
+                                            <tr>
+                                                <td class="font-semibold">{{ item.key }}</td>
+                                                <td>{{ item.value }}</td>
+                                            </tr>
+                                        </ng-template>
+                                    </p-table>
+                                </div>
+
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td [attr.colspan]="7" class="text-center">Nincs találat...</td>
                     </tr>
                 </ng-template>
             </p-table>
