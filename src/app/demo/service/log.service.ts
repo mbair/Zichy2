@@ -54,6 +54,10 @@ export class LogService {
             .subscribe({
                 next: (response: ApiResponse) => {
                     if (response && response.rows?.length) {
+
+                        // remove updatelasttagusage action type
+                        response.rows = response.rows.filter(row => row.action_type !== 'updatelasttagusage')
+
                         response.rows.forEach(row => {
 
                             row.expandable = this.isRowExpandable(row)
