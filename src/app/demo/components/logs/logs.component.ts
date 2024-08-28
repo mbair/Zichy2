@@ -90,7 +90,7 @@ export class LogsComponent implements OnInit {
 
         // Modules for selector
         this.modules = [
-            { name: 'Ételpult', code: 'food_counter', icon: 'pi pi-circle' },
+            { name: 'Ételpult', code: 'food_counter', icon: 'pi pi-tablet' },
             { name: 'Konferenciák', code: 'conference', icon: 'pi pi-calendar' },
             { name: 'Vendégek', code: 'guest', icon: 'pi pi-user' },
             { name: 'Szobák', code: 'room', icon: 'pi pi-building' },

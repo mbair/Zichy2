@@ -176,7 +176,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.logService.create({
                     action_type: "Same code",
                     table_name: "food_counter",
-                    original_data: "FoodCounter same code: " + this.scannedCode,
+                    original_data: `Guest: ${this.guest.lastName} ${this.guest.firstName} | Tag: ${this.scannedCode}`,
                 })
 
                 this.scanTemp = ''
@@ -193,7 +193,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             this.logService.create({
                 action_type: "Scanned code",
                 table_name: "food_counter",
-                original_data: "FoodCounter scannedCode: " + this.scannedCode,
+                original_data: `Tag: ${this.scannedCode}`,
             })
 
             // Reset Guest
@@ -242,7 +242,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             next: (data) => {
 
                 // Update guest information
-                this.guest = data;
+                this.guest = data
 
                 // Define AgeGroup
                 this.setAgeGroup(this.guest.birthDate)
@@ -331,7 +331,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                         this.logService.create({
                             action_type: "Already received food",
                             table_name: "food_counter",
-                            original_data: "FoodCounter Already received food: " + this.guest.lastName + " " + this.guest.firstName + " " + this.guest.rfid,
+                            original_data: `Guest: ${this.guest.lastName} ${this.guest.firstName} | Tag: ${this.guest.rfid}`,
                         })
 
                         return
@@ -361,7 +361,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.logService.create({
                     action_type: "Unknown Device",
                     table_name: "food_counter",
-                    original_data: "FoodCounter Unknown Device: " + rfid,
+                    original_data: `Unknown Device | Tag: ${rfid}`,
                 })
                 // }
             }

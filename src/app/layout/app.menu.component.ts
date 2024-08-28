@@ -1,13 +1,20 @@
 import { OnInit, isDevMode } from '@angular/core';
 import { Component } from '@angular/core';
+import { UserService } from '../demo/service/user.service';
+import { RoleService } from '../demo/service/role.service';
 
 @Component({
     selector: 'app-menu',
     templateUrl: './app.menu.component.html'
 })
+
 export class AppMenuComponent implements OnInit {
 
     model: any[] = [];
+
+    constructor(
+        public userService: UserService,
+        public roleService: RoleService) { }
 
     ngOnInit() {
         this.model = [
@@ -87,7 +94,9 @@ export class AppMenuComponent implements OnInit {
                     // },
                 ]
             },
-            {
+
+            // Users can only be accessed by users with the Super admin and Nagy admin roles
+            ...(this.userService.hasRole(['Super Admin', 'Nagy Admin']) ? [{
                 label: 'Rendszer',
                 items: [
                     {
@@ -101,7 +110,7 @@ export class AppMenuComponent implements OnInit {
                         routerLink: ['/logs']
                     }
                 ]
-            },
+            }] : []),
         ];
 
 
