@@ -190,24 +190,39 @@ export class UserService {
     }
 
     /**
+     * Get User own data
+     */
+    public getOwnData() {
+        this.apiService.get(`users/getowndata`)
+            .subscribe({
+                next: (response: any) => {
+                    this.data$.next(response)
+                },
+                error: (error: any) => {
+                    this.message$.next(error)
+                }
+            })
+    }
+
+    /**
      * Get User Role
      * @returns
      */
-    public getUserRole(): string {
-        return localStorage.getItem('userRole') || "No Role"
+    public getuserrole(): string {
+        return localStorage.getItem('userrole') || "No Role"
     }
 
     // Role check
     public hasRole(roles: string[]): boolean {
-        const userRole = this.getUserRole()
-        return roles.includes(userRole)
+        const userrole = this.getuserrole()
+        return roles.includes(userrole)
     }
 
     /**
      * Get users for selector
      * @returns
      */
-    getUsersForSelector(): Observable<User[]> {
+    public getUsersForSelector(): Observable<User[]> {
         // Check if there is already cached data
         if (this.cache.length > 0) {
             return of(this.cache)

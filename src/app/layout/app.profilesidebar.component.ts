@@ -10,15 +10,15 @@ import { LayoutService } from './service/app.layout.service';
 })
 export class AppProfileSidebarComponent {
 
-    fullName: string;
-    userRole: string;
+    fullname: string;
+    userrole: string;
 
     constructor(public router: Router,
                 public layoutService: LayoutService,
                 public roleService: RoleService) {
 
-        this.fullName = localStorage.getItem('fullName') || ''
-        this.userRole = localStorage.getItem('userRole') || ''
+        this.fullname = localStorage.getItem('fullname') || ''
+        this.userrole = localStorage.getItem('userrole') || ''
     }
 
     get visible(): boolean {
@@ -31,8 +31,8 @@ export class AppProfileSidebarComponent {
 
     logout() {
         localStorage.removeItem('token')
-        localStorage.removeItem('fullName')
-        localStorage.removeItem('userRole')
+        localStorage.removeItem('fullname')
+        localStorage.removeItem('userrole')
         this.router.navigate(['/auth/login'])
     }
 }

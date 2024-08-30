@@ -455,7 +455,7 @@ export class VendegekComponent implements OnInit {
                                 ]
                                 // Logging
                                 this.logService.create({
-                                    action_type: "Tag duplicate",
+                                    action_type: "tag duplicate",
                                     table_name: "guest",
                                     original_data: "Tag duplicate: " + data.rfid + " is used by " + data.lastName + " " + data.firstName,
                                 })
@@ -481,7 +481,7 @@ export class VendegekComponent implements OnInit {
 
                                     // Logging
                                     this.logService.create({
-                                        action_type: "Assign Tag",
+                                        action_type: "assign Tag",
                                         table_name: "guest",
                                         original_data: "Assign Tag " + this.guest.rfid + " to " + this.guest.lastName + " " + this.guest.firstName,
                                     })

@@ -9,6 +9,7 @@ import { UserService } from '../../service/user.service';
 import { RoleService } from '../../service/role.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Role } from '../../api/role';
+import { User } from '../../api/user';
 
 @Component({
     templateUrl: './profile.component.html',
@@ -37,8 +38,9 @@ export class ProfileComponent implements OnInit {
 
     ngOnInit() {
         // Get User data
-        const fullName = localStorage.getItem('fullName')
-        this.userService.getBySearchQuery(`fullName=${fullName}`)
+        // const fullname = localStorage.getItem('fullname')
+        // this.userService.getBySearchQuery(`fullname=${fullname}`)
+        this.userService.getOwnData()
 
         // User form
         this.userForm = this.fb.group({
@@ -52,7 +54,7 @@ export class ProfileComponent implements OnInit {
             password_again: [''],
         }, { validators: passwordMatchValidator() })
 
-        // Enabling/Disabling userRole dropdown by actual user role
+        // Enabling/Disabling userrole dropdown by actual user role
         if (this.userService.hasRole(['Super Admin', 'Nagy Admin'])) {
             this.userForm.get('user_rolesid')?.enable()
         } else {
@@ -75,12 +77,9 @@ export class ProfileComponent implements OnInit {
 
         // Users
         this.userObs$ = this.userService.userObs;
-        this.userObs$.subscribe((data: ApiResponse) => {
+        this.userObs$.subscribe((user: User) => {
             this.loading = false
-            if (data && data.rows) {
-                delete data.rows[0].password
-                const user = data.rows[0]
-
+            if (user) {
                 // Filling out a form with the user's data
                 this.userForm.patchValue(user)
 
