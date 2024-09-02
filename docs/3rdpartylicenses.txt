@@ -19,6 +19,9 @@ MIT
 @ngx-translate/core
 SEE LICENSE IN LICENSE
 
+@ngx-translate/http-loader
+SEE LICENSE IN LICENSE
+
 @socket.io/component-emitter
 MIT
 (The MIT License)

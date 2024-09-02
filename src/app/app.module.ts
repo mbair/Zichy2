@@ -1,13 +1,18 @@
 import { NgModule } from '@angular/core';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { TranslateModule } from '@ngx-translate/core';
+import { HttpClientModule, HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { AppLayoutModule } from './layout/app.layout.module';
 import { ApiService } from './demo/service/api.service';
 import { AuthInterceptor } from './demo/interceptors/auth.interceptor';
 import { ErrorInterceptor } from './demo/interceptors/error.interceptor';
+
+export function HttpLoaderFactory(http: HttpClient) {
+    return new TranslateHttpLoader(http, '../assets/i18n/', '.json');
+}
 
 @NgModule({
     declarations: [
@@ -18,7 +23,11 @@ import { ErrorInterceptor } from './demo/interceptors/error.interceptor';
         AppLayoutModule,
         HttpClientModule,
         TranslateModule.forRoot({
-            defaultLanguage: 'hu'
+            loader: {
+                provide: TranslateLoader,
+                useFactory: HttpLoaderFactory,
+                deps: [HttpClient]
+            }
         })
     ],
     providers: [

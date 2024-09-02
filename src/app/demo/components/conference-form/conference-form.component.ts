@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subscription, Observable, Subject, BehaviorSubject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { MessageService } from 'primeng/api';
 import { CountryService } from 'src/app/demo/service/country.service';
@@ -20,6 +21,9 @@ import { ApiResponse } from '../../api/ApiResponse';
 
 
 export class ConferenceFormComponent implements OnInit, OnDestroy {
+
+    languages: any[] = [];
+    selectedLanguage: any;
 
     conferenceForm: FormGroup;
     isFormValid$: Observable<boolean>;
@@ -41,7 +45,14 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
         private messageService: MessageService,
         private countryService: CountryService,
         private dietService: DietService,
-        private formBuilder: FormBuilder) {
+        private formBuilder: FormBuilder,
+        private translate: TranslateService) {
+
+            this.translate.addLangs(['gb', 'hu']);
+            this.translate.setDefaultLang('gb');
+
+            const browserLang = this.translate.getBrowserLang()
+            this.translate.use(browserLang?.match(/en|hu/) ? browserLang : 'gb')
 
         this.subscription = this.layoutService.configUpdate$.subscribe(config => {
             this.darkMode = config.colorScheme === 'dark' || config.colorScheme === 'dim' ? true : false;
@@ -93,6 +104,29 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
         this.countryService.getCountries().subscribe(countries => {
             this.countries = countries
         })
+
+        // Set possible languages
+        this.languages = [
+            {
+                name: "Hungary",
+                huname: "Magyarország",
+                nationality: "Hungarian",
+                hunationality: "magyar",
+                code: "HU"
+            },
+            {
+                name: "United Kingdom",
+                huname: "Egyesült Királyság",
+                nationality: "brit",
+                hunationality: "angol",
+                code: "GB"
+            }
+        ]
+
+        // this.languages = [
+        //     { label: 'English', value: 'en' },
+        //     { label: 'Magyar', value: 'hu' }
+        // ];
 
         this.payments = [
             { label: 'Banki átutalás', value: 'Banki átutalás' },
@@ -190,6 +224,13 @@ export class ConferenceFormComponent implements OnInit, OnDestroy {
             }
         }, 500)
     }
+
+    changeLanguage(lang: any) {
+        console.log('changeLanguage', lang)
+        const langCode = lang.code.toLowerCase()
+        this.translate.use(langCode)
+    }
+
 
     ngOnDestroy() {
         this.subscription.unsubscribe();

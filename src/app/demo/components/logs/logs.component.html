@@ -72,6 +72,7 @@
                                 (onClearClick)="onFilter($event, 'createdAt')"
                                 placeholder="Keresés..."
                                 appendTo="body"
+                                dataType="string"
                                 [showButtonBar]="true"
                                 [style]="{'width':'20%', 'minWidth':'7rem'}"
                                 [inputStyle]="{'minWidth':'5rem'}">
@@ -172,9 +173,16 @@
                         </td>
                         <td>
                             <span class="p-column-title">Művelet</span>
-                            <span [ngClass]="'action-type-badge ' + logs.action_type">
+                            <span [ngClass]="'action-type-badge ' + logs.action_type?.toLowerCase()">
                                 <i *ngIf="[200,201].includes(logs.status)" class="pi pi-check"></i>
                                 <i *ngIf="[400,500].includes(logs.status)" class="pi pi-times"></i>
+                                <i *ngIf="logs.action_type.toLowerCase() == 'scanned code'" class="pi pi-check-circle"></i>
+                                <i *ngIf="logs.action_type.toLowerCase() == 'assign tag'" class="pi pi-plus-circle"></i>
+                                <i *ngIf="logs.action_type.toLowerCase() == 'unassign'" class="pi pi-minus-circle"></i>
+                                <i *ngIf="logs.action_type.toLowerCase() == 'same code'" class="pi pi-plus-circle"></i>
+                                <i *ngIf="logs.action_type.toLowerCase() == 'tag duplicate'" class="pi pi-clone"></i>
+                                <i *ngIf="logs.action_type.toLowerCase() == 'already received food'" class="pi pi-times-circle"></i>
+                                <i *ngIf="logs.action_type.toLowerCase() == 'unknown device'" class="pi pi-question-circle"></i>
                                 {{ logs.action_type }}
                             </span>
                         </td>
@@ -198,7 +206,7 @@
                                     <p-table [value]="transformData(log.original_data)" responsiveLayout="scroll">
                                         <ng-template pTemplate="header">
                                             <tr>
-                                                <th colspan="2">Küldött adat</th>
+                                                <th colspan="2">Eredeti adat</th>
                                             </tr>
                                         </ng-template>
                                         <ng-template pTemplate="body" let-item>
@@ -215,7 +223,7 @@
                                     <p-table [value]="transformData(log.new_data)" responsiveLayout="scroll">
                                         <ng-template pTemplate="header">
                                             <tr>
-                                                <th colspan="2">Kapott adat</th>
+                                                <th colspan="2">Módosított adat</th>
                                             </tr>
                                         </ng-template>
                                         <ng-template pTemplate="body" let-item>

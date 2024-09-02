@@ -90,7 +90,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     translate(lang: string) {
         this.translateService.use(lang);
-        this.translateService.get('primeng').subscribe((res: any) => this.primengConfig.setTranslation(res));
+        this.translateService.get('primeng').subscribe((res: any) => this.primengConfig.setTranslation(res))
     }
 
 

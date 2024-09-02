@@ -28,8 +28,12 @@ export class AuthService {
 
     public logout() {
         localStorage.removeItem("token")
-        localStorage.removeItem("userRole")
-        localStorage.removeItem("fullName")
+        localStorage.removeItem("userid")
+        localStorage.removeItem("fullname")
+        localStorage.removeItem("email")
+        localStorage.removeItem("phone")
+        localStorage.removeItem("userrole")
+        localStorage.removeItem("user_rolesid")
     }
 
     public passwordReset(email: string) {
@@ -54,8 +58,12 @@ export class AuthService {
     private setSession(authResult: any) {
         console.log('authResult', authResult)
         localStorage.setItem("token", authResult.headers.get('Authorization') || '')
-        localStorage.setItem("userRole", authResult.body.role)
-        localStorage.setItem("fullName", authResult.body.fullName)
+        localStorage.setItem("userid", authResult.body.id)
+        localStorage.setItem("fullname", authResult.body.fullname)
+        localStorage.setItem("email", authResult.body.email)
+        localStorage.setItem("phone", authResult.body.phone)
+        localStorage.setItem("userrole", authResult.body.role)
+        localStorage.setItem("user_rolesid", authResult.body.user_rolesid)
     }
 
     private handleError(error: string) {

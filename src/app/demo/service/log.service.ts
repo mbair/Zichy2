@@ -55,8 +55,24 @@ export class LogService {
                 next: (response: ApiResponse) => {
                     if (response && response.rows?.length) {
 
+                        // TODO: move these filters to backend
                         // remove updatelasttagusage action type
                         response.rows = response.rows.filter(row => row.action_type !== 'updatelasttagusage')
+
+                        // remove tag assign duplicates
+                        response.rows = response.rows.filter(row => {
+
+                            if (row.action_type == 'update') {
+                                let original_data = JSON.parse(row.original_data)
+                                let new_data = JSON.parse(row.new_data)
+
+                                if (original_data.rfid == null && new_data.rfid !== null) {
+                                    return false
+                                }
+                            }
+
+                            return true
+                        })
 
                         response.rows.forEach(row => {
 
@@ -73,13 +89,13 @@ export class LogService {
                                 if (message) {
                                     let original_data = JSON.parse(row.original_data)
                                     if (message == 'Success delete') {
-                                        row.response_data = `${original_data.fullname} felhasználó törölve`
+                                        row.response_data = `${original_data.lastName} ${original_data.firstName} törölve`
                                     }
                                     else if (message == 'Update success') {
-                                        row.response_data = `${original_data.fullname} felhasználó módosítva`
+                                        row.response_data = `${original_data.fullname} módosítva`
                                     }
                                     else if (message == 'Guest updated successfully') {
-                                        row.response_data = `${original_data.lastName} ${original_data.firstName} vendég módosítva`
+                                        row.response_data = `${original_data.lastName} ${original_data.firstName} módosítva`
                                     }
                                     else {
                                         row.response_data = message
@@ -172,10 +188,10 @@ export class LogService {
      */
     public create(log: Log): void {
 
-        // System logs can only be created by the SYSTEM user
-        log.userid = 1
-        log.user_fullname = 'SYSTEM' // TODO: backend should fill this field
-        log.user_email = 'info@nfcreserve.com' // TODO: backend should fill this field
+        // System logs can made by user or by SYSTEM
+        log.userid = Number(localStorage.getItem('userid')) || 1
+        log.user_fullname = localStorage.getItem('fullname') || 'SYSTEM'
+        log.user_email = localStorage.getItem('email') || 'info@nfcreserve.com'
 
         this.apiService.post(`logs/create/`, log)
             .subscribe({
@@ -267,10 +283,12 @@ export class LogService {
 
         const system_action_types = [
             'scanned code',
-            'same code',
             'assign tag',
             'unassign',
+            'same code',
+            'tag duplicate',
             'already received food',
+            'unknown device',
         ]
 
         let expandable = !system_action_types.includes(row.action_type?.toLowerCase())

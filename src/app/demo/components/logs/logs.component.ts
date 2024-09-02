@@ -109,7 +109,9 @@ export class LogsComponent implements OnInit {
             'assign tag',
             'unassign',
             'same code',
+            'tag duplicate',
             'already received food',
+            'unknown device',
         ]
 
         // HTTP statuses for selector

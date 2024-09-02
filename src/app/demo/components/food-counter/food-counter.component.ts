@@ -174,7 +174,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                 // Logging same RFID code
                 this.logService.create({
-                    action_type: "Same code",
+                    action_type: "same code",
                     table_name: "food_counter",
                     original_data: `${this.guest.lastName} ${this.guest.firstName} (${this.scannedCode})`,
                 })
@@ -188,13 +188,6 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             this.scannedCode = this.scanTemp
             this.scanTemp = ''
             console.log('scannedCode', this.scannedCode)
-
-            // Logging scannedCode
-            this.logService.create({
-                action_type: "Scanned code",
-                table_name: "food_counter",
-                original_data: `${this.scannedCode}`,
-            })
 
             // Reset Guest
             this.resetGuest()
@@ -250,6 +243,13 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 // Set background color
                 this.backgroundColor = this.getDietColor(this.guest.diet)
 
+                // Logging scannedCode
+                this.logService.create({
+                    action_type: "scanned code",
+                    table_name: "food_counter",
+                    original_data: `${this.guest.lastName} ${this.guest.firstName} (${this.guest.rfid})`,
+                })
+
                 // Check whether the guest has already received food in the given meal cycle
                 let today = moment(),
                     dateOfArrival = moment(new Date(data.dateOfArrival).setHours(1)),
@@ -276,7 +276,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                             // If visitor eat today, or
                             // has used the RFID and it was not today
                             if (!data.lastRfidUsage ||
-                                (data.lastRfidUsage && !moment(data.lastRfidUsage).isSame(moment(), 'day'))) {
+                                (data.lastRfidUsage && !moment(data.lastRfidUsage).isSame(moment(), 'day'))) { // TODO: itt legyen azonos a firstMeal és lastMeal
                                     this.canEat = true
                             }
                         }
@@ -367,7 +367,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                         // Logging error
                         this.logService.create({
-                            action_type: "Already received food",
+                            action_type: "already received food",
                             table_name: "food_counter",
                             original_data: `${this.guest.lastName} ${this.guest.firstName} (${this.guest.rfid})`,
                         })
@@ -397,7 +397,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                 // Logging error
                 this.logService.create({
-                    action_type: "Unknown Device",
+                    action_type: "unknown device",
                     table_name: "food_counter",
                     original_data: `Unknown Device (${rfid})`,
                 })

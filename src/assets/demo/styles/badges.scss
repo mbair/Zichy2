@@ -161,6 +161,41 @@
         background: var(--red-200);
         color: var(--red-800);
     }
+
+    &.scanned {
+        background: var(--green-200);
+        color: var(--green-800);
+    }
+
+    &.assign {
+        background: var(--teal-200);
+        color: var(--teal-800);
+    }
+
+    &.unassign {
+        background: var(--yellow-200);
+        color: var(--yellow-800);
+    }
+
+    &.same {
+        background: var(--orange-200);
+        color: var(--orange-800);
+    }
+
+    &.duplicate {
+        background: var(--orange-200);
+        color: var(--orange-800);
+    }
+
+    &.already {
+        background: var(--red-200);
+        color: var(--red-800);
+    }
+
+    &.unknown {
+        background: var(--red-200);
+        color: var(--red-800);
+    }
 }
 
 /* HTTP Statuses */
