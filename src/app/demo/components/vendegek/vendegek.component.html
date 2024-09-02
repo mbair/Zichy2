@@ -129,6 +129,8 @@
                             <p-calendar
                                 (onSelect)="onFilter($event, 'lastRfidUsage')"
                                 (onClearClick)="onFilter($event, 'lastRfidUsage')"
+                                appendTo="body"
+                                dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true">
                             </p-calendar>
@@ -138,6 +140,7 @@
                                 (onSelect)="onFilter($event, 'dateOfArrival')"
                                 (onClearClick)="onFilter($event, 'dateOfArrival')"
                                 appendTo="body"
+                                dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true">
                             </p-calendar>
@@ -147,6 +150,7 @@
                                 (onSelect)="onFilter($event, 'dateOfDeparture')"
                                 (onClearClick)="onFilter($event, 'dateOfDeparture')"
                                 appendTo="body"
+                                dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true">
                             </p-calendar>
@@ -327,6 +331,7 @@
                         <p-calendar
                             [(ngModel)]="guest.dateOfArrival"
                             appendTo="body"
+                            dataType="string"
                             dateFormat="yy-mm-dd"
                             [showButtonBar]="true">
                         </p-calendar>
@@ -346,6 +351,7 @@
                         <p-calendar
                             [(ngModel)]="guest.dateOfDeparture"
                             appendTo="body"
+                            dataType="string"
                             dateFormat="yy-mm-dd"
                             [showButtonBar]="true">
                         </p-calendar>
@@ -376,8 +382,9 @@
                         <p-calendar
                             [(ngModel)]="guest.birthDate"
                             appendTo="body"
-                            [showButtonBar]="true"
-                            dateFormat="yy-mm-dd">
+                            dataType="string"
+                            dateFormat="yy-mm-dd"
+                            [showButtonBar]="true">
                         </p-calendar>
                     </div>
                 </div>

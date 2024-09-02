@@ -114,7 +114,7 @@
                                         <!-- Születési dátum -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="birthdate" class="font-medium text-900">{{'Születési dátum' | translate }}</label>
-                                            <p-calendar formControlName="birthdate" dateFormat="yy.mm.dd" appendTo="body" [ngClass]="{
+                                            <p-calendar formControlName="birthdate" dateFormat="yy.mm.dd" appendTo="body" dataType="string" [ngClass]="{
                                                 'ng-invalid': birthdate.invalid && (birthdate.dirty || birthdate.touched),
                                                 'ng-dirty': birthdate.dirty || birthdate.touched
                                               }"></p-calendar>
@@ -232,6 +232,7 @@
                                             <p-calendar id="beginDate"
                                                         formControlName="arrivalDate"
                                                         dateFormat="yy.mm.dd"
+                                                        dataType="string"
                                                         appendTo="body">
                                             </p-calendar>
                                             <div *ngIf="conferenceForm.controls['arrivalDate'].invalid && (conferenceForm.controls['arrivalDate'].dirty || conferenceForm.controls['arrivalDate'].touched)" class="text-red-500">{{'Kérjük, adja meg az érkezés dátumát' | translate }}!</div>
@@ -283,6 +284,7 @@
                                             <p-calendar id="endDate"
                                                         formControlName="departureDate"
                                                         dateFormat="yy.mm.dd"
+                                                        dataType="string"
                                                         appendTo="body">
                                             </p-calendar>
                                             <div *ngIf="conferenceForm.controls['departureDate'].invalid && (conferenceForm.controls['departureDate'].dirty || conferenceForm.controls['departureDate'].touched)" class="text-red-500">{{'Kérjük, adja meg a távozás dátumát' | translate }}!</div>

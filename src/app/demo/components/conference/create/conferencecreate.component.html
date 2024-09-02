@@ -21,11 +21,11 @@
                 </div>
                 <div class="field mb-4 col-12 md:col-6">
                     <label for="beginDate" class="font-medium text-900">Kezdete</label>
-                    <p-calendar id="beginDate" [(ngModel)]="konferencia.beginDate" dateFormat="yy.mm.dd"></p-calendar>
+                    <p-calendar id="beginDate" [(ngModel)]="konferencia.beginDate" dateFormat="yy.mm.dd" dataType="string"></p-calendar>
                 </div>
                 <div class="field mb-4 col-12 md:col-6">
                     <label for="endDate" class="font-medium text-900">Vége</label>
-                    <p-calendar id="endDate" [(ngModel)]="konferencia.endDate" dateFormat="yy.mm.dd"></p-calendar>
+                    <p-calendar id="endDate" [(ngModel)]="konferencia.endDate" dateFormat="yy.mm.dd" dataType="string"></p-calendar>
                 </div>
                 <div class="field mb-4 col-12 md:col-6">
                     <label for="email" class="font-medium text-900">Kapcsolattartó email címe</label>

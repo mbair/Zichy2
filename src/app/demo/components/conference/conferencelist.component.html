@@ -64,6 +64,7 @@
                                 (onSelect)="onFilter($event, 'beginDate')"
                                 (onClearClick)="onFilter($event, 'beginDate')"
                                 appendTo="body"
+                                dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true">
                             </p-calendar>
@@ -82,6 +83,7 @@
                                 (onSelect)="onFilter($event, 'endDate')"
                                 (onClearClick)="onFilter($event, 'endDate')"
                                 appendTo="body"
+                                dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true">
                             </p-calendar>
@@ -166,6 +168,7 @@
                         <p-calendar
                             [(ngModel)]="tableItem.beginDate"
                             appendTo="body"
+                            dataType="string"
                             dateFormat="yy-mm-dd"
                             [showButtonBar]="true">
                         </p-calendar>
@@ -186,6 +189,7 @@
                         <p-calendar
                             [(ngModel)]="tableItem.endDate"
                             appendTo="body"
+                            dataType="string"
                             dateFormat="yy-mm-dd"
                             [showButtonBar]="true">
                         </p-calendar>
