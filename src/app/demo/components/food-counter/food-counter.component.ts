@@ -456,7 +456,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 return 'blue-400'
             case 'gluténmentes':
                 return 'yellow-300'
-            case 'glutén és tej/laktózmentes':
+            case 'glutén-, laktóz-, tejmentes':
                 return 'red-500'
             case 'vegetáriánus':
                 return 'teal-500'
