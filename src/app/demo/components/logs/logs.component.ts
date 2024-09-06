@@ -105,6 +105,7 @@ export class LogsComponent implements OnInit {
             'create',
             'update',
             'delete',
+            'bulkdelete',
             'scanned code',
             'assign tag',
             'unassign',
@@ -112,6 +113,7 @@ export class LogsComponent implements OnInit {
             'tag duplicate',
             'already received food',
             'unknown device',
+            'import',
         ]
 
         // HTTP statuses for selector

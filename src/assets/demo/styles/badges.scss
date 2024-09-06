@@ -162,6 +162,11 @@
         color: var(--red-800);
     }
 
+    &.bulkdelete {
+        background: var(--red-200);
+        color: var(--red-800);
+    }
+
     &.scanned {
         background: var(--green-200);
         color: var(--green-800);
@@ -195,6 +200,11 @@
     &.unknown {
         background: var(--red-200);
         color: var(--red-800);
+    }
+
+    &.import {
+        background: var(--teal-200);
+        color: var(--teal-800);
     }
 }
 

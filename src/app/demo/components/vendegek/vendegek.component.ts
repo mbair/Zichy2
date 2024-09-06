@@ -553,7 +553,7 @@ export class VendegekComponent implements OnInit {
         this.logService.create({
             action_type: "import",
             table_name: "guest",
-            original_data: "Successful Excel importing | File: " + event.files[0].name + ", Size: " + event.files[0].size,
+            original_data: event.files[0].name,
         })
     }
 
