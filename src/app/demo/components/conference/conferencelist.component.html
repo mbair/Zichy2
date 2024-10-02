@@ -153,15 +153,15 @@
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="name">Konferencia neve</label>
-                        <input type="text" pInputText [(ngModel)]="tableItem.name"/>
+                        <input type="text" pInputText [(ngModel)]="tableItem.name" onchange="setFormUrl()"/>
                     </div>
                 </div>
-                <!-- <div class="formgrid grid">
+                <div class="formgrid grid">
                     <div class="field col">
-                        <label for="name">Konferencia URL</label>
-                        <input type="text" pInputText [(ngModel)]="tableItem.code"/>
+                        <label for="name">Űrlap URL</label>
+                        <input type="text" pInputText [(ngModel)]="tableItem.formUrl"/>
                     </div>
-                </div> -->
+                </div>
                 <div class="formgrid grid">
                     <div class="field col">
                         <label for="beginDate">Kezdete</label>

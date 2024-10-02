@@ -49,5 +49,7 @@
     "Kérjük, adja meg a távozás dátumát": "Please provide the date of departure",
     "Kérjük, válassza ki az utolsó étkezését": "Please select your last meal",
     "Kérjük válassza ki a szállástípust": "Please select the accommodation type",
-    "Kérjük válassza ki a fizetési módot": "Please select the payment method"
+    "Kérjük válassza ki a fizetési módot": "Please select the payment method",
+    "HIBA": "ERROR",
+    "Hiba történt": "Something went wrong"
 }

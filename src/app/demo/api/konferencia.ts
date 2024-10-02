@@ -1,7 +1,3 @@
-interface InventoryStatus {
-    label: string;
-    value: string;
-}
 export interface Konferencia {
     id?: string;
     code?: string;
@@ -9,7 +5,6 @@ export interface Konferencia {
     description?: string;
     price?: number;
     quantity?: number;
-    inventoryStatus?: InventoryStatus;
     category?: string;
     image?: string;
     rating?: number;

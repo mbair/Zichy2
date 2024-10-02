@@ -4,7 +4,6 @@ import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { Table } from 'primeng/table';
-import { LogService } from '../../service/log.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { ConferenceService } from '../../service/conference.service';
@@ -52,7 +51,6 @@ export class ConferenceListComponent implements OnInit {
         private guestService: GuestService,
         private mealService: MealService,
         private messageService: MessageService,
-        private logService: LogService,
         private router: Router) { }
 
     ngOnInit() {
@@ -184,9 +182,17 @@ export class ConferenceListComponent implements OnInit {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains')
     }
 
-    navigateToConferenceForm(konferencia: any) {
-        console.log('navigateToConferenceForm', konferencia)
-        this.router.navigateByUrl("/conference-form");
+    setFormUrl() {
+        let formUrl = this.tableItem.name || ''
+            formUrl = this.slugify(formUrl)
+        this.tableItem.formUrl = `/conference-form/${formUrl}`
+    }
+
+    navigateToConferenceForm(conference: any) {
+        console.log('navigateToConferenceForm', conference)
+        // TODO: use real slug
+        conference.slug = 'test_conference'
+        this.router.navigateByUrl(`/conference-form/${conference.slug}`)
     }
 
     navigateToCreateConference(){
@@ -217,6 +223,21 @@ export class ConferenceListComponent implements OnInit {
             this.dialog = false
         }
     }
+
+    /**
+     * Converts a string to its slug form
+     * @param str string to be slugified
+     * @returns slugified string
+     */
+    slugify(str: string) {
+        str = str.trim()                        // trim leading/trailing white space
+        str = str.toLowerCase();                // convert string to lowercase
+        str = str.replace(/[^a-z0-9 -]/g, '')   // remove any non-alphanumeric characters
+                 .replace(/\s+/g, '-')          // replace spaces with hyphens
+                 .replace(/-+/g, '-')           // remove consecutive hyphens
+        
+        return str
+      }
 
     // Don't delete this, its needed from a performance point of view,
     ngOnDestroy(): void {

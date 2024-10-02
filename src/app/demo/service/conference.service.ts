@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, of } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { Conference } from '../api/conference';
@@ -179,5 +179,25 @@ export class ConferenceService {
                     this.message$.next(error)
                 }
             })
+    }
+
+
+    /**
+     * Conference SLUG validator
+     * @param slug 
+     * @returns 
+     */
+    public isSlugValid(slug: string): Observable<boolean> {
+        this.get(0, 20, 'slug=', 'sort')
+
+        // Figyeljük a data$ stream-et, hogy van-e találat
+        return this.data$.pipe(
+            map((response: any) => {
+                console.log('isSlugValid response', response)
+                // Ellenőrzés: ha van adat és az adatok nem üresek, akkor érvényes a slug
+                return response && response.data && response.data.length > 0;
+            }),
+            catchError(() => of(false)) // Hibakezelés: ha hiba történik, érvénytelen a slug
+        )
     }
 }
