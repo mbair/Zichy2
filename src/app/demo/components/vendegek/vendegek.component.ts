@@ -114,19 +114,12 @@ export class VendegekComponent implements OnInit {
         // Get genders for selector
         this.genderService.getGenders(0, 999, { sortField: 'id', sortOrder: 1 })
 
-        // Diets
-        this.dietObs$ = this.dietService.dietObs;
-        this.dietObs$.subscribe((data: ApiResponse) => {
-            this.loading = false
-            if (data && data.rows) {
-                data.rows.map((diet: any) => {
-                    diet.name = diet.name?.toLowerCase()
-                    this.diets.push(diet)
-                })
+        // Get diets for selector
+        this.dietService.getDietsForSelector().subscribe({
+            next: (data) => {
+                this.diets = data
             }
         })
-        // Get diets for selector
-        this.dietService.getDiets(0, 999, { sortField: 'id', sortOrder: 1 })
 
         // Get meals for selector
         this.meals = this.mealService.getMealsForSelector()

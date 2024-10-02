@@ -203,7 +203,7 @@
                             <div class="grid p-2">
 
                                 <!-- Original data table -->
-                                <div class="col-6">
+                                <div class="col-6" *ngIf="log.original_data">
                                     <p-table [value]="transformData(log.original_data)" responsiveLayout="scroll">
                                         <ng-template pTemplate="header">
                                             <tr>
@@ -220,7 +220,7 @@
                                 </div>
 
                                 <!-- Response data table -->
-                                <div class="col-6">
+                                <div class="col-6" *ngIf="log.new_data">
                                     <p-table [value]="transformData(log.new_data)" responsiveLayout="scroll">
                                         <ng-template pTemplate="header">
                                             <tr>
