@@ -81,6 +81,14 @@ export class LogService {
                                 row.response_data = row.original_data
                             }
 
+                            if (row.new_data == "{}") {
+                                row.new_data = null
+                            } else if (row.original_data == "{}") {
+                                row.original_data = null
+                            } else if (row.response_data == "{}") {
+                                row.response_data = null
+                            }
+
                             // OK
                             if (row.status == 200) {
                                 let response_data = JSON.parse(row.response_data),
@@ -289,6 +297,7 @@ export class LogService {
             'tag duplicate',
             'already received food',
             'unknown device',
+            'import',
         ]
 
         let expandable = !system_action_types.includes(row.action_type?.toLowerCase())
