@@ -11,7 +11,6 @@ import { MessageService } from 'primeng/api';
 import { ConferenceService } from '../../service/conference.service';
 import { CountryService } from '../../service/country.service';
 import { DietService } from '../../service/diet.service';
-import { ApiResponse } from '../../api/ApiResponse';
 import { Language } from '../../api/language';
 import { Diet } from '../../api/diet';
 
@@ -35,10 +34,6 @@ export class ConferenceFormComponent implements OnInit {
     diets: Diet[] = []                           // Possible diets
     conferenceForm: FormGroup;                   // Form for guest registration to Conference
     selectedLanguage: any;                       // Selected system language
-
-    isFormValid$: Observable<boolean>;
-    private formChanges$: Subject<void> = new Subject();
-
     subscription: Subscription;
     darkMode: boolean = false;
     countries: any[] = [];
@@ -46,10 +41,13 @@ export class ConferenceFormComponent implements OnInit {
     meals: any[] = [];
     roomTypes: any[] = [];
 
-    slugValid$ = this.route.paramMap.pipe(
-        map(params => params.get('slug')),
-        switchMap(slug => this.conferenceService.isSlugValid(slug!))
-    )
+    // slugValid$ = this.route.paramMap.pipe(
+    //     map(params => params.get('slug')),
+    //     switchMap(slug => this.conferenceService.isSlugValid(slug!))
+    // )
+
+    private isFormValid$: Observable<boolean>;
+    private formChanges$: Subject<void> = new Subject();
 
     constructor(public router: Router,
         private route: ActivatedRoute,
@@ -92,16 +90,16 @@ export class ConferenceFormComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.slugValid$.subscribe(isValid => {
-            if (!isValid) {
-                // Ha a slug érvénytelen, navigálunk egy hibaoldalra
-                console.error('Invalid slug!')
-                this.router.navigateByUrl('/error-page')
-            } else {
-                // Ha érvényes, folytathatjuk a folyamatot
-                console.log('Slug is valid')
-            }
-        })
+        // this.slugValid$.subscribe(isValid => {
+        //     if (!isValid) {
+        //         // Ha a slug érvénytelen, navigálunk egy hibaoldalra
+        //         console.error('Invalid slug!')
+        //         // this.router.navigateByUrl('/error-page')
+        //     } else {
+        //         // Ha érvényes, folytathatjuk a folyamatot
+        //         console.log('Slug is valid')
+        //     }
+        // })
 
 
         // Get diets for selector

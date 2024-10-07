@@ -1,19 +1,25 @@
-import { Component, OnInit, HostListener, isDevMode } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Subscription, Observable, Subject, BehaviorSubject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
+import { emailDomainValidator } from '../../utils/email-validator';
+import { ConferenceService } from '../../service/conference.service';
 import { MessageService } from 'primeng/api';
-import { Router } from '@angular/router';
-import { Table } from 'primeng/table';
+import { UserService } from '../../service/user.service';
+import { MealService } from '../../service/meal.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
-import { ConferenceService } from '../../service/conference.service';
-import { GuestService } from '../../service/guest.service';
-import { MealService } from '../../service/meal.service';
+
+import { Table } from 'primeng/table';
 import * as moment from 'moment';
 moment.locale('hu')
 
 @Component({
+    selector: 'conferencelist',
     templateUrl: './conferencelist.component.html',
+    styleUrls: ['./conferencelist.component.scss'],
     providers: [MessageService]
 })
 
@@ -36,32 +42,65 @@ export class ConferenceListComponent implements OnInit {
     globalFilter: string = '';                   // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
     debounce: { [key: string]: any } = {}        // Search delay in filter field
+    conferenceForm: FormGroup;                   // Form to create/update conference
+    originalFormValues: any;                     // The original values ​​of the form
     dialog: boolean = false;                     // Table item maintenance modal
+    sidebar: boolean = false;                    // Table item maintenance modal
     deleteDialog: boolean = false;               // Popup for deleting table item
     bulkDeleteDialog: boolean = false;           // Popup for deleting table items
     selected: Conference[] = [];                 // Table items chosen by user
     meals: any[] = [];                           // Possible meals
 
+    private isFormValid$: Observable<boolean>;
+    private formChanges$: Subject<void> = new Subject();
     private conferenceObs$: Observable<any> | undefined;
-    private guestObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
 
     constructor(
+        public userService: UserService,
+        private router: Router,
+        private route: ActivatedRoute,
+        private formBuilder: FormBuilder,
         private conferenceService: ConferenceService,
-        private guestService: GuestService,
         private mealService: MealService,
-        private messageService: MessageService,
-        private router: Router) { }
+        private messageService: MessageService) {
+
+        this.conferenceForm = this.formBuilder.group({
+            id: [''],
+            name: ['', Validators.required],
+            beginDate: ['', Validators.required],
+            endDate: ['', Validators.required],
+            firstMeal: ['', Validators.required],
+            lastMeal: ['', Validators.required],
+            contractorName: ['', Validators.required],
+            contractorAdress: ['', Validators.required],
+            contractorTaxNumber: ['', [Validators.required]],
+            contactName: ['', Validators.required],
+            contactEmail: ['', [Validators.required, emailDomainValidator()]],
+            contactPhone: ['', Validators.required],
+            formUrl: ['', Validators.required],
+            registrationEndDate: ['', Validators.required],
+        })
+
+        this.isFormValid$ = new BehaviorSubject<boolean>(false)
+
+        // Monitor the name field changes
+        this.conferenceForm.get('name')?.valueChanges.subscribe(nameValue => {
+            
+            // Get the base URL
+            const baseUrl = window.location.origin;
+
+            // Create a slug from the name
+            let slug = this.slugify(nameValue)
+            
+            // Set the slug in the form
+            this.conferenceForm.patchValue({
+                formUrl: `${baseUrl}/#/conference-form/${slug}`
+            })
+        })
+    }
 
     ngOnInit() {
-        // Table columns
-        this.cols = [
-            { field: 'name', header: 'Név' },
-            { field: 'beginDate', header: 'Kezdete' },
-            { field: 'endDate', header: 'Vége' },
-            { field: 'guestsNumber', header: 'Létszám' }, // Ötlet: Jelentkezettek / létszám
-        ]
-
         // Conferences
         this.conferenceObs$ = this.conferenceService.conferenceObs;
         this.conferenceObs$.subscribe((data: ApiResponse) => {
@@ -76,17 +115,15 @@ export class ConferenceListComponent implements OnInit {
         // Get meals for selector
         this.meals = this.mealService.getMealsForSelector()
 
-        // Guests
-        this.guestObs$ = this.guestService.guestObs;
-        this.guestObs$.subscribe((data: ApiResponse) => {
-            this.loading = false
-            if (data) {
-                // Filter out test users on production
-                if (!isDevMode()) {
-                    let notTestGuests = data.rows?.filter((guest: any) => guest.is_test == false) || []
-                }
-            }
-        })
+        // Form validation
+        this.isFormValid$ = this.formChanges$.pipe(
+            debounceTime(300),
+            distinctUntilChanged(),
+            map(() => this.conferenceForm.valid)
+        )
+
+        // Monitor the changes of the form
+        this.conferenceForm.valueChanges.subscribe(() => this.formChanges$.next());
 
         // Message
         this.serviceMessageObs$ = this.conferenceService.messageObs;
@@ -112,7 +149,25 @@ export class ConferenceListComponent implements OnInit {
         })
     }
 
-    // Load filtered data into the Table
+    // Getters for form validation
+    get name() { return this.conferenceForm.get('name') }
+    get beginDate() { return this.conferenceForm.get('beginDate') }
+    get endDate() { return this.conferenceForm.get('endDate') }
+    get firstMeal() { return this.conferenceForm.get('firstMeal') }
+    get lastMeal() { return this.conferenceForm.get('lastMeal') }
+    get contractorName() { return this.conferenceForm.get('contractorName') }
+    get contractorAdress() { return this.conferenceForm.get('contractorAdress') }
+    get contractorTaxNumber() { return this.conferenceForm.get('contractorTaxNumber') }
+    get contactName() { return this.conferenceForm.get('contactName') }
+    get contactEmail() { return this.conferenceForm.get('contactEmail') }
+    get contactPhone() { return this.conferenceForm.get('contactPhone') }
+    get formUrl() { return this.conferenceForm.get('formUrl') }
+    get registrationEndDate() { return this.conferenceForm.get('registrationEndDate') }
+
+    /**
+     * Load filtered data into the Table
+     * @returns
+     */
     doQuery() {
         this.loading = true;
 
@@ -127,8 +182,13 @@ export class ConferenceListComponent implements OnInit {
         return this.conferenceService.get(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
     }
 
+    /**
+     * Filter table by column
+     * @param event
+     * @param field
+     */
     onFilter(event: any, field: string) {
-        const noWaitFields = ['beginDate','endDate','firstMeal', 'lastMeal']
+        const noWaitFields = ['beginDate', 'endDate', 'firstMeal', 'lastMeal']
         let filterValue = '';
 
         // Calendar date as String
@@ -155,7 +215,7 @@ export class ConferenceListComponent implements OnInit {
             if (this.filterValues[field] === filterValue) {
                 this.doQuery()
             }
-        // otherwise wait for the debounce time
+            // otherwise wait for the debounce time
         } else {
             if (this.debounce[field]) {
                 clearTimeout(this.debounce[field])
@@ -169,6 +229,12 @@ export class ConferenceListComponent implements OnInit {
         }
     }
 
+    /**
+     * Lazy mode is handy to deal with large datasets, instead of loading
+     * the entire data, small chunks of data is loaded by invoking onLazyLoad
+     * callback every time paging, sorting and filtering happens.
+     * @param event
+     */
     onLazyLoad(event: any) {
         this.page = event.first! / event.rows!;
         this.rowsPerPage = event.rows ?? this.rowsPerPage;
@@ -178,50 +244,93 @@ export class ConferenceListComponent implements OnInit {
         this.doQuery()
     }
 
+    /**
+     * Filter table by any column
+     * @param table
+     * @param event
+     */
     onGlobalFilter(table: Table, event: Event) {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains')
     }
 
     setFormUrl() {
         let formUrl = this.tableItem.name || ''
-            formUrl = this.slugify(formUrl)
+        formUrl = this.slugify(formUrl)
         this.tableItem.formUrl = `/conference-form/${formUrl}`
     }
 
     navigateToConferenceForm(conference: any) {
-        console.log('navigateToConferenceForm', conference)
-        // TODO: use real slug
-        conference.slug = 'test_conference'
-        this.router.navigateByUrl(`/conference-form/${conference.slug}`)
+        const formUrl = this.slugify(conference.name)
+        this.router.navigate(['/conference-form', formUrl])
     }
 
-    navigateToCreateConference(){
+    navigateToCreateConference() {
         this.router.navigate(['conference/create'])
     }
 
+    /**
+     * Create new Conference
+     */
+    create() {
+        this.conferenceForm.reset()
+        this.sidebar = true
+    }
+
+    /**
+     * Edit the Conference
+     * @param conference
+     */
+    edit(conference: Conference) {
+        this.conferenceForm.patchValue(conference)
+        this.originalFormValues = this.conferenceForm.value
+        this.sidebar = true
+    }
+
+    /**
+     * Delete the Conference
+     */
     delete() {
         this.loading = true;
         this.deleteDialog = false;
         this.conferenceService.delete(this.tableItem)
     }
 
+    /**
+     * Delete selected Conferences
+     */
     deleteSelected() {
         this.loading = true;
         this.deleteDialog = false;
         this.conferenceService.bulkdelete(this.selected)
     }
 
+    /**
+     * Saving the form
+     */
     save() {
-        if (this.tableItem.name?.trim()) {
-            // UPDATE
-            if (this.tableItem.id) {
-                this.conferenceService.update(this.tableItem)
-            // INSERT
+        if (this.conferenceForm.valid) {
+            this.loading = true
+            const formValues = this.conferenceForm.value
+
+            // Create
+            if (!formValues.id) {
+                this.conferenceService.create(formValues)
+            
+            // Update
             } else {
-                this.conferenceService.create(this.tableItem)
+                this.conferenceService.update(formValues)
             }
-            this.dialog = false
+
+            this.sidebar = false
         }
+    }
+
+    /**
+     * Cancel saving the form
+     */
+    cancel() {
+        this.conferenceForm.reset(this.originalFormValues)
+        // this.sidebar = false
     }
 
     /**
@@ -230,14 +339,19 @@ export class ConferenceListComponent implements OnInit {
      * @returns slugified string
      */
     slugify(str: string) {
+        if (!str) return '';
         str = str.trim()                        // trim leading/trailing white space
         str = str.toLowerCase();                // convert string to lowercase
         str = str.replace(/[^a-z0-9 -]/g, '')   // remove any non-alphanumeric characters
-                 .replace(/\s+/g, '-')          // replace spaces with hyphens
-                 .replace(/-+/g, '-')           // remove consecutive hyphens
-        
+            .replace(/\s+/g, '-')               // replace spaces with hyphens
+            .replace(/-+/g, '-')                // remove consecutive hyphens
+
         return str
-      }
+    }
+
+    copyUrl(formUrl: string) {
+        navigator.clipboard.writeText(formUrl)
+    }
 
     // Don't delete this, its needed from a performance point of view,
     ngOnDestroy(): void {

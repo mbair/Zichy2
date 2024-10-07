@@ -4,7 +4,6 @@
             <p-table #dt
                      dataKey="id"
                      [value]="tableData"
-                     [columns]="cols"
                      responsiveLayout="scroll"
                      [rows]="rowsPerPage"
                      [totalRecords]="totalRecords"
@@ -32,8 +31,8 @@
                             <!-- <a routerLink="/conference/create" class="p-button p-button-success p-ripple font-normal mr-2 hover:bg-green-600 hover:border-green-600">
                                 <i class="pi pi-plus x mr-2"></i> Új
                             </a> -->
-                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="tableItem = {}; dialog = true"></button>
-                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="bulkDeleteDialog = true" [disabled]="!selected || !selected.length"></button>
+                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="create()" [disabled]="!userService.hasRole(['Super Admin','Nagy Admin'])"></button>
+                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="bulkDeleteDialog = true" [disabled]="!selected || !selected.length || !userService.hasRole(['Super Admin','Nagy Admin'])"></button>
                         </span>
                     </div>
                 </ng-template>
@@ -133,140 +132,166 @@
                         <td>
                             <div class="flex">
                                 <button pButton pRipple icon="pi pi-search" class="p-button-rounded p-button-success mr-2" (click)="navigateToConferenceForm(conference)"></button>
-                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="tableItem = conference; dialog = true"></button>
-                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = conference; deleteDialog = true"></button>
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(conference)" [disabled]="!userService.hasRole(['Super Admin','Nagy Admin'])"></button>
+                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = conference; deleteDialog = true" [disabled]="!userService.hasRole(['Super Admin','Nagy Admin'])"></button>
                             </div>
                         </td>
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="emptymessage">
                     <tr>
-                        <td [attr.colspan]="cols.length + 3" class="text-center">Nincs találat...</td>
+                        <td [attr.colspan]="7" class="text-center">Nincs találat...</td>
                     </tr>
                 </ng-template>
             </p-table>
         </div>
 
-        <!-- New / Update dialog -->
-        <p-dialog [(visible)]="dialog" header="Konferencia adatai" [modal]="true" [style]="{width:'450px'}" class="p-fluid">
-            <ng-template pTemplate="content">
-                <div class="formgrid grid">
-                    <div class="field col">
-                        <label for="name">Konferencia neve</label>
-                        <input type="text" pInputText [(ngModel)]="tableItem.name" onchange="setFormUrl()"/>
-                    </div>
-                </div>
-                <div class="formgrid grid">
-                    <div class="field col">
-                        <label for="name">Űrlap URL</label>
-                        <input type="text" pInputText [(ngModel)]="tableItem.formUrl"/>
-                    </div>
-                </div>
-                <div class="formgrid grid">
-                    <div class="field col">
-                        <label for="beginDate">Kezdete</label>
-                        <p-calendar
-                            [(ngModel)]="tableItem.beginDate"
-                            appendTo="body"
-                            dataType="string"
-                            dateFormat="yy-mm-dd"
-                            [showButtonBar]="true">
-                        </p-calendar>
-                    </div>
-                    <div class="field col">
-                        <label for="firstMeal">Első étkezés</label>
-                        <p-dropdown
-                            inputId="firstMealFilter"
-                            [options]="meals"
-                            [(ngModel)]="tableItem.firstMeal"
-                            placeholder="Válassz...">
-                        </p-dropdown>
-                    </div>
-                </div>
-                <div class="formgrid grid">
-                    <div class="field col">
-                        <label for="endDate">Vége</label>
-                        <p-calendar
-                            [(ngModel)]="tableItem.endDate"
-                            appendTo="body"
-                            dataType="string"
-                            dateFormat="yy-mm-dd"
-                            [showButtonBar]="true">
-                        </p-calendar>
-                    </div>
-                    <div class="field col">
-                        <label for="lastMeal">Utolsó étkezés</label>
-                        <p-dropdown
-                            inputId="lastMealFilter"
-                            [options]="meals"
-                            [(ngModel)]="tableItem.lastMeal"
-                            placeholder="Válassz...">
-                        </p-dropdown>
-                    </div>
-                </div>
-                <div class="formgrid grid">
-                    <div class="field col">
-                        <label for="contractorName">Szerződő neve</label>
-                        <input type="text" pInputText [(ngModel)]="tableItem.contractorName"/>
-                    </div>
-                    <div class="field col">
-                        <label for="contractorTaxNumber">Szerződő adószáma</label>
-                        <input type="text" pInputText [(ngModel)]="tableItem.contractorTaxNumber"/>
-                    </div>
-                </div>
-                <div class="formgrid grid">
-                    <div class="field col">
-                        <label for="contractorName">Szerződő címe</label>
-                        <input type="text" pInputText [(ngModel)]="tableItem.contractorAddress"/>
-                    </div>
-                </div>
-                <div class="formgrid grid">
-                    <div class="field col">
-                        <label for="contactName">Kapcsolattartó neve</label>
-                        <input type="text" pInputText [(ngModel)]="tableItem.contactName"/>
-                    </div>
-                    <div class="field col">
-                        <label for="contactPhone">Kapcsolattartó telefon</label>
-                        <input type="text" pInputText [(ngModel)]="tableItem.contactPhone"/>
-                    </div>
-                </div>
-                <div class="formgrid grid">
-                    <div class="field col">
-                        <label for="contactEmail">Kapcsolattartó e-mail</label>
-                        <input type="text" pInputText [(ngModel)]="tableItem.contactEmail"/>
-                    </div>
-                </div>
+        <!-- Sidebar -->
+        <p-sidebar 
+            [(visible)]="sidebar" 
+            position="right"
+            styleClass="p-sidebar-md">
+            
+            <!-- Sidebar header -->
+            <ng-template pTemplate="header">
+                <span class="font-semibold text-xl">Konferencia adatai</span>
             </ng-template>
 
-            <ng-template pTemplate="footer">
-                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="dialog = false"></button>
-                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="save()"></button>
-            </ng-template>
-        </p-dialog>
+            <form [formGroup]="conferenceForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
+                    
+                <!-- Konferencia Id -->
+                <input formControlName="id" type="hidden">
 
-        <!-- Delete dialog -->
-        <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
-            <div class="flex align-items-center justify-content-center">
-                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.name}}</b> konferenciát?</span>
-            </div>
-            <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="deleteDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="delete()"></button>
-            </ng-template>
-        </p-dialog>
+                <!-- Konferencia neve -->
+                <div class="field mb-4 col-12" >
+                    <label for="name" class="font-medium text-900">Konferencia neve</label>
+                    <input id="name" type="text" pInputText formControlName="name">
+                    <div *ngIf="name?.dirty && name?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
 
-        <!-- Bulk Delete dialog -->
-        <p-dialog [(visible)]="bulkDeleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
-            <div class="flex align-items-center justify-content-center">
-                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span>Biztosan törölni akarja a kiválasztott konferenciákat?</span>
-            </div>
+                <!-- Űrlap URL -->
+                <div class="field mb-4 col-12">
+                    <label for="formUrl" class="font-medium text-900">Regisztrációs űrlap link</label>
+                    <span class="block mt-2 md:mt-0 p-input-icon-right">
+                        <i class="pi pi-copy hover:cursor-pointer hover:text-blue-500" (click)="copyUrl(formUrl?.value)"></i>
+                        <input id="formUrl" type="text" pInputText formControlName="formUrl" readonly>
+                    </span>
+                    <div *ngIf="formUrl?.dirty && formUrl?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- Kezdete -->
+                <div class="field mb-4 col-12 lg:col-6">
+                    <label for="beginDate" class="font-medium text-900">Kezdete</label>
+                    <p-calendar
+                        formControlName="beginDate"
+                        appendTo="body"
+                        dataType="string"
+                        dateFormat="yy-mm-dd"
+                        [showButtonBar]="true">
+                    </p-calendar>
+                    <div *ngIf="beginDate?.dirty && beginDate?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- Első étkezés -->
+                <div class="field mb-4 col-12 lg:col-6">
+                    <label for="firstMeal" class="font-medium text-900">Első étkezés</label>
+                    <p-dropdown
+                        id="firstMealFilter"
+                        formControlName="firstMeal"
+                        [options]="meals"
+                        placeholder="Válassz...">
+                    </p-dropdown>
+                    <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- Vége -->
+                <div class="field mb-4 col-12 lg:col-6">
+                    <label for="endDate" class="font-medium text-900">Vége</label>
+                    <p-calendar
+                        formControlName="endDate"
+                        appendTo="body"
+                        dataType="string"
+                        dateFormat="yy-mm-dd"
+                        [showButtonBar]="true">
+                    </p-calendar>
+                    <div *ngIf="endDate?.dirty && endDate?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- Utolsó étkezés -->
+                <div class="field mb-4 col-12 lg:col-6">
+                    <label for="lastMeal" class="font-medium text-900">Utolsó étkezés</label>
+                    <p-dropdown
+                        id="lastMealFilter"
+                        formControlName="lastMeal"
+                        [options]="meals"
+                        placeholder="Válassz...">
+                    </p-dropdown>
+                    <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- Szerződő neve -->
+                <div class="field mb-4 col-12 lg:col-6">
+                    <label for="contractorName" class="font-medium text-900">Szerződő neve</label>
+                    <input id="contractorName" type="text" pInputText formControlName="contractorName">
+                    <div *ngIf="contractorName?.dirty && contractorName?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- Szerződő adószáma -->
+                <div class="field mb-4 col-12 lg:col-6">
+                    <label for="contractorTaxNumber" class="font-medium text-900">Szerződő adószáma</label>
+                    <input id="contractorTaxNumber" type="text" pInputText formControlName="contractorTaxNumber">
+                    <div *ngIf="contractorTaxNumber?.dirty && contractorTaxNumber?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- Szerződő címe -->
+                <div class="field mb-4 col-12">
+                    <label for="contractorAdress" class="font-medium text-900">Szerződő címe</label>
+                    <input id="contractorAdress" type="text" pInputText formControlName="contractorAdress">
+                    <div *ngIf="contractorAdress?.dirty && contractorAdress?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- Kapcsolattartó neve -->
+                <div class="field mb-4 col-12 lg:col-6">
+                    <label for="contactName" class="font-medium text-900">Kapcsolattartó neve</label>
+                    <input id="contactName" type="text" pInputText formControlName="contactName">
+                    <div *ngIf="contactName?.dirty && contactName?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- Kapcsolattartó telefon -->
+                <div class="field mb-4 col-12 lg:col-6">
+                    <label for="contactPhone" class="font-medium text-900">Kapcsolattartó telefonszáma</label>
+                    <input id="contactPhone" type="text" pInputText formControlName="contactPhone">
+                    <div *ngIf="contactPhone?.dirty && contactPhone?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- Kapcsolattartó e-mail -->
+                <div class="field mb-4 col-12 lg:col-6">
+                    <label for="contactEmail" class="font-medium text-900">Kapcsolattartó e-mail címe</label>
+                    <input id="contactEmail" type="text" pInputText formControlName="contactEmail">
+                    <div *ngIf="contactEmail?.dirty && contactEmail?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                    <div *ngIf="contactEmail?.dirty && contactEmail?.errors?.['invalidEmail']" class="block p-error">Nem megfelelő email formátum</div>
+                </div>
+
+                <!-- Regisztráció vége -->
+                <div class="field mb-4 col-12 lg:col-6">
+                    <label for="registrationEndDate" class="font-medium text-900">Regisztráció vége</label>
+                    <p-calendar
+                        formControlName="registrationEndDate"
+                        appendTo="body"
+                        dataType="string"
+                        dateFormat="yy-mm-dd"
+                        [showButtonBar]="true">
+                    </p-calendar>
+                    <div *ngIf="registrationEndDate?.dirty && registrationEndDate?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+            </form>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="bulkDeleteDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="deleteSelected()"></button>
+                <div class="flex justify-content-end ap-2">
+                    <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-outlined" (click)="cancel()" [disabled]="!conferenceForm.dirty"></button>
+                    <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button ml-2" (click)="save()" [disabled]="!conferenceForm.valid || !conferenceForm.dirty"></button>
+                </div>
             </ng-template>
-        </p-dialog>
+        </p-sidebar>
     </div>
 </div>
 

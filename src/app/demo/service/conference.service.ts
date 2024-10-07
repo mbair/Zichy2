@@ -195,7 +195,7 @@ export class ConferenceService {
             map((response: any) => {
                 console.log('isSlugValid response', response)
                 // Ellenőrzés: ha van adat és az adatok nem üresek, akkor érvényes a slug
-                return response && response.data && response.data.length > 0;
+                return response && response.data && response.rows.length > 0;
             }),
             catchError(() => of(false)) // Hibakezelés: ha hiba történik, érvénytelen a slug
         )

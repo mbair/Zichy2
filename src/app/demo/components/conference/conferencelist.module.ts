@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { ConferenceListComponent } from './conferencelist.component';
 import { ConferenceListRoutingModule } from './conferencelist-routing.module';
 
@@ -17,6 +17,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
+import { SidebarModule } from 'primeng/sidebar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { TagModule } from 'primeng/tag';
@@ -31,7 +32,7 @@ import { CalendarModule } from 'primeng/calendar';
 		ConferenceListRoutingModule,
 		TableModule,
         FileUploadModule,
-        FormsModule,
+        ReactiveFormsModule,
         ButtonModule,
         RippleModule,
         ToastModule,
@@ -43,6 +44,7 @@ import { CalendarModule } from 'primeng/calendar';
         RadioButtonModule,
         InputNumberModule,
         DialogModule,
+        SidebarModule,
         ProgressSpinnerModule,
         BlockUIModule,
         TagModule,
