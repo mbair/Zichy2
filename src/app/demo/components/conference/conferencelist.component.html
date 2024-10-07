@@ -131,9 +131,49 @@
                         </td> -->
                         <td>
                             <div class="flex">
-                                <button pButton pRipple icon="pi pi-search" class="p-button-rounded p-button-success mr-2" (click)="navigateToConferenceForm(conference)"></button>
-                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(conference)" [disabled]="!userService.hasRole(['Super Admin','Nagy Admin'])"></button>
-                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = conference; deleteDialog = true" [disabled]="!userService.hasRole(['Super Admin','Nagy Admin'])"></button>
+                                <button pButton 
+                                        pRipple 
+                                        icon="pi pi-copy" 
+                                        class="p-button-rounded p-button-success mr-2" 
+                                        pTooltip="Regisztrációs link másolása vágólapra"
+                                        tooltipPosition="top"
+                                        (click)="copyUrl(conference.formUrl)"
+                                        [disabled]="!conference.formUrl">
+                                </button>
+                                <button pButton 
+                                        pRipple 
+                                        icon="pi pi-search" 
+                                        class="p-button-rounded p-button-success mr-2"
+                                        pTooltip="Regisztrációs űrlap megnyitása"
+                                        tooltipPosition="top" 
+                                        (click)="navigateToConferenceForm(conference)">
+                                </button>
+                                <button pButton 
+                                        pRipple 
+                                        icon="pi pi-question" 
+                                        class="p-button-rounded p-button-success mr-2" 
+                                        pTooltip="Extra kérdések beállítása"
+                                        tooltipPosition="top" 
+                                        (click)="questions(conference)">
+                                    </button>
+                                <button pButton 
+                                        pRipple 
+                                        icon="pi pi-pencil" 
+                                        class="p-button-rounded p-button-success mr-2" 
+                                        pTooltip="Konferencia szerkesztése"
+                                        tooltipPosition="top" 
+                                        (click)="edit(conference)" 
+                                        [disabled]="!userService.hasRole(['Super Admin','Nagy Admin'])">
+                                </button>
+                                <button pButton 
+                                        pRipple 
+                                        icon="pi pi-trash" 
+                                        class="p-button-rounded p-button-warning" 
+                                        pTooltip="Konferencia törlése"
+                                        tooltipPosition="top" 
+                                        (click)="tableItem = conference; deleteDialog = true" 
+                                        [disabled]="!userService.hasRole(['Super Admin','Nagy Admin'])">
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -148,6 +188,7 @@
 
         <!-- Sidebar -->
         <p-sidebar 
+            id="sidebar"
             [(visible)]="sidebar" 
             position="right"
             styleClass="p-sidebar-md">
@@ -292,6 +333,156 @@
                 </div>
             </ng-template>
         </p-sidebar>
+
+        <!-- Questions sidebar -->
+        <p-sidebar 
+            id="questionsSidebar"
+            [(visible)]="questionsSidebar" 
+            position="right"
+            styleClass="p-sidebar-md">
+            
+            <!-- Sidebar header -->
+            <ng-template pTemplate="header">
+                <span class="font-semibold text-xl">Szerverző kérdései</span>
+            </ng-template>
+
+            <form [formGroup]="questionsForm" (ngSubmit)="saveQuestions()" novalidate class="grid formgrid p-fluid">
+                    
+                <!-- Kérdés Id -->
+                <input formControlName="id" type="hidden">
+
+                <!-- Konferencia Id -->
+                <input formControlName="conferenceId" type="hidden">
+
+                <!-- 1. Kérdés -->
+                <div class="field mb-4 col-12">
+                    <label for="question_1_hu" class="font-medium text-900">1. kérdés</label>
+                    <div class="block mt-2 md:mt-0 p-input-icon-left">
+                        <i>
+                            <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-hu" style="width: 18px; margin-top:-8px"/>
+                        </i>
+                        <input id="question_1_hu" type="text" pInputText formControlName="question_1_hu"/>
+                    </div>
+                    <div *ngIf="question_1_hu?.dirty && question_1_hu?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                    <div class="block mt-2 p-input-icon-left">
+                        <i>
+                            <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-gb" style="width: 18px; margin-top:-8px"/>
+                        </i>
+                        <input id="question_1_en" type="text" pInputText formControlName="question_1_en"/>
+                    </div>
+                    <div *ngIf="question_1_en?.dirty && question_1_en?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- 2. Kérdés -->
+                <div class="field mb-4 col-12">
+                    <label for="question_2_hu" class="font-medium text-900">2. kérdés</label>
+                    <div class="block mt-2 md:mt-0 p-input-icon-left">
+                        <i>
+                            <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-hu" style="width: 18px; margin-top:-8px"/>
+                        </i>
+                        <input id="question_2_hu" type="text" pInputText formControlName="question_2_hu"/>
+                    </div>
+                    <div *ngIf="question_2_hu?.dirty && question_2_hu?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                    <div class="block mt-2 p-input-icon-left">
+                        <i>
+                            <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-gb" style="width: 18px; margin-top:-8px"/>
+                        </i>
+                        <input id="question_2_en" type="text" pInputText formControlName="question_2_en"/>
+                    </div>
+                    <div *ngIf="question_2_en?.dirty && question_2_en?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- 3. Kérdés -->
+                <div class="field mb-4 col-12">
+                    <label for="question_3_hu" class="font-medium text-900">3. kérdés</label>
+                    <div class="block mt-2 md:mt-0 p-input-icon-left">
+                        <i>
+                            <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-hu" style="width: 18px; margin-top:-8px"/>
+                        </i>
+                        <input id="question_3_hu" type="text" pInputText formControlName="question_3_hu"/>
+                    </div>
+                    <div *ngIf="question_3_hu?.dirty && question_3_hu?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                    <div class="block mt-2 p-input-icon-left">
+                        <i>
+                            <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-gb" style="width: 18px; margin-top:-8px"/>
+                        </i>
+                        <input id="question_3_en" type="text" pInputText formControlName="question_3_en"/>
+                    </div>
+                    <div *ngIf="question_3_en?.dirty && question_3_en?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- 4. Kérdés -->
+                <div class="field mb-4 col-12">
+                    <label for="question_4_hu" class="font-medium text-900">4. kérdés</label>
+                    <div class="block mt-2 md:mt-0 p-input-icon-left">
+                        <i>
+                            <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-hu" style="width: 18px; margin-top:-8px"/>
+                        </i>
+                        <input id="question_4_hu" type="text" pInputText formControlName="question_4_hu"/>
+                    </div>
+                    <div *ngIf="question_4_hu?.dirty && question_4_hu?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                    <div class="block mt-2 p-input-icon-left">
+                        <i>
+                            <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-gb" style="width: 18px; margin-top:-8px"/>
+                        </i>
+                        <input id="question_4_en" type="text" pInputText formControlName="question_4_en"/>
+                    </div>
+                    <div *ngIf="question_4_en?.dirty && question_4_en?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- 5. Kérdés -->
+                <div class="field mb-4 col-12">
+                    <label for="question_5_hu" class="font-medium text-900">5. kérdés</label>
+                    <div class="block mt-2 md:mt-0 p-input-icon-left">
+                        <i>
+                            <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-hu" style="width: 18px; margin-top:-8px"/>
+                        </i>
+                        <input id="question_5_hu" type="text" pInputText formControlName="question_5_hu"/>
+                    </div>
+                    <div class="block mt-2 p-input-icon-left">
+                        <i>
+                            <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-gb" style="width: 18px; margin-top:-8px"/>
+                        </i>
+                        <input id="question_5_en" type="text" pInputText formControlName="question_5_en"/>
+                    </div>
+                    <div *ngIf="question_5_hu?.dirty && question_5_hu?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
+                </div>
+            </form>
+            <ng-template pTemplate="footer">
+                <div class="flex justify-content-end ap-2">
+                    <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-outlined" (click)="cancelQuestions()" [disabled]="!questionsForm.dirty"></button>
+                    <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button ml-2" (click)="saveQuestions()" [disabled]="!questionsForm.valid || !questionsForm.dirty"></button>
+                </div>
+            </ng-template>
+        </p-sidebar>
+
+        <!-- Delete dialog -->
+        <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
+            <div class="flex align-items-center justify-content-center">
+                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+                <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.name}}</b> konferenciát?</span>
+            </div>
+            <ng-template pTemplate="footer">
+                <div class="flex justify-content-end ap-2">
+                    <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="deleteDialog = false"></button>
+                    <button pButton pRipple label="Igen" icon="pi pi-check" class="p-button ml-2" (click)="delete()"></button>
+                </div>
+            </ng-template>
+        </p-dialog>
+
+        <!-- Bulk Delete dialog -->
+        <p-dialog [(visible)]="bulkDeleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
+            <div class="flex align-items-center justify-content-center">
+                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+                <span>Biztosan törölni akarja a kiválasztott konferenciákat?</span>
+            </div>
+            <ng-template pTemplate="footer">
+                <div class="flex justify-content-end ap-2">
+                    <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="bulkDeleteDialog = false"></button>
+                    <button pButton pRipple label="Igen" icon="pi pi-check" class="p-button ml-2" (click)="deleteSelected()"></button>
+                </div>
+            </ng-template>
+        </p-dialog>
     </div>
 </div>
 

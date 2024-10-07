@@ -6,12 +6,13 @@ import { debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs/operato
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { emailDomainValidator } from '../../utils/email-validator';
 import { ConferenceService } from '../../service/conference.service';
+import { QuestionService } from '../../service/question.service';
 import { MessageService } from 'primeng/api';
 import { UserService } from '../../service/user.service';
 import { MealService } from '../../service/meal.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
-
+import { Language } from '../../api/language';
 import { Table } from 'primeng/table';
 import * as moment from 'moment';
 moment.locale('hu')
@@ -43,13 +44,16 @@ export class ConferenceListComponent implements OnInit {
     filterValues: { [key: string]: string } = {} // Table filter conditions
     debounce: { [key: string]: any } = {}        // Search delay in filter field
     conferenceForm: FormGroup;                   // Form to create/update conference
+    questionsForm: FormGroup;                    // Form to manage questions of the conference
     originalFormValues: any;                     // The original values ​​of the form
-    dialog: boolean = false;                     // Table item maintenance modal
-    sidebar: boolean = false;                    // Table item maintenance modal
+    originalQuestionsFormValues: any;            // The original values ​​of the questions form
+    sidebar: boolean = false;                    // Table item maintenance sidebar
+    questionsSidebar: boolean = false;           // Questions maintenance sidebar
     deleteDialog: boolean = false;               // Popup for deleting table item
     bulkDeleteDialog: boolean = false;           // Popup for deleting table items
     selected: Conference[] = [];                 // Table items chosen by user
     meals: any[] = [];                           // Possible meals
+    languages: Language[] = []                   // List of system languages
 
     private isFormValid$: Observable<boolean>;
     private formChanges$: Subject<void> = new Subject();
@@ -62,9 +66,11 @@ export class ConferenceListComponent implements OnInit {
         private route: ActivatedRoute,
         private formBuilder: FormBuilder,
         private conferenceService: ConferenceService,
+        private questionService: QuestionService,
         private mealService: MealService,
         private messageService: MessageService) {
 
+        // Conference form fields and validations
         this.conferenceForm = this.formBuilder.group({
             id: [''],
             name: ['', Validators.required],
@@ -98,6 +104,22 @@ export class ConferenceListComponent implements OnInit {
                 formUrl: `${baseUrl}/#/conference-form/${slug}`
             })
         })
+
+        // Questions form fields and validations
+        this.questionsForm = this.formBuilder.group({
+            id: [''],
+            conferenceId: [''],
+            question_1_hu: ['', Validators.required],
+            question_1_en: ['', Validators.required],
+            question_2_hu: ['', Validators.required],
+            question_2_en: ['', Validators.required],
+            question_3_hu: ['', Validators.required],
+            question_3_en: ['', Validators.required],
+            question_4_hu: ['', Validators.required],
+            question_4_en: ['', Validators.required],
+            question_5_hu: ['', Validators.required],
+            question_5_en: ['', Validators.required],
+        })
     }
 
     ngOnInit() {
@@ -114,6 +136,24 @@ export class ConferenceListComponent implements OnInit {
 
         // Get meals for selector
         this.meals = this.mealService.getMealsForSelector()
+
+        // Set possible languages
+        this.languages = [
+            {
+                name: "Hungary",
+                huname: "Magyarország",
+                nationality: "Hungarian",
+                hunationality: "magyar",
+                code: "HU"
+            },
+            {
+                name: "United Kingdom",
+                huname: "Egyesült Királyság",
+                nationality: "brit",
+                hunationality: "angol",
+                code: "GB"
+            }
+        ]
 
         // Form validation
         this.isFormValid$ = this.formChanges$.pipe(
@@ -163,6 +203,18 @@ export class ConferenceListComponent implements OnInit {
     get contactPhone() { return this.conferenceForm.get('contactPhone') }
     get formUrl() { return this.conferenceForm.get('formUrl') }
     get registrationEndDate() { return this.conferenceForm.get('registrationEndDate') }
+
+    // Getters for questions form validation
+    get question_1_hu() { return this.questionsForm.get('question') }
+    get question_1_en() { return this.questionsForm.get('question') }
+    get question_2_hu() { return this.questionsForm.get('question') }
+    get question_2_en() { return this.questionsForm.get('question') }
+    get question_3_hu() { return this.questionsForm.get('question') }
+    get question_3_en() { return this.questionsForm.get('question') }
+    get question_4_hu() { return this.questionsForm.get('question') }
+    get question_4_en() { return this.questionsForm.get('question') }
+    get question_5_hu() { return this.questionsForm.get('question') }
+    get question_5_en() { return this.questionsForm.get('question') }
 
     /**
      * Load filtered data into the Table
@@ -334,6 +386,35 @@ export class ConferenceListComponent implements OnInit {
     }
 
     /**
+     * Edit the questions of the Conference
+     * @param conference
+     */
+    questions(conference: Conference) {
+        this.questionsForm.patchValue(conference)
+        this.originalQuestionsFormValues = this.questionsForm.value
+        this.questionsSidebar = true
+    }
+
+    /**
+     * Saving the questions form
+     */
+    saveQuestions() {
+        if (this.questionsForm.valid) {
+            this.loading = true
+            const formValues = this.questionsForm.value
+            // this.questionService.create(formValues)
+            this.questionsSidebar = false
+        }
+    }
+
+    /**
+     * Cancel saving the questions form
+     */
+    cancelQuestions() {
+        this.questionsForm.reset(this.originalQuestionsFormValues)
+    }
+
+    /**
      * Converts a string to its slug form
      * @param str string to be slugified
      * @returns slugified string
@@ -351,6 +432,11 @@ export class ConferenceListComponent implements OnInit {
 
     copyUrl(formUrl: string) {
         navigator.clipboard.writeText(formUrl)
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Regisztrációs link vágólapra másolva',
+            detail: formUrl
+        })
     }
 
     // Don't delete this, its needed from a performance point of view,

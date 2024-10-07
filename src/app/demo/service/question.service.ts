@@ -1,15 +1,14 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, map, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
-import { Conference } from '../api/conference';
 import { Question } from '../api/question';
 
 @Injectable({
     providedIn: 'root',
 })
 
-export class ConferenceService {
+export class QuestionService {
 
     public apiURL: string
     private data$: BehaviorSubject<any>
@@ -21,7 +20,7 @@ export class ConferenceService {
         this.message$ = new BehaviorSubject<any>(null)
     }
 
-    public get conferenceObs(): Observable<ApiResponse | null> {
+    public get questionObs(): Observable<ApiResponse | null> {
         return this.data$.asObservable()
     }
 
@@ -30,7 +29,7 @@ export class ConferenceService {
     }
 
     /**
-     * Get conferences
+     * Get questions
      * @param page
      * @param rowsPerPage
      * @param sort
@@ -49,7 +48,7 @@ export class ConferenceService {
 
         const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
 
-        this.apiService.get<ApiResponse>(`conference/get/${url}`)
+        this.apiService.get<ApiResponse>(`question/get/${url}`)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)
@@ -61,7 +60,7 @@ export class ConferenceService {
     }
 
     /**
-     * Get conferences by Search
+     * Get questions by Search
      * @param globalFilter
      * @param sort
      */
@@ -72,7 +71,7 @@ export class ConferenceService {
             pageSort = sort.sortField != "" ? `?sort=${sort.sortField}&order=${sortOrder}` : '';
         }
 
-        this.apiService.get<ApiResponse>(`conference/search/${globalFilter}${pageSort}`)
+        this.apiService.get<ApiResponse>(`question/search/${globalFilter}${pageSort}`)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)
@@ -84,11 +83,11 @@ export class ConferenceService {
     }
 
     /**
-     * Get conferences by Search query
+     * Get questions by Search query
      * @param filters
      */
     public getBySearchQuery(filters: string): void {
-        this.apiService.get<ApiResponse>(`conference/searchquery?${filters}`)
+        this.apiService.get<ApiResponse>(`question/searchquery?${filters}`)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)
@@ -100,17 +99,17 @@ export class ConferenceService {
     }
 
     /**
-     * Conference create
-     * @param conference
+     * Question create
+     * @param question
      */
-    public create(conference: Conference): void {
-        this.apiService.post(`conference/create/`, conference)
+    public create(question: Question): void {
+        this.apiService.post(`question/create/`, question)
             .subscribe({
                 next: (response: any) => {
                     this.message$.next({
                         severity: 'success',
-                        summary: 'Sikeres konferencia rögzítés',
-                        detail: `${conference.name} rögzítve`,
+                        summary: 'Sikeres kérdés rögzítés',
+                        detail: `${question.question} rögzítve`,
                     })
                 },
                 error: (error: any) => {
@@ -120,17 +119,17 @@ export class ConferenceService {
     }
 
     /**
-     * Conference update
-     * @param conference
+     * Question update
+     * @param question
      */
-    public update(modifiedConference: Conference): void {
-        this.apiService.put(`conference/update/${modifiedConference.id}`, modifiedConference)
+    public update(modifiedQuestion: Question): void {
+        this.apiService.put(`question/update/${modifiedQuestion.id}`, modifiedQuestion)
             .subscribe({
                 next: () => {
                     this.message$.next({
                         severity: 'success',
-                        summary: 'Sikeres konferencia módosítás',
-                        detail: `${modifiedConference.name} módosítva`,
+                        summary: 'Sikeres kérdés módosítás',
+                        detail: `${modifiedQuestion.question} módosítva`,
                     })
                 },
                 error: (error: any) => {
@@ -140,17 +139,17 @@ export class ConferenceService {
     }
 
     /**
-     * Conference delete
-     * @param conference
+     * Question delete
+     * @param question
      */
-    public delete(conference: Conference): void {
-        this.apiService.delete(`conference/delete/${conference.id}`)
+    public delete(question: Question): void {
+        this.apiService.delete(`question/delete/${question.id}`)
             .subscribe({
                 next: (response: any) => {
                     this.message$.next({
                         severity: 'success',
-                        summary: 'Sikeres konferencia törlés',
-                        detail: `${conference.name} törölve`,
+                        summary: 'Sikeres kérdés törlés',
+                        detail: `${question.question} törölve`,
                     })
                 },
                 error: (error: any) => {
@@ -160,44 +159,25 @@ export class ConferenceService {
     }
 
     /**
-     * Bulk delete of conferences
-     * @param conferences
+     * Bulk delete of questions
+     * @param questions
      */
-    public bulkdelete(conferences: Conference[]): void {
+    public bulkdelete(questions: Question[]): void {
         let params = {
-            ids: conferences.map(conference => conference.id)
+            ids: questions.map(question => question.id)
         }
-        this.apiService.post('conference/bulkdelete', params)
+        this.apiService.post('question/bulkdelete', params)
             .subscribe({
                 next: (response: any) => {
                     this.message$.next({
                         severity: 'success',
-                        summary: 'Sikeres konferencia törlés',
-                        detail: `${conferences.length} konferencia törölve`,
+                        summary: 'Sikeres kérdés törlés',
+                        detail: `${questions.length} kérdés törölve`,
                     })
                 },
                 error: (error: any) => {
                     this.message$.next(error)
                 }
             })
-    }
-
-    /**
-     * Conference SLUG validator
-     * @param slug 
-     * @returns 
-     */
-    public isSlugValid(slug: string): Observable<boolean> {
-        this.get(0, 20, 'slug=', 'sort')
-
-        // Figyeljük a data$ stream-et, hogy van-e találat
-        return this.data$.pipe(
-            map((response: any) => {
-                console.log('isSlugValid response', response)
-                // Ellenőrzés: ha van adat és az adatok nem üresek, akkor érvényes a slug
-                return response && response.data && response.rows.length > 0;
-            }),
-            catchError(() => of(false)) // Hibakezelés: ha hiba történik, érvénytelen a slug
-        )
     }
 }
