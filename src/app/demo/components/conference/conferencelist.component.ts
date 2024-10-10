@@ -7,6 +7,7 @@ import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { emailDomainValidator } from '../../utils/email-validator';
 import { ConferenceService } from '../../service/conference.service';
 import { QuestionService } from '../../service/question.service';
+import { ApiService } from '../../service/api.service';
 import { MessageService } from 'primeng/api';
 import { UserService } from '../../service/user.service';
 import { MealService } from '../../service/meal.service';
@@ -15,6 +16,7 @@ import { Conference } from '../../api/conference';
 import { Language } from '../../api/language';
 import { Table } from 'primeng/table';
 import * as moment from 'moment';
+import { Question } from '../../api/question';
 moment.locale('hu')
 
 @Component({
@@ -48,6 +50,7 @@ export class ConferenceListComponent implements OnInit {
     originalFormValues: any;                     // The original values ​​of the form
     originalQuestionsFormValues: any;            // The original values ​​of the questions form
     sidebar: boolean = false;                    // Table item maintenance sidebar
+    questions: Question[] = [];                  // List of questions
     questionsSidebar: boolean = false;           // Questions maintenance sidebar
     deleteDialog: boolean = false;               // Popup for deleting table item
     bulkDeleteDialog: boolean = false;           // Popup for deleting table items
@@ -58,6 +61,7 @@ export class ConferenceListComponent implements OnInit {
     private isFormValid$: Observable<boolean>;
     private formChanges$: Subject<void> = new Subject();
     private conferenceObs$: Observable<any> | undefined;
+    private questionObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
 
     constructor(
@@ -68,6 +72,7 @@ export class ConferenceListComponent implements OnInit {
         private conferenceService: ConferenceService,
         private questionService: QuestionService,
         private mealService: MealService,
+        private apiService: ApiService,
         private messageService: MessageService) {
 
         // Conference form fields and validations
@@ -92,16 +97,15 @@ export class ConferenceListComponent implements OnInit {
 
         // Monitor the name field changes
         this.conferenceForm.get('name')?.valueChanges.subscribe(nameValue => {
-            
-            // Get the base URL
-            const baseUrl = window.location.origin;
+
+            const productionURL = this.apiService.productionURL
 
             // Create a slug from the name
             let slug = this.slugify(nameValue)
-            
+
             // Set the slug in the form
             this.conferenceForm.patchValue({
-                formUrl: `${baseUrl}/#/conference-form/${slug}`
+                formUrl: `${productionURL}/#/conference-form/${slug}`
             })
         })
 
@@ -109,16 +113,6 @@ export class ConferenceListComponent implements OnInit {
         this.questionsForm = this.formBuilder.group({
             id: [''],
             conferenceId: [''],
-            question_1_hu: ['', Validators.required],
-            question_1_en: ['', Validators.required],
-            question_2_hu: ['', Validators.required],
-            question_2_en: ['', Validators.required],
-            question_3_hu: ['', Validators.required],
-            question_3_en: ['', Validators.required],
-            question_4_hu: ['', Validators.required],
-            question_4_en: ['', Validators.required],
-            question_5_hu: ['', Validators.required],
-            question_5_en: ['', Validators.required],
         })
     }
 
@@ -131,6 +125,17 @@ export class ConferenceListComponent implements OnInit {
                 this.tableData = data.rows || [];
                 this.totalRecords = data.totalItems || 0;
                 this.page = data.currentPage || 0;
+            }
+        })
+
+        // Questions
+        this.questionObs$ = this.questionService.questionObs;
+        this.questionObs$.subscribe((data: ApiResponse) => {
+            this.loading = false
+            console.log('Question response', data)
+            if (data) {
+                this.questions = data.rows || []
+                this.initializeQuestionsForm()
             }
         })
 
@@ -203,18 +208,6 @@ export class ConferenceListComponent implements OnInit {
     get contactPhone() { return this.conferenceForm.get('contactPhone') }
     get formUrl() { return this.conferenceForm.get('formUrl') }
     get registrationEndDate() { return this.conferenceForm.get('registrationEndDate') }
-
-    // Getters for questions form validation
-    get question_1_hu() { return this.questionsForm.get('question') }
-    get question_1_en() { return this.questionsForm.get('question') }
-    get question_2_hu() { return this.questionsForm.get('question') }
-    get question_2_en() { return this.questionsForm.get('question') }
-    get question_3_hu() { return this.questionsForm.get('question') }
-    get question_3_en() { return this.questionsForm.get('question') }
-    get question_4_hu() { return this.questionsForm.get('question') }
-    get question_4_en() { return this.questionsForm.get('question') }
-    get question_5_hu() { return this.questionsForm.get('question') }
-    get question_5_en() { return this.questionsForm.get('question') }
 
     /**
      * Load filtered data into the Table
@@ -305,19 +298,51 @@ export class ConferenceListComponent implements OnInit {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains')
     }
 
+    /**
+     * Initializes the questions form, setting default values from the questions array.
+     * @remarks
+     * The form is created with a control for each question in the questions array.
+     * The name of each control is in the format `question_<id>_<lang>`, where <id> is the
+     * question ID and <lang> is the language code.
+     * The default value for each control is set to the question's translation for the
+     * corresponding language.
+     */
+    initializeQuestionsForm() {
+        this.questionsForm = this.formBuilder.group({
+            conferenceId: [this.tableItem.id],
+        })
+        this.questions.forEach(question => {
+            Object.keys(question.translations).forEach(lang => {
+                // Set default values for each question
+                this.questionsForm.addControl(
+                    `question_${question.id}_${lang}`,
+                    this.formBuilder.control(question.translations[lang].question)
+                )
+            })
+        })
+        this.originalQuestionsFormValues = this.questionsForm.value
+    }
+
+    /**
+     * Generates a slugified formUrl based on the name of the conference,
+     * and assigns it to the tableItem
+     * Takes env into account, doesn't link to PROD on DEV
+     */
     setFormUrl() {
         let formUrl = this.tableItem.name || ''
         formUrl = this.slugify(formUrl)
         this.tableItem.formUrl = `/conference-form/${formUrl}`
     }
 
+    /**
+     * Navigates to the conference form page, with the formUrl slugified from the
+     * conference name.
+     * 
+     * @param conference the conference object
+     */
     navigateToConferenceForm(conference: any) {
         const formUrl = this.slugify(conference.name)
         this.router.navigate(['/conference-form', formUrl])
-    }
-
-    navigateToCreateConference() {
-        this.router.navigate(['conference/create'])
     }
 
     /**
@@ -367,8 +392,8 @@ export class ConferenceListComponent implements OnInit {
             // Create
             if (!formValues.id) {
                 this.conferenceService.create(formValues)
-            
-            // Update
+
+                // Update
             } else {
                 this.conferenceService.update(formValues)
             }
@@ -389,9 +414,11 @@ export class ConferenceListComponent implements OnInit {
      * Edit the questions of the Conference
      * @param conference
      */
-    questions(conference: Conference) {
-        this.questionsForm.patchValue(conference)
-        this.originalQuestionsFormValues = this.questionsForm.value
+    editQuestions(conference: Conference) {
+        this.tableItem = conference
+        this.questionsForm.reset()
+        this.loading = true
+        this.questionService.getBySearchQuery(`conferenceId:${conference.id}`)
         this.questionsSidebar = true
     }
 
@@ -402,8 +429,9 @@ export class ConferenceListComponent implements OnInit {
         if (this.questionsForm.valid) {
             this.loading = true
             const formValues = this.questionsForm.value
+            console.log('saving formvalues', formValues)
             // this.questionService.create(formValues)
-            this.questionsSidebar = false
+            // this.questionsSidebar = false
         }
     }
 

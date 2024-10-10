@@ -10,18 +10,18 @@ import { DOCUMENT } from '@angular/common';
 
 export class ApiService {
 
-    public  apiURL: string;  // Path to the backend API
-    private hostname: string;
-    private productionURL = 'https://nfcreserve.hu/api'
-    private developmentURL = 'https://test.nfcreserve.hu/api'
+    public apiURL: string;  // Path to the backend API
+    public hostname: string;
+    public productionURL = 'https://nfcreserve.hu'
+    public developmentURL = 'https://test.nfcreserve.hu'
 
     constructor(@Inject(DOCUMENT) private document: any, private http: HttpClient) {
         // API URL starts with "test." when App is in Dev or in Test
         this.hostname = this.document.location.hostname;
         if (isDevMode() || this.hostname == 'test.nfcreserve.hu') {
-            this.apiURL = this.developmentURL
+            this.apiURL = `${this.developmentURL}/api`
         } else {
-            this.apiURL = this.productionURL
+            this.apiURL = `${this.productionURL}/api`
         }
     }
 

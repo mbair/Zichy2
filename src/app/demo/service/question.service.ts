@@ -87,15 +87,63 @@ export class QuestionService {
      * @param filters
      */
     public getBySearchQuery(filters: string): void {
-        this.apiService.get<ApiResponse>(`question/searchquery?${filters}`)
-            .subscribe({
-                next: (response: ApiResponse) => {
-                    this.data$.next(response)
+
+        // TODO: mock data
+        let response = {
+            rows: [
+                {
+                    id: 11,
+                    translations: {
+                        hu: { question: 'Első kérdés' },
+                        en: { question: 'First question' }
+                    }
                 },
-                error: (error: any) => {
-                    this.message$.next(error)
+                {
+                    id: 23,
+                    translations: {
+                        hu: { question: 'Második kérdés' },
+                        en: { question: 'Second question' }
+                    }
+                },
+                {
+                    id: 35,
+                    translations: {
+                        hu: { question: 'Harmadik kérdés' },
+                        en: { question: 'Third question' }
+                    }
+                },
+                {
+                    id: 46,
+                    translations: {
+                        hu: { question: 'Negyedik kérdés' },
+                        en: { question: 'Fourth question' }
+                    }
+                },
+                {
+                    id: 58,
+                    translations: {
+                        hu: { question: 'Ötödik kérdés' },
+                        en: { question: 'Fifth question' }
+                    }
                 }
-            })
+            ]
+        }
+
+        this.data$.next(response)
+
+
+        // this.apiService.get<ApiResponse>(`question/searchquery?${filters}`)
+        //     .subscribe({
+        //         next: (response: ApiResponse) => {
+
+
+
+        //             this.data$.next(response)
+        //         },
+        //         error: (error: any) => {
+        //             this.message$.next(error)
+        //         }
+        //     })
     }
 
     /**
@@ -109,7 +157,7 @@ export class QuestionService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres kérdés rögzítés',
-                        detail: `${question.question} rögzítve`,
+                        detail: `${question.translations['hu']} rögzítve`,
                     })
                 },
                 error: (error: any) => {
@@ -129,7 +177,7 @@ export class QuestionService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres kérdés módosítás',
-                        detail: `${modifiedQuestion.question} módosítva`,
+                        detail: `${modifiedQuestion.translations['hu']} módosítva`,
                     })
                 },
                 error: (error: any) => {
@@ -149,7 +197,7 @@ export class QuestionService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres kérdés törlés',
-                        detail: `${question.question} törölve`,
+                        detail: `${question.translations['hu']} törölve`,
                     })
                 },
                 error: (error: any) => {
