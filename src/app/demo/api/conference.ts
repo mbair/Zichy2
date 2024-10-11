@@ -16,6 +16,7 @@ export interface Conference {
     contactPhone?: string;
     formUrl?: string;
     registrationEndDate?: string | null;
+    questions?: any;
 
     // Can be deleted
     code?: string;

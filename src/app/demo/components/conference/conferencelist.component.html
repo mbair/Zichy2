@@ -291,52 +291,42 @@
                 <span class="font-semibold text-xl">Szerverző kérdései</span>
             </ng-template>
 
-            <p class="block text-sm">
+            <p class="block text-sm mb-0">
                 Űrlaponként az alapértelmezett mezőkön felül 5 extra kérdés tehető fel.<br>
                 Az üresen hagyott kérdések nem fognak megjelenni az űrlapon.
             </p>
 
-            <form [formGroup]="questionsForm" (ngSubmit)="saveQuestions()" novalidate class="grid formgrid p-fluid">
-
-                <!-- Kérdés Id -->
-                <input formControlName="id" type="hidden">
+            <form [formGroup]="questionsForm" (ngSubmit)="saveQuestions()" novalidate class="p-fluid">
 
                 <!-- Konferencia Id -->
                 <input formControlName="conferenceId" type="hidden">
 
                 <!-- Kérdések -->
-                <div *ngFor="let question of questions; let i = index" class="flex w-full">
-                    <div class="field col-12">
-                        <label class="font-medium text-900 mb-0">
+                <div formArrayName="questions" class="flex flex-wrap w-full">
+                    <div *ngFor="let question of questions.controls; let i = index" [formGroupName]="i" class="w-full mt-3">
+                        <label for="en-{{i}}" class="font-medium text-900 mb-2">
                             {{ i+1 }}. kérdés
                         </label>
-                        
+
                         <!-- Magyar kérdés input mező -->
                         <div class="block mt-2 p-input-icon-left">
                             <i>
                                 <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-hu"
-                                     style="width: 18px; margin-top:-8px" />
+                                    style="width: 18px; margin-top:-8px" />
                             </i>
-                            <input [id]="'question_' + question.id + '_hu'" type="text" pInputText [formControlName]="'question_' + question.id + '_hu'" />
+                            <input id="hu-{{i}}" type="text" pInputText formControlName="hu" class="w-full" />
                         </div>
-                    
+
                         <!-- Angol kérdés input mező -->
                         <div class="block mt-2 p-input-icon-left">
                             <i>
                                 <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-gb"
-                                     style="width: 18px; margin-top:-8px" />
+                                    style="width: 18px; margin-top:-8px" />
                             </i>
-                            <input [id]="'question_' + question.id + '_en'" type="text" pInputText [formControlName]="'question_' + question.id + '_en'" />
-                        </div>
-                        
-                        <!-- Validációk -->
-                        <div *ngIf="questionsForm.get('question_' + question.id + '_hu')?.dirty && questionsForm.get('question_' + question.id + '_hu')?.errors?.['required']" class="block p-error">
-                            Kötelező kitölteni (hu)
+                            <input id="en-{{i}}" type="text" pInputText formControlName="en" class="w-full" />
                         </div>
                     </div>
                 </div>
-
-                
             </form>
             <ng-template pTemplate="footer">
                 <div class="flex justify-content-end ap-2">

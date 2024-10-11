@@ -1,12 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
-import { Subscription, Observable, Subject, BehaviorSubject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs/operators';
+import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Observable, Subject, BehaviorSubject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { emailDomainValidator } from '../../utils/email-validator';
 import { ConferenceService } from '../../service/conference.service';
-import { QuestionService } from '../../service/question.service';
 import { ApiService } from '../../service/api.service';
 import { MessageService } from 'primeng/api';
 import { UserService } from '../../service/user.service';
@@ -16,7 +15,6 @@ import { Conference } from '../../api/conference';
 import { Language } from '../../api/language';
 import { Table } from 'primeng/table';
 import * as moment from 'moment';
-import { Question } from '../../api/question';
 moment.locale('hu')
 
 @Component({
@@ -50,7 +48,6 @@ export class ConferenceListComponent implements OnInit {
     originalFormValues: any;                     // The original values ​​of the form
     originalQuestionsFormValues: any;            // The original values ​​of the questions form
     sidebar: boolean = false;                    // Table item maintenance sidebar
-    questions: Question[] = [];                  // List of questions
     questionsSidebar: boolean = false;           // Questions maintenance sidebar
     deleteDialog: boolean = false;               // Popup for deleting table item
     bulkDeleteDialog: boolean = false;           // Popup for deleting table items
@@ -61,16 +58,13 @@ export class ConferenceListComponent implements OnInit {
     private isFormValid$: Observable<boolean>;
     private formChanges$: Subject<void> = new Subject();
     private conferenceObs$: Observable<any> | undefined;
-    private questionObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
 
     constructor(
         public userService: UserService,
         private router: Router,
-        private route: ActivatedRoute,
         private formBuilder: FormBuilder,
         private conferenceService: ConferenceService,
-        private questionService: QuestionService,
         private mealService: MealService,
         private apiService: ApiService,
         private messageService: MessageService) {
@@ -110,10 +104,7 @@ export class ConferenceListComponent implements OnInit {
         })
 
         // Questions form fields and validations
-        this.questionsForm = this.formBuilder.group({
-            id: [''],
-            conferenceId: [''],
-        })
+        this.initializeQuestionsForm()
     }
 
     ngOnInit() {
@@ -122,20 +113,9 @@ export class ConferenceListComponent implements OnInit {
         this.conferenceObs$.subscribe((data: ApiResponse) => {
             this.loading = false
             if (data) {
-                this.tableData = data.rows || [];
-                this.totalRecords = data.totalItems || 0;
-                this.page = data.currentPage || 0;
-            }
-        })
-
-        // Questions
-        this.questionObs$ = this.questionService.questionObs;
-        this.questionObs$.subscribe((data: ApiResponse) => {
-            this.loading = false
-            console.log('Question response', data)
-            if (data) {
-                this.questions = data.rows || []
-                this.initializeQuestionsForm()
+                this.tableData = data.rows || []
+                this.totalRecords = data.totalItems || 0
+                this.page = data.currentPage || 0
             }
         })
 
@@ -208,6 +188,11 @@ export class ConferenceListComponent implements OnInit {
     get contactPhone() { return this.conferenceForm.get('contactPhone') }
     get formUrl() { return this.conferenceForm.get('formUrl') }
     get registrationEndDate() { return this.conferenceForm.get('registrationEndDate') }
+
+    // Gets the FormArray of questions
+    get questions(): FormArray {
+        return this.questionsForm.get('questions') as FormArray
+    }
 
     /**
      * Load filtered data into the Table
@@ -308,18 +293,36 @@ export class ConferenceListComponent implements OnInit {
      * corresponding language.
      */
     initializeQuestionsForm() {
+        const q = this.tableItem.questions
+        const maxQuestions = 5
+
+        // Check for questions and translations
+        const questions = q &&q.length && q[0].translations ? q[0].translations : []
+
+        // Reinitialize the form, including the questions FormArray
         this.questionsForm = this.formBuilder.group({
             conferenceId: [this.tableItem.id],
+            questions: this.formBuilder.array([])
         })
-        this.questions.forEach(question => {
-            Object.keys(question.translations).forEach(lang => {
-                // Set default values for each question
-                this.questionsForm.addControl(
-                    `question_${question.id}_${lang}`,
-                    this.formBuilder.control(question.translations[lang].question)
-                )
-            })
+
+        // Fill form with stored questions
+        questions.forEach((question: any) => {
+            this.questions.push(this.formBuilder.group({
+                hu: [question.hu],
+                en: [question.en]
+            }))
         })
+
+        // If there are less than 5 questions, blank questions will be added
+        const missingQuestions = maxQuestions - this.questions.length
+        for (let i = 0; i < missingQuestions; i++) {
+            this.questions.push(this.formBuilder.group({
+                hu: [''],  // Empty HU question
+                en: ['']   // Empty EN question
+            }))
+        }
+
+        // Store original values for comparison
         this.originalQuestionsFormValues = this.questionsForm.value
     }
 
@@ -417,8 +420,7 @@ export class ConferenceListComponent implements OnInit {
     editQuestions(conference: Conference) {
         this.tableItem = conference
         this.questionsForm.reset()
-        this.loading = true
-        this.questionService.getBySearchQuery(`conferenceId:${conference.id}`)
+        this.initializeQuestionsForm()
         this.questionsSidebar = true
     }
 
@@ -426,13 +428,11 @@ export class ConferenceListComponent implements OnInit {
      * Saving the questions form
      */
     saveQuestions() {
-        if (this.questionsForm.valid) {
-            this.loading = true
-            const formValues = this.questionsForm.value
-            console.log('saving formvalues', formValues)
-            // this.questionService.create(formValues)
-            // this.questionsSidebar = false
-        }
+        this.loading = true
+        const formValues = this.questionsForm.value
+        console.log('saving formvalues', formValues)
+        // this.questionService.create(formValues)
+        // this.questionsSidebar = false
     }
 
     /**

@@ -87,63 +87,18 @@ export class QuestionService {
      * @param filters
      */
     public getBySearchQuery(filters: string): void {
+        this.apiService.get<ApiResponse>(`question/searchquery?${filters}`)
+            .subscribe({
+                next: (response: ApiResponse) => {
 
-        // TODO: mock data
-        let response = {
-            rows: [
-                {
-                    id: 11,
-                    translations: {
-                        hu: { question: 'Első kérdés' },
-                        en: { question: 'First question' }
-                    }
+
+
+                    this.data$.next(response)
                 },
-                {
-                    id: 23,
-                    translations: {
-                        hu: { question: 'Második kérdés' },
-                        en: { question: 'Second question' }
-                    }
-                },
-                {
-                    id: 35,
-                    translations: {
-                        hu: { question: 'Harmadik kérdés' },
-                        en: { question: 'Third question' }
-                    }
-                },
-                {
-                    id: 46,
-                    translations: {
-                        hu: { question: 'Negyedik kérdés' },
-                        en: { question: 'Fourth question' }
-                    }
-                },
-                {
-                    id: 58,
-                    translations: {
-                        hu: { question: 'Ötödik kérdés' },
-                        en: { question: 'Fifth question' }
-                    }
+                error: (error: any) => {
+                    this.message$.next(error)
                 }
-            ]
-        }
-
-        this.data$.next(response)
-
-
-        // this.apiService.get<ApiResponse>(`question/searchquery?${filters}`)
-        //     .subscribe({
-        //         next: (response: ApiResponse) => {
-
-
-
-        //             this.data$.next(response)
-        //         },
-        //         error: (error: any) => {
-        //             this.message$.next(error)
-        //         }
-        //     })
+            })
     }
 
     /**
