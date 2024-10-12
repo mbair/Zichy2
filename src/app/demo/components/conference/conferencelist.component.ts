@@ -148,7 +148,7 @@ export class ConferenceListComponent implements OnInit {
         )
 
         // Monitor the changes of the form
-        this.conferenceForm.valueChanges.subscribe(() => this.formChanges$.next());
+        this.conferenceForm.valueChanges.subscribe(() => this.formChanges$.next())
 
         // Message
         this.serviceMessageObs$ = this.conferenceService.messageObs;
@@ -429,10 +429,10 @@ export class ConferenceListComponent implements OnInit {
      */
     saveQuestions() {
         this.loading = true
-        const formValues = this.questionsForm.value
-        console.log('saving formvalues', formValues)
-        // this.questionService.create(formValues)
-        // this.questionsSidebar = false
+        const questions = this.questionsForm.value.questions
+        this.tableItem.questions = [{ translations: questions }]
+        this.conferenceService.update(this.tableItem)
+        this.questionsSidebar = false
     }
 
     /**
