@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
 import { Subscription, Observable, Subject, BehaviorSubject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { TranslateService } from '@ngx-translate/core';
 import { emailDomainValidator } from '../../utils/email-validator';
@@ -13,6 +13,8 @@ import { CountryService } from '../../service/country.service';
 import { DietService } from '../../service/diet.service';
 import { Language } from '../../api/language';
 import { Diet } from '../../api/diet';
+import { ApiResponse } from '../../api/ApiResponse';
+import { Conference } from '../../api/conference';
 
 
 @Component({
@@ -29,8 +31,9 @@ import { Diet } from '../../api/diet';
 export class ConferenceFormComponent implements OnInit {
 
     loading: boolean = true                      // Loading overlay trigger value
+    conference: Conference                       // Conference for this form
     languages: Language[] = []                   // List of system languages
-    conferenceSlug: string;                      // Conference Slug
+    currentLanguage: string                      // Current system language 
     diets: Diet[] = []                           // Possible diets
     conferenceForm: FormGroup;                   // Form for guest registration to Conference
     selectedLanguage: any;                       // Selected system language
@@ -41,13 +44,9 @@ export class ConferenceFormComponent implements OnInit {
     meals: any[] = [];
     roomTypes: any[] = [];
 
-    // slugValid$ = this.route.paramMap.pipe(
-    //     map(params => params.get('slug')),
-    //     switchMap(slug => this.conferenceService.isSlugValid(slug!))
-    // )
-
-    private isFormValid$: Observable<boolean>;
-    private formChanges$: Subject<void> = new Subject();
+    private isFormValid$: Observable<boolean>
+    private formChanges$: Subject<void> = new Subject()
+    private conferenceObs$: Observable<any> | undefined
 
     constructor(public router: Router,
         private route: ActivatedRoute,
@@ -84,23 +83,35 @@ export class ConferenceFormComponent implements OnInit {
             babyBed: ['', Validators.required],
             idCard: ['', [Validators.required]],
             privacy: ['', Validators.required],
+            answers: this.formBuilder.array([]),
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
     }
 
     ngOnInit() {
-        // this.slugValid$.subscribe(isValid => {
-        //     if (!isValid) {
-        //         // Ha a slug érvénytelen, navigálunk egy hibaoldalra
-        //         console.error('Invalid slug!')
-        //         // this.router.navigateByUrl('/error-page')
-        //     } else {
-        //         // Ha érvényes, folytathatjuk a folyamatot
-        //         console.log('Slug is valid')
-        //     }
-        // })
+        // Get conference by URL
+        this.getConferenceBySlug()
 
+        // Conferences
+        this.conferenceObs$ = this.conferenceService.conferenceObs
+        this.conferenceObs$.subscribe((data: ApiResponse) => {
+            this.loading = false
+            if (data && data.rows) {
+                if (data.rows.length > 0) {
+                    this.conference = data.rows[0]
+
+                    // Fill form with stored questions
+                    const answersArray = this.conferenceForm.get('answers') as FormArray
+                    this.conference.questions[0].translations.forEach(() => {
+                        answersArray.push(this.formBuilder.control('', Validators.required))
+                    })
+                } else {
+                    // If slug is invalid navigate to error page
+                    this.router.navigateByUrl('/error-page')
+                }
+            }
+        })
 
         // Get diets for selector
         this.dietService.getDietsForSelector().subscribe({
@@ -138,6 +149,7 @@ export class ConferenceFormComponent implements OnInit {
         let defaultLang = browserLang?.match(/en|hu/) ? browserLang : 'gb'
         this.translate.setDefaultLang(defaultLang)
         this.translate.use(defaultLang)
+        this.currentLanguage = this.translate.currentLang
 
         // Set selected language
         if (browserLang) {
@@ -177,7 +189,7 @@ export class ConferenceFormComponent implements OnInit {
         )
 
         // Monitor the changes of the form
-        this.conferenceForm.valueChanges.subscribe(() => this.formChanges$.next());
+        this.conferenceForm.valueChanges.subscribe(() => this.formChanges$.next())
     }
 
     get lastName() { return this.conferenceForm.get('lastName') }
@@ -201,9 +213,33 @@ export class ConferenceFormComponent implements OnInit {
     get idCard() { return this.conferenceForm.get('idCard') }
     get privacy() { return this.conferenceForm.get('privacy') }
 
+    // Gets the FormArray of questions
+    get answers(): FormArray {
+        return this.conferenceForm.get('answers') as FormArray
+    }
+
+    /**
+     * Get conference by slug
+     */
+    getConferenceBySlug() {
+        this.loading = true
+        const slug = this.router.url.split('/').pop()
+        this.conferenceService.getBySearchQuery(`formUrl=${slug}`)
+    }
+
 
     getDietColor(diet: string): string {
         return this.dietService.getDietColor(diet)
+    }
+
+    /**
+     * Gets the translated question at the given index.
+     * @param i The index of the question to translate.
+     * @returns The translated question.
+     */
+    getTranslatedQuestion(i: any): string {
+        const lang = this.currentLanguage == 'gb' ? 'en' : this.currentLanguage
+        return this.conference.questions[0].translations[i][lang]
     }
 
     onSubmit(): void {
@@ -246,6 +282,7 @@ export class ConferenceFormComponent implements OnInit {
     onLanguageChange(lang: any) {
         const langCode = lang.code.toLowerCase()
         this.translate.use(langCode)
+        this.currentLanguage = langCode
     }
 
     // Don't delete this, its needed from a performance point of view,

@@ -297,7 +297,7 @@ export class ConferenceListComponent implements OnInit {
         const maxQuestions = 5
 
         // Check for questions and translations
-        const questions = q &&q.length && q[0].translations ? q[0].translations : []
+        const questions = q && q.length && q[0].translations ? q[0].translations : []
 
         // Reinitialize the form, including the questions FormArray
         this.questionsForm = this.formBuilder.group({

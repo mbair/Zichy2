@@ -387,6 +387,17 @@
                                         </div>
 
                                         <!-- Extra kérdések -->
+                                        <div formArrayName="answers" class="field mb-4 col-12">
+                                            <div *ngFor="let answer of answers.controls; let i = index" class="mb-4">
+                                                <label class="font-medium text-900">
+                                                    {{ getTranslatedQuestion(i) }} ?
+                                                </label>
+                                                <input pInputText [formControlName]="i" />
+                                                <div *ngIf="answer?.dirty && answer?.errors?.['required']" class="block p-error">
+                                                    Kötelező kitölteni
+                                                </div>
+                                            </div>
+                                        </div>
 
                                         <!-- Személyi igazolvány -->
                                         <div class="field mb-4 col-12 lg:col-12" [ngClass]="{ 'error': idCard?.invalid && (idCard?.dirty || idCard?.touched) }">

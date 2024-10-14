@@ -4,4 +4,5 @@ export interface ApiResponse {
     totalItems?: number,
     totalPages?: number,
     rfidCount?: number,
+    count: number,
 }
