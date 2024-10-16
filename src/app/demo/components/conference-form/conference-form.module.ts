@@ -22,6 +22,7 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { HttpClientModule } from '@angular/common/http';
+import { SelectorsModule } from '../../selectors/selectors.module';
 
 @NgModule({
     imports: [
@@ -45,6 +46,7 @@ import { HttpClientModule } from '@angular/common/http';
         TooltipModule,
         HttpClientModule,
         TranslateModule,
+        SelectorsModule,
     ],
     declarations: [
         ConferenceFormComponent,

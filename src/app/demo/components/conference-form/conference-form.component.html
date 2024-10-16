@@ -257,14 +257,7 @@
                                         <!-- Első étkezés -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': firstMeal?.invalid && (firstMeal?.dirty || firstMeal?.touched) }">
                                             <label for="firstMeal" class="font-medium text-900">{{'Első étkezés' | translate }}</label>
-                                            <p-dropdown id="firstMeal"
-                                                        formControlName="firstMeal"
-                                                        [options]="meals"
-                                                        optionLabel="label"
-                                                        optionValue="value"
-                                                        placeholder="Válasszon..."
-                                                        appendTo="body">
-                                            </p-dropdown>
+                                            <app-meal-selector [parentForm]="conferenceForm" controlName="firstMeal"></app-meal-selector>
                                             <div *ngIf="firstMeal?.invalid && (firstMeal?.dirty || firstMeal?.touched)" class="p-error">
                                                 {{'Kérjük, válassza ki az első étkezését' | translate }}!
                                             </div>
@@ -315,13 +308,7 @@
                                         <!-- Utolsó étkezés -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': lastMeal?.invalid && (lastMeal?.dirty || lastMeal?.touched) }">
                                             <label for="lastMeal" class="font-medium text-900">{{'Utolsó étkezés' | translate }}</label>
-                                            <p-dropdown id="lastMeal"
-                                                        formControlName="lastMeal"
-                                                        [options]="meals"
-                                                        optionLabel="label"
-                                                        optionValue="value"
-                                                        appendTo="body">
-                                            </p-dropdown>
+                                            <app-meal-selector [parentForm]="conferenceForm" controlName="lastMeal"></app-meal-selector>
                                             <div *ngIf="lastMeal?.invalid && (lastMeal?.dirty || lastMeal?.touched)" class="p-error">
                                                 {{'Kérjük, válassza ki az utolsó étkezését' | translate }}!
                                             </div>

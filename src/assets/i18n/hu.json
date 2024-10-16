@@ -51,5 +51,12 @@
     "Kérjük válassza ki a szállástípust": "Kérjük válassza ki a szállástípust",
     "Kérjük válassza ki a fizetési módot": "Kérjük válassza ki a fizetési módot",
     "HIBA": "HIBA",
-    "Hiba történt": "Hiba történt"
-}
+    "Hiba történt": "Hiba történt",
+    "Válasszon...": "Válasszon...",
+    "MEALS": {
+        "BREAKFAST": "Reggeli",
+        "LUNCH": "Ebéd",
+        "DINNER": "Vacsora",
+        "NOTHING": "Nem kér étkezést"
+    }
+}   

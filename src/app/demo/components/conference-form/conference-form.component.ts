@@ -102,10 +102,12 @@ export class ConferenceFormComponent implements OnInit {
                     this.conference = data.rows[0]
 
                     // Fill form with stored questions
-                    const answersArray = this.conferenceForm.get('answers') as FormArray
-                    this.conference.questions[0].translations.forEach(() => {
-                        answersArray.push(this.formBuilder.control('', Validators.required))
-                    })
+                    if (this.conference.questions.length > 0) {
+                        const answersArray = this.conferenceForm.get('answers') as FormArray
+                        this.conference.questions[0].translations.forEach(() => {
+                            answersArray.push(this.formBuilder.control('', Validators.required))
+                        })
+                    }
                 } else {
                     // If slug is invalid navigate to error page
                     this.router.navigateByUrl('/error-page')
