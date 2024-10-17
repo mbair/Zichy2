@@ -3,5 +3,17 @@
             optionLabel="label"
             optionValue="value"
             placeholder="{{ 'Válasszon...' | translate }}"
+            emptyMessage="{{ 'Nincs találat...' | translate }}"
+            [showClear]="showClear"
             appendTo="body">
+            <ng-template pTemplate="item" let-option>
+                <span [ngClass]="'meal-badge ' + option?.style">
+                    {{ option.label }}
+                </span>
+            </ng-template>
+            <ng-template pTemplate="selectedItem" let-selectedItem>
+                <span [ngClass]="'meal-badge ' + selectedItem?.style">
+                    {{ selectedItem?.label }}
+                </span>
+            </ng-template>
 </p-dropdown>
