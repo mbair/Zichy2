@@ -41,7 +41,6 @@ export class ConferenceFormComponent implements OnInit {
     darkMode: boolean = false;
     countries: any[] = [];
     payments: any[] = [];
-    meals: any[] = [];
     roomTypes: any[] = [];
 
     private isFormValid$: Observable<boolean>
@@ -52,7 +51,6 @@ export class ConferenceFormComponent implements OnInit {
         private route: ActivatedRoute,
         private layoutService: LayoutService,
         private messageService: MessageService,
-        private countryService: CountryService,
         private conferenceService: ConferenceService,
         private dietService: DietService,
         private formBuilder: FormBuilder,
@@ -122,10 +120,7 @@ export class ConferenceFormComponent implements OnInit {
             }
         })
 
-        // Fetch countries
-        this.countryService.getCountries().subscribe(countries => {
-            this.countries = countries
-        })
+        
 
         // Set possible languages
         this.languages = [
@@ -164,13 +159,6 @@ export class ConferenceFormComponent implements OnInit {
             { label: 'Banki átutalás', value: 'Banki átutalás' },
             { label: 'SZÉP kártya', value: 'SZÉP kártya' },
             { label: 'Készpénz', value: 'Készpénz' },
-        ]
-
-        this.meals = [
-            { label: 'Reggeli', value: 'reggeli' },
-            { label: 'Ebéd', value: 'ebéd' },
-            { label: 'Vacsora', value: 'vacsora' },
-            { label: 'Nem kérek étkezést', value: 'nem kér' },
         ]
 
         this.roomTypes = [

@@ -64,7 +64,7 @@
         "MILKFREE": "Milk-free",
         "LACTOSEFREE": "Lactose-free",
         "GLUTENFREE": "Gluten-free",
-        "GLUTEN-LACTOSE-MILKFREE": "Gluten-, lactose-, milk-free",
+        "GLUTEN-LACTOSE-MILKFREE": "Gluten-, lactose-, milkfree",
         "VEGETARIAN": "Vegetarian",
         "NOTHING": "Doesn't ask for meal"
     }

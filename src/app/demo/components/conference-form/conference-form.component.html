@@ -132,32 +132,7 @@
                                         <!-- Állampolgárság -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="nationality" class="font-medium text-900">{{'Állampolgárság' | translate }}</label>
-                                            <p-dropdown inputId="nationality"
-                                                        formControlName="nationality"
-                                                        [options]="countries"
-                                                        optionLabel="name"
-                                                        [filter]="true"
-                                                        filterBy="hunationality"
-                                                        placeholder="Válasszon..."
-                                                        [virtualScroll]="true"
-                                                        [virtualScrollItemSize]="30"
-                                                        [ngClass]="{
-                                                            'ng-invalid': nationality?.invalid && (nationality?.dirty || nationality?.touched),
-                                                            'ng-dirty': nationality?.dirty || nationality?.touched
-                                                        }">
-                                                <ng-template let-country pTemplate="selectedItem">
-                                                    <div class="flex align-items-center gap-2" *ngIf="nationality">
-                                                        <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code?.toLowerCase()" style="width: 18px"/>
-                                                        <div>{{country.hunationality}}</div>
-                                                    </div>
-                                                </ng-template>
-                                                <ng-template let-country pTemplate="item">
-                                                    <div class="flex align-items-center">
-                                                        <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + country.code?.toLowerCase()" style="width:18px"/>
-                                                        <div>{{country.hunationality}}</div>
-                                                    </div>
-                                                </ng-template>
-                                            </p-dropdown>
+                                            <app-nationality-selector [parentForm]="conferenceForm" controlName="nationality"></app-nationality-selector>
                                             <div *ngIf="nationality?.invalid && (nationality?.dirty || nationality?.touched)" class="p-error">
                                                 {{'Állampolgárság' | translate }} {{'kötelező' | translate }}
                                             </div>
@@ -266,26 +241,6 @@
                                         <!-- Étrend -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': diet?.invalid && (diet?.dirty || diet?.touched) }">
                                             <label for="diet" class="font-medium text-900">{{'Étrend' | translate }}</label>
-                                            <!-- <p-dropdown
-                                                inputId="dialogDiet"
-                                                [options]="diets"
-                                                formControlName="diet"
-                                                optionLabel="name"
-                                                optionValue="name"
-                                                appendTo="body"
-                                                placeholder="Válasszon..."
-                                                emptyMessage="Nincs találat...">
-                                                <ng-template pTemplate="selectedItem">
-                                                    <p-tag [value]="diet?.value"
-                                                           [style]="{'background': 'var(--'+getDietColor(diet?.value || '')+')'}">
-                                                    </p-tag>
-                                                </ng-template>
-                                                <ng-template let-option pTemplate="item">
-                                                    <p-tag [value]="option.name"
-                                                           [style]="{'background': 'var(--'+getDietColor(option.name)+')'}">
-                                                    </p-tag>
-                                                </ng-template>
-                                            </p-dropdown> -->
                                             <app-diet-selector [parentForm]="conferenceForm" controlName="diet"></app-diet-selector>
                                             <div *ngIf="diet?.invalid && (diet?.dirty || diet?.touched)" class="p-error">
                                                 {{'Kérjük, válassza ki az étrendjét' | translate }}!

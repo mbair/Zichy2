@@ -59,5 +59,13 @@
         "LUNCH": "Ebéd",
         "DINNER": "Vacsora",
         "NOTHING": "Nem kér étkezést"
+    },
+    "DIETS": {
+        "MILKFREE": "Tejmentes",
+        "LACTOSEFREE": "Laktózmentes",
+        "GLUTENFREE": "Gluténmentes",
+        "GLUTEN-LACTOSE-MILKFREE": "Glutén-, laktóz-, tejmentes",
+        "VEGETARIAN": "Vegetáriánus",
+        "NOTHING": "Nem kér étkezést"
     }
 }   
