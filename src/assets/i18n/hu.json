@@ -77,5 +77,10 @@
         "MARANATHA-PENSION-HOUSE-DOUBLE-BED-ROOM": "Maranatha Panzióház franciaágyas szoba (külön fürdős)",
         "MARANATHA-PENSION-HOUSE-4-BED-ROOM": "Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)",
         "APARTMENT": "Apartman (közés konyhával, fordóvel és nappalival)"
+    },
+    "PAYMENTS": {
+        "BANK-TRANSFER": "Banki átutalás",
+        "SZEP-CARD": "SZÉP kártya",    
+        "CASH": "Készpénz"
     }
 }

@@ -263,7 +263,8 @@
                                         <!-- Fizetési mód -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': payment?.invalid && (payment?.dirty || payment?.touched) }">
                                             <label for="payment" class="font-medium text-900">{{'Fizetési mód' | translate }}</label>
-                                            <p-dropdown id="payment"
+                                            <app-payment-selector [parentForm]="conferenceForm" controlName="payment"></app-payment-selector>
+                                            <!-- <p-dropdown id="payment"
                                                         formControlName="payment"
                                                         [options]="payments"
                                                         optionLabel="label"
@@ -271,7 +272,7 @@
                                                         pTooltip="A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen"
                                                         tooltipPosition="top"
                                                         appendTo="body">
-                                            </p-dropdown>
+                                            </p-dropdown> -->
                                             <div *ngIf="payment?.invalid && (payment?.dirty || payment?.touched)" class="p-error">
                                                 Kérjük válassza ki a fizetési módot!
                                             </div>

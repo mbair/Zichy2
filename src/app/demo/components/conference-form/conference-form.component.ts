@@ -154,12 +154,6 @@ export class ConferenceFormComponent implements OnInit {
             )
         }
 
-        this.payments = [
-            { label: 'Banki átutalás', value: 'Banki átutalás' },
-            { label: 'SZÉP kártya', value: 'SZÉP kártya' },
-            { label: 'Készpénz', value: 'Készpénz' },
-        ]
-
         this.isFormValid$ = this.formChanges$.pipe(
             debounceTime(300),
             distinctUntilChanged(),

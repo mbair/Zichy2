@@ -77,5 +77,10 @@
         "MARANATHA-PENSION-HOUSE-DOUBLE-BED-ROOM": "Maranatha Pension house double room (with separate bathroom)",
         "MARANATHA-PENSION-HOUSE-4-BED-ROOM": "Maranatha Panzióház 4-bed room (bunk bed, separate bathroom)",
         "APARTMENT": "Apartment (with kitchen, bathroom and living room)"
+    },
+    "PAYMENTS": {
+        "BANK-TRANSFER": "Banki transfer",
+        "SZEP-CARD": "SZÉP card",    
+        "CASH": "Cash"
     }
 }
