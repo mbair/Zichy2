@@ -4,17 +4,17 @@ import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { CountryService } from '../../service/country.service';
 
 @Component({
-    selector: 'app-nationality-selector',
-    templateUrl: './nationality-selector.component.html'
+    selector: 'app-country-selector',
+    templateUrl: './country-selector.component.html'
 })
-export class NationalitySelectorComponent {
+export class CountrySelectorComponent {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
     
     countries: any[] = []
-    optionLabel: string = 'hunationality'
-    filterBy: string = 'hunationality'
+    optionLabel: string = 'huname'
+    filterBy: string = 'huname'
 
     constructor(private translate: TranslateService, 
                 private countryService: CountryService) {
@@ -24,10 +24,10 @@ export class NationalitySelectorComponent {
             this.countries = countries
         })
 
-        // Set the nationality options when the language changes
+        // Set the country options when the language changes
         this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
-            this.optionLabel = event.lang === 'hu' ? 'hunationality' : 'nationality'
-            this.filterBy    = event.lang === 'hu' ? 'hunationality' : 'nationality'
+            this.optionLabel = event.lang === 'hu' ? 'huname' : 'name'
+            this.filterBy    = event.lang === 'hu' ? 'huname' : 'name'
         })
     }
 

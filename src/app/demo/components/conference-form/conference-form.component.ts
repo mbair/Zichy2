@@ -9,7 +9,6 @@ import { emailDomainValidator } from '../../utils/email-validator';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { MessageService } from 'primeng/api';
 import { ConferenceService } from '../../service/conference.service';
-import { CountryService } from '../../service/country.service';
 import { DietService } from '../../service/diet.service';
 import { Language } from '../../api/language';
 import { Diet } from '../../api/diet';

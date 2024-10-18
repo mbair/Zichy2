@@ -1,0 +1,25 @@
+<p-dropdown [formControl]="getFormControl()"
+            [options]="countries"
+            [optionLabel]="optionLabel"
+            optionValue="code"
+            [filter]="true"
+            [filterBy]="filterBy"
+            placeholder="{{ 'Válasszon...' | translate }}"
+            [virtualScroll]="true"
+            [virtualScrollItemSize]="30"
+            appendTo="body">
+
+            <ng-template pTemplate="item" let-option>
+                <div class="flex align-items-center">
+                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + option.code?.toLowerCase()" style="width:18px"/>
+                    <div>{{ option[optionLabel] }}</div>
+                </div>
+            </ng-template>
+
+            <ng-template pTemplate="selectedItem" let-selectedItem>
+                <div class="flex align-items-center gap-2">
+                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + selectedItem.code?.toLowerCase()" style="width: 18px"/>
+                    <div>{{ selectedItem[optionLabel] }}</div>
+                </div>
+            </ng-template>
+</p-dropdown>

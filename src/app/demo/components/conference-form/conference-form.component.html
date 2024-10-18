@@ -141,32 +141,7 @@
                                         <!-- Lakóhely - ország -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="country" class="font-medium text-900">{{'Lakóhely - ország' | translate }}</label>
-                                            <p-dropdown inputId="country"
-                                                        formControlName="country"
-                                                        [options]="countries"
-                                                        optionLabel="name"
-                                                        [filter]="true"
-                                                        filterBy="huname"
-                                                        placeholder="Válasszon..."
-                                                        [virtualScroll]="true"
-                                                        [virtualScrollItemSize]="30"
-                                                        [ngClass]="{
-                                                            'ng-invalid': country?.invalid && (country?.dirty || country?.touched),
-                                                            'ng-dirty': country?.dirty || country?.touched
-                                                        }">
-                                                <ng-template let-country pTemplate="selectedItem">
-                                                    <div class="flex align-items-center gap-2" *ngIf="country">
-                                                        <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code?.toLowerCase()" style="width: 18px"/>
-                                                        <div>{{country.huname}}</div>
-                                                    </div>
-                                                </ng-template>
-                                                <ng-template let-country pTemplate="item">
-                                                    <div class="flex align-items-center">
-                                                        <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + country.code?.toLowerCase()" style="width:18px"/>
-                                                        <div>{{country.huname}}</div>
-                                                    </div>
-                                                </ng-template>
-                                            </p-dropdown>
+                                            <app-country-selector [parentForm]="conferenceForm" controlName="country"></app-country-selector>
                                             <div *ngIf="country?.invalid && (country?.dirty || country?.touched)" class="p-error">
                                                 {{'Ország' | translate }} {{'kötelező' | translate }}
                                             </div>
