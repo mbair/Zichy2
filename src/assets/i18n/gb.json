@@ -59,5 +59,13 @@
         "LUNCH": "Lunch",
         "DINNER": "Dinner",
         "NOTHING": "Doesn't ask for meal"
+    },
+    "DIETS": {
+        "MILKFREE": "Milk-free",
+        "LACTOSEFREE": "Lactose-free",
+        "GLUTENFREE": "Gluten-free",
+        "GLUTEN-LACTOSE-MILKFREE": "Gluten-, lactose-, milk-free",
+        "VEGETARIAN": "Vegetarian",
+        "NOTHING": "Doesn't ask for meal"
     }
 }

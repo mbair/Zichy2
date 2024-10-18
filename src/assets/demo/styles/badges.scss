@@ -238,6 +238,46 @@
     }
 }
 
+/* Diets */
+.diet-badge {
+    border-radius: var(--border-radius);
+    padding: .25em .5rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .3px;
+
+    &.milkfree {
+        background: var(--blue-200);
+        color: var(--blue-800);
+    }
+
+    &.lactosefree {
+        background: var(--blue-200);
+        color: var(--blue-800);
+    }
+
+    &.glutenfree {
+        background: var(--yellow-200);
+        color: var(--yellow-800);
+    }
+
+    &.gluten-lactose-milkfree {
+        background: var(--red-200);
+        color: var(--red-800);
+    }
+
+    &.vegetarian {
+        background: var(--teal-200);
+        color: var(--teal-800);
+    }
+
+    &.nothing {
+        background: var(--gray-200);
+        color: var(--gray-800);
+    }
+}
+
 /* Meals */
 .meal-badge {
     border-radius: var(--border-radius);

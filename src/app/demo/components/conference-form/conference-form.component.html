@@ -265,8 +265,8 @@
 
                                         <!-- Étrend -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': diet?.invalid && (diet?.dirty || diet?.touched) }">
-                                            <label for="zipcode" class="font-medium text-900">{{'Étrend' | translate }}</label>
-                                            <p-dropdown
+                                            <label for="diet" class="font-medium text-900">{{'Étrend' | translate }}</label>
+                                            <!-- <p-dropdown
                                                 inputId="dialogDiet"
                                                 [options]="diets"
                                                 formControlName="diet"
@@ -285,7 +285,8 @@
                                                            [style]="{'background': 'var(--'+getDietColor(option.name)+')'}">
                                                     </p-tag>
                                                 </ng-template>
-                                            </p-dropdown>
+                                            </p-dropdown> -->
+                                            <app-diet-selector [parentForm]="conferenceForm" controlName="diet"></app-diet-selector>
                                             <div *ngIf="diet?.invalid && (diet?.dirty || diet?.touched)" class="p-error">
                                                 {{'Kérjük, válassza ki az étrendjét' | translate }}!
                                             </div>

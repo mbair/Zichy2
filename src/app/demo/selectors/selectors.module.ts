@@ -3,10 +3,12 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { DropdownModule } from 'primeng/dropdown';
 import { TranslateModule } from '@ngx-translate/core';
-import { MealSelectorComponent } from './MealSelector/meal-selector.component';
+import { DietSelectorComponent } from './diet-selector/diet-selector.component';
+import { MealSelectorComponent } from './meal-selector/meal-selector.component';
 
 @NgModule({
   declarations: [
+    DietSelectorComponent,
     MealSelectorComponent
   ],
   imports: [
@@ -16,6 +18,7 @@ import { MealSelectorComponent } from './MealSelector/meal-selector.component';
     TranslateModule,
   ],
   exports: [
+    DietSelectorComponent,
     MealSelectorComponent
   ]
 })
