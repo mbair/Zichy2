@@ -160,17 +160,6 @@ export class ConferenceFormComponent implements OnInit {
             { label: 'Készpénz', value: 'Készpénz' },
         ]
 
-        this.roomTypes = [
-            { label: 'Nem kérek szállást', value: 'Nem kérek szállást' },
-            { label: 'Kastély szállás 4 ágyas szoba', value: 'Kastély szállás 4 ágyas szoba' },
-            { label: 'Kastély szállás 6 ágyas szoba', value: 'Kastély szállás 6 ágyas szoba' },
-            { label: 'Kastély szállás 8 ágyas szoba', value: 'Kastély szállás 8 ágyas szoba' },
-            { label: 'Maranatha Panzióház 2 ágyas szoba (külön fürdős)', value: 'Maranatha Panzióház 2 ágyas szoba (külön fürdős)' },
-            { label: 'Maranatha Panzióház franciaágyas szoba (külön fürdős)', value: 'Maranatha Panzióház franciaágyas szoba (külön fürdős)' },
-            { label: 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)', value: 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)' },
-            { label: 'Apartman (közös konyhával, fürdővel és nappalival)', value: 'Apartman (közös konyhával, fürdővel és nappalival)' },
-        ]
-
         this.isFormValid$ = this.formChanges$.pipe(
             debounceTime(300),
             distinctUntilChanged(),

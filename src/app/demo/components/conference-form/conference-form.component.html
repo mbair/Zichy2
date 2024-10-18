@@ -248,16 +248,7 @@
                                         <!-- Szállástípus -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': roomType?.invalid && (roomType?.dirty || roomType?.touched) }">
                                             <label for="roomType" class="font-medium text-900">{{'Szállástípus' | translate }}</label>
-                                            <p-dropdown id="roomType"
-                                                        formControlName="roomType"
-                                                        [options]="roomTypes"
-                                                        optionLabel="label"
-                                                        optionValue="value"
-                                                        pTooltip="A preferenciákat igyekszünk figyelembe venni, de mivel korlátozott mennyiségben van a szállás, ezért nem tudjuk megígérni, hogy biztosan a megjelölt szállástípusra osztunk be"
-                                                        tooltipPosition="top"
-                                                        placeholder="Válasszon..."
-                                                        appendTo="body">
-                                            </p-dropdown>
+                                            <app-roomtype-selector [parentForm]="conferenceForm" controlName="roomType"></app-roomtype-selector>
                                             <div *ngIf="roomType?.invalid && (roomType?.dirty || roomType?.touched)" class="p-error">
                                                 {{'Kérjük válassza ki a szállástípust' | translate }}!
                                             </div>

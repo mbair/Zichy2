@@ -67,5 +67,15 @@
         "GLUTEN-LACTOSE-MILKFREE": "Glutén-, laktóz-, tejmentes",
         "VEGETARIAN": "Vegetáriánus",
         "NOTHING": "Nem kér étkezést"
+    },
+    "ROOMTYPES": {
+        "NOTHING": "Nem kérek szállást",
+        "CASTLE-4-BED-ROOM": "Kastély szállás 4 ágyas szoba",
+        "CASTLE-6-BED-ROOM": "Kastély szállás 6 ágyas szoba",
+        "CASTLE-8-BED-ROOM": "Kastély szállás 8 ágyas szoba",
+        "MARANATHA-PENSION-HOUSE-2-BED-ROOM": "Maranatha Panzióház 2 ágyas szoba (külön fürdős)",
+        "MARANATHA-PENSION-HOUSE-DOUBLE-BED-ROOM": "Maranatha Panzióház franciaágyas szoba (külön fürdős)",
+        "MARANATHA-PENSION-HOUSE-4-BED-ROOM": "Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)",
+        "APARTMENT": "Apartman (közés konyhával, fordóvel és nappalival)"
     }
-}   
+}
