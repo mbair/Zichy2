@@ -36,9 +36,9 @@ export class PaymentSelectorComponent {
      */
     setPayments() {
         this.payments = [
-            { label: this.translate.instant('PAYMENTS.BANK-TRANSFER'), value: 'Banki átutalás', style: 'bank-transfer' },
-            { label: this.translate.instant('PAYMENTS.SZEP-CARD'), value: 'SZÉP kártya', style: 'szep-card' },
-            { label: this.translate.instant('PAYMENTS.CASH'), value: 'Készpénz', style: 'cash' },
+            { label: this.translate.instant('PAYMENTS.BANK-TRANSFER'), value: 'Banki átutalás', style: 'bank-transfer', icon: 'pi pi-arrow-circle-right' },
+            { label: this.translate.instant('PAYMENTS.SZEP-CARD'), value: 'SZÉP kártya', style: 'szep-card', icon: 'pi pi-id-card' },
+            { label: this.translate.instant('PAYMENTS.CASH'), value: 'Készpénz', style: 'cash', icon: 'pi pi-money-bill' },
         ]
     }
 }

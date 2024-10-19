@@ -168,8 +168,8 @@
                         </td>
                         <td>
                             <span class="p-column-title">Modul</span>
-                            <i [ngClass]="getModuleByTableName(logs.table_name).icon" style="color: slateblue"></i>
-                            <span class="ml-2">{{ getModuleByTableName(logs.table_name).name }}</span>
+                            <i [ngClass]="getModuleByTableName(logs.table_name)?.icon" style="color: slateblue"></i>
+                            <span class="ml-2">{{ getModuleByTableName(logs.table_name)?.name }}</span>
                         </td>
                         <td>
                             <span class="p-column-title">Művelet</span>

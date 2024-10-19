@@ -8,11 +8,13 @@
             appendTo="body">
             <ng-template pTemplate="item" let-option>
                 <span [ngClass]="'payment-badge ' + option?.style">
+                    <i [ngClass]="'mr-1 ' + option?.icon"></i>
                     {{ option.label }}
                 </span>
             </ng-template>
             <ng-template pTemplate="selectedItem" let-selectedItem>
                 <span [ngClass]="'payment-badge ' + selectedItem?.style">
+                    <i [ngClass]="'mr-1 ' + selectedItem?.icon"></i>
                     {{ selectedItem?.label }}
                 </span>
             </ng-template>
