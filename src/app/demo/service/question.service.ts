@@ -48,7 +48,7 @@ export class QuestionService {
 
         const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
 
-        this.apiService.get<ApiResponse>(`question/get/${url}`)
+        this.apiService.get<ApiResponse>(`questions/get/${url}`)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)
@@ -71,7 +71,7 @@ export class QuestionService {
             pageSort = sort.sortField != "" ? `?sort=${sort.sortField}&order=${sortOrder}` : '';
         }
 
-        this.apiService.get<ApiResponse>(`question/search/${globalFilter}${pageSort}`)
+        this.apiService.get<ApiResponse>(`questions/search/${globalFilter}${pageSort}`)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)
@@ -87,7 +87,7 @@ export class QuestionService {
      * @param filters
      */
     public getBySearchQuery(filters: string): void {
-        this.apiService.get<ApiResponse>(`question/searchquery?${filters}`)
+        this.apiService.get<ApiResponse>(`questions/searchquery?${filters}`)
             .subscribe({
                 next: (response: ApiResponse) => {
 
@@ -106,7 +106,7 @@ export class QuestionService {
      * @param question
      */
     public create(question: Question): void {
-        this.apiService.post(`question/create/`, question)
+        this.apiService.post(`questions/create/`, question)
             .subscribe({
                 next: (response: any) => {
                     this.message$.next({
@@ -126,9 +126,10 @@ export class QuestionService {
      * @param question
      */
     public update(modifiedQuestion: Question): void {
-        this.apiService.put(`question/update/${modifiedQuestion.id}`, modifiedQuestion)
+        this.apiService.put(`questions/update/${modifiedQuestion.id}`, modifiedQuestion)
             .subscribe({
                 next: () => {
+                    console.log('------ HELLLO -------')
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres kérdés módosítás',
@@ -146,7 +147,7 @@ export class QuestionService {
      * @param question
      */
     public delete(question: Question): void {
-        this.apiService.delete(`question/delete/${question.id}`)
+        this.apiService.delete(`questions/delete/${question.id}`)
             .subscribe({
                 next: (response: any) => {
                     this.message$.next({

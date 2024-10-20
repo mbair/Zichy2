@@ -248,7 +248,7 @@
                                         <!-- Szállástípus -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': roomType?.invalid && (roomType?.dirty || roomType?.touched) }">
                                             <label for="roomType" class="font-medium text-900">{{'Szállástípus' | translate }}</label>
-                                            <app-roomtype-selector [parentForm]="conferenceForm" controlName="roomType"></app-roomtype-selector>
+                                            <app-roomtype-selector [parentForm]="conferenceForm" controlName="roomType" pTooltip="A preferenciákat igyekszünk figyelembe venni, de mivel korlátozott mennyiségben van a szállás, ezért nem tudjuk megígérni, hogy biztosan a megjelölt szállástípusra osztunk be" tooltipPosition="top"></app-roomtype-selector>
                                             <div *ngIf="roomType?.invalid && (roomType?.dirty || roomType?.touched)" class="p-error">
                                                 {{'Kérjük válassza ki a szállástípust' | translate }}!
                                             </div>
@@ -263,16 +263,7 @@
                                         <!-- Fizetési mód -->
                                         <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': payment?.invalid && (payment?.dirty || payment?.touched) }">
                                             <label for="payment" class="font-medium text-900">{{'Fizetési mód' | translate }}</label>
-                                            <app-payment-selector [parentForm]="conferenceForm" controlName="payment"></app-payment-selector>
-                                            <!-- <p-dropdown id="payment"
-                                                        formControlName="payment"
-                                                        [options]="payments"
-                                                        optionLabel="label"
-                                                        optionValue="value"
-                                                        pTooltip="A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen"
-                                                        tooltipPosition="top"
-                                                        appendTo="body">
-                                            </p-dropdown> -->
+                                            <app-payment-selector [parentForm]="conferenceForm" controlName="payment" pTooltip="A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen" tooltipPosition="top"></app-payment-selector>
                                             <div *ngIf="payment?.invalid && (payment?.dirty || payment?.touched)" class="p-error">
                                                 Kérjük válassza ki a fizetési módot!
                                             </div>
@@ -297,15 +288,19 @@
                                         </div>
 
                                         <!-- Extra kérdések -->
-                                        <div formArrayName="answers" class="field mb-4 col-12">
-                                            <div *ngFor="let answer of answers.controls; let i = index" class="mb-4">
-                                                <label class="font-medium text-900">
-                                                    {{ getTranslatedQuestion(i) }} ?
-                                                </label>
-                                                <input pInputText [formControlName]="i" />
-                                                <div *ngIf="answer?.dirty && answer?.errors?.['required']" class="block p-error">
-                                                    Kötelező kitölteni
-                                                </div>
+                                        <div formArrayName="answers" class="field col-12 mb-0">
+                                            <div *ngFor="let answer of answers.controls; let i = index">
+                                                <ng-container *ngIf="getTranslatedQuestion(i)">
+                                                    <div class="mb-4">
+                                                        <label class="font-medium text-900">
+                                                            {{ getTranslatedQuestion(i) }}?
+                                                        </label>
+                                                        <input pInputText [formControlName]="i" />
+                                                        <div *ngIf="answer?.dirty && answer?.errors?.['required']" class="block p-error">
+                                                            Kötelező kitölteni
+                                                        </div>
+                                                    </div>
+                                                </ng-container>
                                             </div>
                                         </div>
 

@@ -6,6 +6,7 @@ import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { emailDomainValidator } from '../../utils/email-validator';
 import { ConferenceService } from '../../service/conference.service';
+import { QuestionService } from '../../service/question.service';
 import { ApiService } from '../../service/api.service';
 import { MessageService } from 'primeng/api';
 import { UserService } from '../../service/user.service';
@@ -58,13 +59,16 @@ export class ConferenceListComponent implements OnInit {
     private isFormValid$: Observable<boolean>;
     private formChanges$: Subject<void> = new Subject();
     private conferenceObs$: Observable<any> | undefined;
+    private questionObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
+    private questionMessageObs$: Observable<any> | undefined;
 
     constructor(
         public userService: UserService,
         private router: Router,
         private formBuilder: FormBuilder,
         private conferenceService: ConferenceService,
+        private questionService: QuestionService,
         private mealService: MealService,
         private apiService: ApiService,
         private messageService: MessageService) {
@@ -152,26 +156,11 @@ export class ConferenceListComponent implements OnInit {
 
         // Message
         this.serviceMessageObs$ = this.conferenceService.messageObs;
-        this.serviceMessageObs$.subscribe((data) => {
-            this.loading = false;
-            if (data == 'ERROR') {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'Hiba történt!'
-                })
-            } else {
-                // Show service response message
-                this.messageService.add(data)
-
-                // Reset selected table Item(s)
-                this.tableItem = {}
-                this.selected = []
-
-                // Query for data changes
-                this.doQuery()
-            }
-        })
+        this.serviceMessageObs$.subscribe(message => this.handleMessage(message))
+            
+        // Question Message
+        this.questionMessageObs$ = this.questionService.messageObs;
+        this.questionMessageObs$.subscribe(message => this.handleMessage(message))
     }
 
     // Getters for form validation
@@ -284,6 +273,32 @@ export class ConferenceListComponent implements OnInit {
     }
 
     /**
+     * Handles service response messages and reset selected table item(s)
+     * After the message is shown, query for data changes
+     * @param message service response message
+     */
+    handleMessage(message: any) {
+        this.loading = false;
+        if (message == 'ERROR') {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Hiba történt!'
+            })
+        } else {
+            // Show service response message
+            this.messageService.add(message)
+
+            // Reset selected table Item(s)
+            this.tableItem = {}
+            this.selected = []
+
+            // Query for data changes
+            this.doQuery()
+        }
+    }
+
+    /**
      * Initializes the questions form, setting default values from the questions array.
      * @remarks
      * The form is created with a control for each question in the questions array.
@@ -301,7 +316,7 @@ export class ConferenceListComponent implements OnInit {
 
         // Reinitialize the form, including the questions FormArray
         this.questionsForm = this.formBuilder.group({
-            conferenceId: [this.tableItem.id],
+            conferenceid: [this.tableItem.id],
             questions: this.formBuilder.array([])
         })
 
@@ -429,9 +444,12 @@ export class ConferenceListComponent implements OnInit {
      */
     saveQuestions() {
         this.loading = true
-        const questions = this.questionsForm.value.questions
-        this.tableItem.questions = [{ translations: questions }]
-        this.conferenceService.update(this.tableItem)
+        const questions = {
+            id: this.tableItem.questions[0].id,
+            conferenceid: this.tableItem.id,
+            translations: this.questionsForm.value.questions,
+        }
+        this.questionService.update(questions)
         this.questionsSidebar = false
     }
 
