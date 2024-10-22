@@ -79,8 +79,8 @@
         "APARTMENT": "Apartment (with kitchen, bathroom and living room)"
     },
     "PAYMENTS": {
-        "BANK-TRANSFER": "Banki transfer",
-        "SZEP-CARD": "SZÉP card",    
+        "BANK-TRANSFER": "Bank transfer",
+        "SZEP-CARD": "SZEP card",    
         "CASH": "Cash"
     }
 }

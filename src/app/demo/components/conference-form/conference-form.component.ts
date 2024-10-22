@@ -216,22 +216,20 @@ export class ConferenceFormComponent implements OnInit {
 
     onSubmit(): void {
         console.log('onSubmit')
+        console.log('Az űrlap adatok:', this.conferenceForm.value)
 
-        // Az összes form elemet módosítottra állítjuk
-        this.conferenceForm.markAllAsTouched()
+        // Mark all form elements as dirty
         this.conferenceForm.markAsDirty()
-        this.loading = true;
+        this.conferenceForm.markAllAsTouched()
+        Object.keys(this.conferenceForm.controls).forEach(key => {
+            this.conferenceForm.get(key)?.markAsDirty()
+        })
 
         setTimeout(() => {
-            this.loading = false
-
-            console.log('Az űrlap adatok:', this.conferenceForm.value);
-
-            // Új üzenet hozzáadása előtt, először töröljük az összes meglévőt
-            this.messageService.clear();
+            this.messageService.clear()
 
             if (this.conferenceForm.valid) {
-                // Az űrlap adatok elküldése a szerverre
+                this.loading = true
 
                 this.messageService.add({
                     severity: "success",
@@ -239,9 +237,6 @@ export class ConferenceFormComponent implements OnInit {
                     detail: "Sok szeretettel várjuk a konferenciára!",
                 })
             } else {
-                // Az űrlap érvénytelen, ki kell javítani az összes hibát
-                console.log('Az űrlap érvénytelen, kérjük, javítsa az összes hibát.');
-
                 this.messageService.add({
                     severity: "error",
                     summary: "Hiba!",
