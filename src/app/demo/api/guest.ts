@@ -18,6 +18,14 @@ export interface Guest {
     enabled?: number;
     conferenceName?: string;
     diet?: string;
+    advancePaid?: boolean;
+    email?: string;
+    telephone?: string;
+    roomType?: string;
+    payment?: string;
+    babyBed?: boolean;
+    roommate?: string;
+    idcard?: string;
     lastRfidUsage?: string | null;
     rfidColor?: string | null;
 }

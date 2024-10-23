@@ -157,9 +157,9 @@
 
                                         <!-- Telefon -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
-                                            <label for="telefon" class="font-medium text-900">{{'Telefon' | translate }}</label>
-                                            <input id="telefon" type="text" pInputText formControlName="telefon">
-                                            <div *ngIf="telefon?.dirty && telefon?.errors?.['required']" class="p-error">
+                                            <label for="telephone" class="font-medium text-900">{{'Telefon' | translate }}</label>
+                                            <input id="telephone" type="text" pInputText formControlName="telephone">
+                                            <div *ngIf="telephone?.dirty && telephone?.errors?.['required']" class="p-error">
                                                 {{'Telefon' | translate }} {{'kötelező' | translate }}
                                             </div>
                                         </div>
@@ -248,11 +248,11 @@
                                             <label for="babyBed" class="font-medium text-900">{{'Babaágyat kérsz' | translate }}?</label>
                                             <div class="flex flex-wrap gap-3 my-3">
                                                 <div class="flex align-items-center">
-                                                    <p-radioButton name="babyBed" value="1" formControlName="babyBed" inputId="baby-bed-yes"></p-radioButton>
+                                                    <p-radioButton name="babyBed" value="true" formControlName="babyBed" inputId="baby-bed-yes"></p-radioButton>
                                                     <label for="baby-bed-yes" class="ml-2">{{'Igen' | translate }}</label>
                                                 </div>
                                                 <div class="flex align-items-center">
-                                                    <p-radioButton name="babyBed" value="0" formControlName="babyBed" inputId="baby-bed-no"></p-radioButton>
+                                                    <p-radioButton name="babyBed" value="false" formControlName="babyBed" inputId="baby-bed-no"></p-radioButton>
                                                     <label for="baby-bed-no" class="ml-2">{{'Nem' | translate }}</label>
                                                 </div>
                                             </div>

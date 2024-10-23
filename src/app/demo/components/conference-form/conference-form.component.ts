@@ -68,7 +68,7 @@ export class ConferenceFormComponent implements OnInit {
             country: ['', Validators.required],
             zipcode: ['', Validators.required],
             email: ['', [Validators.required, Validators.email]],
-            telefon: ['', Validators.required],
+            telephone: ['', Validators.required],
             arrivalDate: ['', Validators.required],
             firstMeal: ['', Validators.required],
             diet: ['', Validators.required],
@@ -172,7 +172,7 @@ export class ConferenceFormComponent implements OnInit {
     get country() { return this.conferenceForm.get('country') }
     get zipcode() { return this.conferenceForm.get('zipcode') }
     get email() { return this.conferenceForm.get('email') }
-    get telefon() { return this.conferenceForm.get('telefon') }
+    get telephone() { return this.conferenceForm.get('telephone') }
     get arrivalDate() { return this.conferenceForm.get('arrivalDate') }
     get firstMeal() { return this.conferenceForm.get('firstMeal') }
     get diet() { return this.conferenceForm.get('diet') }
