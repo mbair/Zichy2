@@ -12,9 +12,10 @@ export class CountrySelectorComponent {
     @Input() controlName: string
     @Input() showClear: boolean
     
-    countries: any[] = []
-    optionLabel: string = 'huname'
-    filterBy: string = 'huname'
+    countries: any[] = []              // Countries
+    selectedCountry: string = ''       // Selected country
+    optionLabel: string = 'huname'     // Country label
+    filterBy: string = 'huname'        // Country filter
 
     constructor(private translate: TranslateService, 
                 private countryService: CountryService) {
@@ -35,7 +36,10 @@ export class CountrySelectorComponent {
      * Returns the FormControl object for the country selector.
      * @returns {FormControl} the FormControl object
      */
-    getFormControl(): FormControl {
+    getFormControl(): FormControl | null {
+        if (!this.parentForm || !this.controlName) {
+            return null
+        }
         return this.parentForm.get(this.controlName) as FormControl
     }
 }

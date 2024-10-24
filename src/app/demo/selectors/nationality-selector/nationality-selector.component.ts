@@ -12,7 +12,8 @@ export class NationalitySelectorComponent {
     @Input() controlName: string
     @Input() showClear: boolean
     
-    countries: any[] = []
+    countries: any[] = []                   // Countries
+    selectedNationality: string = ''        // Selected nationality
     optionLabel: string = 'hunationality'
     filterBy: string = 'hunationality'
 
@@ -35,7 +36,10 @@ export class NationalitySelectorComponent {
      * Returns the FormControl object for the country selector.
      * @returns {FormControl} the FormControl object
      */
-    getFormControl(): FormControl {
+    getFormControl(): FormControl | null {
+        if (!this.parentForm || !this.controlName) {
+            return null
+        }
         return this.parentForm.get(this.controlName) as FormControl
     }
 }

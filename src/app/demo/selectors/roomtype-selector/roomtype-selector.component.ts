@@ -11,7 +11,8 @@ export class RoomTypeSelectorComponent {
     @Input() controlName: string
     @Input() showClear: boolean
     
-    roomTypes: any[] = []
+    roomTypes: any[] = []           // Available room types
+    selectedRoomType: string = ''   // Selected room type
 
     constructor(private translate: TranslateService) {
         this.setRoomTypes()
@@ -26,7 +27,10 @@ export class RoomTypeSelectorComponent {
      * Returns the FormControl object for the accommodation selector.
      * @returns {FormControl} the FormControl object
      */
-    getFormControl(): FormControl {
+    getFormControl(): FormControl | null {
+        if (!this.parentForm || !this.controlName) {
+            return null
+        }
         return this.parentForm.get(this.controlName) as FormControl
     }
 

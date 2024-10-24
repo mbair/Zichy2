@@ -10,7 +10,9 @@ export class MealSelectorComponent {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
-    meals: any[] = []
+    
+    meals: any[] = []           // Available meals
+    selectedMeal: string = ''   // Selected meal
 
     constructor(private translate: TranslateService) {
         this.setMeals()
@@ -25,10 +27,12 @@ export class MealSelectorComponent {
      * Returns the FormControl object for the meal selector.
      * @returns {FormControl} the FormControl object
      */
-    getFormControl(): FormControl {
+    getFormControl(): FormControl | null {
+        if (!this.parentForm || !this.controlName) {
+            return null
+        }
         return this.parentForm.get(this.controlName) as FormControl
     }
-
 
     /**
      * Sets the available meal options for the meal selector component.

@@ -443,11 +443,11 @@
                     </div>
                 </div>
 
-                <!-- TODO: Use Boolean for szepCard in DB -->
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="szepCard">SZÉP kártya</label>
-                        <input type="text" pInputText [(ngModel)]="guest.szepCard" />
+                        <label for="payment">Fizetési mód</label>
+                        <app-payment-selector></app-payment-selector>
+                        <!-- <input type="text" pInputText [(ngModel)]="guest.szepCard" /> -->
                     </div>
                 </div>
 

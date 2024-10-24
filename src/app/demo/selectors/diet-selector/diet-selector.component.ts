@@ -10,7 +10,9 @@ export class DietSelectorComponent {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
-    diets: any[] = []
+
+    diets: any[] = []               // Available diets
+    selectedDiet: string = ''       // Selected diet
 
     constructor(private translate: TranslateService) {
         this.setDiets()
@@ -25,7 +27,10 @@ export class DietSelectorComponent {
      * Returns the FormControl object for the diet selector.
      * @returns {FormControl} the FormControl object
      */
-    getFormControl(): FormControl {
+    getFormControl(): FormControl | null {
+        if (!this.parentForm || !this.controlName) {
+            return null
+        }
         return this.parentForm.get(this.controlName) as FormControl
     }
 
