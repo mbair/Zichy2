@@ -26,6 +26,7 @@ export interface Guest {
     babyBed?: boolean;
     roommate?: string;
     idcard?: string;
+    idcardtype?: string;
     lastRfidUsage?: string | null;
     rfidColor?: string | null;
 }

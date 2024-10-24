@@ -10,7 +10,6 @@ import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { MessageService } from 'primeng/api';
 import { ConferenceService } from '../../service/conference.service';
 import { DietService } from '../../service/diet.service';
-import { Language } from '../../api/language';
 import { Diet } from '../../api/diet';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
@@ -31,11 +30,8 @@ export class ConferenceFormComponent implements OnInit {
 
     loading: boolean = true                      // Loading overlay trigger value
     conference: Conference                       // Conference for this form
-    languages: Language[] = []                   // List of system languages
-    currentLanguage: string                      // Current system language 
     diets: Diet[] = []                           // Possible diets
     conferenceForm: FormGroup;                   // Form for guest registration to Conference
-    selectedLanguage: any;                       // Selected system language
     subscription: Subscription;
     darkMode: boolean = false;
     countries: any[] = [];
@@ -119,41 +115,6 @@ export class ConferenceFormComponent implements OnInit {
             }
         })
 
-        
-
-        // Set possible languages
-        this.languages = [
-            {
-                name: "Hungary",
-                huname: "Magyarország",
-                nationality: "Hungarian",
-                hunationality: "magyar",
-                code: "HU"
-            },
-            {
-                name: "United Kingdom",
-                huname: "Egyesült Királyság",
-                nationality: "brit",
-                hunationality: "angol",
-                code: "GB"
-            }
-        ]
-
-        this.translate.addLangs(['gb', 'hu'])
-        const browserLang = this.translate.getBrowserLang()
-        /** Use EN lang az GB */
-        let defaultLang = browserLang?.match(/en|hu/) ? browserLang : 'gb'
-        this.translate.setDefaultLang(defaultLang)
-        this.translate.use(defaultLang)
-        this.currentLanguage = this.translate.currentLang
-
-        // Set selected language
-        if (browserLang) {
-            this.selectedLanguage = this.languages.find(language =>
-                language.code.toLowerCase() == defaultLang.toLowerCase()
-            )
-        }
-
         this.isFormValid$ = this.formChanges$.pipe(
             debounceTime(300),
             distinctUntilChanged(),
@@ -205,7 +166,7 @@ export class ConferenceFormComponent implements OnInit {
      * @returns The translated question.
      */
     getTranslatedQuestion(i: any): string {
-        const lang = this.currentLanguage == 'gb' ? 'en' : this.currentLanguage
+        const lang = this.translate.currentLang == 'gb' ? 'en' : this.translate.currentLang
         return this.conference.questions[0].translations[i][lang]
     }
 
@@ -239,12 +200,6 @@ export class ConferenceFormComponent implements OnInit {
                 })
             }
         }, 500)
-    }
-
-    onLanguageChange(lang: any) {
-        const langCode = lang.code.toLowerCase()
-        this.translate.use(langCode)
-        this.currentLanguage = langCode
     }
 
     // Don't delete this, its needed from a performance point of view,

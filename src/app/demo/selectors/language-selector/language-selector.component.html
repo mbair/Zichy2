@@ -1,0 +1,20 @@
+<p-dropdown inputId="system_language"
+            [options]="languages"
+            optionLabel="name"
+            [(ngModel)]="selectedLanguage"
+            (onChange)="onLanguageChange(selectedLanguage)"
+            appendTo="body"
+            placeholder="Válasszon...">
+            <ng-template let-country pTemplate="selectedItem">
+                <div class="flex align-items-center gap-2">
+                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code?.toLowerCase()" style="width: 18px"/>
+                    <!-- <div>{{country.hunationality}}</div> -->
+                </div>
+            </ng-template>
+            <ng-template let-country pTemplate="item">
+                <div class="flex align-items-center">
+                    <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code?.toLowerCase()" style="width:18px"/>
+                    <!-- <div>{{country.hunationality}}</div> -->
+                </div>
+            </ng-template>
+</p-dropdown>
