@@ -119,13 +119,13 @@ export class LogService {
                                 // message = message.charAt(0).toUpperCase() + message.slice(1) // TODO: ez már nem kell
 
                                 if (row.table_name == 'conference') {
-                                    message = `${new_data.name} konferencia létrehozva`
+                                    message = `${new_data?.name} konferencia létrehozva`
                                 }
                                 else if (row.table_name == 'guest') {
-                                    message = `${new_data.lastName} ${new_data.firstName} vendég létrehozva`
+                                    message = `${new_data?.lastName} ${new_data?.firstName} vendég létrehozva`
                                 }
                                 else if (row.table_name == 'users') {
-                                    message = `${new_data.fullname} felhasználó létrehozva`
+                                    message = `${new_data?.fullname} felhasználó létrehozva`
                                 }
 
                                 row.response_data = message

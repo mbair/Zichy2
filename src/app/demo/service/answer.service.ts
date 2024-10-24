@@ -2,13 +2,13 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
-import { Question } from '../api/question';
+import { Answer } from '../api/answer';
 
 @Injectable({
     providedIn: 'root',
 })
 
-export class QuestionService {
+export class AnswerService {
 
     public apiURL: string
     private data$: BehaviorSubject<any>
@@ -20,7 +20,7 @@ export class QuestionService {
         this.message$ = new BehaviorSubject<any>(null)
     }
 
-    public get questionObs(): Observable<ApiResponse | null> {
+    public get answerObs(): Observable<ApiResponse | null> {
         return this.data$.asObservable()
     }
 
@@ -29,7 +29,7 @@ export class QuestionService {
     }
 
     /**
-     * Get questions
+     * Get answers
      * @param page
      * @param rowsPerPage
      * @param sort
@@ -48,7 +48,7 @@ export class QuestionService {
 
         const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
 
-        this.apiService.get<ApiResponse>(`questions/get/${url}`)
+        this.apiService.get<ApiResponse>(`answers/get/${url}`)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)
@@ -60,7 +60,7 @@ export class QuestionService {
     }
 
     /**
-     * Get questions by Search
+     * Get answers by Search
      * @param globalFilter
      * @param sort
      */
@@ -71,7 +71,7 @@ export class QuestionService {
             pageSort = sort.sortField != "" ? `?sort=${sort.sortField}&order=${sortOrder}` : '';
         }
 
-        this.apiService.get<ApiResponse>(`questions/search/${globalFilter}${pageSort}`)
+        this.apiService.get<ApiResponse>(`answers/search/${globalFilter}${pageSort}`)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)
@@ -83,11 +83,11 @@ export class QuestionService {
     }
 
     /**
-     * Get questions by Search query
+     * Get answers by Search query
      * @param filters
      */
     public getBySearchQuery(filters: string): void {
-        this.apiService.get<ApiResponse>(`questions/searchquery?${filters}`)
+        this.apiService.get<ApiResponse>(`answers/searchquery?${filters}`)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)
@@ -99,17 +99,17 @@ export class QuestionService {
     }
 
     /**
-     * Question create
-     * @param question
+     * Answer create
+     * @param answer
      */
-    public create(question: Question): void {
-        this.apiService.post(`questions/create/`, question)
+    public create(answer: Answer): void {
+        this.apiService.post(`answers/create/`, answer)
             .subscribe({
                 next: (response: any) => {
                     this.message$.next({
                         severity: 'success',
-                        summary: 'Sikeres kérdés rögzítés',
-                        detail: `${question.translations['hu']} rögzítve`,
+                        summary: 'Sikeres válasz rögzítés',
+                        detail: `${answer.translations['hu']} rögzítve`,
                     })
                 },
                 error: (error: any) => {
@@ -119,17 +119,17 @@ export class QuestionService {
     }
 
     /**
-     * Question update
-     * @param question
+     * Answer update
+     * @param answer
      */
-    public update(modifiedQuestion: Question): void {
-        this.apiService.put(`questions/update/${modifiedQuestion.id}`, modifiedQuestion)
+    public update(modifiedAnswer: Answer): void {
+        this.apiService.put(`answers/update/${modifiedAnswer.id}`, modifiedAnswer)
             .subscribe({
                 next: () => {
                     this.message$.next({
                         severity: 'success',
-                        summary: 'Sikeres kérdés módosítás',
-                        detail: `${modifiedQuestion.translations['hu']} módosítva`,
+                        summary: 'Sikeres válasz módosítás',
+                        detail: `${modifiedAnswer.translations['hu']} módosítva`,
                     })
                 },
                 error: (error: any) => {
@@ -139,17 +139,17 @@ export class QuestionService {
     }
 
     /**
-     * Question delete
-     * @param question
+     * Answer delete
+     * @param answer
      */
-    public delete(question: Question): void {
-        this.apiService.delete(`questions/delete/${question.id}`)
+    public delete(answer: Answer): void {
+        this.apiService.delete(`answers/delete/${answer.id}`)
             .subscribe({
                 next: (response: any) => {
                     this.message$.next({
                         severity: 'success',
-                        summary: 'Sikeres kérdés törlés',
-                        detail: `${question.translations['hu']} törölve`,
+                        summary: 'Sikeres válasz törlés',
+                        detail: `${answer.translations['hu']} törölve`,
                     })
                 },
                 error: (error: any) => {
@@ -159,20 +159,20 @@ export class QuestionService {
     }
 
     /**
-     * Bulk delete of questions
-     * @param questions
+     * Bulk delete of answers
+     * @param answers
      */
-    public bulkdelete(questions: Question[]): void {
+    public bulkdelete(answers: Answer[]): void {
         let params = {
-            ids: questions.map(question => question.id)
+            ids: answers.map(answer => answer.id)
         }
-        this.apiService.post('question/bulkdelete', params)
+        this.apiService.post('answer/bulkdelete', params)
             .subscribe({
                 next: (response: any) => {
                     this.message$.next({
                         severity: 'success',
-                        summary: 'Sikeres kérdés törlés',
-                        detail: `${questions.length} kérdés törölve`,
+                        summary: 'Sikeres válasz törlés',
+                        detail: `${answers.length} válasz törölve`,
                     })
                 },
                 error: (error: any) => {

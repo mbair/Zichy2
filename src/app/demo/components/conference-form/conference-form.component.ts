@@ -67,7 +67,7 @@ export class ConferenceFormComponent implements OnInit {
             nationality: ['', Validators.required],
             country: ['', Validators.required],
             zipcode: ['', Validators.required],
-            email: ['', [Validators.required, Validators.email]],
+            email: ['', [Validators.required, emailDomainValidator()]],
             telephone: ['', Validators.required],
             arrivalDate: ['', Validators.required],
             firstMeal: ['', Validators.required],
@@ -197,11 +197,6 @@ export class ConferenceFormComponent implements OnInit {
         this.loading = true
         const slug = this.router.url.split('/').pop()
         this.conferenceService.getBySearchQuery(`formUrl=${slug}`)
-    }
-
-
-    getDietColor(diet: string): string {
-        return this.dietService.getDietColor(diet)
     }
 
     /**
