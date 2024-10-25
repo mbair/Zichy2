@@ -234,12 +234,20 @@
                                         <td><img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + getCountryCode(guest.country)" style="width:18px"/>{{guest.country}}</td>
                                     </tr>
                                     <tr>
+                                        <td class="font-medium">Telefon:</td>
+                                        <td>{{guest.telephone}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">Email:</td>
+                                        <td>{{guest.email}}</td>
+                                    </tr>
+                                    <tr>
                                         <td class="font-medium">Irányítószám:</td>
                                         <td>{{guest.zipCode}}</td>
                                     </tr>
                                     <tr>
-                                        <td class="font-medium">SZÉP kártya:</td>
-                                        <td>{{guest.szepCard == true ? 'Igen' : 'Nem'}}</td>
+                                        <td class="font-medium">Fizetési mód:</td>
+                                        <td>{{guest.payment}}</td>
                                     </tr>
                                     <tr>
                                         <td class="font-medium">Első étkezés:</td>
@@ -254,8 +262,20 @@
                                         <td>{{guest.conferenceName}}</td>
                                     </tr>
                                     <tr>
-                                        <td class="font-medium">Extra:</td>
-                                        <td>{{guest.accommodationExtra}}</td>
+                                        <td class="font-medium">Szoba típus:</td>
+                                        <td>{{guest.roomType}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">Kivel laknál egy szobában:</td>
+                                        <td>{{guest.roommate}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">Babaágyat kér:</td>
+                                        <td>{{guest.babyBed == true ? 'Igen' : 'Nem'}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">Személyi igazolvány:</td>
+                                        <td><img [src]="'data:image/png;base64,' + guest.idCard" alt="ID Card Image"></td>
                                     </tr>
                                 </table>
                             </div>
@@ -447,7 +467,6 @@
                     <div class="field col">
                         <label for="payment">Fizetési mód</label>
                         <app-payment-selector></app-payment-selector>
-                        <!-- <input type="text" pInputText [(ngModel)]="guest.szepCard" /> -->
                     </div>
                 </div>
 
