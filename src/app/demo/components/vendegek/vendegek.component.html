@@ -216,68 +216,88 @@
                     <tr>
                         <td colspan="10">
                             <div class="p-2">
-                                <table cellspacing="0" cellpadding="5">
-                                    <tr>
-                                        <td class="font-medium">Születési dátum</td>
-                                        <td>{{guest.birthDate | date:'yyyy.MM.dd'}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="font-medium">Nem:</td>
-                                        <td>{{guest.gender == 1 ? 'Férfi' : 'Nő'}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="font-medium">Nemzetiség:</td>
-                                        <td><img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + guest.nationality?.toLowerCase()" style="width:18px"/>{{guest.nationality}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="font-medium">Ország:</td>
-                                        <td><img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + getCountryCode(guest.country)" style="width:18px"/>{{guest.country}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="font-medium">Telefon:</td>
-                                        <td>{{guest.telephone}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="font-medium">Email:</td>
-                                        <td>{{guest.email}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="font-medium">Irányítószám:</td>
-                                        <td>{{guest.zipCode}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="font-medium">Fizetési mód:</td>
-                                        <td>{{guest.payment}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="font-medium">Első étkezés:</td>
-                                        <td>{{guest.firstMeal}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="font-medium">Utolsó étkezés:</td>
-                                        <td>{{guest.lastMeal}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="font-medium">Konferencia:</td>
-                                        <td>{{guest.conferenceName}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="font-medium">Szoba típus:</td>
-                                        <td>{{guest.roomType}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="font-medium">Kivel laknál egy szobában:</td>
-                                        <td>{{guest.roommate}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="font-medium">Babaágyat kér:</td>
-                                        <td>{{guest.babyBed == true ? 'Igen' : 'Nem'}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="font-medium">Személyi igazolvány:</td>
-                                        <td><img [src]="'data:image/png;base64,' + guest.idCard" alt="ID Card Image"></td>
-                                    </tr>
-                                </table>
+                                <div class="w-full">
+                                    <div class="grid w-full">
+                                        <div class="col-5">
+                                            <table cellspacing="0" cellpadding="5">
+                                                <tr>
+                                                    <td class="font-medium">Születési dátum</td>
+                                                    <td>{{guest.birthDate | date:'yyyy.MM.dd'}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Nem:</td>
+                                                    <td>{{guest.gender == 1 ? 'Férfi' : 'Nő'}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Nemzetiség:</td>
+                                                    <td><img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + guest.nationality?.toLowerCase()" style="width:18px"/>{{guest.nationality}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Ország:</td>
+                                                    <td><img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + getCountryCode(guest.country)" style="width:18px"/>{{guest.country}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Telefon:</td>
+                                                    <td>{{guest.telephone}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Email:</td>
+                                                    <td>{{guest.email}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Irányítószám:</td>
+                                                    <td>{{guest.zipCode}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Fizetési mód:</td>
+                                                    <td>{{guest.payment}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Első étkezés:</td>
+                                                    <td>{{guest.firstMeal}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Utolsó étkezés:</td>
+                                                    <td>{{guest.lastMeal}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Konferencia:</td>
+                                                    <td>{{guest.conferenceName}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Szoba típus:</td>
+                                                    <td>{{guest.roomType}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Kivel laknál egy szobában:</td>
+                                                    <td>{{guest.roommate}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Babaágyat kér:</td>
+                                                    <td>{{guest.babyBed == true ? 'Igen' : 'Nem'}}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-7">
+                                            
+                                            <!-- Kérdések - Válaszok -->
+                                            <div *ngFor="let answer of guest.answers">
+                                                <div *ngFor="let translation of answer.translations">
+                                                    <div class="flex flex-column w-full mb-4">
+                                                        <div class="font-medium mb-1">{{ translation.hu }}?</div>
+                                                        <div>{{ translation.answers }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Személyi igazolvány letöltése -->
+                                            <div class="flex flex-column w-full mb-4">
+                                                <div class="font-medium mb-1">Személyi igazolvány</div>
+                                                <div><button type="button" pButton pTooltip="Személyi igazolvány letöltése" tooltipPosition="bottom" icon="pi pi-download" class="p-button-rounded p-button-outlined"></button></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </td>
                     </tr>
