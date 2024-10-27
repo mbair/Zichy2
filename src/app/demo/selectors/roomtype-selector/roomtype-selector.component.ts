@@ -1,6 +1,12 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
+import { DropdownChangeEvent } from 'primeng/dropdown';
+
+export interface changeEvent {
+    value: string;
+    field: string;
+}
 
 @Component({
     selector: 'app-roomtype-selector',
@@ -10,6 +16,7 @@ export class RoomTypeSelectorComponent {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
+    @Output() change = new EventEmitter<changeEvent>()
     
     roomTypes: any[] = []           // Available room types
     selectedRoomType: string = ''   // Selected room type
@@ -49,5 +56,14 @@ export class RoomTypeSelectorComponent {
             { label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE-4-BED-ROOM'), value: 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)', style: 'maranatha-pension-house-4-bed-room' },
             { label: this.translate.instant('ROOMTYPES.APARTMENT'), value: 'Apartman (közös konyhával, fürdővel és nappalival)', style: 'apartment' },
         ]
+    }
+
+    /**
+     * Handles the change event of the roomtype selector and emits a new value with the
+     * changed field name.
+     * @param event the change event of the roomtype selector
+     */
+    handleOnChange(event: DropdownChangeEvent) {
+        this.change.emit({ value: event.value, field: this.controlName })
     }
 }

@@ -25,6 +25,7 @@ import { TreeTableModule } from 'primeng/treetable';
 import { TooltipModule } from 'primeng/tooltip';
 import { CheckboxModule } from 'primeng/checkbox';
 import { CalendarModule } from 'primeng/calendar';
+import { SelectorsModule } from '../../selectors/selectors.module';
 
 @NgModule({
 	imports: [
@@ -52,6 +53,7 @@ import { CalendarModule } from 'primeng/calendar';
         TooltipModule,
         CheckboxModule,
         CalendarModule,
+        SelectorsModule,
 	],
 	declarations: [ConferenceListComponent]
 })

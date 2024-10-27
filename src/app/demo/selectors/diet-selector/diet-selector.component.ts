@@ -1,6 +1,12 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
+import { DropdownChangeEvent } from 'primeng/dropdown';
+
+export interface changeEvent {
+    value: string;
+    field: string;
+}
 
 @Component({
     selector: 'app-diet-selector',
@@ -10,6 +16,7 @@ export class DietSelectorComponent {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
+    @Output() change = new EventEmitter<changeEvent>()
 
     diets: any[] = []               // Available diets
     selectedDiet: string = ''       // Selected diet
@@ -47,5 +54,14 @@ export class DietSelectorComponent {
             { label: this.translate.instant('DIETS.VEGETARIAN'), value: 'vegetáriánus', style: 'vegetarian' },
             { label: this.translate.instant('DIETS.NOTHING'), value: 'nem kér étkezést', style: 'nothing' }
         ]
+    }
+
+    /**
+     * Handles the change event of the diet selector and emits a new value with the
+     * changed field name.
+     * @param event the change event of the diet selector
+     */
+    handleOnChange(event: DropdownChangeEvent) {
+        this.change.emit({ value: event.value, field: this.controlName })
     }
 }

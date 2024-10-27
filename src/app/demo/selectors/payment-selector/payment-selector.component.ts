@@ -1,6 +1,12 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
+import { DropdownChangeEvent } from 'primeng/dropdown';
+
+export interface changeEvent {
+    value: string;
+    field: string;
+}
 
 @Component({
     selector: 'app-payment-selector',
@@ -10,6 +16,7 @@ export class PaymentSelectorComponent {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
+    @Output() change = new EventEmitter<changeEvent>()
     
     payments: any[] = []            // Available payments
     selectedPayment: string = ''    // Selected payment
@@ -44,5 +51,14 @@ export class PaymentSelectorComponent {
             { label: this.translate.instant('PAYMENTS.SZEP-CARD'), value: 'SZÉP kártya', style: 'szep-card', icon: 'pi pi-id-card' },
             { label: this.translate.instant('PAYMENTS.CASH'), value: 'Készpénz', style: 'cash', icon: 'pi pi-money-bill' },
         ]
+    }
+
+    /**
+     * Handles the change event of the payment selector and emits a new value with the
+     * changed field name.
+     * @param event the change event of the payment selector
+     */
+    handleOnChange(event: DropdownChangeEvent) {
+        this.change.emit({ value: event.value, field: this.controlName })
     }
 }

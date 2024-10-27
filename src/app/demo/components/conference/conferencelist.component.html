@@ -56,9 +56,11 @@
                             </p-calendar>
                         </th>
                         <th>
-                            <p-dropdown inputId="firstMealFilter" [options]="meals" [showClear]="true"
-                                placeholder="Keresés..." (onChange)="onFilter($event, 'firstMeal')">
-                            </p-dropdown>
+                            <app-meal-selector (change)="onFilter($event, 'firstMeal')" 
+                                               placeholder="Keresés..." 
+                                               [showNothing]="false" 
+                                               [showClear]="true">
+                            </app-meal-selector>
                         </th>
                         <th>
                             <p-calendar (onSelect)="onFilter($event, 'endDate')"
@@ -67,9 +69,11 @@
                             </p-calendar>
                         </th>
                         <th>
-                            <p-dropdown inputId="lastMealFilter" [options]="meals" [showClear]="true"
-                                placeholder="Keresés..." (onChange)="onFilter($event, 'lastMeal')">
-                            </p-dropdown>
+                            <app-meal-selector (change)="onFilter($event, 'lastMeal')" 
+                                               placeholder="Keresés..." 
+                                               [showNothing]="false" 
+                                               [showClear]="true">
+                            </app-meal-selector>
                         </th>
                         <!-- <th></th> -->
                         <th></th>
@@ -186,9 +190,7 @@
                 <!-- Első étkezés -->
                 <div class="field mb-4 col-12 lg:col-6">
                     <label for="firstMeal" class="font-medium text-900">Első étkezés</label>
-                    <p-dropdown id="firstMealFilter" formControlName="firstMeal" [options]="meals"
-                        placeholder="Válassz...">
-                    </p-dropdown>
+                    <app-meal-selector [parentForm]="conferenceForm" controlName="firstMeal"></app-meal-selector>
                     <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="block p-error">Kötelező
                         kitölteni</div>
                 </div>
@@ -206,9 +208,7 @@
                 <!-- Utolsó étkezés -->
                 <div class="field mb-4 col-12 lg:col-6">
                     <label for="lastMeal" class="font-medium text-900">Utolsó étkezés</label>
-                    <p-dropdown id="lastMealFilter" formControlName="lastMeal" [options]="meals"
-                        placeholder="Válassz...">
-                    </p-dropdown>
+                    <app-meal-selector [parentForm]="conferenceForm" controlName="lastMeal"></app-meal-selector>
                     <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="block p-error">Kötelező
                         kitölteni</div>
                 </div>

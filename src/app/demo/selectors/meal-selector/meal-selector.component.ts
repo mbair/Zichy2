@@ -1,6 +1,12 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
+import { DropdownChangeEvent } from 'primeng/dropdown';
+
+export interface changeEvent {
+    value: string;
+    field: string;
+}
 
 @Component({
     selector: 'app-meal-selector',
@@ -10,7 +16,9 @@ export class MealSelectorComponent {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
-    
+    @Input() showNothing: boolean
+    @Output() change = new EventEmitter<changeEvent>()
+
     meals: any[] = []           // Available meals
     selectedMeal: string = ''   // Selected meal
 
@@ -43,7 +51,21 @@ export class MealSelectorComponent {
             { label: this.translate.instant('MEALS.BREAKFAST'), value: 'reggeli', style: 'breakfast' },
             { label: this.translate.instant('MEALS.LUNCH'), value: 'ebéd', style: 'lunch' },
             { label: this.translate.instant('MEALS.DINNER'), value: 'vacsora', style: 'dinner' },
-            { label: this.translate.instant('MEALS.NOTHING'), value: 'Nem kér étkezést', style: 'nothing' }
         ]
+
+        if (this.showNothing) {
+            this.meals.push({
+                label: this.translate.instant('MEALS.NOTHING'), value: 'Nem kér étkezést', style: 'nothing'
+            })
+        }
+    }
+
+    /**
+     * Handles the change event of the meal selector and emits a new value with the
+     * changed field name.
+     * @param event the change event of the meal selector
+     */
+    handleOnChange(event: DropdownChangeEvent) {
+        this.change.emit({ value: event.value, field: this.controlName })
     }
 }
