@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { DropdownChangeEvent } from 'primeng/dropdown';
@@ -21,13 +21,26 @@ export class RoomTypeSelectorComponent {
     roomTypes: any[] = []           // Available room types
     selectedRoomType: string = ''   // Selected room type
 
-    constructor(private translate: TranslateService) {
-        this.setRoomTypes()
+    constructor(private translate: TranslateService) {}
 
-        // Set the accommodation options when the language changes
+    /**
+     * Lifecycle hook: called when the component is initialized.
+     * Subscribes to language change events and sets the meals
+     * for the selector when the language changes.
+     */
+    ngOnInit() {
         this.translate.onLangChange.subscribe(() => {
             this.setRoomTypes()
         })
+    }
+
+    /**
+     * Lifecycle hook: called when any data-bound property of a directive changes.
+     * Updates the available meal options when input properties change.
+     * @param changes An object of key-value pairs for the changed properties.
+     */
+    ngOnChanges(changes: SimpleChanges) {
+        this.setRoomTypes()
     }
 
     /**

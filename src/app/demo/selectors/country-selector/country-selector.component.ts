@@ -25,13 +25,19 @@ export class CountrySelectorComponent {
     filterBy: string = 'huname'        // Country filter
 
     constructor(private translate: TranslateService, 
-                private countryService: CountryService) {
+                private countryService: CountryService) {}
 
+    /**
+     * Lifecycle hook: called when the component is initialized.
+     * Subscribes to language change events and sets the countrys
+     * for the selector when the language changes.
+     */
+    ngOnInit() {
         // Fetch countries
         this.countryService.getCountries().subscribe(countries => {
             this.countries = countries
         })
-
+        
         // Set the country options when the language changes
         this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
             this.optionLabel = event.lang === 'hu' ? 'huname' : 'name'

@@ -180,7 +180,7 @@
                                         <!-- Első étkezés -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="firstMeal" class="font-medium text-900">{{'Első étkezés' | translate }}</label>
-                                            <app-meal-selector [parentForm]="conferenceForm" controlName="firstMeal"></app-meal-selector>
+                                            <app-meal-selector [parentForm]="conferenceForm" controlName="firstMeal" [showNothing]="true"></app-meal-selector>
                                             <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, válassza ki az első étkezését' | translate }}!
                                             </div>
@@ -212,7 +212,7 @@
                                         <!-- Utolsó étkezés -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="lastMeal" class="font-medium text-900">{{'Utolsó étkezés' | translate }}</label>
-                                            <app-meal-selector [parentForm]="conferenceForm" controlName="lastMeal"></app-meal-selector>
+                                            <app-meal-selector [parentForm]="conferenceForm" controlName="lastMeal" [showNothing]="true"></app-meal-selector>
                                             <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, válassza ki az utolsó étkezését' | translate }}!
                                             </div>
