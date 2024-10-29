@@ -90,12 +90,12 @@
                                             <label for="gender" class="font-medium text-900">{{'Neme' | translate }}</label>
                                             <div class="flex flex-wrap gap-3 my-3">
                                                 <div class="flex align-items-center">
-                                                    <p-radioButton name="gender" value="male" formControlName="gender" inputId="gender1"></p-radioButton>
+                                                    <p-radioButton name="gender" value="1" formControlName="gender" inputId="gender1"></p-radioButton>
                                                     <label for="gender1" class="ml-2">{{'Férfi' | translate }}</label>
                                                 </div>
 
                                                 <div class="flex align-items-center">
-                                                    <p-radioButton name="gender" value="female" formControlName="gender" inputId="gender2"></p-radioButton>
+                                                    <p-radioButton name="gender" value="2" formControlName="gender" inputId="gender2"></p-radioButton>
                                                     <label for="gender2" class="ml-2">{{'Nő' | translate }}</label>
                                                 </div>
                                             </div>
@@ -107,7 +107,7 @@
                                         <!-- Születési dátum -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="birthdate" class="font-medium text-900">{{'Születési dátum' | translate }}</label>
-                                            <p-calendar formControlName="birthdate" dateFormat="yy.mm.dd" appendTo="body" dataType="string"></p-calendar>
+                                            <p-calendar formControlName="birthdate" dateFormat="yy-mm-dd" appendTo="body" dataType="string"></p-calendar>
                                             <div *ngIf="birthdate?.dirty && birthdate?.errors?.['required']" class="p-error">
                                                 {{'Születési dátum' | translate }} {{'kötelező' | translate }}
                                             </div>
@@ -168,7 +168,7 @@
                                             <label for="arrivalDate" class="font-medium text-900">{{'Érkezés dátuma' | translate }}</label>
                                             <p-calendar id="arrivalDate"
                                                         formControlName="arrivalDate"
-                                                        dateFormat="yy.mm.dd"
+                                                        dateFormat="yy-mm-dd"
                                                         dataType="string"
                                                         appendTo="body">
                                             </p-calendar>
@@ -200,7 +200,7 @@
                                             <label for="departureDate" class="font-medium text-900">{{'Távozás dátuma' | translate }}</label>
                                             <p-calendar id="departureDate"
                                                         formControlName="departureDate"
-                                                        dateFormat="yy.mm.dd"
+                                                        dateFormat="yy-mm-dd"
                                                         dataType="string"
                                                         appendTo="body">
                                             </p-calendar>
@@ -247,11 +247,11 @@
                                             <label for="babyBed" class="font-medium text-900">{{'Babaágyat kérsz' | translate }}?</label>
                                             <div class="flex flex-wrap gap-3 my-3">
                                                 <div class="flex align-items-center">
-                                                    <p-radioButton name="babyBed" value="true" formControlName="babyBed" inputId="baby-bed-yes"></p-radioButton>
+                                                    <p-radioButton name="babyBed" value="1" formControlName="babyBed" inputId="baby-bed-yes"></p-radioButton>
                                                     <label for="baby-bed-yes" class="ml-2">{{'Igen' | translate }}</label>
                                                 </div>
                                                 <div class="flex align-items-center">
-                                                    <p-radioButton name="babyBed" value="false" formControlName="babyBed" inputId="baby-bed-no"></p-radioButton>
+                                                    <p-radioButton name="babyBed" value="0" formControlName="babyBed" inputId="baby-bed-no"></p-radioButton>
                                                     <label for="baby-bed-no" class="ml-2">{{'Nem' | translate }}</label>
                                                 </div>
                                             </div>

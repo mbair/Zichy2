@@ -67,6 +67,7 @@ export class VendegekComponent implements OnInit {
     rfidFilterValue: any;                      // Store for RFID filter value
     debounce: { [key: string]: any } = {}      // Search delay in filter field
 
+    public selectedFile: File;
     private guestObs$: Observable<any> | undefined;
     private conferenceObs$: Observable<any> | undefined;
     private genderObs$: Observable<any> | undefined;
@@ -223,6 +224,7 @@ export class VendegekComponent implements OnInit {
     }
 
     onLazyLoad(event: any) {
+        console.log('onLazyLoad', event)
         this.page = event.first! / event.rows!;
         this.rowsPerPage = event.rows ?? this.rowsPerPage;
         this.sortField = event.sortField ?? '';
@@ -299,7 +301,7 @@ export class VendegekComponent implements OnInit {
                 }]
                 // INSERT
             } else {
-                this.guestService.createGuest(this.guest)
+                this.guestService.createGuest(this.guest, this.selectedFile)
                 this.tableData.push(this.guest)
                 this.successfulMessage = [{
                     severity: 'success',
@@ -548,6 +550,10 @@ export class VendegekComponent implements OnInit {
             table_name: "guest",
             original_data: event.files[0].name,
         })
+    }
+
+    onFileSelected(event: any): void {
+        this.selectedFile = event.target.files[0]
     }
 
     hasDietName(dietName: string): boolean {

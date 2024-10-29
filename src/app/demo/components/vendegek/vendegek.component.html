@@ -492,8 +492,8 @@
 
                 <div class="formgrid grid">
                     <div class="field col">
-                        <label for="accommodationExtra">Szállás extra</label>
-                        <textarea rows="5" cols="30" pInputTextarea [(ngModel)]="guest.accommodationExtra"></textarea>
+                        <label for="idCard">Személyi igazolvány</label>
+                        <input #file pInputText type="file" (change)="onFileSelected($event)"/>
                     </div>
                 </div>
             </ng-template>

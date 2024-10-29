@@ -94,8 +94,15 @@ export class GuestService {
             })
     }
 
-    public createGuest(guest: Guest): void {
-        this.apiService.post(`guest/create/`, guest)
+    public createGuest(guest: Guest, file: File): void {
+
+        const formData = new FormData()
+        formData.append('guest', JSON.stringify(guest))
+        if (file) {
+            formData.append('file', file, file.name)
+        }
+
+        this.apiService.post(`guest/create/`, formData)
             .subscribe({
                 next: (response: any) => {
                     this.serviceMessage$.next('success')

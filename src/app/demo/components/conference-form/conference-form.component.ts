@@ -9,6 +9,7 @@ import { emailDomainValidator } from '../../utils/email-validator';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { MessageService } from 'primeng/api';
 import { ConferenceService } from '../../service/conference.service';
+import { GuestService } from '../../service/guest.service';
 import { DietService } from '../../service/diet.service';
 import { Diet } from '../../api/diet';
 import { ApiResponse } from '../../api/ApiResponse';
@@ -47,6 +48,7 @@ export class ConferenceFormComponent implements OnInit {
         private layoutService: LayoutService,
         private messageService: MessageService,
         private conferenceService: ConferenceService,
+        private guestService: GuestService,
         private dietService: DietService,
         private formBuilder: FormBuilder,
         private translate: TranslateService) {
@@ -74,7 +76,7 @@ export class ConferenceFormComponent implements OnInit {
             roommate: ['', Validators.required],
             payment: ['', Validators.required],
             babyBed: ['', Validators.required],
-            idCard: ['', [Validators.required]],
+            idCard: [null, [Validators.required]],
             privacy: ['', Validators.required],
             answers: this.formBuilder.array([]),
         })
@@ -123,6 +125,34 @@ export class ConferenceFormComponent implements OnInit {
 
         // Monitor the changes of the form
         this.conferenceForm.valueChanges.subscribe(() => this.formChanges$.next())
+
+        // // Teszt adatok
+        this.conferenceForm.patchValue({
+            lastName: 'Balázs',
+            firstName: 'Teszt',
+            // gender: 1,
+            birthdate: '1985-10-13',
+            // nationality: 'Hungarian',
+            // country: 'Hungary',
+            zipcode: '1011',
+            email: 'john.doe@example.com',
+            telephone: '+36201234567',
+            arrivalDate: '2024-10-01',
+            firstMeal: 'reggeli',
+            diet: 'vegetáriánus',
+            departureDate: '2024-10-10',
+            lastMeal: 'vacsora',
+            roomType: 'Kastély szállás 4 ágyas szoba',
+            roommate: 'valaki',
+            payment: 'Készpénz',
+            babyBed: true,
+            privacy: true,
+            answers: [] // Adj hozzá kérdés-válasz párokat, ha szükséges
+        })
+
+        // const answersArray = this.conferenceForm.get('answers') as FormArray;
+        // answersArray.push(this.formBuilder.control('Answer 1'));
+        // answersArray.push(this.formBuilder.control('Answer 2'));
     }
 
     get lastName() { return this.conferenceForm.get('lastName') }
@@ -186,6 +216,12 @@ export class ConferenceFormComponent implements OnInit {
 
             if (this.conferenceForm.valid) {
                 this.loading = true
+
+                const fileToUpload = this.conferenceForm.get('idCard')?.value
+
+                console.log('fileToUpload', fileToUpload)
+
+                this.guestService.createGuest(this.conferenceForm.value, fileToUpload)
 
                 this.messageService.add({
                     severity: "success",
