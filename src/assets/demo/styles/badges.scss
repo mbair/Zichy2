@@ -247,6 +247,11 @@
     font-size: 12px;
     letter-spacing: .3px;
 
+    &.normal {
+        background: var(--surface-800);
+        color: var(--surface-200);
+    }
+
     &.milkfree {
         background: var(--blue-200);
         color: var(--blue-800);

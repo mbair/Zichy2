@@ -42,6 +42,7 @@
     "Felhasználói feltételeket": "Felhasználói feltételeket",
     "Az adatvédelmi irányelvek és a felhasználói feltételek elfogadása kötelező": "Az adatvédelmi irányelvek és a felhasználói feltételek elfogadása kötelező",
     "Elküldöm a regisztrációmat": "Elküldöm a regisztrációmat",
+    "Új vendéget regisztrálok": "Új vendéget regisztrálok",
     "kötelező": "kötelező",
     "Kérjük, adja meg az érkezés dátumát": "Kérjük, adja meg az érkezés dátumát",
     "Kérjük, válassza ki az első étkezését": "Kérjük, válassza ki az első étkezését",
@@ -61,6 +62,7 @@
         "NOTHING": "Nem kér étkezést"
     },
     "DIETS": {
+        "NORMAL": "Normál",
         "MILKFREE": "Tejmentes",
         "LACTOSEFREE": "Laktózmentes",
         "GLUTENFREE": "Gluténmentes",

@@ -42,6 +42,7 @@
     "Felhasználói feltételeket": "Terms and Conditions",
     "Az adatvédelmi irányelvek és a felhasználói feltételek elfogadása kötelező": "Acceptance of the data protection guidelines and user conditions is mandatory",
     "Elküldöm a regisztrációmat": "Submit My Registration",
+    "Új vendéget regisztrálok": "Register a new guest",
     "kötelező": "required",
     "Kérjük, adja meg az érkezés dátumát": "Please provide the date of arrival",
     "Kérjük, válassza ki az első étkezését": "Please select your first meal",
@@ -61,6 +62,7 @@
         "NOTHING": "Doesn't ask for meal"
     },
     "DIETS": {
+        "NORMAL": "Normal",
         "MILKFREE": "Milk-free",
         "LACTOSEFREE": "Lactose-free",
         "GLUTENFREE": "Gluten-free",

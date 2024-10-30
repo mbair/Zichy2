@@ -1,17 +1,9 @@
-import { Component, forwardRef } from '@angular/core';
+import { Component, forwardRef, Input } from '@angular/core';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 
 @Component({
     selector: 'app-reactive-file-upload',
-    template: `
-        <!-- <input type="file" (change)="onFileChange($event)"> -->
-        <p-fileUpload mode="basic" 
-                    chooseLabel="Tallózás" 
-                    name="idCard[]" 
-                    (onSelect)="onFileChange($event)" 
-                    accept="image/*">
-        </p-fileUpload>
-    `,
+    templateUrl: './reactive-file-upload.component.html',
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
@@ -21,7 +13,11 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
     ]
 })
 export class ReactiveFileUploadComponent implements ControlValueAccessor {
-    value: any;
+    @Input() name: string
+    @Input() accept: string
+    @Input() chooseLabel: string
+
+    value: any
     onChange: (value: any) => void = () => {}
     onTouch: () => void = () => {}
 
@@ -29,9 +25,9 @@ export class ReactiveFileUploadComponent implements ControlValueAccessor {
 
     onFileChange(event: any) {
         if (event.files && event.files.length > 0) {
-            this.value = event.files[0];
-            this.onChange(this.value); // Továbbítja a kiválasztott fájlt a form vezérlőnek
-            this.onTouch();
+            this.value = event.files[0]
+            this.onChange(this.value) // Forwards the selected file to the form control
+            this.onTouch()
         }
     }
 

@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConferenceFormRoutingModule } from './conference-form-routing.module';
 import { ConferenceFormComponent } from './conference-form.component';
-import { ReactiveFileUploadComponent } from './reactive-file-upload.component';
 import { ButtonModule } from 'primeng/button';
 import { RouterModule } from '@angular/router';
 import { StyleClassModule } from 'primeng/styleclass';
@@ -23,6 +22,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { HttpClientModule } from '@angular/common/http';
 import { SelectorsModule } from '../../selectors/selectors.module';
+import { WidgetModule } from '../../widget/widget.module';
 
 @NgModule({
     imports: [
@@ -47,11 +47,11 @@ import { SelectorsModule } from '../../selectors/selectors.module';
         HttpClientModule,
         TranslateModule,
         SelectorsModule,
+        WidgetModule,
     ],
     declarations: [
         ConferenceFormComponent,
         AnimateEnterDirective,
-        ReactiveFileUploadComponent,
     ],
     exports: [ConferenceFormComponent]
 })
