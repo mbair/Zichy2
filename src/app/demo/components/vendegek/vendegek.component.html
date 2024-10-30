@@ -293,7 +293,16 @@
                                             <!-- Személyi igazolvány letöltése -->
                                             <div class="flex flex-column w-full mb-4">
                                                 <div class="font-medium mb-1">Személyi igazolvány</div>
-                                                <div><button type="button" pButton pTooltip="Személyi igazolvány letöltése" tooltipPosition="bottom" icon="pi pi-download" class="p-button-rounded p-button-outlined"></button></div>
+                                                <div>
+                                                    <button pButton
+                                                            type="button"
+                                                            icon="pi pi-download"
+                                                            class="p-button-rounded p-button-outlined" 
+                                                            pTooltip="Személyi igazolvány letöltése" 
+                                                            tooltipPosition="bottom" 
+                                                            (click)="downloadIdCard(guest.idcard)">
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

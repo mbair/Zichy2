@@ -1,6 +1,7 @@
 import { Component, OnInit, HostListener, isDevMode, ViewChild, ElementRef } from '@angular/core';
 import { catchError, Observable, of, switchMap, tap } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
+import { HttpClient } from '@angular/common/http';
 import { Message, MessageService } from 'primeng/api';
 import { FileSendEvent, FileUpload, FileUploadErrorEvent } from 'primeng/fileupload';
 import { Table } from 'primeng/table';
@@ -74,7 +75,8 @@ export class VendegekComponent implements OnInit {
     private dietObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
 
-    constructor(private guestService: GuestService,
+    constructor(private http: HttpClient,
+        private guestService: GuestService,
         private tagService: TagService,
         private conferenceService: ConferenceService,
         private genderService: GenderService,
@@ -183,7 +185,7 @@ export class VendegekComponent implements OnInit {
     }
 
     onFilter(event: any, field: string) {
-        const noWaitFields = ['diet','lastRfidUsage','dateOfArrival','dateOfDeparture']
+        const noWaitFields = ['diet', 'lastRfidUsage', 'dateOfArrival', 'dateOfDeparture']
         let filterValue = ''
 
         // Calendar date as String
@@ -209,7 +211,7 @@ export class VendegekComponent implements OnInit {
             if (this.filterValues[field] === filterValue) {
                 this.doQuery()
             }
-        // otherwise wait for the debounce time
+            // otherwise wait for the debounce time
         } else {
             if (this.debounce[field]) {
                 clearTimeout(this.debounce[field])
@@ -554,6 +556,23 @@ export class VendegekComponent implements OnInit {
 
     onFileSelected(event: any): void {
         this.selectedFile = event.target.files[0]
+    }
+
+    downloadIdCard(idCardName: string) {
+        if (!idCardName) return
+
+        // TODO: Use array instead of commas...
+        const cleanedIdCardName = idCardName.endsWith(',') ? idCardName.slice(0, -1) : idCardName
+
+        this.http.get(this.apiURL + '/guest/idcardimage/' + cleanedIdCardName, { responseType: 'blob' }).subscribe((blob) => {
+            const downloadUrl = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = downloadUrl
+            a.download = cleanedIdCardName
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+        })
     }
 
     hasDietName(dietName: string): boolean {
