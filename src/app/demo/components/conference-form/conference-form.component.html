@@ -52,7 +52,7 @@
                 <div class="col-12 lg:col-7 md:col-12 flex-order-1 md:flex-order-1 mb-6 md:mb-0 border-round">
                     <div class="card w-full h-full border-round shadow-2 animation-duration-1000 animation-ease-out" animateEnter="moveinright">
                         <div class="card-title block text-900 font-bold text-2xl">
-                            Zichy-Vajta Konferencia Központ
+                            {{ conference && conference.name }}
                         </div>
                         <div class="card-subtitle block text-600 font-bold text-lg">
                             {{ 'Vendég Regisztrációs Űrlap' | translate }}
@@ -106,9 +106,9 @@
 
                                         <!-- Születési dátum -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="birthdate" class="font-medium text-900">{{'Születési dátum' | translate }}</label>
-                                            <p-calendar formControlName="birthdate" dateFormat="yy-mm-dd" appendTo="body" dataType="string"></p-calendar>
-                                            <div *ngIf="birthdate?.dirty && birthdate?.errors?.['required']" class="p-error">
+                                            <label for="birthDate" class="font-medium text-900">{{'Születési dátum' | translate }}</label>
+                                            <p-calendar formControlName="birthDate" dateFormat="yy-mm-dd" appendTo="body" dataType="string" onchange="console.log(this.conferenceForm.value)"></p-calendar>
+                                            <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
                                                 {{'Születési dátum' | translate }} {{'kötelező' | translate }}
                                             </div>
                                         </div>
@@ -168,6 +168,9 @@
                                             <label for="arrivalDate" class="font-medium text-900">{{'Érkezés dátuma' | translate }}</label>
                                             <p-calendar id="arrivalDate"
                                                         formControlName="arrivalDate"
+                                                        [defaultDate]="beginDate"
+                                                        [minDate]="beginDate" 
+                                                        [maxDate]="endDate"
                                                         dateFormat="yy-mm-dd"
                                                         dataType="string"
                                                         appendTo="body">
@@ -200,6 +203,9 @@
                                             <label for="departureDate" class="font-medium text-900">{{'Távozás dátuma' | translate }}</label>
                                             <p-calendar id="departureDate"
                                                         formControlName="departureDate"
+                                                        [defaultDate]="beginDate"
+                                                        [minDate]="beginDate" 
+                                                        [maxDate]="endDate"
                                                         dateFormat="yy-mm-dd"
                                                         dataType="string"
                                                         appendTo="body">

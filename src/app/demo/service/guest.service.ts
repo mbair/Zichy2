@@ -97,7 +97,12 @@ export class GuestService {
     public createGuest(guest: Guest, file: File): void {
 
         const formData = new FormData()
-        formData.append('guest', JSON.stringify(guest))
+        
+        // Convert guest object to FormData
+        Object.keys(guest).forEach(key => {
+            formData.append(key, guest[key as keyof Guest] as any)
+        })
+        
         if (file) {
             formData.append('file', file, file.name)
         }
