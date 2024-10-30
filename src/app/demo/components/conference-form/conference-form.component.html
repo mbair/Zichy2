@@ -63,7 +63,7 @@
                                 <!-- SYSTEM MESSAGE -->
                                 <p-messages></p-messages>
 
-                                <div>
+                                <div *ngIf="showForm === true">
 
                                     <form [formGroup]="conferenceForm" (ngSubmit)="onSubmit()" novalidate class="grid formgrid p-fluid">
 
@@ -133,9 +133,9 @@
 
                                         <!-- Lakóhely - irányítószám -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
-                                            <label for="zipcode" class="font-medium text-900">{{'Lakóhely - irányítószám' | translate }}</label>
-                                            <input id="zipcode" type="text" pInputText formControlName="zipcode">
-                                            <div *ngIf="zipcode?.dirty && zipcode?.errors?.['required']" class="p-error">
+                                            <label for="zipCode" class="font-medium text-900">{{'Lakóhely - irányítószám' | translate }}</label>
+                                            <input id="zipCode" type="text" pInputText formControlName="zipCode">
+                                            <div *ngIf="zipCode?.dirty && zipCode?.errors?.['required']" class="p-error">
                                                 {{'Irányítószám' | translate }} {{'kötelező' | translate }}
                                             </div>
                                         </div>
@@ -165,9 +165,9 @@
 
                                         <!-- Érkezés dátuma -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="arrivalDate" class="font-medium text-900">{{'Érkezés dátuma' | translate }}</label>
-                                            <p-calendar id="arrivalDate"
-                                                        formControlName="arrivalDate"
+                                            <label for="dateOfArrival" class="font-medium text-900">{{'Érkezés dátuma' | translate }}</label>
+                                            <p-calendar id="dateOfArrival"
+                                                        formControlName="dateOfArrival"
                                                         [defaultDate]="beginDate"
                                                         [minDate]="beginDate" 
                                                         [maxDate]="endDate"
@@ -175,7 +175,7 @@
                                                         dataType="string"
                                                         appendTo="body">
                                             </p-calendar>
-                                            <div *ngIf="arrivalDate?.dirty && arrivalDate?.errors?.['required']" class="p-error">
+                                            <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
                                             </div>
                                         </div>
@@ -200,9 +200,9 @@
 
                                         <!-- Távozás dátuma -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="departureDate" class="font-medium text-900">{{'Távozás dátuma' | translate }}</label>
-                                            <p-calendar id="departureDate"
-                                                        formControlName="departureDate"
+                                            <label for="dateOfDeparture" class="font-medium text-900">{{'Távozás dátuma' | translate }}</label>
+                                            <p-calendar id="dateOfDeparture"
+                                                        formControlName="dateOfDeparture"
                                                         [defaultDate]="beginDate"
                                                         [minDate]="beginDate" 
                                                         [maxDate]="endDate"
@@ -210,7 +210,7 @@
                                                         dataType="string"
                                                         appendTo="body">
                                             </p-calendar>
-                                            <div *ngIf="departureDate?.dirty && departureDate?.errors?.['required']" class="p-error">
+                                            <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, adja meg a távozás dátumát' | translate }}!
                                             </div>
                                         </div>
@@ -235,8 +235,8 @@
 
                                         <!-- Kivel laknál egy szobában -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="roommate" class="font-medium text-900">{{'Kivel laknál egy szobában' | translate }}?</label>
-                                            <input id="roommate" type="text" pInputText formControlName="roommate">
+                                            <label for="roomMate" class="font-medium text-900">{{'Kivel laknál egy szobában' | translate }}?</label>
+                                            <input id="roomMate" type="text" pInputText formControlName="roomMate">
                                         </div>
 
                                         <!-- Fizetési mód -->
@@ -317,11 +317,23 @@
                                         <p-button type="submit" 
                                                   class="white-space-nowrap ml-3" 
                                                   icon="pi pi-check" 
-                                                  label="Elküldöm a regisztrációmat" 
+                                                  label="{{'Elküldöm a regisztrációmat' | translate }}" 
                                                   [loading]="loading">
                                         </p-button>
 
+                                        
                                     </form>
+                                </div>
+
+                                <!-- New registration -->
+                                <div *ngIf="showForm === false"
+                                     class="flex col-12 align-items-center justify-content-center">
+                                    
+                                     <p-button class="white-space-nowrap mt-3" 
+                                               icon="pi pi-plus"
+                                               label="{{'Új vendéget regisztrálok' | translate }}"
+                                               (onClick)="newRegistration()">
+                                    </p-button>
                                 </div>
                             </div>
                         </div>

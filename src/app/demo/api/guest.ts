@@ -24,7 +24,7 @@ export interface Guest {
     roomType?: string;
     payment?: string;
     babyBed?: boolean;
-    roommate?: string;
+    roomMate?: string;
     idcard?: string;
     idcardtype?: string;
     lastRfidUsage?: string | null;

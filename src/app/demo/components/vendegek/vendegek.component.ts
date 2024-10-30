@@ -301,7 +301,7 @@ export class VendegekComponent implements OnInit {
                 }]
                 // INSERT
             } else {
-                this.guestService.createGuest(this.guest, this.selectedFile)
+                this.guestService.createGuest(this.guest, [this.selectedFile])
                 this.tableData.push(this.guest)
                 this.successfulMessage = [{
                     severity: 'success',

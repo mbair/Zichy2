@@ -94,19 +94,18 @@ export class GuestService {
             })
     }
 
-    public createGuest(guest: Guest, file: File): void {
+    public createGuest(guest: Guest, files: File[]): void {
 
         const formData = new FormData()
-        
-        // Convert guest object to FormData
-        Object.keys(guest).forEach(key => {
-            formData.append(key, guest[key as keyof Guest] as any)
-        })
-        
-        if (file) {
-            formData.append('file', file, file.name)
-        }
+        formData.append('guest', JSON.stringify(guest))
 
+        if (files && files.length > 0) {
+            for (const file of files) {
+                if (!file) return
+                formData.append('idcard', file, file.name)
+            }
+        }        
+        
         this.apiService.post(`guest/create/`, formData)
             .subscribe({
                 next: (response: any) => {

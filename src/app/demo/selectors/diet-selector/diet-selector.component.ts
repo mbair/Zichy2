@@ -60,6 +60,7 @@ export class DietSelectorComponent {
      */
     setDiets() {
         this.diets = [
+            { label: this.translate.instant('DIETS.NORMAL'), value: 'normál', style: 'normal' },
             { label: this.translate.instant('DIETS.MILKFREE'), value: 'tejmentes', style: 'milkfree' },
             { label: this.translate.instant('DIETS.LACTOSEFREE'), value: 'laktózmentes', style: 'lactosefree' },
             { label: this.translate.instant('DIETS.GLUTENFREE'), value: 'gluténmentes', style: 'glutenfree' },

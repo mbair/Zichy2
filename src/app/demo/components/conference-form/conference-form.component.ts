@@ -29,17 +29,19 @@ import { Conference } from '../../api/conference';
 
 export class ConferenceFormComponent implements OnInit {
 
-    loading: boolean = true                      // Loading overlay trigger value
+    loading: boolean = false                     // Loading overlay trigger value
     conference: Conference                       // Conference for this form
     beginDate: any                               // Conference begin date
     endDate: any                                 // Conference end date
     diets: Diet[] = []                           // Possible diets
-    conferenceForm: FormGroup;                   // Form for guest registration to Conference
-    subscription: Subscription;
-    darkMode: boolean = false;
-    countries: any[] = [];
-    payments: any[] = [];
-    roomTypes: any[] = [];
+    conferenceForm: FormGroup                    // Form for guest registration to Conference
+    showForm: boolean = true                     // Show or hide form
+    countries: any[] = []                        // List of countries
+    payments: any[] = []                         // List of payments
+    roomTypes: any[] = []                        // List of room types
+    darkMode: boolean = false                    // Dark mode
+    subscription: Subscription                   // Subscription for dark mode
+   
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -69,16 +71,16 @@ export class ConferenceFormComponent implements OnInit {
             birthDate: ['', Validators.required],
             nationality: ['', Validators.required],
             country: ['', Validators.required],
-            zipcode: ['', Validators.required],
+            zipCode: ['', Validators.required],
             email: ['', [Validators.required, emailDomainValidator()]],
             telephone: ['', Validators.required],
-            arrivalDate: ['', Validators.required],
+            dateOfArrival: ['', Validators.required],
             firstMeal: ['', Validators.required],
             diet: ['', Validators.required],
-            departureDate: ['', Validators.required],
+            dateOfDeparture: ['', Validators.required],
             lastMeal: ['', Validators.required],
             roomType: ['', Validators.required],
-            roommate: ['', Validators.required],
+            roomMate: [''],
             payment: ['', Validators.required],
             babyBed: ['', Validators.required],
             idCard: [null, Validators.required],
@@ -127,13 +129,21 @@ export class ConferenceFormComponent implements OnInit {
         this.guestServiceMessageObs$ = this.guestService.serviceMessageObs
         this.guestServiceMessageObs$.subscribe(message => {
             this.loading = false
-            console.log('guestServiceMessageObs', message)
-
-            this.messageService.add({
-                severity: "success",
-                summary: "Sikeresen regisztrált!",
-                detail: "Sok szeretettel várjuk a konferenciára!",
-            })
+            if (message == 'success') {
+                this.showForm = false
+                this.conferenceForm.reset()
+                this.messageService.add({
+                    severity: "success",
+                    summary: "Sikeresen regisztrált!",
+                    detail: "Sok szeretettel várjuk a konferenciára!",
+                })
+            } else {
+                this.messageService.add({
+                    severity: "error",
+                    summary: "Hiba történt!",
+                    detail: "Nem sikerült menteni az adatokat",
+                })
+            }
         })
 
         // Get diets for selector
@@ -151,36 +161,8 @@ export class ConferenceFormComponent implements OnInit {
 
         // Monitor the changes of the form
         this.conferenceForm.valueChanges.pipe(
-            tap(() => console.log('Current form values:', this.conferenceForm.value)) // Itt kiírja az aktuális értékeket
-        ).subscribe(() => this.formChanges$.next());
-
-        // // Teszt adatok
-        // this.conferenceForm.patchValue({
-        //     lastName: 'Balázs',
-        //     firstName: 'Teszt',
-        //     // gender: 1,
-        //     birthdate: '1985-10-13',
-        //     // nationality: 'Hungarian',
-        //     // country: 'Hungary',
-        //     zipcode: '1011',
-        //     email: 'john.doe@example.com',
-        //     telephone: '+36201234567',
-        //     arrivalDate: '2024-10-01',
-        //     firstMeal: 'reggeli',
-        //     diet: 'vegetáriánus',
-        //     departureDate: '2024-10-10',
-        //     lastMeal: 'vacsora',
-        //     roomType: 'Kastély szállás 4 ágyas szoba',
-        //     roommate: 'valaki',
-        //     payment: 'Készpénz',
-        //     babyBed: true,
-        //     privacy: true,
-        //     answers: [] // Adj hozzá kérdés-válasz párokat, ha szükséges
-        // })
-
-        // const answersArray = this.conferenceForm.get('answers') as FormArray;
-        // answersArray.push(this.formBuilder.control('Answer 1'));
-        // answersArray.push(this.formBuilder.control('Answer 2'));
+            debounceTime(300)
+        ).subscribe(() => this.formChanges$.next())
     }
 
     get lastName() { return this.conferenceForm.get('lastName') }
@@ -189,16 +171,16 @@ export class ConferenceFormComponent implements OnInit {
     get birthDate() { return this.conferenceForm.get('birthDate') }
     get nationality() { return this.conferenceForm.get('nationality') }
     get country() { return this.conferenceForm.get('country') }
-    get zipcode() { return this.conferenceForm.get('zipcode') }
+    get zipCode() { return this.conferenceForm.get('zipCode') }
     get email() { return this.conferenceForm.get('email') }
     get telephone() { return this.conferenceForm.get('telephone') }
-    get arrivalDate() { return this.conferenceForm.get('arrivalDate') }
+    get dateOfArrival() { return this.conferenceForm.get('dateOfArrival') }
     get firstMeal() { return this.conferenceForm.get('firstMeal') }
     get diet() { return this.conferenceForm.get('diet') }
-    get departureDate() { return this.conferenceForm.get('departureDate') }
+    get dateOfDeparture() { return this.conferenceForm.get('dateOfDeparture') }
     get lastMeal() { return this.conferenceForm.get('lastMeal') }
     get roomType() { return this.conferenceForm.get('roomType') }
-    get roommate() { return this.conferenceForm.get('roommate') }
+    get roomMate() { return this.conferenceForm.get('roomMate') }
     get payment() { return this.conferenceForm.get('payment') }
     get babyBed() { return this.conferenceForm.get('babyBed') }
     get idCard() { return this.conferenceForm.get('idCard') }
@@ -229,39 +211,45 @@ export class ConferenceFormComponent implements OnInit {
     }
 
     onSubmit(): void {
-        console.log('onSubmit')
-        console.log('Az űrlap adatok:', this.conferenceForm.value)
+        this.messageService.clear()
 
-        // Mark all form elements as dirty
-        // this.conferenceForm.markAsDirty()
-        // this.conferenceForm.markAllAsTouched()
-        // Object.keys(this.conferenceForm.controls).forEach(key => {
-        //     this.conferenceForm.get(key)?.markAsDirty()
-        // })
+        // Mark all form elements as dirty and touched
+        Object.keys(this.conferenceForm.controls).forEach(key => {
+            this.conferenceForm.get(key)?.markAsDirty()
+            this.conferenceForm.get(key)?.markAsTouched()
+        })
 
-            this.messageService.clear()
+        if (this.conferenceForm.valid) {
+            this.loading = true
 
-            if (this.conferenceForm.valid) {
-                this.loading = true
+            const guestData = { ...this.conferenceForm.value }
+            const files = [this.conferenceForm.get('idCard')?.value]
 
-                const guestData = { ...this.conferenceForm.value }
-                const fileToUpload = this.conferenceForm.get('idCard')?.value
+            // Delete unnecessary fields
+            delete guestData.idCard
+            delete guestData.privacy
 
-                // Delete unnecessary fields
-                delete guestData.idCard
-                delete guestData.privacy
-                
-                console.log('guestData', guestData)
-                console.log('fileToUpload', fileToUpload)
+            this.guestService.createGuest(guestData, files)
+        } else {
+            this.messageService.add({
+                severity: "error",
+                summary: "Hiba!",
+                detail: "Az űrlap nem lett megfelelően kitöltve!",
+            })
+        }
+    }
 
-                this.guestService.createGuest(guestData, fileToUpload)
-            } else {
-                this.messageService.add({
-                    severity: "error",
-                    summary: "Hiba!",
-                    detail: "Az űrlap nem lett megfelelően kitöltve!",
-                })
-            }
+    /**
+     * New guest registration
+     * 
+     * Resets the form and shows it again, after a successful submission.
+     * Also clears any messages, and reloads the conference data.
+     */
+    newRegistration() {
+        this.showForm = true
+        this.conferenceForm.reset()
+        this.messageService.clear()
+        this.getConferenceBySlug()
     }
 
     // Don't delete this, its needed from a performance point of view,
