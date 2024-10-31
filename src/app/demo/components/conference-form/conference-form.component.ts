@@ -9,11 +9,13 @@ import { emailDomainValidator } from '../../utils/email-validator';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { MessageService } from 'primeng/api';
 import { ConferenceService } from '../../service/conference.service';
+import { AnswerService } from '../../service/answer.service';
 import { GuestService } from '../../service/guest.service';
 import { DietService } from '../../service/diet.service';
 import { Diet } from '../../api/diet';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
+import { Answer } from '../../api/answer';
 
 
 @Component({
@@ -46,13 +48,16 @@ export class ConferenceFormComponent implements OnInit {
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
     private conferenceObs$: Observable<any> | undefined
+    private createdGuestObs$: Observable<any> | undefined
     private guestServiceMessageObs$: Observable<any> | undefined
+    private answerServiceMessageObs$: Observable<any> | undefined
 
     constructor(public router: Router,
         private route: ActivatedRoute,
         private layoutService: LayoutService,
         private messageService: MessageService,
         private conferenceService: ConferenceService,
+        private answerService: AnswerService,
         private guestService: GuestService,
         private dietService: DietService,
         private formBuilder: FormBuilder,
@@ -114,8 +119,10 @@ export class ConferenceFormComponent implements OnInit {
                     // Fill form with stored questions
                     if (this.conference?.questions?.length > 0) {
                         const answersArray = this.conferenceForm.get('answers') as FormArray
-                        this.conference.questions[0].translations?.forEach(() => {
-                            answersArray.push(this.formBuilder.control('', Validators.required))
+                        this.conference.questions[0].translations?.forEach((question: any) => {
+                            if (question['hu'] !== '' || question['en'] !== '') {
+                                answersArray.push(this.formBuilder.control('', Validators.required))
+                            }
                         })
                     }
                 } else {
@@ -125,25 +132,53 @@ export class ConferenceFormComponent implements OnInit {
             }
         })
 
-        // Guest
+        // Guest created => Save answers
+        this.createdGuestObs$ = this.guestService.createdGuestObs
+        this.createdGuestObs$.subscribe((data: any) => {
+            this.loading = false
+            if (data && data.guest) {
+                if (this.conference?.questions?.length > 0) {
+                    let answers: Answer = {
+                        translations: [],
+                        guestid: data.guest.id,
+                        questionid: this.conference?.questions[0].id
+                    }
+
+                    this.conference.questions[0].translations?.forEach((question: any, i: number) => {
+                        if (question['hu'] !== '' || question['en'] !== '') {
+                            answers.translations.push({
+                                hu: question['hu'],
+                                en: question['en'],
+                                answers: this.conferenceForm.get('answers')?.value[i]
+                            })
+                        }
+                    })
+                    
+                    this.answerService.create(answers)
+                }
+            }
+        })
+
+        // Guest Message
         this.guestServiceMessageObs$ = this.guestService.serviceMessageObs
         this.guestServiceMessageObs$.subscribe(message => {
             this.loading = false
             if (message == 'success') {
-                this.showForm = false
-                this.conferenceForm.reset()
-                this.messageService.add({
-                    severity: "success",
-                    summary: "Sikeresen regisztrált!",
-                    detail: "Sok szeretettel várjuk a konferenciára!",
-                })
+                // Show success message if we have no answers to save
+                if (this.conference?.questions?.length == 0) {
+                    this.saveSuccess()
+                }
             } else {
-                this.messageService.add({
-                    severity: "error",
-                    summary: "Hiba történt!",
-                    detail: "Nem sikerült menteni az adatokat",
-                })
+                this.saveFailed()
             }
+        })
+
+        // Answer Message
+        this.answerServiceMessageObs$ = this.answerService.messageObs
+        this.answerServiceMessageObs$.subscribe(message => {
+            this.loading = false
+            // Show success message if we have no answers to save
+            message == 'success' ? this.saveSuccess() : this.saveFailed()
         })
 
         // Get diets for selector
@@ -210,6 +245,12 @@ export class ConferenceFormComponent implements OnInit {
         return this.conference.questions[0].translations[i][lang]
     }
 
+    /**
+     * Handles the submission of the form.
+     * Marks all form elements as dirty and touched,
+     * then creates a guest from the form data and submits it.
+     * If the form is invalid, shows an error message.
+     */
     onSubmit(): void {
         this.messageService.clear()
 
@@ -246,6 +287,31 @@ export class ConferenceFormComponent implements OnInit {
                 detail: "Az űrlap nem lett megfelelően kitöltve!",
             })
         }
+    }
+
+    /**
+     * Handles the successful saving of guest data.
+     * Hides the form and displays a success message to the user.
+     */
+    saveSuccess() {
+        this.showForm = false
+        this.messageService.add({
+            severity: "success",
+            summary: "Sikeresen regisztrált!",
+            detail: "Sok szeretettel várjuk a konferenciára!",
+        })
+    }
+
+    /**
+     * Called when saving the guest data fails.
+     * Displays an error message to the user.
+     */
+    saveFailed() {
+        this.messageService.add({
+            severity: "error",
+            summary: "Hiba történt!",
+            detail: "Nem sikerült menteni az adatokat",
+        })
     }
 
     /**

@@ -94,7 +94,7 @@ export class VendegekComponent implements OnInit {
         this.guestObs$ = this.guestService.guestObs;
         this.guestObs$.subscribe((data: ApiResponse) => {
             this.loading = false
-            if (data) {
+            if (data && data.rows && data.rows?.length > 1) {
                 this.tableData = data.rows || [];
                 this.totalRecords = data.totalItems || 0;
                 this.page = data.currentPage || 0;

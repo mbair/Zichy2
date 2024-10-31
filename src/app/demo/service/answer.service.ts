@@ -109,7 +109,7 @@ export class AnswerService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres válasz rögzítés',
-                        detail: `${answer.translations['hu']} rögzítve`,
+                        detail: `A válaszok rögzítve lettek`,
                     })
                 },
                 error: (error: any) => {
@@ -129,7 +129,7 @@ export class AnswerService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres válasz módosítás',
-                        detail: `${modifiedAnswer.translations['hu']} módosítva`,
+                        detail: `A válaszok módosítva lettek`,
                     })
                 },
                 error: (error: any) => {
@@ -149,7 +149,7 @@ export class AnswerService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres válasz törlés',
-                        detail: `${answer.translations['hu']} törölve`,
+                        detail: `A válaszok törölve lettek`,
                     })
                 },
                 error: (error: any) => {

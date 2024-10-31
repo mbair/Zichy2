@@ -12,16 +12,22 @@ export class GuestService {
 
     public apiURL: string
     private guestData$: BehaviorSubject<any>
+    private createdGuest$: BehaviorSubject<any>
     private serviceMessage$: BehaviorSubject<any>
 
     constructor(private apiService: ApiService) {
         this.apiURL = apiService.apiURL
         this.guestData$ = new BehaviorSubject<any>(null)
+        this.createdGuest$ = new BehaviorSubject<any>(null)
         this.serviceMessage$ = new BehaviorSubject<any>(null)
     }
 
     public get guestObs(): Observable<ApiResponse | null> {
         return this.guestData$.asObservable()
+    }
+
+    public get createdGuestObs(): Observable<ApiResponse | null> {
+        return this.createdGuest$.asObservable()
     }
 
     public get serviceMessageObs(): Observable<any> {
@@ -109,6 +115,7 @@ export class GuestService {
         this.apiService.post(`guest/create/`, formData)
             .subscribe({
                 next: (response: any) => {
+                    this.createdGuest$.next(response)
                     this.serviceMessage$.next('success')
                 },
                 error: (error: any) => {

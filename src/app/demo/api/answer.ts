@@ -1,12 +1,12 @@
 export interface Translation {
-    question: string;
+    en: string;
+    hu: string;
+    answers: string;
 }
 
 export interface Answer {
-    id?: string | null;
-    guestid?: string | null;
-    questionid?: string | null;
-    translations: {
-        [key: string]: Translation;
-    }
+    id?: number | null;
+    guestid?: number | null;
+    questionid?: number | null;
+    translations: Translation[];
 }
