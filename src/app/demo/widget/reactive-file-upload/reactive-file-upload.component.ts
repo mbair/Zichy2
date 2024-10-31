@@ -4,6 +4,7 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 @Component({
     selector: 'app-reactive-file-upload',
     templateUrl: './reactive-file-upload.component.html',
+    styleUrls: ['./reactive-file-upload.component.scss'],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
@@ -16,6 +17,7 @@ export class ReactiveFileUploadComponent implements ControlValueAccessor {
     @Input() name: string
     @Input() accept: string
     @Input() chooseLabel: string
+    @Input() cancelLabel: string
 
     value: any
     onChange: (value: any) => void = () => {}

@@ -1,7 +1,9 @@
 <p-fileUpload 
-    mode="basic"
     [name]="name" 
     [accept]="accept"
     [chooseLabel]="chooseLabel" 
-    (onSelect)="onFileChange($event)" >
+    [cancelLabel]="cancelLabel" 
+    [showUploadButton]="false"
+    (onSelect)="onFileChange($event)" 
+    removeStyleClass="px-3">
 </p-fileUpload>

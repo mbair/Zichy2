@@ -5,24 +5,6 @@
 
         <div class="absolute top-0 right-0 flex align-items-center px-3 py-3">
             <app-language-selector></app-language-selector>
-            <!-- <p-dropdown inputId="system_language"
-                        [options]="languages"
-                        optionLabel="name"
-                        [(ngModel)]="selectedLanguage"
-                        (onChange)="onLanguageChange(selectedLanguage)"
-                        appendTo="body"
-                        placeholder="Válasszon...">
-                        <ng-template let-country pTemplate="selectedItem">
-                            <div class="flex align-items-center gap-2">
-                                <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code?.toLowerCase()" style="width: 18px"/>
-                            </div>
-                        </ng-template>
-                        <ng-template let-country pTemplate="item">
-                            <div class="flex align-items-center">
-                                <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code?.toLowerCase()" style="width:18px"/>
-                            </div>
-                        </ng-template>
-            </p-dropdown> -->
         </div>
 
         <div class="py-6 px-4 mx-0 md:mx-6 lg:mx-8 lg:px-8 z-2">
@@ -143,7 +125,7 @@
                                         <!-- Email -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
                                             <label for="email" class="font-medium text-900">{{'Email' | translate }}</label>
-                                            <input id="email" type="text" pInputText formControlName="email">
+                                            <input id="email" type="email" pInputText formControlName="email" autocomplete="email">
                                             <div *ngIf="email?.dirty" class="p-error">
                                                 <div *ngIf="email?.errors?.['required']">
                                                     {{'Email' | translate }} {{'kötelező' | translate }}
@@ -286,7 +268,13 @@
                                         <!-- Személyi igazolvány -->
                                         <div class="field mb-4 col-12 lg:col-12">
                                             <label for="idCard" class="font-medium text-900">{{'Személyi igazolvány' | translate }}</label>
-                                            <app-reactive-file-upload formControlName="idCard" accept=".jpg,.jpeg,.png,.pdf" name="idCard" chooseLabel="{{'Tallózás' | translate }}"></app-reactive-file-upload>
+                                            <app-reactive-file-upload
+                                                name="idCard"
+                                                formControlName="idCard" 
+                                                accept=".jpg,.jpeg,.png,.pdf" 
+                                                chooseLabel="{{'Tallózás' | translate }}" 
+                                                cancelLabel="{{'Mégsem' | translate }}">
+                                            </app-reactive-file-upload>
                                             <div *ngIf="idCard?.dirty && idCard?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, töltse fel a személyi igazolványának másolatát' | translate }}!
                                             </div>

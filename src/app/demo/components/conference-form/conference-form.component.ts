@@ -11,7 +11,6 @@ import { MessageService } from 'primeng/api';
 import { ConferenceService } from '../../service/conference.service';
 import { AnswerService } from '../../service/answer.service';
 import { GuestService } from '../../service/guest.service';
-import { DietService } from '../../service/diet.service';
 import { Diet } from '../../api/diet';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
@@ -35,12 +34,8 @@ export class ConferenceFormComponent implements OnInit {
     conference: Conference                       // Conference for this form
     beginDate: any                               // Conference begin date
     endDate: any                                 // Conference end date
-    diets: Diet[] = []                           // Possible diets
     conferenceForm: FormGroup                    // Form for guest registration to Conference
     showForm: boolean = true                     // Show or hide form
-    countries: any[] = []                        // List of countries
-    payments: any[] = []                         // List of payments
-    roomTypes: any[] = []                        // List of room types
     darkMode: boolean = false                    // Dark mode
     subscription: Subscription                   // Subscription for dark mode
 
@@ -53,13 +48,11 @@ export class ConferenceFormComponent implements OnInit {
     private answerServiceMessageObs$: Observable<any> | undefined
 
     constructor(public router: Router,
-        private route: ActivatedRoute,
         private layoutService: LayoutService,
         private messageService: MessageService,
         private conferenceService: ConferenceService,
         private answerService: AnswerService,
         private guestService: GuestService,
-        private dietService: DietService,
         private formBuilder: FormBuilder,
         private translate: TranslateService) {
 
@@ -179,13 +172,6 @@ export class ConferenceFormComponent implements OnInit {
             this.loading = false
             // Show success message if we have no answers to save
             message == 'success' ? this.saveSuccess() : this.saveFailed()
-        })
-
-        // Get diets for selector
-        this.dietService.getDietsForSelector().subscribe({
-            next: (data) => {
-                this.diets = data
-            }
         })
 
         this.isFormValid$ = this.formChanges$.pipe(
