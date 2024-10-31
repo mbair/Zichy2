@@ -59,6 +59,9 @@ export class LogService {
                         // remove updatelasttagusage action type
                         response.rows = response.rows.filter(row => row.action_type !== 'updatelasttagusage')
 
+                        // remove answers
+                        response.rows = response.rows.filter(row => row.table_name !== 'answers')
+
                         // remove tag assign duplicates
                         response.rows = response.rows.filter(row => {
 
@@ -122,12 +125,18 @@ export class LogService {
                                     message = `${new_data?.name} konferencia létrehozva`
                                 }
                                 else if (row.table_name == 'guest') {
-                                    message = `${new_data?.lastName} ${new_data?.firstName} vendég létrehozva`
+                                    if (row.new_data == null) {
+                                        let new_data = JSON.parse(JSON.stringify(JSON.parse(row.response_data)))
+                                        let guest = new_data.guest || {};
+                                        row.original_data = JSON.stringify(guest)
+                                        message = `${guest.lastName || 'Név hiányzik'} ${guest.firstName || 'Név hiányzik'} vendég regisztrálva`;
+                                    } else {
+                                        message = `${new_data?.lastName} ${new_data?.firstName} vendég létrehozva`
+                                    }
                                 }
                                 else if (row.table_name == 'users') {
                                     message = `${new_data?.fullname} felhasználó létrehozva`
                                 }
-
                                 row.response_data = message
                             }
 
