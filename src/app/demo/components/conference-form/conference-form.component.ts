@@ -41,7 +41,7 @@ export class ConferenceFormComponent implements OnInit {
     roomTypes: any[] = []                        // List of room types
     darkMode: boolean = false                    // Dark mode
     subscription: Subscription                   // Subscription for dark mode
-   
+
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -215,8 +215,17 @@ export class ConferenceFormComponent implements OnInit {
 
         // Mark all form elements as dirty and touched
         Object.keys(this.conferenceForm.controls).forEach(key => {
-            this.conferenceForm.get(key)?.markAsDirty()
-            this.conferenceForm.get(key)?.markAsTouched()
+            const control = this.conferenceForm.get(key)
+            control?.markAsDirty()
+            control?.markAsTouched()
+
+            // Mark all elements in the form arrays too
+            if (control instanceof FormArray) {
+                control.controls.forEach(answerControl => {
+                    answerControl.markAsDirty()
+                    answerControl.markAsTouched()
+                })
+            }
         })
 
         if (this.conferenceForm.valid) {
