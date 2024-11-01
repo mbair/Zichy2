@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
+import { ChipModule } from 'primeng/chip';
 import { DropdownModule } from 'primeng/dropdown';
 import { TranslateModule } from '@ngx-translate/core';
 import { CountrySelectorComponent } from './country-selector/country-selector.component';
@@ -28,6 +29,7 @@ import { UserSelectorComponent } from './user-selector/user-selector.component';
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
+        ChipModule,
         DropdownModule,
         TranslateModule,
     ],

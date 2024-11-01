@@ -291,6 +291,9 @@
     font-weight: 700;
     font-size: 12px;
     letter-spacing: .3px;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
 
     &.breakfast {
         background: var(--teal-200);
@@ -340,5 +343,23 @@
     i {
         line-height: 23px;
         vertical-align: middle;
+    }
+}
+
+/* Calendar badge */
+.calendar-badge {
+    border-radius: var(--border-radius);
+    padding: .25em .5rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .3px;
+
+    background: var(--gray-200);
+    color: var(--gray-800);
+
+    i {
+        line-height: 23px;
+        vertical-align: top;
     }
 }

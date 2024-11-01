@@ -12,13 +12,15 @@
             appendTo="body">
 
     <ng-template pTemplate="item" let-option>
-        <span [ngClass]="'user-badge ' + option?.style">
+        <span [ngClass]="getRoleStyleClass(option.user_rolesid)">
+            <i class="pi pi-user mr-1"></i>
             {{ option.fullname }}
         </span>
     </ng-template>
     <ng-template pTemplate="selectedItem" let-selectedItem>
-        <span [ngClass]="'user-badge ' + selectedItem?.style">
-            {{ selectedItem?.fullname }}
+        <span [ngClass]="getRoleStyleClass(selectedItem.user_rolesid)">
+            <i class="pi pi-user mr-1"></i>
+            {{ selectedItem.fullname }}
         </span>
     </ng-template>
 </p-dropdown>
@@ -37,12 +39,14 @@
                 appendTo="body">
 
         <ng-template pTemplate="item" let-option>
-            <span [ngClass]="'user-badge ' + option?.style">
+            <span [ngClass]="getRoleStyleClass(option.user_rolesid)">
+                <i class="pi pi-user mr-1"></i>
                 {{ option.fullname }}
             </span>
         </ng-template>
         <ng-template pTemplate="selectedItem" let-selectedItem>
-            <span [ngClass]="'user-badge ' + selectedItem?.style">
+            <span [ngClass]="getRoleStyleClass(selectedItem.user_rolesid)">
+                <i class="pi pi-user mr-1"></i>
                 {{ selectedItem?.fullname }}
             </span>
         </ng-template>

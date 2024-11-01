@@ -197,11 +197,17 @@
                         </td>
                         <td style="width:9%; min-width:8rem;">
                             <span class="p-column-title">Érkezés</span>
-                            {{guest.dateOfArrival | date:'yyyy.MM.dd'}}
+                            <span class="calendar-badge">
+                                <i class="pi pi-calendar mr-1"></i>
+                                {{guest.dateOfArrival | date:'yyyy.MM.dd'}}
+                            </span>
                         </td>
                         <td style="width:9%; min-width:8rem;">
                             <span class="p-column-title">Távozás</span>
-                            {{guest.dateOfDeparture | date:'yyyy.MM.dd'}}
+                            <span class="calendar-badge">
+                                <i class="pi pi-calendar mr-1"></i>
+                                {{guest.dateOfDeparture | date:'yyyy.MM.dd'}}
+                            </span>
                         </td>
                         <td>
                             <div class="flex">

@@ -86,7 +86,7 @@ export class ConferenceListComponent implements OnInit {
             contactPhone: ['', Validators.required],
             formUrl: ['', Validators.required],
             registrationEndDate: ['', Validators.required],
-            user_id: ['']
+            organizer_user_id: ['']
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -356,6 +356,7 @@ export class ConferenceListComponent implements OnInit {
      * @param conference
      */
     edit(conference: Conference) {
+        this.conferenceForm.reset()
         this.conferenceForm.patchValue(conference)
         this.originalFormValues = this.conferenceForm.value
         this.sidebar = true
@@ -456,6 +457,10 @@ export class ConferenceListComponent implements OnInit {
         return str
     }
 
+    /**
+     * Copy the formUrl to the clipboard
+     * @param formUrl
+     */
     copyUrl(formUrl: string) {
         navigator.clipboard.writeText(formUrl)
         this.messageService.add({
@@ -463,6 +468,20 @@ export class ConferenceListComponent implements OnInit {
             summary: 'Regisztrációs link vágólapra másolva',
             detail: formUrl
         })
+    }
+
+    // Get the style class for a meal
+    getMealStyle(meal: string) {
+        switch (meal) {
+            case 'reggeli':
+                return 'breakfast'
+            case 'ebéd':
+                return 'lunch'
+            case 'vacsora':
+                return 'dinner'
+            default:
+                return 'nothing'
+        }
     }
 
     // Don't delete this, its needed from a performance point of view,

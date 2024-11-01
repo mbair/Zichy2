@@ -90,19 +90,30 @@
                         </td>
                         <td style="width:14%; min-width:10rem;">
                             <span class="p-column-title">Kezdete</span>
-                            {{conference.beginDate | date:'yyyy.MM.dd'}}
+                            <span class="calendar-badge">
+                                <i class="pi pi-calendar mr-1"></i>
+                                {{conference.beginDate | date:'yyyy.MM.dd'}}
+                            </span>
                         </td>
                         <td style="width:14%; min-width:10rem;">
                             <span class="p-column-title">Első étkezés</span>
-                            {{conference.firstMeal}}
+                            <span [ngClass]="'meal-badge ' + getMealStyle(conference.firstMeal)">
+                                {{conference.firstMeal}}
+                            </span>
                         </td>
                         <td style="width:14%; min-width:10rem;">
                             <span class="p-column-title">Vége</span>
-                            {{conference.endDate | date:'yyyy.MM.dd'}}
+                            <span class="calendar-badge">
+                                <i class="pi pi-calendar mr-1"></i>
+                                {{conference.endDate | date:'yyyy.MM.dd'}}
+                            </span>
                         </td>
                         <td style="width:14%; min-width:10rem;">
                             <span class="p-column-title">Utolsó étkezés</span>
-                            {{conference.lastMeal}}
+                            <span [ngClass]="'meal-badge ' + getMealStyle(conference.lastMeal)">
+                                {{conference.lastMeal}}
+                            </span>
+                            
                         </td>
                         <!-- <td style="width:14%; min-width:10rem;">
                             <span class="p-column-title">Létszám</span>
@@ -121,7 +132,9 @@
                                 </button>
                                 <button pButton pRipple icon="pi pi-question"
                                     class="p-button-rounded p-button-success mr-2" pTooltip="Extra kérdések beállítása"
-                                    tooltipPosition="top" (click)="editQuestions(conference)">
+                                    tooltipPosition="top" 
+                                    (click)="editQuestions(conference)"
+                                    [disabled]="userService.hasRole(['Szervezo']) && conference.organizer_user_id !== userService.getUserId()">
                                 </button>
                                 <button pButton pRipple icon="pi pi-pencil"
                                     class="p-button-rounded p-button-success mr-2" pTooltip="Konferencia szerkesztése"

@@ -237,6 +237,7 @@ export class VendegekComponent implements OnInit {
 
     onConferenceChange() {
         this.filterValues['conferenceName'] = this.selectedConference?.name || ''
+        this.tableData = []
         this.doQuery()
     }
 

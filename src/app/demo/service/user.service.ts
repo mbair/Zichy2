@@ -12,7 +12,6 @@ import { User } from '../api/user';
 export class UserService {
 
     public apiURL: string
-    private cache: User[] = []
     private data$: BehaviorSubject<any>
     private message$: BehaviorSubject<any>
 
@@ -212,6 +211,14 @@ export class UserService {
         return localStorage.getItem('userrole') || "No Role"
     }
 
+    /**
+     * Returns the current user's ID from local storage.
+     * @returns The user ID as a number.
+     */
+    getUserId(): number {
+        return Number(localStorage.getItem('userid'))
+    }
+
     // Role check
     public hasRole(roles: string[]): boolean {
         const userrole = this.getuserrole()
@@ -223,21 +230,12 @@ export class UserService {
      * @returns
      */
     public getUsersForSelector(user_rolesid?: number): Observable<User[]> {
-        // Check if there is already cached data
-        if (this.cache.length > 0) {
-            return of(user_rolesid
-                ? this.cache.filter(user => user.user_rolesid === user_rolesid)
-                : this.cache
-            )
-        }
-
         const queryParams = user_rolesid ? `user_rolesid=${user_rolesid}` : ''
         this.get(0, 999, { sortField: 'fullname', sortOrder: 1 }, queryParams)
 
         return this.data$.asObservable().pipe(
             map((data: any) => {
                 const users = data ? data.rows : []
-                this.cache = users
                 return users
             })
         )

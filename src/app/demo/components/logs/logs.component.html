@@ -129,25 +129,12 @@
                                    style="min-width:23rem"/>
                         </th>
                         <th>
-                            <p-dropdown
-                                inputId="userfilter"
-                                [options]="users"
-                                optionLabel="fullname"
-                                optionValue="id"
+                            <app-user-selector 
+                                (change)="onFilter($event, 'userid')"
                                 placeholder="Keresés..."
-                                emptyMessage="Nincs találat..."
                                 [showClear]="true"
-                                (onChange)="onUserSelected($event); onFilter($event, 'userid')"
                                 [style]="{'minWidth':'13rem'}">
-                                <ng-template let-option pTemplate="item">
-                                        {{ option.fullname }}
-                                </ng-template>
-                                <ng-template pTemplate="selectedItem">
-                                    <span *ngIf="selectedUser">
-                                        {{ selectedUser.fullname }}
-                                    </span>
-                                </ng-template>
-                            </p-dropdown>
+                            </app-user-selector>
                         </th>
                     </tr>
                 </ng-template>

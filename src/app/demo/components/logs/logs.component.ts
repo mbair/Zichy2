@@ -39,8 +39,6 @@ export class LogsComponent implements OnInit {
     deleteDialog: boolean = false;                 // Popup for deleting table item
     bulkDeleteDialog: boolean = false;             // Popup for deleting table items
     selected: Log[] = [];                          // Table items chosen by user
-    selectedUser: User | undefined;                // User chosen by user
-    users: User[] = []                             // Possible users
     action_types: any[] = []                       // Possible action types
     modules: any[] = []                            // Possible modules
     statuses: any[] = []                           // Possible HTTP statuses
@@ -78,13 +76,6 @@ export class LogsComponent implements OnInit {
                 this.tableData = data.rows || [];
                 this.totalRecords = data.totalItems || 0;
                 this.page = data.currentPage || 0;
-            }
-        })
-
-        // Get users for selector
-        this.userService.getUsersForSelector().subscribe({
-            next: (data) => {
-                this.users = data
             }
         })
 
@@ -234,14 +225,6 @@ export class LogsComponent implements OnInit {
      */
     onGlobalFilter(table: Table, event: Event) {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains')
-    }
-
-    /**
-     * User selected
-     * @param event
-     */
-    onUserSelected(event: any) {
-        this.selectedUser = this.users.find(user => user.id === event.value)
     }
 
     /**
