@@ -222,20 +222,23 @@ export class UserService {
      * Get users for selector
      * @returns
      */
-    public getUsersForSelector(): Observable<User[]> {
+    public getUsersForSelector(user_rolesid?: number): Observable<User[]> {
         // Check if there is already cached data
         if (this.cache.length > 0) {
-            return of(this.cache)
+            return of(user_rolesid
+                ? this.cache.filter(user => user.user_rolesid === user_rolesid)
+                : this.cache
+            )
         }
 
-        this.get(0, 999, { sortField: 'fullname', sortOrder: 1 }, '')
+        const queryParams = user_rolesid ? `user_rolesid=${user_rolesid}` : ''
+        this.get(0, 999, { sortField: 'fullname', sortOrder: 1 }, queryParams)
+
         return this.data$.asObservable().pipe(
             map((data: any) => {
-                // Store users in cache
-                const roles = data ? data.rows : []
-                this.cache = roles
-
-                return roles
+                const users = data ? data.rows : []
+                this.cache = users
+                return users
             })
         )
     }

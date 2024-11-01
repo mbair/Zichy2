@@ -11,6 +11,7 @@ import { MealSelectorComponent } from './meal-selector/meal-selector.component';
 import { NationalitySelectorComponent } from './nationality-selector/nationality-selector.component';
 import { PaymentSelectorComponent } from './payment-selector/payment-selector.component';
 import { RoomTypeSelectorComponent } from './roomtype-selector/roomtype-selector.component';
+import { UserSelectorComponent } from './user-selector/user-selector.component';
 
 @NgModule({
     declarations: [
@@ -21,6 +22,7 @@ import { RoomTypeSelectorComponent } from './roomtype-selector/roomtype-selector
         NationalitySelectorComponent,
         PaymentSelectorComponent,
         RoomTypeSelectorComponent,
+        UserSelectorComponent,
     ],
     imports: [
         CommonModule,
@@ -37,6 +39,7 @@ import { RoomTypeSelectorComponent } from './roomtype-selector/roomtype-selector
         NationalitySelectorComponent,
         PaymentSelectorComponent,
         RoomTypeSelectorComponent,
+        UserSelectorComponent,
     ],
 })
 export class SelectorsModule {}
