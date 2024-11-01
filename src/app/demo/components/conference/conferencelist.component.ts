@@ -13,7 +13,6 @@ import { UserService } from '../../service/user.service';
 import { MealService } from '../../service/meal.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
-import { Language } from '../../api/language';
 import { Table } from 'primeng/table';
 import * as moment from 'moment';
 moment.locale('hu')
@@ -54,12 +53,10 @@ export class ConferenceListComponent implements OnInit {
     bulkDeleteDialog: boolean = false;           // Popup for deleting table items
     selected: Conference[] = [];                 // Table items chosen by user
     meals: any[] = [];                           // Possible meals
-    languages: Language[] = []                   // List of system languages
 
     private isFormValid$: Observable<boolean>;
     private formChanges$: Subject<void> = new Subject();
     private conferenceObs$: Observable<any> | undefined;
-    private questionObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
     private questionMessageObs$: Observable<any> | undefined;
 
@@ -89,6 +86,7 @@ export class ConferenceListComponent implements OnInit {
             contactPhone: ['', Validators.required],
             formUrl: ['', Validators.required],
             registrationEndDate: ['', Validators.required],
+            user_id: ['']
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -125,24 +123,6 @@ export class ConferenceListComponent implements OnInit {
 
         // Get meals for selector
         this.meals = this.mealService.getMealsForSelector()
-
-        // Set possible languages
-        this.languages = [
-            {
-                name: "Hungary",
-                huname: "Magyarország",
-                nationality: "Hungarian",
-                hunationality: "magyar",
-                code: "HU"
-            },
-            {
-                name: "United Kingdom",
-                huname: "Egyesült Királyság",
-                nationality: "brit",
-                hunationality: "angol",
-                code: "GB"
-            }
-        ]
 
         // Form validation
         this.isFormValid$ = this.formChanges$.pipe(
