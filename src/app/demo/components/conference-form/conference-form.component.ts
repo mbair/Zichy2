@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
+import { Router } from '@angular/router';
+import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Subscription, Observable, Subject, BehaviorSubject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { TranslateService } from '@ngx-translate/core';
 import { emailDomainValidator } from '../../utils/email-validator';
@@ -11,7 +11,6 @@ import { MessageService } from 'primeng/api';
 import { ConferenceService } from '../../service/conference.service';
 import { AnswerService } from '../../service/answer.service';
 import { GuestService } from '../../service/guest.service';
-import { Diet } from '../../api/diet';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Answer } from '../../api/answer';
@@ -36,9 +35,9 @@ export class ConferenceFormComponent implements OnInit {
     endDate: any                                 // Conference end date
     conferenceForm: FormGroup                    // Form for guest registration to Conference
     showForm: boolean = true                     // Show or hide form
+    registrationEnded: boolean = false           // Registration ended
     darkMode: boolean = false                    // Dark mode
     subscription: Subscription                   // Subscription for dark mode
-
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -117,6 +116,25 @@ export class ConferenceFormComponent implements OnInit {
                                 answersArray.push(this.formBuilder.control('', Validators.required))
                             }
                         })
+                    }
+
+                    // Check if registration has ended
+                    if (this.conference?.registrationEndDate) {
+                        const registrationEndDate = new Date(this.conference.registrationEndDate)
+                        const today = new Date()
+                        
+                        // Set time to midnight to ignore time differences
+                        today.setHours(0, 0, 0, 0)
+                        this.registrationEnded = registrationEndDate < today
+                        
+                        // If registration has ended, show error
+                        if (this.registrationEnded) {
+                            this.messageService.add({
+                                severity: "error",
+                                summary: "Figyelem!",
+                                detail: "A regisztrációs időszak lejárt!",
+                            })
+                        }
                     }
                 } else {
                     // If slug is invalid navigate to error page

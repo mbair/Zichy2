@@ -45,8 +45,10 @@
                                 <!-- SYSTEM MESSAGE -->
                                 <p-messages></p-messages>
 
-                                <div *ngIf="showForm === true">
+                                <!-- Show registration form if registration is not ended -->
+                                <div *ngIf="registrationEnded === false && showForm === true">
 
+                                    <!-- Registration form -->
                                     <form [formGroup]="conferenceForm" (ngSubmit)="onSubmit()" novalidate class="grid formgrid p-fluid">
 
                                         <!-- Vezetéknév -->
@@ -308,13 +310,11 @@
                                                   label="{{'Elküldöm a regisztrációmat' | translate }}" 
                                                   [loading]="loading">
                                         </p-button>
-
-                                        
                                     </form>
                                 </div>
 
                                 <!-- New registration -->
-                                <div *ngIf="showForm === false"
+                                <div *ngIf="registrationEnded === false && showForm === false"
                                      class="flex col-12 align-items-center justify-content-center">
                                     
                                      <p-button class="white-space-nowrap mt-3" 
