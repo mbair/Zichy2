@@ -95,13 +95,14 @@ export class ConferenceListComponent implements OnInit {
         this.conferenceForm.get('name')?.valueChanges.subscribe(nameValue => {
 
             const productionURL = this.apiService.productionURL
+            const developmentURL = this.apiService.developmentURL
 
             // Create a slug from the name
             let slug = this.slugify(nameValue)
 
             // Set the slug in the form
             this.conferenceForm.patchValue({
-                formUrl: `${productionURL}/#/conference-form/${slug}`
+                formUrl: `${developmentURL}/#/conference-form/${slug}`
             })
         })
 
@@ -426,11 +427,18 @@ export class ConferenceListComponent implements OnInit {
     saveQuestions() {
         this.loading = true
         const questions = {
-            id: this.tableItem.questions[0].id,
+            id: this.tableItem.questions && this.tableItem.questions[0]?.id ? this.tableItem.questions[0].id : null,
             conferenceid: this.tableItem.id,
             translations: this.questionsForm.value.questions,
         }
-        this.questionService.update(questions)
+        // Question insert
+        if (questions.id == null) {
+            this.questionService.create(questions)
+        } 
+        // Question update
+        else {
+            this.questionService.update(questions)
+        }
         this.questionsSidebar = false
     }
 
@@ -448,11 +456,24 @@ export class ConferenceListComponent implements OnInit {
      */
     slugify(str: string) {
         if (!str) return '';
+
+        // Define replacements for accented Hungarian characters
+        const map: { [key: string]: string } = {
+            'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ö': 'o', 'ő': 'o', 
+            'ú': 'u', 'ü': 'u', 'ű': 'u', 'Á': 'A', 'É': 'E', 'Í': 'I', 
+            'Ó': 'O', 'Ö': 'O', 'Ő': 'O', 'Ú': 'U', 'Ü': 'U', 'Ű': 'U'
+        }
+
+        // Replace accented characters
+        str = str.split('')
+                .map(char => map[char] || char) // Replace if in map
+                .join('')
+
         str = str.trim()                        // trim leading/trailing white space
-        str = str.toLowerCase();                // convert string to lowercase
-        str = str.replace(/[^a-z0-9 -]/g, '')   // remove any non-alphanumeric characters
-            .replace(/\s+/g, '-')               // replace spaces with hyphens
-            .replace(/-+/g, '-')                // remove consecutive hyphens
+                 .toLowerCase()                 // convert string to lowercase
+                 .replace(/[^a-z0-9 -]/g, '')   // remove any non-alphanumeric characters
+                 .replace(/\s+/g, '-')          // replace spaces with hyphens
+                 .replace(/-+/g, '-')           // remove consecutive hyphens
 
         return str
     }

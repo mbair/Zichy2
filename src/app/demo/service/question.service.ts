@@ -109,7 +109,6 @@ export class QuestionService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres kérdés rögzítés',
-                        detail: `${question.translations['hu']} rögzítve`,
                     })
                 },
                 error: (error: any) => {
@@ -129,7 +128,6 @@ export class QuestionService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres kérdés módosítás',
-                        detail: `${modifiedQuestion.translations['hu']} módosítva`,
                     })
                 },
                 error: (error: any) => {
@@ -149,7 +147,6 @@ export class QuestionService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres kérdés törlés',
-                        detail: `${question.translations['hu']} törölve`,
                     })
                 },
                 error: (error: any) => {
@@ -172,7 +169,6 @@ export class QuestionService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres kérdés törlés',
-                        detail: `${questions.length} kérdés törölve`,
                     })
                 },
                 error: (error: any) => {
