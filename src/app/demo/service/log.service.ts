@@ -59,6 +59,9 @@ export class LogService {
                         // remove updatelasttagusage action type
                         response.rows = response.rows.filter(row => row.action_type !== 'updatelasttagusage')
 
+                        // remove questions
+                        response.rows = response.rows.filter(row => row.table_name !== 'questions')
+
                         // remove answers
                         response.rows = response.rows.filter(row => row.table_name !== 'answers')
 
