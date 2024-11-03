@@ -17,6 +17,8 @@ export class MealSelectorComponent {
     @Input() controlName: string
     @Input() showClear: boolean
     @Input() showNothing: boolean
+    @Input() earliestMeal: string | undefined
+    @Input() latestMeal: string | undefined
     @Output() change = new EventEmitter<changeEvent>()
 
     meals: any[] = []           // Available meals
@@ -66,11 +68,35 @@ export class MealSelectorComponent {
             { label: this.translate.instant('MEALS.DINNER'), value: 'vacsora', style: 'dinner' },
         ]
 
+        if (this.earliestMeal) {
+            const earliestIndex = this.meals.findIndex(meal => meal.value === this.earliestMeal)
+            if (earliestIndex > 0) {
+                this.meals = this.meals.slice(earliestIndex)
+            }
+        }
+
+        if (this.latestMeal) {
+            const latestIndex = this.meals.findIndex(meal => meal.value === this.latestMeal);
+            if (latestIndex >= 0) {
+                this.meals = this.meals.slice(0, latestIndex + 1)
+            }
+        }
+
         if (this.showNothing) {
             this.meals.push({
                 label: this.translate.instant('MEALS.NOTHING'), value: 'Nem kér étkezést', style: 'nothing'
             })
         }
+    }
+
+    setEarliestMeal(meal: string) {
+        this.earliestMeal = meal;
+        this.setMeals(); // Frissítse az étkezések listáját
+    }
+    
+    setLatestMeal(meal: string) {
+        this.latestMeal = meal;
+        this.setMeals(); // Frissítse az étkezések listáját
     }
 
     /**

@@ -33,6 +33,8 @@ export class ConferenceFormComponent implements OnInit {
     conference: Conference                       // Conference for this form
     beginDate: any                               // Conference begin date
     endDate: any                                 // Conference end date
+    earliestMeal: string | null = null           // Earliest meal
+    latestMeal: string | null = null             // Latest meal
     conferenceForm: FormGroup                    // Form for guest registration to Conference
     showForm: boolean = true                     // Show or hide form
     registrationEnded: boolean = false           // Registration ended
@@ -92,6 +94,11 @@ export class ConferenceFormComponent implements OnInit {
         // Get conference by URL
         this.getConferenceBySlug()
 
+        // Date of arrival changed 
+        this.conferenceForm.get('dateOfArrival')?.valueChanges.subscribe(() => {
+            this.getEarliestAllowedMeal()
+        })
+
         // Conferences
         this.conferenceObs$ = this.conferenceService.conferenceObs
         this.conferenceObs$.subscribe((data: ApiResponse) => {
@@ -122,11 +129,11 @@ export class ConferenceFormComponent implements OnInit {
                     if (this.conference?.registrationEndDate) {
                         const registrationEndDate = new Date(this.conference.registrationEndDate)
                         const today = new Date()
-                        
+
                         // Set time to midnight to ignore time differences
                         today.setHours(0, 0, 0, 0)
                         this.registrationEnded = registrationEndDate < today
-                        
+
                         // If registration has ended, show error
                         if (this.registrationEnded) {
                             this.messageService.add({
@@ -164,7 +171,7 @@ export class ConferenceFormComponent implements OnInit {
                             })
                         }
                     })
-                    
+
                     this.answerService.create(answers)
                 }
             }
@@ -247,6 +254,36 @@ export class ConferenceFormComponent implements OnInit {
     getTranslatedQuestion(i: any): string {
         const lang = this.translate.currentLang == 'gb' ? 'en' : this.translate.currentLang
         return this.conference.questions[0].translations[i][lang]
+    }
+
+    /**
+     * Gets the earliest allowed meal based on the arrival date.
+     * If the arrival date matches the conference begin date, returns the first meal.
+     * @returns The first meal if the arrival date is the same as the begin date, otherwise undefined.
+     */
+    getEarliestAllowedMeal(): string | undefined {
+        const dateOfArrival = this.conferenceForm.get('dateOfArrival')?.value
+        const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
+    
+        if (dateOfArrival === formattedBeginDate) {
+            return this.conference?.firstMeal
+        }
+        return undefined
+    }
+
+    /**
+     * Gets the latest allowed meal based on the departure date.
+     * If the departure date matches the conference end date, returns the last meal.
+     * @returns The last meal if the departure date is the same as the end date, otherwise undefined.
+     */
+    getLatestAllowedMeal(): string | undefined {
+        const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value;
+        const formattedEndDate = this.endDate?.toISOString().split('T')[0];
+    
+        if (dateOfDeparture === formattedEndDate) {
+            return this.conference?.lastMeal
+        }
+        return undefined
     }
 
     /**
