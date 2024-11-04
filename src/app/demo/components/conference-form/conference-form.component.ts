@@ -195,8 +195,10 @@ export class ConferenceFormComponent implements OnInit {
         this.answerServiceMessageObs$ = this.answerService.messageObs
         this.answerServiceMessageObs$.subscribe(message => {
             this.loading = false
-            // Show success message if we have no answers to save
-            message == 'success' ? this.saveSuccess() : this.saveFailed()
+            if (message && message.severity) {
+                // Show success message if we have no answers to save
+                message.severity == 'success' ? this.saveSuccess() : this.saveFailed()
+            }
         })
 
         this.isFormValid$ = this.formChanges$.pipe(
