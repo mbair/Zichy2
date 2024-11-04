@@ -33,6 +33,8 @@ export class ConferenceFormComponent implements OnInit {
     conference: Conference                       // Conference for this form
     beginDate: any                               // Conference begin date
     endDate: any                                 // Conference end date
+    birthDateMin: Date                           // Minimum birth date
+    birthDateMax: Date                           // Maximum birth date
     earliestMeal: string | null = null           // Earliest meal
     latestMeal: string | null = null             // Latest meal
     conferenceForm: FormGroup                    // Form for guest registration to Conference
@@ -60,6 +62,11 @@ export class ConferenceFormComponent implements OnInit {
         this.subscription = this.layoutService.configUpdate$.subscribe(config => {
             this.darkMode = config.colorScheme === 'dark' || config.colorScheme === 'dim' ? true : false;
         })
+
+        // Set min and max birth dates
+        this.birthDateMin = new Date()
+        this.birthDateMin.setFullYear(this.birthDateMin.getFullYear() - 130)
+        this.birthDateMax = new Date()
 
         this.conferenceForm = this.formBuilder.group({
             conferenceid: [''],

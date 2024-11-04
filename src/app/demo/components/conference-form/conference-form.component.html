@@ -91,7 +91,15 @@
                                         <!-- Születési dátum -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="birthDate" class="font-medium text-900">{{'Születési dátum' | translate }}</label>
-                                            <p-calendar formControlName="birthDate" dateFormat="yy-mm-dd" appendTo="body" dataType="string" onchange="console.log(this.conferenceForm.value)"></p-calendar>
+                                            <p-calendar id="birthDate"
+                                                        formControlName="birthDate"
+                                                        [defaultDate]="birthDateMax"
+                                                        [minDate]="birthDateMin" 
+                                                        [maxDate]="birthDateMax" 
+                                                        dateFormat="yy-mm-dd" 
+                                                        dataType="string"
+                                                        appendTo="body">
+                                            </p-calendar>
                                             <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
                                                 {{'Születési dátum' | translate }} {{'kötelező' | translate }}
                                             </div>
