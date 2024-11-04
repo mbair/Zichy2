@@ -55,9 +55,7 @@ export class ConferenceListComponent implements OnInit {
     selected: Conference[] = []                  // Table items chosen by user
     meals: any[] = []                            // Possible meals
 
-    private isInitialLoad = true
     private isFormValid$: Observable<boolean>
-    private lazyLoadTrigger$ = new Subject<any>()
     private formChanges$: Subject<void> = new Subject()
     private conferenceObs$: Observable<any> | undefined
     private serviceMessageObs$: Observable<any> | undefined
@@ -114,32 +112,6 @@ export class ConferenceListComponent implements OnInit {
     }
 
     ngOnInit() {
-        // Lazy load
-        this.lazyLoadTrigger$.pipe(
-            debounceTime(200), 
-            map(event => ({
-                first: event.first,
-                rows: event.rows,
-                sortField: event.sortField,
-                sortOrder: event.sortOrder,
-                globalFilter: event.globalFilter
-            })),
-            distinctUntilChanged((prev, curr) => 
-                prev.first === curr.first &&
-                prev.rows === curr.rows &&
-                prev.sortField === curr.sortField &&
-                prev.sortOrder === curr.sortOrder &&
-                prev.globalFilter === curr.globalFilter
-            )
-        ).subscribe(event => {
-            this.page = event.first! / event.rows!;
-            this.rowsPerPage = event.rows ?? this.rowsPerPage;
-            this.sortField = event.sortField ?? '';
-            this.sortOrder = event.sortOrder ?? 1;
-            this.globalFilter = event.globalFilter ?? '';
-            this.doQuery()
-        })
-
         // Conferences
         this.conferenceObs$ = this.conferenceService.conferenceObs;
         this.conferenceObs$.subscribe((data: ApiResponse) => {
@@ -259,14 +231,18 @@ export class ConferenceListComponent implements OnInit {
     }
 
     /**
-     * Load filtered data into the Table
+     * Lazy mode is handy to deal with large datasets, instead of loading
+     * the entire data, small chunks of data is loaded by invoking onLazyLoad
+     * callback every time paging, sorting and filtering happens.
+     * @param event
      */
     onLazyLoad(event: any) {
-        if (this.isInitialLoad) {
-            this.isInitialLoad = false
-            return // Ignore the first redundant call
-        }
-        this.lazyLoadTrigger$.next(event)
+        this.page = event.first! / event.rows!;
+        this.rowsPerPage = event.rows ?? this.rowsPerPage;
+        this.sortField = event.sortField ?? '';
+        this.sortOrder = event.sortOrder ?? 1;
+        this.globalFilter = event.globalFilter ?? '';
+        this.doQuery()
     }
 
     /**
@@ -284,7 +260,10 @@ export class ConferenceListComponent implements OnInit {
      * @param message service response message
      */
     handleMessage(message: any) {
-        this.loading = false;
+        if (!message) return
+        
+        this.loading = false
+        
         if (message == 'ERROR') {
             this.messageService.add({
                 severity: 'error',
