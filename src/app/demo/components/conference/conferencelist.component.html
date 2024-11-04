@@ -1,12 +1,23 @@
 <div class="grid">
     <div class="col-12">
         <div class="card px-0 py-0">
-            <p-table #dt dataKey="id" [value]="tableData" responsiveLayout="scroll" [rows]="rowsPerPage"
-                [totalRecords]="totalRecords" [globalFilterFields]="['name', 'beginDate', 'endDate']" [paginator]="true"
-                [rowsPerPageOptions]="rowsPerPageOptions" [showCurrentPageReport]="true"
-                currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
-                [(selection)]="selected" selectionMode="multiple" [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
-                [rowHover]="true" (onLazyLoad)="onLazyLoad($event)" [lazy]="true">
+            <p-table #dt 
+                     dataKey="id" 
+                     [value]="tableData" 
+                     responsiveLayout="scroll" 
+                     [rows]="rowsPerPage"
+                     [totalRecords]="totalRecords" 
+                     [globalFilterFields]="['name', 'beginDate', 'endDate']" 
+                     [paginator]="true"
+                     [rowsPerPageOptions]="rowsPerPageOptions" 
+                     [showCurrentPageReport]="true"
+                     currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
+                     [(selection)]="selected" 
+                     selectionMode="multiple" 
+                     [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
+                     [rowHover]="true" 
+                     (onLazyLoad)="onLazyLoad($event)" 
+                     [lazy]="true">
 
                 <ng-template pTemplate="caption">
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">

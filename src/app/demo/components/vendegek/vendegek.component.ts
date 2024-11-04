@@ -226,7 +226,6 @@ export class VendegekComponent implements OnInit {
     }
 
     onLazyLoad(event: any) {
-        console.log('onLazyLoad', event)
         this.page = event.first! / event.rows!;
         this.rowsPerPage = event.rows ?? this.rowsPerPage;
         this.sortField = event.sortField ?? '';
