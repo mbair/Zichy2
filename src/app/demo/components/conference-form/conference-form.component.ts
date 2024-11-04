@@ -255,7 +255,13 @@ export class ConferenceFormComponent implements OnInit {
      */
     getTranslatedQuestion(i: any): string {
         const lang = this.translate.currentLang == 'gb' ? 'en' : this.translate.currentLang
-        return this.conference.questions[0].translations[i][lang]
+        let question = this.conference.questions[0].translations[i][lang]
+    
+        // Add a question mark if the question doesn't already end with one
+        if (question && !question.trim().endsWith('?')) {
+            question += '?'
+        }
+        return question
     }
 
     /**

@@ -266,7 +266,7 @@
                                                 <ng-container *ngIf="getTranslatedQuestion(i)">
                                                     <div class="mb-4">
                                                         <label class="font-medium text-900">
-                                                            {{ getTranslatedQuestion(i) }}?
+                                                            {{ getTranslatedQuestion(i) }}
                                                         </label>
                                                         <input pInputText [formControlName]="i" />
                                                         <div *ngIf="answer?.dirty && answer?.errors?.['required']" class="p-error">
