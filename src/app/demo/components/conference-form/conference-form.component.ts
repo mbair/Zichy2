@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Subscription, Observable, Subject, BehaviorSubject } from 'rxjs';
@@ -57,7 +57,8 @@ export class ConferenceFormComponent implements OnInit {
         private answerService: AnswerService,
         private guestService: GuestService,
         private formBuilder: FormBuilder,
-        private translate: TranslateService) {
+        private translate: TranslateService,
+        private cdRef: ChangeDetectorRef) {
 
         this.subscription = this.layoutService.configUpdate$.subscribe(config => {
             this.darkMode = config.colorScheme === 'dark' || config.colorScheme === 'dim' ? true : false;
@@ -97,13 +98,22 @@ export class ConferenceFormComponent implements OnInit {
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
     }
 
+
+
     ngOnInit() {
         // Get conference by URL
         this.getConferenceBySlug()
 
-        // Date of arrival changed 
-        this.conferenceForm.get('dateOfArrival')?.valueChanges.subscribe(() => {
-            this.getEarliestAllowedMeal()
+        // Watch roomType value changes to enable/disable roomMate
+        this.conferenceForm.get('roomType')?.valueChanges.subscribe(value => {
+            const roomMateControl = this.conferenceForm.get('roomMate')
+            if (value === 'Nem kérek szállást') {
+                // Clear any previously entered value
+                roomMateControl?.reset()
+                roomMateControl?.disable()
+            } else {
+                roomMateControl?.enable()
+            }
         })
 
         // Conferences
@@ -218,6 +228,18 @@ export class ConferenceFormComponent implements OnInit {
         this.conferenceForm.valueChanges.pipe(
             debounceTime(300)
         ).subscribe(() => this.formChanges$.next())
+
+        // On dateOfArrival change, update the firstMeal
+        this.conferenceForm.get('dateOfArrival')?.valueChanges.subscribe(() => {
+            this.getEarliestAllowedMeal()
+            this.cdRef.detectChanges()
+        })
+
+        // On dateOfDeparture change, update the lastMeal
+        this.conferenceForm.get('dateOfDeparture')?.valueChanges.subscribe(() => {
+            this.getLatestAllowedMeal()
+            this.cdRef.detectChanges()
+        })
     }
 
     get lastName() { return this.conferenceForm.get('lastName') }
@@ -263,7 +285,7 @@ export class ConferenceFormComponent implements OnInit {
     getTranslatedQuestion(i: any): string {
         const lang = this.translate.currentLang == 'gb' ? 'en' : this.translate.currentLang
         let question = this.conference.questions[0].translations[i][lang]
-    
+
         // Add a question mark if the question doesn't already end with one
         if (question && !question.trim().endsWith('?')) {
             question += '?'
@@ -279,7 +301,7 @@ export class ConferenceFormComponent implements OnInit {
     getEarliestAllowedMeal(): string | undefined {
         const dateOfArrival = this.conferenceForm.get('dateOfArrival')?.value
         const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
-    
+
         if (dateOfArrival === formattedBeginDate) {
             return this.conference?.firstMeal
         }
@@ -292,9 +314,9 @@ export class ConferenceFormComponent implements OnInit {
      * @returns The last meal if the departure date is the same as the end date, otherwise undefined.
      */
     getLatestAllowedMeal(): string | undefined {
-        const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value;
-        const formattedEndDate = this.endDate?.toISOString().split('T')[0];
-    
+        const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value
+        const formattedEndDate = this.endDate?.toISOString().split('T')[0]
+
         if (dateOfDeparture === formattedEndDate) {
             return this.conference?.lastMeal
         }

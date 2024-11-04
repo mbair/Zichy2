@@ -229,7 +229,12 @@
                                         <!-- Szállástípus -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="roomType" class="font-medium text-900">{{'Szállástípus' | translate }}</label>
-                                            <app-roomtype-selector [parentForm]="conferenceForm" controlName="roomType" pTooltip="A preferenciákat igyekszünk figyelembe venni, de mivel korlátozott mennyiségben van a szállás, ezért nem tudjuk megígérni, hogy biztosan a megjelölt szállástípusra osztunk be" tooltipPosition="top"></app-roomtype-selector>
+                                            <app-roomtype-selector 
+                                                [parentForm]="conferenceForm" 
+                                                controlName="roomType" 
+                                                pTooltip="A preferenciákat igyekszünk figyelembe venni, de mivel korlátozott mennyiségben van a szállás, ezért nem tudjuk megígérni, hogy biztosan a megjelölt szállástípusra osztunk be" 
+                                                tooltipPosition="top">
+                                            </app-roomtype-selector>
                                             <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki a szállástípust' | translate }}!
                                             </div>
