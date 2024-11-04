@@ -5,6 +5,7 @@ import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { emailDomainValidator } from '../../utils/email-validator';
+import { allLanguagesRequiredValidator } from '../../utils/all-languages-required-validator';
 import { ConferenceService } from '../../service/conference.service';
 import { QuestionService } from '../../service/question.service';
 import { ApiService } from '../../service/api.service';
@@ -30,35 +31,35 @@ moment.locale('hu')
 
 export class ConferenceListComponent implements OnInit {
 
-    loading: boolean = true;                     // Loading overlay trigger value
-    cols: any[] = [];                            // Table columns
-    tableItem: Conference = {};                  // One conference object
-    tableData: Conference[] = [];                // Data set displayed in a table
-    rowsPerPageOptions = [20, 50, 100];          // Possible rows per page
-    rowsPerPage: number = 20;                    // Default rows per page
-    totalRecords: number = 0;                    // Total number of rows in the table
-    page: number = 0;                            // Current page
-    sortField: string = '';                      // Current sort field
-    sortOrder: number = 1;                       // Current sort order
-    globalFilter: string = '';                   // Global filter
+    loading: boolean = true                      // Loading overlay trigger value
+    cols: any[] = []                             // Table columns
+    tableItem: Conference = {}                   // One conference object
+    tableData: Conference[] = []                 // Data set displayed in a table
+    rowsPerPageOptions = [20, 50, 100]           // Possible rows per page
+    rowsPerPage: number = 20                     // Default rows per page
+    totalRecords: number = 0                     // Total number of rows in the table
+    page: number = 0                             // Current page
+    sortField: string = ''                       // Current sort field
+    sortOrder: number = 1                        // Current sort order
+    globalFilter: string = ''                    // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
     debounce: { [key: string]: any } = {}        // Search delay in filter field
-    conferenceForm: FormGroup;                   // Form to create/update conference
-    questionsForm: FormGroup;                    // Form to manage questions of the conference
-    originalFormValues: any;                     // The original values ​​of the form
-    originalQuestionsFormValues: any;            // The original values ​​of the questions form
-    sidebar: boolean = false;                    // Table item maintenance sidebar
-    questionsSidebar: boolean = false;           // Questions maintenance sidebar
-    deleteDialog: boolean = false;               // Popup for deleting table item
-    bulkDeleteDialog: boolean = false;           // Popup for deleting table items
-    selected: Conference[] = [];                 // Table items chosen by user
-    meals: any[] = [];                           // Possible meals
+    conferenceForm: FormGroup                    // Form to create/update conference
+    questionsForm: FormGroup                     // Form to manage questions of the conference
+    originalFormValues: any                      // The original values ​​of the form
+    originalQuestionsFormValues: any             // The original values ​​of the questions form
+    sidebar: boolean = false                     // Table item maintenance sidebar
+    questionsSidebar: boolean = false            // Questions maintenance sidebar
+    deleteDialog: boolean = false                // Popup for deleting table item
+    bulkDeleteDialog: boolean = false            // Popup for deleting table items
+    selected: Conference[] = []                  // Table items chosen by user
+    meals: any[] = []                            // Possible meals
 
-    private isFormValid$: Observable<boolean>;
-    private formChanges$: Subject<void> = new Subject();
-    private conferenceObs$: Observable<any> | undefined;
-    private serviceMessageObs$: Observable<any> | undefined;
-    private questionMessageObs$: Observable<any> | undefined;
+    private isFormValid$: Observable<boolean>
+    private formChanges$: Subject<void> = new Subject()
+    private conferenceObs$: Observable<any> | undefined
+    private serviceMessageObs$: Observable<any> | undefined
+    private questionMessageObs$: Observable<any> | undefined
 
     constructor(
         public userService: UserService,
@@ -136,11 +137,11 @@ export class ConferenceListComponent implements OnInit {
         this.conferenceForm.valueChanges.subscribe(() => this.formChanges$.next())
 
         // Message
-        this.serviceMessageObs$ = this.conferenceService.messageObs;
+        this.serviceMessageObs$ = this.conferenceService.messageObs
         this.serviceMessageObs$.subscribe(message => this.handleMessage(message))
             
         // Question Message
-        this.questionMessageObs$ = this.questionService.messageObs;
+        this.questionMessageObs$ = this.questionService.messageObs
         this.questionMessageObs$.subscribe(message => this.handleMessage(message))
     }
 
@@ -215,7 +216,7 @@ export class ConferenceListComponent implements OnInit {
             if (this.filterValues[field] === filterValue) {
                 this.doQuery()
             }
-            // otherwise wait for the debounce time
+        // otherwise wait for the debounce time
         } else {
             if (this.debounce[field]) {
                 clearTimeout(this.debounce[field])
@@ -306,7 +307,7 @@ export class ConferenceListComponent implements OnInit {
             this.questions.push(this.formBuilder.group({
                 hu: [question.hu],
                 en: [question.en]
-            }))
+            }, { validators: allLanguagesRequiredValidator() }))
         })
 
         // If there are less than 5 questions, blank questions will be added
@@ -315,7 +316,7 @@ export class ConferenceListComponent implements OnInit {
             this.questions.push(this.formBuilder.group({
                 hu: [''],  // Empty HU question
                 en: ['']   // Empty EN question
-            }))
+            }, { validators: allLanguagesRequiredValidator() }))
         }
 
         // Store original values for comparison

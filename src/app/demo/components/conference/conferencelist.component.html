@@ -344,6 +344,11 @@
                             </i>
                             <input id="en-{{i}}" type="text" pInputText formControlName="en" class="w-full" />
                         </div>
+
+                        <!-- Error message if both languages are not filled -->
+                        <div *ngIf="question.errors?.['bothLanguagesRequired']" class="block p-error">
+                            Mindkét nyelven meg kell adni a kérdést!
+                        </div>
                     </div>
                 </div>
             </form>
