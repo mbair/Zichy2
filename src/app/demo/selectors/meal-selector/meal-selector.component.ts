@@ -84,7 +84,7 @@ export class MealSelectorComponent {
 
         if (this.showNothing) {
             this.meals.push({
-                label: this.translate.instant('MEALS.NOTHING'), value: 'Nem kér étkezést', style: 'nothing'
+                label: this.translate.instant('MEALS.NOTHING'), value: 'nem kér étkezést', style: 'nothing'
             })
         }
     }

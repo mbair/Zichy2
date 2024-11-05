@@ -104,6 +104,59 @@ export class ConferenceFormComponent implements OnInit {
         // Get conference by URL
         this.getConferenceBySlug()
 
+        // Diet + firstMeal + lastMeal handling
+        this.conferenceForm.get('diet')?.valueChanges.subscribe((dietValue) => {
+            if (dietValue === 'nem kér étkezést') {
+                this.conferenceForm.patchValue({
+                    firstMeal: 'nem kér étkezést',
+                    lastMeal: 'nem kér étkezést'
+                })
+            } else {
+                // Reset meal selector if not 'nem kérétkezés'
+                const firstMealValue = this.conferenceForm.get('firstMeal')?.value
+                const lastMealValue = this.conferenceForm.get('lastMeal')?.value
+
+                if (firstMealValue === 'nem kér étkezést') {
+                    this.conferenceForm.patchValue({ firstMeal: '' })
+                }
+                if (lastMealValue === 'nem kér étkezést') {
+                    this.conferenceForm.patchValue({ lastMeal: '' })
+                }
+            }
+        })
+
+        this.conferenceForm.get('firstMeal')?.valueChanges.subscribe((firstMealValue) => {
+            if (firstMealValue === 'nem kér étkezést') {
+                if (this.conferenceForm.get('diet')?.value !== 'nem kér étkezést') {
+                    this.conferenceForm.patchValue({
+                        diet: 'nem kér étkezést',
+                        lastMeal: 'nem kér étkezést'
+                    })
+                }
+            } else {
+                // If the first meal is not 'nem kérétkezés', reset the diet selector if it is 'nem kérétkezést'
+                if (this.conferenceForm.get('diet')?.value === 'nem kér étkezést') {
+                    this.conferenceForm.patchValue({ diet: '' })
+                }
+            }
+        })
+
+        this.conferenceForm.get('lastMeal')?.valueChanges.subscribe((lastMealValue) => {
+            if (lastMealValue === 'nem kér étkezést') {
+                if (this.conferenceForm.get('diet')?.value !== 'nem kér étkezést') {
+                    this.conferenceForm.patchValue({
+                        diet: 'nem kér étkezést',
+                        firstMeal: 'nem kér étkezést'
+                    })
+                }
+            } else {
+                // If the last meal is not 'nem kérétkezés', reset the diet selector if it is 'nem kérétkezést'
+                if (this.conferenceForm.get('diet')?.value === 'nem kér étkezést') {
+                    this.conferenceForm.patchValue({ diet: '' })
+                }
+            }
+        })
+
         // Watch roomType value changes to enable/disable roomMate
         this.conferenceForm.get('roomType')?.valueChanges.subscribe(value => {
             const roomMateControl = this.conferenceForm.get('roomMate')
@@ -321,6 +374,13 @@ export class ConferenceFormComponent implements OnInit {
             return this.conference?.lastMeal
         }
         return undefined
+    }
+
+    enableMealSelectors() {
+        // Itt biztosíthatod, hogy a meal selectorok újra használhatóak
+        // például törölheted az érvénytelen értékeket
+        this.conferenceForm.get('firstMeal')?.setErrors(null);
+        this.conferenceForm.get('lastMeal')?.setErrors(null);
     }
 
     /**
