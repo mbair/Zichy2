@@ -6,6 +6,7 @@ import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { TranslateService } from '@ngx-translate/core';
 import { emailDomainValidator } from '../../utils/email-validator';
+import { dateRangeValidator } from '../../utils/date-range-validator';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { MessageService } from 'primeng/api';
 import { ConferenceService } from '../../service/conference.service';
@@ -93,6 +94,8 @@ export class ConferenceFormComponent implements OnInit {
             idCard: [null, Validators.required],
             privacy: ['', Validators.required],
             answers: this.formBuilder.array([]),
+        }, { 
+            validators: dateRangeValidator('dateOfArrival', 'dateOfDeparture')
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -284,13 +287,15 @@ export class ConferenceFormComponent implements OnInit {
 
         // On dateOfArrival change, update the firstMeal
         this.conferenceForm.get('dateOfArrival')?.valueChanges.subscribe(() => {
-            this.getEarliestAllowedMeal()
+            this.getEarliestFirstMeal()
+            this.getLatestFirstMeal()
             this.cdRef.detectChanges()
         })
 
         // On dateOfDeparture change, update the lastMeal
         this.conferenceForm.get('dateOfDeparture')?.valueChanges.subscribe(() => {
-            this.getLatestAllowedMeal()
+            this.getEarliestLastMeal()
+            this.getLatestLastMeal()
             this.cdRef.detectChanges()
         })
     }
@@ -347,40 +352,67 @@ export class ConferenceFormComponent implements OnInit {
     }
 
     /**
-     * Gets the earliest allowed meal based on the arrival date.
-     * If the arrival date matches the conference begin date, returns the first meal.
-     * @returns The first meal if the arrival date is the same as the begin date, otherwise undefined.
+     * Returns the earliest first meal of the conference, if the date of arrival is on the first day of the conference.
+     * Otherwise, returns undefined.
+     * @returns The earliest first meal of the conference, or undefined.
      */
-    getEarliestAllowedMeal(): string | undefined {
+    getEarliestFirstMeal(): string | undefined {
         const dateOfArrival = this.conferenceForm.get('dateOfArrival')?.value
         const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
-
+        
+        // If dateOfArrival is on the first day of the conference, the earliest first meal is the first meal of the conference
         if (dateOfArrival === formattedBeginDate) {
-            return this.conference?.firstMeal
+            return this.conference.firstMeal
         }
         return undefined
     }
 
     /**
-     * Gets the latest allowed meal based on the departure date.
-     * If the departure date matches the conference end date, returns the last meal.
-     * @returns The last meal if the departure date is the same as the end date, otherwise undefined.
+     * Returns the latest first meal of the conference, if the date of arrival is on the last day of the conference.
+     * Otherwise, returns undefined.
+     * @returns The latest first meal of the conference, or undefined.
      */
-    getLatestAllowedMeal(): string | undefined {
-        const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value
+    getLatestFirstMeal(): string | undefined {
+        const dateOfArrival = this.conferenceForm.get('dateOfArrival')?.value
         const formattedEndDate = this.endDate?.toISOString().split('T')[0]
-
-        if (dateOfDeparture === formattedEndDate) {
-            return this.conference?.lastMeal
+    
+        // If dateOfArrival is on the last day of the conference, the latest first meal is the last meal of the conference
+        if (dateOfArrival === formattedEndDate) {
+            return this.conference.lastMeal
         }
         return undefined
     }
 
-    enableMealSelectors() {
-        // Itt biztosíthatod, hogy a meal selectorok újra használhatóak
-        // például törölheted az érvénytelen értékeket
-        this.conferenceForm.get('firstMeal')?.setErrors(null);
-        this.conferenceForm.get('lastMeal')?.setErrors(null);
+    /**
+     * Returns the earliest last meal of the conference, if the date of departure is on the first day of the conference.
+     * Otherwise, returns undefined.
+     * @returns The earliest last meal of the conference, or undefined.
+     */
+    getEarliestLastMeal(): string | undefined {
+        const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value
+        const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
+    
+        // If dateOfDeparture is on the first day of the conference, the earliest last meal is the first meal of the conference
+        if (dateOfDeparture === formattedBeginDate) {
+            return this.conference.firstMeal
+        }
+        return undefined
+    }
+
+    /**
+     * Returns the latest last meal of the conference, if the date of departure is on the last day of the conference.
+     * Otherwise, returns undefined.
+     * @returns The latest last meal of the conference, or undefined.
+     */
+    getLatestLastMeal(): string | undefined {
+        const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value
+        const formattedEndDate = this.endDate?.toISOString().split('T')[0]
+    
+        // If dateOfDeparture is on the last day of the conference, the latest last meal is the last meal of the conference
+        if (dateOfDeparture === formattedEndDate) {
+            return this.conference.lastMeal
+        }
+        return undefined
     }
 
     /**

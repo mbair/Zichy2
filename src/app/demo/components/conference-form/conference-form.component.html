@@ -160,6 +160,7 @@
                                             <label for="dateOfArrival" class="font-medium text-900">{{'Érkezés dátuma' | translate }}</label>
                                             <p-calendar id="dateOfArrival"
                                                         formControlName="dateOfArrival"
+                                                        [ngClass]="{'ng-invalid': conferenceForm.errors?.['dateRangeInvalid']}"
                                                         [defaultDate]="beginDate"
                                                         [minDate]="beginDate" 
                                                         [maxDate]="endDate"
@@ -170,6 +171,9 @@
                                             <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
                                             </div>
+                                            <div *ngIf="conferenceForm.errors?.['dateRangeInvalid']" class="p-error">
+                                                {{'Az érkezés dátumának korábbinak kell lennie, mint a távozási dátum' | translate }}!
+                                            </div>
                                         </div>
 
                                         <!-- Első étkezés -->
@@ -178,7 +182,8 @@
                                             <app-meal-selector 
                                                 [parentForm]="conferenceForm" 
                                                 controlName="firstMeal"
-                                                [earliestMeal]="getEarliestAllowedMeal()" 
+                                                [earliestMeal]="getEarliestFirstMeal()"
+                                                [latestMeal]="getLatestFirstMeal()"  
                                                 [showNothing]="true">
                                             </app-meal-selector>
                                             <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
@@ -200,6 +205,7 @@
                                             <label for="dateOfDeparture" class="font-medium text-900">{{'Távozás dátuma' | translate }}</label>
                                             <p-calendar id="dateOfDeparture"
                                                         formControlName="dateOfDeparture"
+                                                        [ngClass]="{'ng-invalid': conferenceForm.errors?.['dateRangeInvalid']}"
                                                         [defaultDate]="beginDate"
                                                         [minDate]="beginDate" 
                                                         [maxDate]="endDate"
@@ -210,6 +216,9 @@
                                             <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, adja meg a távozás dátumát' | translate }}!
                                             </div>
+                                            <div *ngIf="conferenceForm.errors?.['dateRangeInvalid']" class="p-error">
+                                                {{'A távozás dátumának későbbinek kell lennie, mint az érkezési dátum' | translate }}!
+                                            </div>
                                         </div>
 
                                         <!-- Utolsó étkezés -->
@@ -218,7 +227,8 @@
                                             <app-meal-selector 
                                                 [parentForm]="conferenceForm" 
                                                 controlName="lastMeal" 
-                                                [latestMeal]="getLatestAllowedMeal()" 
+                                                [earliestMeal]="getEarliestLastMeal()" 
+                                                [latestMeal]="getLatestLastMeal()" 
                                                 [showNothing]="true">
                                             </app-meal-selector>
                                             <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="p-error">

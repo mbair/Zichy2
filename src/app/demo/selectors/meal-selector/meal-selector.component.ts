@@ -67,36 +67,46 @@ export class MealSelectorComponent {
             { label: this.translate.instant('MEALS.LUNCH'), value: 'ebéd', style: 'lunch' },
             { label: this.translate.instant('MEALS.DINNER'), value: 'vacsora', style: 'dinner' },
         ]
-
+    
         if (this.earliestMeal) {
             const earliestIndex = this.meals.findIndex(meal => meal.value === this.earliestMeal)
-            if (earliestIndex > 0) {
-                this.meals = this.meals.slice(earliestIndex)
+            if (earliestIndex > -1) {
+                this.meals = this.meals.slice(earliestIndex);
             }
         }
-
+    
         if (this.latestMeal) {
-            const latestIndex = this.meals.findIndex(meal => meal.value === this.latestMeal);
-            if (latestIndex >= 0) {
+            const latestIndex = this.meals.findIndex(meal => meal.value === this.latestMeal)
+            if (latestIndex > -1) {
                 this.meals = this.meals.slice(0, latestIndex + 1)
             }
         }
-
+    
         if (this.showNothing) {
             this.meals.push({
                 label: this.translate.instant('MEALS.NOTHING'), value: 'nem kér étkezést', style: 'nothing'
             })
         }
     }
+    
 
+    /**
+     * Sets the earliest meal for the meal selector component and updates the available meal options.
+     * The meal selector will only show meals that are equal to or later than the given meal.
+     * @param meal the earliest meal
+     */
     setEarliestMeal(meal: string) {
-        this.earliestMeal = meal;
-        this.setMeals(); // Frissítse az étkezések listáját
+        this.earliestMeal = meal
+        this.setMeals()
     }
     
+    /**
+     * Sets the latest meal for the meal selector component and updates the available meal options.
+     * @param meal the latest meal
+     */
     setLatestMeal(meal: string) {
-        this.latestMeal = meal;
-        this.setMeals(); // Frissítse az étkezések listáját
+        this.latestMeal = meal
+        this.setMeals()
     }
 
     /**
