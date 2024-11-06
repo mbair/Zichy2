@@ -7,7 +7,7 @@
                      responsiveLayout="scroll" 
                      [rows]="rowsPerPage"
                      [totalRecords]="totalRecords" 
-                     [globalFilterFields]="['name', 'beginDate', 'endDate']" 
+                     [globalFilterFields]="['name','beginDate','endDate','contractorName','contactName']" 
                      [paginator]="true"
                      [rowsPerPageOptions]="rowsPerPageOptions" 
                      [showCurrentPageReport]="true"
@@ -16,6 +16,7 @@
                      selectionMode="multiple" 
                      [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
                      [rowHover]="true"
+                     (onRowExpand)="onRowExpand($event.data)"
                      (onLazyLoad)="onLazyLoad($event)" 
                      [lazy]="true">
 
@@ -24,23 +25,28 @@
                         <h5 class="m-0">Konferenciák</h5>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
                             <i class="pi pi-search"></i>
-                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."
-                                class="w-full sm:w-auto" />
+                            <input pInputText 
+                                   type="text" 
+                                   (input)="onGlobalFilter(dt, $event)" 
+                                   placeholder="Keresés..."
+                                   class="w-full sm:w-auto"/>
                         </span>
                         <span class="block mt-2 md:mt-0">
-                            <!-- Open new page -->
-                            <!-- <a routerLink="/conference/create" class="p-button p-button-success p-ripple font-normal mr-2 hover:bg-green-600 hover:border-green-600">
-                                <i class="pi pi-plus x mr-2"></i> Új
-                            </a> -->
-                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2"
-                                (click)="create()"
-                                [disabled]="!userService.hasRole(['Super Admin','Nagy Admin'])"></button>
-                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2"
+                            <button pButton 
+                                    pRipple 
+                                    label="Új" 
+                                    icon="pi pi-plus" 
+                                    class="p-button-success mr-2"
+                                    (click)="create()"
+                                    [disabled]="!userService.hasRole(['Super Admin','Nagy Admin'])">
+                            </button>
+                            <!-- <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2"
                                 (click)="bulkDeleteDialog = true"
-                                [disabled]="!selected || !selected.length || !userService.hasRole(['Super Admin','Nagy Admin'])"></button>
+                                [disabled]="!selected || !selected.length || !userService.hasRole(['Super Admin','Nagy Admin'])"></button> -->
                         </span>
                     </div>
                 </ng-template>
+
                 <ng-template pTemplate="header">
                     <tr>
                         <th></th>
@@ -49,12 +55,13 @@
                         <th pSortableColumn="firstMeal">Első étkezés <p-sortIcon field="beginDate"></p-sortIcon></th>
                         <th pSortableColumn="endDate">Vége <p-sortIcon field="endDate"></p-sortIcon></th>
                         <th pSortableColumn="lastMeal">Utolsó étkezés <p-sortIcon field="endDate"></p-sortIcon></th>
-                        <!-- <th pSortableColumn="guestsNumber">Létszám <p-sortIcon field="guestsNumber"></p-sortIcon></th> -->
                         <th></th>
                     </tr>
+                    
+                    <!-- Filters -->
                     <tr>
-                        <th style="width: 3rem">
-                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                        <th>
+                            <!-- <p-tableHeaderCheckbox></p-tableHeaderCheckbox> -->
                         </th>
                         <th>
                             <input pInputText type="text" (input)="onFilter($event, 'name')" placeholder="Keresés..."
@@ -86,14 +93,21 @@
                                                [showClear]="true">
                             </app-meal-selector>
                         </th>
-                        <!-- <th></th> -->
                         <th></th>
                     </tr>
                 </ng-template>
-                <ng-template pTemplate="body" let-conference>
+
+                <ng-template pTemplate="body" let-conference let-expanded="expanded">
                     <tr>
-                        <td>
+                        <!-- <td>
                             <p-tableCheckbox [value]="conference"></p-tableCheckbox>
+                        </td> -->
+                        <td class="pr-0">
+                            <p-button type="button"
+                                      styleClass="p-button-rounded p-button-text"
+                                      pRipple
+                                      [pRowToggler]="conference"
+                                      [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
                         </td>
                         <td style="width:30%; min-width:15rem;">
                             <span class="p-column-title">Név</span>
@@ -126,10 +140,6 @@
                             </span>
                             
                         </td>
-                        <!-- <td style="width:14%; min-width:10rem;">
-                            <span class="p-column-title">Létszám</span>
-                            {{conference.attendees}}
-                        </td> -->
                         <td>
                             <div class="flex">
                                 <button pButton pRipple icon="pi pi-copy" class="p-button-rounded p-button-success mr-2"
@@ -145,7 +155,7 @@
                                     class="p-button-rounded p-button-success mr-2" pTooltip="Extra kérdések beállítása"
                                     tooltipPosition="top" 
                                     (click)="editQuestions(conference)"
-                                    [disabled]="userService.hasRole(['Szervezo']) && conference.organizer_user_id !== userService.getUserId()">
+                                    [disabled]="userService.hasRole(['Szervezo']) && conference.organizer_user_id !== userService.getLoggedInUserId()">
                                 </button>
                                 <button pButton pRipple icon="pi pi-pencil"
                                     class="p-button-rounded p-button-success mr-2" pTooltip="Konferencia szerkesztése"
@@ -161,6 +171,83 @@
                         </td>
                     </tr>
                 </ng-template>
+
+                <ng-template pTemplate="rowexpansion" let-conference>
+                    <tr>
+                        <td colspan="10">
+                            <div class="p-2">
+                                <div class="w-full">
+                                    <div class="grid w-full">
+                                        <div class="col-6">
+                                            <table cellspacing="0" cellpadding="7">
+                                                <tr>
+                                                    <td class="font-medium">Regisztrációs űrlap link:</td>
+                                                    <td>{{conference.formUrl}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Szerződő neve:</td>
+                                                    <td>{{conference.contractorName}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Szerződő adószáma:</td>
+                                                    <td>{{conference.contractorTaxNumber}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Szerződő címe:</td>
+                                                    <td>{{conference.contractorAdress}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Szervező:</td>
+                                                    <td>
+                                                        <span *ngIf="organizer">{{organizer.fullname}}</span>
+                                                        <span *ngIf="conference.organizer_user_id && !organizer"><p-skeleton width="10rem" styleClass="mb-2" /></span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Kapcsolattartó neve:</td>
+                                                    <td>{{conference.contactName}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Kapcsolattartó telefonszáma:</td>
+                                                    <td><a href="tel:{{conference.contactPhone}}">{{conference.contactPhone}}</a></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Kapcsolattartó e-mail címe:</td>
+                                                    <td><a href="mailto:{{conference.contactEmail}}">{{conference.contactEmail}}</a></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">Regisztráció vége</td>
+                                                    <td>{{conference.registrationEndDate | date:'yyyy.MM.dd'}}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-5">
+
+                                            <!-- Kérdések - Válaszok -->
+                                            <div *ngFor="let question of conference.questions">
+                                                <div *ngFor="let translation of question.translations; let i = index">
+                                                    <div *ngIf="translation.hu !== '' || translation.en !== ''" class="flex flex-column w-full mb-3">
+                                                        <div class="font-medium text-900">{{ i+1 }}. kérdés</div>
+                                                        <div>
+                                                            <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-hu mr-1" style="width: 18px"/>
+                                                            {{ translation.hu }}
+                                                        </div>
+                                                        <div>
+                                                            <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-gb mr-1" style="width: 18px"/>
+                                                            {{ translation.en }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+
                 <ng-template pTemplate="emptymessage">
                     <tr>
                         <td [attr.colspan]="7" class="text-center">Nincs találat...</td>

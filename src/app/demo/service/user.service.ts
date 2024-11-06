@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { User } from '../api/user';
@@ -14,6 +14,7 @@ export class UserService {
     public apiURL: string
     private data$: BehaviorSubject<any>
     private message$: BehaviorSubject<any>
+    private userCache: { [id: number]: User } = {}
 
     constructor(private apiService: ApiService) {
         this.apiURL = apiService.apiURL
@@ -215,7 +216,7 @@ export class UserService {
      * Returns the current user's ID from local storage.
      * @returns The user ID as a number.
      */
-    getUserId(): number {
+    getLoggedInUserId(): number {
         return Number(localStorage.getItem('userid'))
     }
 
@@ -237,6 +238,35 @@ export class UserService {
             map((data: any) => {
                 const users = data ? data.rows : []
                 return users
+            })
+        )
+    }
+
+    /**
+     * Get a user by ID.
+     * First checks the cache, and if the user is not found there, makes a request to the API.
+     * If the API request fails, returns null and logs an error message to the console.
+     * @param userId The ID of the user to retrieve.
+     * @returns An observable of the user with the given ID, or null if not found.
+     */
+    getUserById(userId: number): Observable<User | null> {
+        // First check if user is in cache
+        if (this.userCache[userId]) {
+            return of(this.userCache[userId])
+        }
+
+        // If not in cache, fetch from API
+        return this.apiService.get<ApiResponse>(`users/getbyid/${userId}`).pipe(
+            map((response: any) => {
+                const user = response.users || null
+                if (user) {
+                    this.userCache[userId] = user
+                }
+                return user
+            }),
+            catchError(error => {
+                console.error(`Hiba a szervező adatainak lekérdezésekor: ${error}`)
+                return of(null)
             })
         )
     }

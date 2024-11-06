@@ -8,7 +8,6 @@ import { LogService } from 'src/app/demo/service/log.service';
 import { UserService } from '../../service/user.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Log } from '../../api/log';
-import { User } from '../../api/user';
 import * as moment from 'moment';
 moment.locale('hu')
 
@@ -338,6 +337,11 @@ export class LogsComponent implements OnInit {
         }
     }
 
+    /**
+     * Determines if a row can be expanded.
+     * @param rowData The data for the row, must have an 'expandable' property.
+     * @returns True if the row can be expanded, false otherwise.
+     */
     canRowBeExpanded(rowData: any): boolean {
         return rowData.expandable
     }

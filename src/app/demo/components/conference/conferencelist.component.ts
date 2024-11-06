@@ -14,6 +14,7 @@ import { UserService } from '../../service/user.service';
 import { MealService } from '../../service/meal.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
+import { User } from '../../api/user';
 import { Table } from 'primeng/table';
 import * as moment from 'moment';
 moment.locale('hu')
@@ -54,6 +55,7 @@ export class ConferenceListComponent implements OnInit {
     bulkDeleteDialog: boolean = false            // Popup for deleting table items
     selected: Conference[] = []                  // Table items chosen by user
     meals: any[] = []                            // Possible meals
+    organizer: User | null = null                // Organizer of the expanded conference
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -139,7 +141,7 @@ export class ConferenceListComponent implements OnInit {
         // Message
         this.serviceMessageObs$ = this.conferenceService.messageObs
         this.serviceMessageObs$.subscribe(message => this.handleMessage(message))
-            
+
         // Question Message
         this.questionMessageObs$ = this.questionService.messageObs
         this.questionMessageObs$.subscribe(message => this.handleMessage(message))
@@ -216,7 +218,7 @@ export class ConferenceListComponent implements OnInit {
             if (this.filterValues[field] === filterValue) {
                 this.doQuery()
             }
-        // otherwise wait for the debounce time
+            // otherwise wait for the debounce time
         } else {
             if (this.debounce[field]) {
                 clearTimeout(this.debounce[field])
@@ -255,15 +257,32 @@ export class ConferenceListComponent implements OnInit {
     }
 
     /**
+     * When a row is expanded, load the organizer data.
+     * If the conference has an organizer, load the organizer's data from the user service.
+     * @param conference The conference object for the row that was expanded.
+     */
+    onRowExpand(conference: Conference): void {
+        this.organizer = null
+
+        // Load organizer data
+        const organizerId = conference?.organizer_user_id
+        if (organizerId) {
+            this.userService.getUserById(organizerId).subscribe((user: User | null) => {
+                this.organizer = user
+            })
+        }
+    }
+
+    /**
      * Handles service response messages and reset selected table item(s)
      * After the message is shown, query for data changes
      * @param message service response message
      */
     handleMessage(message: any) {
         if (!message) return
-        
+
         this.loading = false
-        
+
         if (message == 'ERROR') {
             this.messageService.add({
                 severity: 'error',
@@ -438,7 +457,7 @@ export class ConferenceListComponent implements OnInit {
         // Question insert
         if (questions.id == null) {
             this.questionService.create(questions)
-        } 
+        }
         // Question update
         else {
             this.questionService.update(questions)
@@ -463,21 +482,21 @@ export class ConferenceListComponent implements OnInit {
 
         // Define replacements for accented Hungarian characters
         const map: { [key: string]: string } = {
-            'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ö': 'o', 'ő': 'o', 
-            'ú': 'u', 'ü': 'u', 'ű': 'u', 'Á': 'A', 'É': 'E', 'Í': 'I', 
+            'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ö': 'o', 'ő': 'o',
+            'ú': 'u', 'ü': 'u', 'ű': 'u', 'Á': 'A', 'É': 'E', 'Í': 'I',
             'Ó': 'O', 'Ö': 'O', 'Ő': 'O', 'Ú': 'U', 'Ü': 'U', 'Ű': 'U'
         }
 
         // Replace accented characters
         str = str.split('')
-                .map(char => map[char] || char) // Replace if in map
-                .join('')
+            .map(char => map[char] || char) // Replace if in map
+            .join('')
 
         str = str.trim()                        // trim leading/trailing white space
-                 .toLowerCase()                 // convert string to lowercase
-                 .replace(/[^a-z0-9 -]/g, '')   // remove any non-alphanumeric characters
-                 .replace(/\s+/g, '-')          // replace spaces with hyphens
-                 .replace(/-+/g, '-')           // remove consecutive hyphens
+            .toLowerCase()                 // convert string to lowercase
+            .replace(/[^a-z0-9 -]/g, '')   // remove any non-alphanumeric characters
+            .replace(/\s+/g, '-')          // replace spaces with hyphens
+            .replace(/-+/g, '-')           // remove consecutive hyphens
 
         return str
     }
