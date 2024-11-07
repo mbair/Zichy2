@@ -87,5 +87,9 @@
         "BANK-TRANSFER": "Bank transfer",
         "SZEP-CARD": "SZEP card",    
         "CASH": "Cash"
-    }
+    },
+    "Jelentkezzen be a folytatáshoz": "Please login to continue",
+    "Jelszó": "Password",
+    "Elfelejtette jelszavát": "Forgot your password",
+    "Bejelentkezés": "Login"
 }
