@@ -67,7 +67,7 @@ export class RoomTypeSelectorComponent {
             { label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE-2-BED-ROOM'), value: 'Maranatha Panzióház 2 ágyas szoba (külön fürdős)', style: 'maranatha-pension-house-2-bed-room' },
             { label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE-DOUBLE-BED-ROOM'), value: 'Maranatha Panzióház franciaágyas szoba (külön fürdős)', style: 'maranatha-pension-house-double-bed-room' },
             { label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE-4-BED-ROOM'), value: 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)', style: 'maranatha-pension-house-4-bed-room' },
-            { label: this.translate.instant('ROOMTYPES.APARTMENT'), value: 'Apartman (közös konyhával, fürdővel és nappalival)', style: 'apartment' },
+            { label: this.translate.instant('ROOMTYPES.FAMILY-ROOM'), value: 'Családi szoba (közös konyhával, fürdővel és nappalival)', style: 'family-room' },
         ]
     }
 
