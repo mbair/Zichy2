@@ -91,5 +91,9 @@
     "Jelentkezzen be a folytatáshoz": "Please login to continue",
     "Jelszó": "Password",
     "Elfelejtette jelszavát": "Forgot your password",
-    "Bejelentkezés": "Login"
+    "Bejelentkezés": "Login",
+    "Elfelejtett jelszó": "Forgot password",
+    "Adja meg a bejelentkezési email címét": "Please provide your login email address",
+    "Vissza": "Back",
+    "Elküld": "Send"
 }
