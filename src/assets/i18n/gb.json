@@ -95,5 +95,8 @@
     "Elfelejtett jelszó": "Forgot password",
     "Adja meg a bejelentkezési email címét": "Please provide your login email address",
     "Vissza": "Back",
-    "Elküld": "Send"
+    "Elküld": "Send",
+    "Hozzáférés megtagadva": "Access denied",
+    "Nincs jogosultsága az oldal eléréséhez": "You don't have the permissions to access this page",
+    "Tovább az irányítópultra": "Go to Dashboard"
 }
