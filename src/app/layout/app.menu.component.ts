@@ -29,7 +29,7 @@ export class AppMenuComponent implements OnInit {
                 ]
             },
             {
-                label: 'Szállás',
+                label: 'Hotel',
                 items: [
                     {
                         label: 'Konferenciák',

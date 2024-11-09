@@ -60,14 +60,53 @@ export class RoomTypeSelectorComponent {
      */
     setRoomTypes() {
         this.roomTypes = [
-            { label: this.translate.instant('ROOMTYPES.NOTHING'), value: 'Nem kérek szállást', style: 'nothing' },
-            { label: this.translate.instant('ROOMTYPES.CASTLE-4-BED-ROOM'), value: 'Kastély szállás 4 ágyas szoba', style: 'castle-4-bed-room' },
-            { label: this.translate.instant('ROOMTYPES.CASTLE-6-BED-ROOM'), value: 'Kastély szállás 6 ágyas szoba', style: 'castle-6-bed-room' },
-            { label: this.translate.instant('ROOMTYPES.CASTLE-8-BED-ROOM'), value: 'Kastély szállás 8 ágyas szoba', style: 'castle-8-bed-room' },
-            { label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE-2-BED-ROOM'), value: 'Maranatha Panzióház 2 ágyas szoba (külön fürdős)', style: 'maranatha-pension-house-2-bed-room' },
-            { label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE-DOUBLE-BED-ROOM'), value: 'Maranatha Panzióház franciaágyas szoba (külön fürdős)', style: 'maranatha-pension-house-double-bed-room' },
-            { label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE-4-BED-ROOM'), value: 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)', style: 'maranatha-pension-house-4-bed-room' },
-            { label: this.translate.instant('ROOMTYPES.FAMILY-ROOM'), value: 'Családi szoba (közös konyhával, fürdővel és nappalival)', style: 'family-room' },
+            { 
+                label: this.translate.instant('ROOMTYPES.NOTHING'), 
+                value: 'Nem kérek szállást', 
+                style: 'nothing' 
+            },
+            { 
+                label: this.translate.instant('ROOMTYPES.CASTLE'), 
+                description: this.translate.instant('ROOMTYPES.4-BED-ROOM'), 
+                value: 'Kastély szállás 4 ágyas szoba', 
+                style: 'castle' 
+            },
+            { 
+                label: this.translate.instant('ROOMTYPES.CASTLE'), 
+                description: this.translate.instant('ROOMTYPES.6-BED-ROOM'), 
+                value: 'Kastély szállás 6 ágyas szoba', 
+                style: 'castle' 
+            },
+            { 
+                label: this.translate.instant('ROOMTYPES.CASTLE'), 
+                description: this.translate.instant('ROOMTYPES.8-BED-ROOM'), 
+                value: 'Kastély szállás 8 ágyas szoba', 
+                style: 'castle' 
+            },
+            { 
+                label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
+                description: this.translate.instant('ROOMTYPES.2-BED-ROOM'), 
+                value: 'Maranatha Panzióház 2 ágyas szoba (külön fürdős)', 
+                style: 'maranatha' 
+            },
+            { 
+                label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
+                description: this.translate.instant('ROOMTYPES.DOUBLE-BED-ROOM'), 
+                value: 'Maranatha Panzióház franciaágyas szoba (külön fürdős)', 
+                style: 'maranatha' 
+            },
+            { 
+                label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
+                description: this.translate.instant('ROOMTYPES.M-4-BED-ROOM'), 
+                value: 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)', 
+                style: 'maranatha' 
+            },
+            { 
+                label: this.translate.instant('ROOMTYPES.FAMILY-ROOM'), 
+                description: this.translate.instant('ROOMTYPES.WITH-KITCHEN'), 
+                value: 'Családi szoba (közös konyhával, fürdővel és nappalival)', 
+                style: 'family-room' 
+            },
         ]
     }
 

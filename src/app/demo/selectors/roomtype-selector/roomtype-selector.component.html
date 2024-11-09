@@ -11,15 +11,17 @@
             appendTo="body">
 
     <ng-template pTemplate="item" let-option>
-        <span [ngClass]="'roomtype-badge ' + option?.style">
-            {{ option.label }}
-        </span>
+        <div [ngClass]="'roomtype-badge ' + option?.style">
+            <div>{{ option.label }}</div>
+            <small *ngIf="option.description">{{ option.description }}</small>
+        </div>
     </ng-template>
 
     <ng-template pTemplate="selectedItem" let-selectedItem>
-        <span [ngClass]="'roomtype-badge ' + selectedItem?.style">
-            {{ selectedItem?.label }}
-        </span>
+        <div [ngClass]="'roomtype-badge ' + selectedItem?.style">
+            <div>{{ selectedItem?.label }}</div>
+            <small *ngIf="selectedItem.description">{{ selectedItem?.description }}</small>
+        </div>
     </ng-template>
 </p-dropdown>
 
@@ -36,15 +38,17 @@
                 appendTo="body">
 
         <ng-template pTemplate="item" let-option>
-            <span [ngClass]="'roomtype-badge ' + option?.style">
-                {{ option.label }}
-            </span>
+            <div [ngClass]="'roomtype-badge ' + option?.style">
+                <div>{{ option.label }}</div>
+                <small *ngIf="option.description">{{ option.description }}</small>
+            </div>
         </ng-template>
 
         <ng-template pTemplate="selectedItem" let-selectedItem>
-            <span [ngClass]="'roomtype-badge ' + selectedItem?.style">
-                {{ selectedItem?.label }}
-            </span>
+            <div [ngClass]="'roomtype-badge ' + selectedItem?.style">
+                <div>{{ selectedItem?.label }}</div>
+                <small *ngIf="selectedItem.description">{{ selectedItem?.description }}</small>
+            </div>
         </ng-template>
     </p-dropdown>
 </ng-template>

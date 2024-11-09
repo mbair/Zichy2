@@ -75,13 +75,16 @@
     },
     "ROOMTYPES": {
         "NOTHING": "Not asking for accommodation",
-        "CASTLE-4-BED-ROOM": "Castle accommodation 4-bed room",
-        "CASTLE-6-BED-ROOM": "Castle accommodation 6-bed room",
-        "CASTLE-8-BED-ROOM": "Castle accommodation 8-bed room",
-        "MARANATHA-PENSION-HOUSE-2-BED-ROOM": "Maranatha Pension House 2-bed room (with separate bathroom)",
-        "MARANATHA-PENSION-HOUSE-DOUBLE-BED-ROOM": "Maranatha Pension house double room (with separate bathroom)",
-        "MARANATHA-PENSION-HOUSE-4-BED-ROOM": "Maranatha Panzióház 4-bed room (bunk bed, separate bathroom)",
-        "FAMILY-ROOM": "Family room (with kitchen, bathroom and living room)"
+        "CASTLE": "Castle accommodation",
+        "4-BED-ROOM": "4-bed room",
+        "6-BED-ROOM": "6-bed room",
+        "8-BED-ROOM": "8-bed room",
+        "MARANATHA-PENSION-HOUSE": "Maranatha Pension House",
+        "2-BED-ROOM": "2-bed room (with separate bathroom)",
+        "DOUBLE-BED-ROOM": "double room (with separate bathroom)",
+        "M-4-BED-ROOM": "4-bed room (bunk bed, separate bathroom)",
+        "FAMILY-ROOM": "Family room",
+        "WITH-KITCHEN": "(with kitchen, bathroom and living room)"
     },
     "PAYMENTS": {
         "BANK-TRANSFER": "Bank transfer",

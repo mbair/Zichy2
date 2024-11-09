@@ -75,13 +75,16 @@
     },
     "ROOMTYPES": {
         "NOTHING": "Nem kérek szállást",
-        "CASTLE-4-BED-ROOM": "Kastély szállás 4 ágyas szoba",
-        "CASTLE-6-BED-ROOM": "Kastély szállás 6 ágyas szoba",
-        "CASTLE-8-BED-ROOM": "Kastély szállás 8 ágyas szoba",
-        "MARANATHA-PENSION-HOUSE-2-BED-ROOM": "Maranatha Panzióház 2 ágyas szoba (külön fürdős)",
-        "MARANATHA-PENSION-HOUSE-DOUBLE-BED-ROOM": "Maranatha Panzióház franciaágyas szoba (külön fürdős)",
-        "MARANATHA-PENSION-HOUSE-4-BED-ROOM": "Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)",
-        "FAMILY-ROOM": "Családi szoba (közös konyhával, fürdővel és nappalival)"
+        "CASTLE": "Kastély szállás",
+        "4-BED-ROOM": "4 ágyas szoba",
+        "6-BED-ROOM": "6 ágyas szoba",
+        "8-BED-ROOM": "8 ágyas szoba",
+        "MARANATHA-PENSION-HOUSE": "Maranatha Panzióház",
+        "2-BED-ROOM": "2 ágyas szoba (külön fürdős)",
+        "DOUBLE-BED-ROOM": "franciaágyas szoba (külön fürdős)",
+        "M-4-BED-ROOM": "4 ágyas szoba (emeletes ágyas, külön fürdős)",
+        "FAMILY-ROOM": "Családi szoba",
+        "WITH-KITCHEN": "(közös konyhával, fürdővel és nappalival)"
     },
     "PAYMENTS": {
         "BANK-TRANSFER": "Banki átutalás",
