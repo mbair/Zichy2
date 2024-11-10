@@ -3,7 +3,7 @@ import { RouterModule } from '@angular/router';
 
 @NgModule({
     imports: [RouterModule.forChild([
-        { path: '', data: {breadcrumb: 'Lista'}, loadChildren: () => import('./conferencelist.module').then(m => m.ConferenceListModule) },
+        { path: '', data: {breadcrumb: ''}, loadChildren: () => import('./conferencelist.module').then(m => m.ConferenceListModule) },
         { path: '**', redirectTo: '/notfound' }
     ])],
     exports: [RouterModule]

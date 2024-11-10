@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { CheckboxModule } from 'primeng/checkbox';
+import { ChipsModule } from 'primeng/chips';
 import { CalendarModule } from 'primeng/calendar';
 import { DropdownModule } from 'primeng/dropdown';
 import { CardModule } from 'primeng/card';
@@ -33,6 +34,7 @@ import { WidgetModule } from '../../widget/widget.module';
         InputTextModule,
         CheckboxModule,
         CalendarModule,
+        ChipsModule,
         DropdownModule,
         CardModule,
         FileUploadModule,

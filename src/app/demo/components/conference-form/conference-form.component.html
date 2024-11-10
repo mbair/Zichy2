@@ -260,7 +260,7 @@
                                             <app-roomtype-selector 
                                                 [parentForm]="conferenceForm" 
                                                 controlName="roomType" 
-                                                pTooltip="A preferenciákat igyekszünk figyelembe venni, de mivel korlátozott mennyiségben van a szállás, ezért nem tudjuk megígérni, hogy biztosan a megjelölt szállástípusra osztunk be" 
+                                                pTooltip="{{'A preferenciákat igyekszünk figyelembe venni, de mivel korlátozott mennyiségben van a szállás, ezért nem tudjuk megígérni, hogy biztosan a megjelölt szállástípusra osztunk be' | translate }}" 
                                                 tooltipPosition="top">
                                             </app-roomtype-selector>
                                             <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
@@ -271,7 +271,12 @@
                                         <!-- Fizetési mód -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="payment" class="font-medium text-900">{{'Fizetési mód' | translate }}</label>
-                                            <app-payment-selector [parentForm]="conferenceForm" controlName="payment" pTooltip="A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen" tooltipPosition="top"></app-payment-selector>
+                                            <app-payment-selector 
+                                                [parentForm]="conferenceForm" 
+                                                controlName="payment" 
+                                                pTooltip="{{'A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen' | translate }}" 
+                                                tooltipPosition="top">
+                                            </app-payment-selector>
                                             <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki a fizetési módot' | translate }}!
                                             </div>
@@ -280,7 +285,16 @@
                                         <!-- Kivel laknál egy szobában -->
                                         <div class="field mb-4 col-12 lg:col-12">
                                             <label for="roomMate" class="font-medium text-900">{{'Kivel laknál egy szobában' | translate }}?</label>
-                                            <input id="roomMate" type="text" pInputText formControlName="roomMate">
+                                            <p-chips formControlName="roomMate" 
+                                                     separator="," 
+                                                     [showClear]="true"
+                                                     [addOnBlur]="true"
+                                                     pTooltip="{{'Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában' | translate }}" 
+                                                     tooltipPosition="top">
+                                                <ng-template let-item pTemplate="item">
+                                                    <i class="pi pi-user mr-2"></i> {{ item }}
+                                                </ng-template>
+                                            </p-chips>
                                         </div>
 
                                         <!-- Extra kérdések -->

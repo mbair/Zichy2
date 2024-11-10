@@ -261,7 +261,9 @@
 
             <!-- Sidebar header -->
             <ng-template pTemplate="header">
-                <span class="font-semibold text-xl">Konferencia adatai</span>
+                <span class="font-semibold text-xl">
+                    {{ name?.value ? 'Konferencia adatai' : 'Új konferencia' }}
+                </span>
             </ng-template>
 
             <form [formGroup]="conferenceForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">

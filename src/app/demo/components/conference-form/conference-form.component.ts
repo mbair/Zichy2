@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
 import { Subscription, Observable, Subject, BehaviorSubject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
@@ -91,7 +91,7 @@ export class ConferenceFormComponent implements OnInit {
             dateOfDeparture: ['', Validators.required],
             lastMeal: ['', Validators.required],
             roomType: ['', Validators.required],
-            roomMate: [''],
+            roomMate: new FormControl<string[] | null>(null),
             payment: ['', Validators.required],
             babyBed: ['', Validators.required],
             idCard: [null, Validators.required],
@@ -450,6 +450,11 @@ export class ConferenceFormComponent implements OnInit {
 
             const guestData = { ...this.conferenceForm.value }
             const files = [this.conferenceForm.get('idCard')?.value]
+
+            // Convert the 'roomMate' FormArray to a comma-separated string
+            if (Array.isArray(guestData.roomMate)) {
+                guestData.roomMate = guestData.roomMate.join(', ')
+            }
 
             // Delete unnecessary fields
             delete guestData.idCard
