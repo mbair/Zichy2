@@ -65,6 +65,9 @@ export class ConferenceFormComponent implements OnInit {
             this.darkMode = config.colorScheme === 'dark' || config.colorScheme === 'dim' ? true : false;
         })
 
+        // Set default theme
+        this.changeTheme('orange')
+
         // Set min and max birth dates
         this.birthDateMin = new Date()
         this.birthDateMin.setFullYear(this.birthDateMin.getFullYear() - 130)
@@ -94,7 +97,7 @@ export class ConferenceFormComponent implements OnInit {
             idCard: [null, Validators.required],
             privacy: ['', Validators.required],
             answers: this.formBuilder.array([]),
-        }, { 
+        }, {
             validators: dateRangeValidator('dateOfArrival', 'dateOfDeparture')
         })
 
@@ -104,6 +107,9 @@ export class ConferenceFormComponent implements OnInit {
 
 
     ngOnInit() {
+        // this.layoutService.config.theme = 'organge';
+        // this.layoutService.onConfigUpdate()
+
         // Get conference by URL
         this.getConferenceBySlug()
 
@@ -359,7 +365,7 @@ export class ConferenceFormComponent implements OnInit {
     getEarliestFirstMeal(): string | undefined {
         const dateOfArrival = this.conferenceForm.get('dateOfArrival')?.value
         const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
-        
+
         // If dateOfArrival is on the first day of the conference, the earliest first meal is the first meal of the conference
         if (dateOfArrival === formattedBeginDate) {
             return this.conference.firstMeal
@@ -375,7 +381,7 @@ export class ConferenceFormComponent implements OnInit {
     getLatestFirstMeal(): string | undefined {
         const dateOfArrival = this.conferenceForm.get('dateOfArrival')?.value
         const formattedEndDate = this.endDate?.toISOString().split('T')[0]
-    
+
         // If dateOfArrival is on the last day of the conference, the latest first meal is the last meal of the conference
         if (dateOfArrival === formattedEndDate) {
             return this.conference.lastMeal
@@ -391,7 +397,7 @@ export class ConferenceFormComponent implements OnInit {
     getEarliestLastMeal(): string | undefined {
         const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value
         const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
-    
+
         // If dateOfDeparture is on the first day of the conference, the earliest last meal is the first meal of the conference
         if (dateOfDeparture === formattedBeginDate) {
             return this.conference.firstMeal
@@ -407,7 +413,7 @@ export class ConferenceFormComponent implements OnInit {
     getLatestLastMeal(): string | undefined {
         const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value
         const formattedEndDate = this.endDate?.toISOString().split('T')[0]
-    
+
         // If dateOfDeparture is on the last day of the conference, the latest last meal is the last meal of the conference
         if (dateOfDeparture === formattedEndDate) {
             return this.conference.lastMeal
@@ -495,6 +501,48 @@ export class ConferenceFormComponent implements OnInit {
         this.conferenceForm.reset()
         this.messageService.clear()
         this.getConferenceBySlug()
+    }
+
+    /**
+     * Switches the theme to the given one.
+     * @param theme The name of the theme to switch to.
+     * Finds the theme CSS link element and replaces its href with the new theme's href.
+     * After the new style sheet is loaded, updates the layout service's theme and notifies the listeners.
+     */
+    changeTheme(theme: string) {
+        const themeLink = <HTMLLinkElement>document.getElementById('theme-link')
+        if (themeLink) {
+            const newHref = themeLink.getAttribute('href')!.replace(this.layoutService.config.theme, theme)
+            this.replaceThemeLink(newHref, () => {
+                this.layoutService.config.theme = theme
+                this.layoutService.onConfigUpdate()
+            })
+        }
+    }
+
+    /**
+     * Replaces the theme link with a new one.
+     * @param href The href attribute of the new link element.
+     * @param onComplete Called when the new style sheet is loaded.
+     * This method is used to switch the app's theme.
+     * It creates a clone of the current theme link, sets its href to the given one,
+     * inserts the clone after the original link, and then removes the original link.
+     * When the new style sheet is loaded, it calls the onComplete callback.
+     */
+    replaceThemeLink(href: string, onComplete: () => void) {
+        const themeLink = <HTMLLinkElement>document.getElementById('theme-link')
+        const cloneLinkElement = <HTMLLinkElement>themeLink.cloneNode(true)
+
+        cloneLinkElement.setAttribute('href', href)
+        cloneLinkElement.setAttribute('id', 'theme-link-clone')
+
+        themeLink.parentNode!.insertBefore(cloneLinkElement, themeLink.nextSibling)
+
+        cloneLinkElement.addEventListener('load', () => {
+            themeLink.remove()
+            cloneLinkElement.setAttribute('id', 'theme-link')
+            onComplete()
+        })
     }
 
     // Don't delete this, its needed from a performance point of view,

@@ -236,35 +236,6 @@
                                             </div>
                                         </div>
 
-                                        <!-- Szállástípus -->
-                                        <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="roomType" class="font-medium text-900">{{'Szállástípus' | translate }}</label>
-                                            <app-roomtype-selector 
-                                                [parentForm]="conferenceForm" 
-                                                controlName="roomType" 
-                                                pTooltip="A preferenciákat igyekszünk figyelembe venni, de mivel korlátozott mennyiségben van a szállás, ezért nem tudjuk megígérni, hogy biztosan a megjelölt szállástípusra osztunk be" 
-                                                tooltipPosition="top">
-                                            </app-roomtype-selector>
-                                            <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
-                                                {{'Kérjük válassza ki a szállástípust' | translate }}!
-                                            </div>
-                                        </div>
-
-                                        <!-- Kivel laknál egy szobában -->
-                                        <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="roomMate" class="font-medium text-900">{{'Kivel laknál egy szobában' | translate }}?</label>
-                                            <input id="roomMate" type="text" pInputText formControlName="roomMate">
-                                        </div>
-
-                                        <!-- Fizetési mód -->
-                                        <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="payment" class="font-medium text-900">{{'Fizetési mód' | translate }}</label>
-                                            <app-payment-selector [parentForm]="conferenceForm" controlName="payment" pTooltip="A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen" tooltipPosition="top"></app-payment-selector>
-                                            <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
-                                                {{'Kérjük válassza ki a fizetési módot' | translate }}!
-                                            </div>
-                                        </div>
-
                                         <!-- Babaágyat kérsz? -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="babyBed" class="font-medium text-900">{{'Babaágyat kérsz' | translate }}?</label>
@@ -281,6 +252,35 @@
                                             <div *ngIf="babyBed?.dirty && babyBed?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki, hogy kér-e babaágyat' | translate }}!
                                             </div>
+                                        </div>
+
+                                        <!-- Szállástípus -->
+                                        <div class="field mb-4 col-12 lg:col-8">
+                                            <label for="roomType" class="font-medium text-900">{{'Szállástípus' | translate }}</label>
+                                            <app-roomtype-selector 
+                                                [parentForm]="conferenceForm" 
+                                                controlName="roomType" 
+                                                pTooltip="A preferenciákat igyekszünk figyelembe venni, de mivel korlátozott mennyiségben van a szállás, ezért nem tudjuk megígérni, hogy biztosan a megjelölt szállástípusra osztunk be" 
+                                                tooltipPosition="top">
+                                            </app-roomtype-selector>
+                                            <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
+                                                {{'Kérjük válassza ki a szállástípust' | translate }}!
+                                            </div>
+                                        </div>
+
+                                        <!-- Fizetési mód -->
+                                        <div class="field mb-4 col-12 lg:col-4">
+                                            <label for="payment" class="font-medium text-900">{{'Fizetési mód' | translate }}</label>
+                                            <app-payment-selector [parentForm]="conferenceForm" controlName="payment" pTooltip="A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen" tooltipPosition="top"></app-payment-selector>
+                                            <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
+                                                {{'Kérjük válassza ki a fizetési módot' | translate }}!
+                                            </div>
+                                        </div>
+
+                                        <!-- Kivel laknál egy szobában -->
+                                        <div class="field mb-4 col-12 lg:col-12">
+                                            <label for="roomMate" class="font-medium text-900">{{'Kivel laknál egy szobában' | translate }}?</label>
+                                            <input id="roomMate" type="text" pInputText formControlName="roomMate">
                                         </div>
 
                                         <!-- Extra kérdések -->
@@ -419,5 +419,3 @@
 
 <!-- Notifications -->
 <p-toast></p-toast>
-
-<app-config [minimal]="true"></app-config>
