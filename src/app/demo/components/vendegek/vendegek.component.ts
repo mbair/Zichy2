@@ -583,6 +583,10 @@ export class VendegekComponent implements OnInit {
         return this.dietService.getDietColor(diet)
     }
 
+    getDietStyle(diet: string): string {
+        return this.dietService.getDietStyle(diet)
+    }
+
     getAge(birthDate: string): string {
         if (!birthDate) return "";
         const birth = moment(birthDate)
