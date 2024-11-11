@@ -601,6 +601,14 @@ export class VendegekComponent implements OnInit {
         return country ? country.code?.toLowerCase() : null
     }
 
+    getNationalityInHungarian(nationality: string): string | null {
+        return this.countryService.getHuNationality(nationality)
+    }
+
+    getCountryNameInHungarian(code: string): string | null {
+        return this.countryService.getHuCountryName(code)
+    }
+
     @HostListener('window:keypress', ['$event'])
     keyEvent(event: KeyboardEvent): void {
         if (event.key === 'Enter') {
