@@ -73,7 +73,7 @@ export class ConferenceListComponent implements OnInit {
         private apiService: ApiService,
         private messageService: MessageService) {
 
-        // Conference form fields and validations
+        // Conference form fields and validators
         this.conferenceForm = this.formBuilder.group({
             id: [''],
             name: ['', Validators.required],
@@ -172,7 +172,7 @@ export class ConferenceListComponent implements OnInit {
      * @returns
      */
     doQuery() {
-        this.loading = true;
+        this.loading = true
 
         const filters = Object.keys(this.filterValues)
             .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
@@ -192,7 +192,7 @@ export class ConferenceListComponent implements OnInit {
      */
     onFilter(event: any, field: string) {
         const noWaitFields = ['beginDate', 'endDate', 'firstMeal', 'lastMeal']
-        let filterValue = '';
+        let filterValue = ''
 
         // Calendar date as String
         if (event instanceof Date) {
@@ -201,11 +201,8 @@ export class ConferenceListComponent implements OnInit {
             filterValue = formattedDate
         } else {
             if (event && (event.value || event.target?.value)) {
-                if (field == "rfid" && event.target?.value.length == 10) {
-                    filterValue = event.target?.value.replaceAll('ö', '0')
-                } else {
-                    filterValue = event.value || event.target?.value
-                }
+                filterValue = event.value || event.target?.value
+                filterValue = filterValue.toString()
             } else {
                 this.filterValues[field] = ''
             }
@@ -218,7 +215,7 @@ export class ConferenceListComponent implements OnInit {
             if (this.filterValues[field] === filterValue) {
                 this.doQuery()
             }
-            // otherwise wait for the debounce time
+        // otherwise wait for the debounce time
         } else {
             if (this.debounce[field]) {
                 clearTimeout(this.debounce[field])
@@ -239,11 +236,11 @@ export class ConferenceListComponent implements OnInit {
      * @param event
      */
     onLazyLoad(event: any) {
-        this.page = event.first! / event.rows!;
-        this.rowsPerPage = event.rows ?? this.rowsPerPage;
-        this.sortField = event.sortField ?? '';
-        this.sortOrder = event.sortOrder ?? 1;
-        this.globalFilter = event.globalFilter ?? '';
+        this.page = event.first! / event.rows!
+        this.rowsPerPage = event.rows ?? this.rowsPerPage
+        this.sortField = event.sortField ?? ''
+        this.sortOrder = event.sortOrder ?? 1
+        this.globalFilter = event.globalFilter ?? ''
         this.doQuery()
     }
 
@@ -390,8 +387,8 @@ export class ConferenceListComponent implements OnInit {
      * Delete the Conference
      */
     delete() {
-        this.loading = true;
-        this.deleteDialog = false;
+        this.loading = true
+        this.deleteDialog = false
         this.conferenceService.delete(this.tableItem)
     }
 
@@ -399,8 +396,8 @@ export class ConferenceListComponent implements OnInit {
      * Delete selected Conferences
      */
     deleteSelected() {
-        this.loading = true;
-        this.deleteDialog = false;
+        this.loading = true
+        this.deleteDialog = false
         this.conferenceService.bulkdelete(this.selected)
     }
 
@@ -416,7 +413,7 @@ export class ConferenceListComponent implements OnInit {
             if (!formValues.id) {
                 this.conferenceService.create(formValues)
 
-                // Update
+            // Update
             } else {
                 this.conferenceService.update(formValues)
             }
@@ -430,7 +427,6 @@ export class ConferenceListComponent implements OnInit {
      */
     cancel() {
         this.conferenceForm.reset(this.originalFormValues)
-        // this.sidebar = false
     }
 
     /**

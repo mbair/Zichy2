@@ -134,93 +134,122 @@
             </p-table>
         </div>
 
-        <!-- New / Update dialog -->
-        <p-dialog [(visible)]="dialog" header="Felhasználó adatai" [modal]="true" [style]="{width:'450px'}" class="p-fluid">
-            <ng-template pTemplate="content">
-                <form [formGroup]="userForm">
-                    <!-- <p-messages [(value)]="messages" [enableService]="false" [closable]="false"></p-messages> -->
-                    <input formControlName="id" type="hidden">
-                    <input formControlName="username" type="hidden">
-
-                    <div class="formgrid grid">
-                        <div class="field col">
-                            <label for="fullname">Név</label>
-                            <input pInputText type="text" id="fullname" formControlName="fullname" autofocus />
-                            <div *ngIf="userForm.get('fullname')?.invalid && userForm.get('fullname')?.dirty">
-                                <small *ngIf="userForm.get('fullname')?.errors?.['required']" class="p-error">Kötelező kitölteni</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="formgrid grid">
-                        <div class="field col">
-                            <label for="user_rolesid">Szerepkör</label>
-                            <p-dropdown
-                                id="user_rolesid"
-                                formControlName="user_rolesid"
-                                [options]="roles"
-                                optionLabel="name"
-                                optionValue="id"
-                                placeholder="Válasszon szerepkört..."
-                                emptyMessage="Nincs találat..."
-                                [showClear]="true"
-                                [virtualScroll]="true"
-                                [virtualScrollItemSize]="30">
-                                <ng-template let-option pTemplate="item">
-                                    <span [ngClass]="roleService.getRoleStyleClass(option.id)">
-                                        {{option.name}}
-                                    </span>
-                                </ng-template>
-                                <ng-template pTemplate="selectedItem">
-                                    <span [ngClass]="roleService.getRoleStyleClass(userForm.get('user_rolesid')?.value)">
-                                        {{roleService.getRoleName(userForm.get('user_rolesid')?.value)}}
-                                    </span>
-                                </ng-template>
-                            </p-dropdown>
-                            <div *ngIf="userForm.get('user_rolesid')?.invalid && userForm.get('user_rolesid')?.dirty">
-                                <small *ngIf="userForm.get('user_rolesid')?.errors?.['required']" class="p-error">Kötelező kitölteni</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="formgrid grid">
-                        <div class="field col">
-                            <label for="email">Email</label>
-                            <input pInputText type="text" id="email" formControlName="email" />
-                            <div *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.dirty">
-                                <small *ngIf="userForm.get('email')?.errors?.['required']" class="block p-error">Kötelező kitölteni</small>
-                                <small *ngIf="userForm.get('email')?.errors?.['invalidEmail']" class="block p-error">Nem megfelelő email formátum</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="formgrid grid">
-                        <div class="field col">
-                            <label for="phone">Telefon</label>
-                            <input pInputText type="text" id="phone" formControlName="phone" />
-                            <div *ngIf="userForm.get('phone')?.invalid && userForm.get('phone')?.dirty">
-                                <small *ngIf="userForm.get('phone')?.errors?.['required']" class="p-error">Kötelező kitölteni</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="formgrid grid">
-                        <div class="field col">
-                            <label for="password">Jelszó</label>
-                            <p-password id="password"
-                                        formControlName="password"
-                                        [toggleMask]="true"
-                                        [feedback]="false">
-                            </p-password>
-                            <div *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.dirty">
-                                <small *ngIf="userForm.get('password')?.errors?.['required']" class="p-error">Kötelező kitölteni</small>
-                            </div>
-                        </div>
-                    </div>
-                </form>
+        <!-- New / Update sidebar -->
+        <p-sidebar id="sidebar" [(visible)]="sidebar" position="right" styleClass="p-sidebar-md">
+            
+            <!-- Sidebar header -->
+            <ng-template pTemplate="header">
+                <span class="font-semibold text-xl">
+                    {{ fullname?.value ? 'Felhasználó adatai' : 'Új felhasználó' }}
+                </span>
             </ng-template>
+            
+            <form [formGroup]="userForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
+                
+                <!-- User Id -->
+                <input formControlName="id" type="hidden">
+
+                <!-- UserName -->
+                <input formControlName="username" type="hidden">
+
+                <!-- Fullname -->
+                <div class="field mb-4 col-12">
+                    <label for="fullname" class="font-medium text-900">Név</label>
+                    <input id="fullname" type="text" pInputText formControlName="fullname">
+                    <div *ngIf="fullname?.dirty && fullname?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- Roles -->
+                <div class="field mb-4 col-12">
+                    <label for="user_rolesid" class="font-medium text-900">Szerepkör</label>
+                    <!-- TODO: Make common role selector -->
+                    <p-dropdown
+                        id="user_rolesid"
+                        formControlName="user_rolesid"
+                        [options]="roles"
+                        optionLabel="name"
+                        optionValue="id"
+                        placeholder="Válasszon szerepkört..."
+                        emptyMessage="Nincs találat..."
+                        [showClear]="true"
+                        [virtualScroll]="true"
+                        [virtualScrollItemSize]="30">
+                        <ng-template let-option pTemplate="item">
+                            <span [ngClass]="roleService.getRoleStyleClass(option.id)">
+                                {{option.name}}
+                            </span>
+                        </ng-template>
+                        <ng-template pTemplate="selectedItem">
+                            <span [ngClass]="roleService.getRoleStyleClass(userForm.get('user_rolesid')?.value)">
+                                {{roleService.getRoleName(userForm.get('user_rolesid')?.value)}}
+                            </span>
+                        </ng-template>
+                    </p-dropdown>
+                    <div *ngIf="userForm.get('user_rolesid')?.invalid && userForm.get('user_rolesid')?.dirty">
+                        <small *ngIf="userForm.get('user_rolesid')?.errors?.['required']" class="p-error">Kötelező kitölteni</small>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="field mb-4 col-12">
+                    <label for="email" class="font-medium text-900">Email</label>
+                    <input id="email" type="text" pInputText formControlName="email">
+                    <div *ngIf="email?.dirty && email?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                    <div *ngIf="email?.dirty && email?.errors?.['invalidEmail']" class="block p-error">
+                        Nem megfelelő email formátum
+                    </div>
+                </div>
+                
+                <!-- Phone -->
+                <div class="field mb-4 col-12">
+                    <label for="phone" class="font-medium text-900">Telefon</label>
+                    <input id="phone" type="text" pInputText formControlName="phone">
+                    <div *ngIf="phone?.dirty && phone?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="field mb-4 col-12">
+                    <label for="password" class="font-medium text-900">Jelszó</label>
+                    <p-password id="password"
+                                formControlName="password"
+                                [toggleMask]="true"
+                                [feedback]="false">
+                    </p-password>
+                    <div *ngIf="password?.dirty && password?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- TODO: Password again field for user creation -->
+            </form>
 
             <ng-template pTemplate="footer">
-                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="cancel()"></button>
-                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="save()" [disabled]="!userForm.valid"></button>
+                <div class="flex justify-content-end ap-2">
+                    <button pButton 
+                            pRipple 
+                            label="Mégsem" 
+                            icon="pi pi-times" 
+                            class="p-button-outlined"
+                            (click)="cancel()" 
+                            [disabled]="!userForm.dirty">
+                    </button>
+                    <button pButton 
+                            pRipple 
+                            label="Mentés" 
+                            icon="pi pi-check" 
+                            class="p-button ml-2" 
+                            (click)="save()"
+                            [disabled]="!userForm.valid || !userForm.dirty">
+                    </button>
+                </div>
             </ng-template>
-        </p-dialog>
+        </p-sidebar>
 
         <!-- Delete dialog -->
         <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
