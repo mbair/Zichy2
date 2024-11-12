@@ -38,11 +38,11 @@
                                     icon="pi pi-plus" 
                                     class="p-button-success mr-2"
                                     (click)="create()"
-                                    [disabled]="!userService.hasRole(['Super Admin','Nagy Admin'])">
+                                    [disabled]="!canCreate">
                             </button>
                             <!-- <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2"
                                 (click)="bulkDeleteDialog = true"
-                                [disabled]="!selected || !selected.length || !userService.hasRole(['Super Admin','Nagy Admin'])"></button> -->
+                                [disabled]="!selected || !selected.length || !canDelete"></button> -->
                         </span>
                     </div>
                 </ng-template>
@@ -155,17 +155,17 @@
                                     class="p-button-rounded p-button-success mr-2" pTooltip="Extra kérdések beállítása"
                                     tooltipPosition="top" 
                                     (click)="editQuestions(conference)"
-                                    [disabled]="userService.hasRole(['Szervezo']) && conference.organizer_user_id !== userService.getLoggedInUserId()">
+                                    [disabled]="isOrganizer && conference.organizer_user_id !== loggedInUserId">
                                 </button>
                                 <button pButton pRipple icon="pi pi-pencil"
                                     class="p-button-rounded p-button-success mr-2" pTooltip="Konferencia szerkesztése"
                                     tooltipPosition="top" (click)="edit(conference)"
-                                    [disabled]="!userService.hasRole(['Super Admin','Nagy Admin'])">
+                                    [disabled]="!canEdit">
                                 </button>
                                 <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning"
                                     pTooltip="Konferencia törlése" tooltipPosition="top"
                                     (click)="tableItem = conference; deleteDialog = true"
-                                    [disabled]="!userService.hasRole(['Super Admin','Nagy Admin'])">
+                                    [disabled]="!canDelete">
                                 </button>
                             </div>
                         </td>

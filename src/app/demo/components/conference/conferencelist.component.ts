@@ -56,6 +56,11 @@ export class ConferenceListComponent implements OnInit {
     selected: Conference[] = []                  // Table items chosen by user
     meals: any[] = []                            // Possible meals
     organizer: User | null = null                // Organizer of the expanded conference
+    canCreate: boolean = false                   // User has permission to create new user
+    canEdit: boolean = false                     // User has permission to update user
+    canDelete: boolean = false                   // User has permission to delete user
+    isOrganizer: boolean = false                 // User has organizer role
+    loggedInUserId: number                       // Logged in user id
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -114,6 +119,13 @@ export class ConferenceListComponent implements OnInit {
     }
 
     ngOnInit() {
+        // Permissions
+        this.canCreate = this.userService.hasRole(['Super Admin', 'Nagy Admin'])
+        this.canEdit = this.userService.hasRole(['Super Admin', 'Nagy Admin'])
+        this.canDelete = this.userService.hasRole(['Super Admin', 'Nagy Admin'])
+        this.isOrganizer = this.userService.hasRole(['Szervezo'])
+        this.loggedInUserId = this.userService.getLoggedInUserId()
+
         // Conferences
         this.conferenceObs$ = this.conferenceService.conferenceObs;
         this.conferenceObs$.subscribe((data: ApiResponse) => {

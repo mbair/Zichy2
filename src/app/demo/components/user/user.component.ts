@@ -43,6 +43,9 @@ export class UserComponent implements OnInit {
     bulkDeleteDialog: boolean = false            // Popup for deleting table items
     selected: User[] = []                        // Table items chosen by user
     selectedUserRole: string                     // User Role chosen by user
+    canCreate: boolean = false                   // User has permission to create new user
+    canEdit: boolean = false                     // User has permission to update user
+    canDelete: boolean = false                   // User has permission to delete user
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -70,6 +73,11 @@ export class UserComponent implements OnInit {
     }
 
     ngOnInit() {
+        // Permissions
+        this.canCreate = this.userService.hasRole(['Super Admin', 'Nagy Admin'])
+        this.canEdit = this.userService.hasRole(['Super Admin', 'Nagy Admin'])
+        this.canDelete = this.userService.hasRole(['Super Admin', 'Nagy Admin'])
+
         // Users
         this.userObs$ = this.userService.userObs;
         this.userObs$.subscribe((data: ApiResponse) => {
@@ -323,6 +331,15 @@ export class UserComponent implements OnInit {
             // Query for data changes
             this.doQuery()
         }
+    }
+
+    /**
+     * Checks if the user has any of the given roles
+     * @param roles role names
+     * @returns true if the user has any of the roles, false otherwise
+     */
+    hasRole(roles: string[]): boolean {
+        return this.userService.hasRole(roles)
     }
 
     // Don't delete this, its needed from a performance point of view,
