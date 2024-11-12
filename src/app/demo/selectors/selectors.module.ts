@@ -13,6 +13,7 @@ import { NationalitySelectorComponent } from './nationality-selector/nationality
 import { PaymentSelectorComponent } from './payment-selector/payment-selector.component';
 import { RoomTypeSelectorComponent } from './roomtype-selector/roomtype-selector.component';
 import { UserSelectorComponent } from './user-selector/user-selector.component';
+import { RoleSelectorComponent } from './role-selector/role-selector.component';
 
 @NgModule({
     declarations: [
@@ -24,6 +25,7 @@ import { UserSelectorComponent } from './user-selector/user-selector.component';
         PaymentSelectorComponent,
         RoomTypeSelectorComponent,
         UserSelectorComponent,
+        RoleSelectorComponent,
     ],
     imports: [
         CommonModule,
@@ -42,6 +44,7 @@ import { UserSelectorComponent } from './user-selector/user-selector.component';
         PaymentSelectorComponent,
         RoomTypeSelectorComponent,
         UserSelectorComponent,
+        RoleSelectorComponent,
     ],
 })
 export class SelectorsModule {}

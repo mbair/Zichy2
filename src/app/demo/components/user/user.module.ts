@@ -22,6 +22,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { PasswordModule } from 'primeng/password';
 import { SidebarModule } from 'primeng/sidebar';
+import { SelectorsModule } from '../../selectors/selectors.module';
 import { UserService } from '../../service/user.service';
 
 @NgModule({
@@ -48,7 +49,8 @@ import { UserService } from '../../service/user.service';
         ProgressSpinnerModule,
         BlockUIModule,
         PasswordModule,
-        SidebarModule
+        SidebarModule,
+        SelectorsModule,
     ],
     declarations: [UserComponent],
     providers: [UserService]

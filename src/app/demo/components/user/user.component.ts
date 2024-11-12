@@ -43,7 +43,6 @@ export class UserComponent implements OnInit {
     bulkDeleteDialog: boolean = false            // Popup for deleting table items
     selected: User[] = []                        // Table items chosen by user
     selectedUserRole: string                     // User Role chosen by user
-    roles: Role[] = []                           // Possible roles
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -52,7 +51,7 @@ export class UserComponent implements OnInit {
 
     constructor(
         public userService: UserService,
-        public roleService: RoleService,
+        private roleService: RoleService,
         private messageService: MessageService,
         private fb: FormBuilder) {
 
@@ -95,13 +94,6 @@ export class UserComponent implements OnInit {
 
         // Initialize the password validators according to the initial value of the id
         this.setPasswordValidators(this.userForm.get('id')?.value)
-
-        // Get roles for selector
-        this.roleService.getRolesForSelector().subscribe({
-            next: (data) => {
-                this.roles = data
-            }
-        })
 
         // Form validation
         this.isFormValid$ = this.formChanges$.pipe(
@@ -277,6 +269,14 @@ export class UserComponent implements OnInit {
      */
     cancel() {
         this.userForm.reset(this.originalFormValues)
+    }
+
+    getRoleStyleClass(roleId: string): string {
+        return this.roleService.getRoleStyleClass(roleId)
+    }
+    
+    getRoleName(roleId: string): string {
+        return this.roleService.getRoleName(roleId)
     }
 
     /**

@@ -53,26 +53,9 @@
                                    style="width:20%; min-width:15rem;"/>
                         </th>
                         <th>
-                            <p-dropdown
-                                inputId="rolefilter"
-                                [options]="roles"
-                                optionLabel="name"
-                                optionValue="id"
-                                placeholder="Keresés..."
-                                emptyMessage="Nincs találat..."
-                                [showClear]="true"
-                                (onChange)="onFilter($event, 'user_rolesid')">
-                                <ng-template let-option pTemplate="item">
-                                    <span [ngClass]="roleService.getRoleStyleClass(option.id)">
-                                        {{option.name}}
-                                    </span>
-                                </ng-template>
-                                <ng-template pTemplate="selectedItem">
-                                    <span [ngClass]="roleService.getRoleStyleClass(filterValues['user_rolesid'])">
-                                        {{roleService.getRoleName(filterValues['user_rolesid'])}}
-                                    </span>
-                                </ng-template>
-                            </p-dropdown>
+                            <app-role-selector (change)="onFilter($event, 'user_rolesid')"
+                                               [showClear]="true">
+                            </app-role-selector>
                         </th>
                         <th>
                             <input pInputText
@@ -102,8 +85,8 @@
                         </td>
                         <td>
                             <span class="p-column-title">Szerepkör</span>
-                            <span [ngClass]="roleService.getRoleStyleClass(user.user_rolesid)">
-                                {{roleService.getRoleName(user.user_rolesid)}}
+                            <span [ngClass]="getRoleStyleClass(user.user_rolesid)">
+                                {{getRoleName(user.user_rolesid)}}
                             </span>
                         </td>
                         <td>
@@ -164,31 +147,9 @@
                 <!-- Roles -->
                 <div class="field mb-4 col-12">
                     <label for="user_rolesid" class="font-medium text-900">Szerepkör</label>
-                    <!-- TODO: Make common role selector -->
-                    <p-dropdown
-                        id="user_rolesid"
-                        formControlName="user_rolesid"
-                        [options]="roles"
-                        optionLabel="name"
-                        optionValue="id"
-                        placeholder="Válasszon szerepkört..."
-                        emptyMessage="Nincs találat..."
-                        [showClear]="true"
-                        [virtualScroll]="true"
-                        [virtualScrollItemSize]="30">
-                        <ng-template let-option pTemplate="item">
-                            <span [ngClass]="roleService.getRoleStyleClass(option.id)">
-                                {{option.name}}
-                            </span>
-                        </ng-template>
-                        <ng-template pTemplate="selectedItem">
-                            <span [ngClass]="roleService.getRoleStyleClass(userForm.get('user_rolesid')?.value)">
-                                {{roleService.getRoleName(userForm.get('user_rolesid')?.value)}}
-                            </span>
-                        </ng-template>
-                    </p-dropdown>
-                    <div *ngIf="userForm.get('user_rolesid')?.invalid && userForm.get('user_rolesid')?.dirty">
-                        <small *ngIf="userForm.get('user_rolesid')?.errors?.['required']" class="p-error">Kötelező kitölteni</small>
+                    <app-role-selector [parentForm]="userForm" controlName="user_rolesid"></app-role-selector>
+                    <div *ngIf="user_rolesid?.dirty && user_rolesid?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
                     </div>
                 </div>
 
