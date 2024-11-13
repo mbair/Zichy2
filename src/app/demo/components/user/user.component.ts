@@ -74,9 +74,9 @@ export class UserComponent implements OnInit {
 
     ngOnInit() {
         // Permissions
-        this.canCreate = this.userService.hasRole(['Super Admin', 'Nagy Admin'])
-        this.canEdit = this.userService.hasRole(['Super Admin', 'Nagy Admin'])
-        this.canDelete = this.userService.hasRole(['Super Admin', 'Nagy Admin'])
+        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canCreate => this.canCreate = canCreate)
+        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canEdit => this.canEdit = canEdit)
+        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
 
         // Users
         this.userObs$ = this.userService.userObs;
@@ -331,15 +331,6 @@ export class UserComponent implements OnInit {
             // Query for data changes
             this.doQuery()
         }
-    }
-
-    /**
-     * Checks if the user has any of the given roles
-     * @param roles role names
-     * @returns true if the user has any of the roles, false otherwise
-     */
-    hasRole(roles: string[]): boolean {
-        return this.userService.hasRole(roles)
     }
 
     // Don't delete this, its needed from a performance point of view,

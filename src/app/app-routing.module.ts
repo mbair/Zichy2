@@ -13,16 +13,87 @@ const routes: Routes = [
         path: '', component: AppLayoutComponent,
         children: [
             // Need Authentication
-            { path: '', loadChildren: () => import('./demo/components/dashboards/dashboards.module').then(m => m.DashboardsModule), canActivate: [AuthGuard] },
-            { path: 'rfid-tag', data: { breadcrumb: 'RFID címke' }, loadChildren: () => import('./demo/components/rfid-tag/rfid-tag.module').then(m => m.RFIDTagModule), canActivate: [AuthGuard] },
-            { path: 'user', data: { breadcrumb: 'Felhasználók' }, loadChildren: () => import('./demo/components/user/user.module').then(m => m.UserModule), canActivate: [AuthGuard] },
-            { path: 'pages', data: { breadcrumb: 'Pages' }, loadChildren: () => import('./demo/components/pages/pages.module').then(m => m.PagesModule), canActivate: [AuthGuard] },
-            { path: 'conference', data: { breadcrumb: 'Konferenciák' }, loadChildren: () => import('./demo/components/conference/conference.module').then(m => m.ConferenceModule), canActivate: [AuthGuard] },
-            { path: 'profile', data: { breadcrumb: 'Profil' }, loadChildren: () => import('./demo/components/profile/profile.module').then(m => m.ProfileModule), canActivate: [AuthGuard] },
-            { path: 'documentation', data: { breadcrumb: 'Documentation' }, loadChildren: () => import('./demo/components/documentation/documentation.module').then(m => m.DocumentationModule), canActivate: [AuthGuard] },
-            { path: 'logs', data: { breadcrumb: 'Logok' }, loadChildren: () => import('./demo/components/logs/logs.module').then(m => m.LogsModule), canActivate: [AuthGuard] },
-            { path: 'guest', data: { breadcrumb: 'Vendégek' }, loadChildren: () => import('./demo/components/vendegek/vendegek.module').then(m => m.VendegekModule), canActivate: [AuthGuard] },
-            { path: 'room', data: { breadcrumb: 'Szobák' }, loadChildren: () => import('./demo/components/szobak/szobak.module').then(m => m.SzobakModule), canActivate: [AuthGuard] },
+            { 
+                path: '', 
+                loadChildren: () => import('./demo/components/dashboards/dashboards.module').then(m => m.DashboardsModule), 
+                canActivate: [AuthGuard] 
+            },
+            { 
+                path: 'rfid-tag', 
+                data: { 
+                    breadcrumb: 'RFID címke',
+                    requiredRoles: ['Super Admin', 'Nagy Admin']
+                }, 
+                loadChildren: () => import('./demo/components/rfid-tag/rfid-tag.module').then(m => m.RFIDTagModule), 
+                canActivate: [AuthGuard] 
+            },
+            { 
+                path: 'user', 
+                data: { 
+                    breadcrumb: 'Felhasználók',
+                    requiredRoles: ['Super Admin', 'Nagy Admin']
+                }, 
+                loadChildren: () => import('./demo/components/user/user.module').then(m => m.UserModule), 
+                canActivate: [AuthGuard] 
+            },
+            { 
+                path: 'pages', 
+                data: { 
+                    breadcrumb: 'Pages' 
+                }, 
+                loadChildren: () => import('./demo/components/pages/pages.module').then(m => m.PagesModule), 
+                canActivate: [AuthGuard] 
+            },
+            { 
+                path: 'conference', 
+                data: { 
+                    breadcrumb: 'Konferenciák'
+                }, 
+                loadChildren: () => import('./demo/components/conference/conference.module').then(m => m.ConferenceModule), 
+                canActivate: [AuthGuard] 
+            },
+            { 
+                path: 'profile', 
+                data: { 
+                    breadcrumb: 'Profil'
+                }, 
+                loadChildren: () => import('./demo/components/profile/profile.module').then(m => m.ProfileModule), 
+                canActivate: [AuthGuard] 
+            },
+            { 
+                path: 'documentation', 
+                data: { 
+                    breadcrumb: 'Documentation'
+                }, 
+                loadChildren: () => import('./demo/components/documentation/documentation.module').then(m => m.DocumentationModule), 
+                canActivate: [AuthGuard] 
+            },
+            { 
+                path: 'logs', 
+                data: { 
+                    breadcrumb: 'Logok',
+                    requiredRoles: ['Super Admin', 'Nagy Admin']
+                }, 
+                loadChildren: () => import('./demo/components/logs/logs.module').then(m => m.LogsModule), 
+                canActivate: [AuthGuard] 
+            },
+            { 
+                path: 'guest', 
+                data: { 
+                    breadcrumb: 'Vendégek' 
+                }, 
+                loadChildren: () => import('./demo/components/vendegek/vendegek.module').then(m => m.VendegekModule), 
+                canActivate: [AuthGuard] 
+            },
+            { 
+                path: 'room', 
+                data: { 
+                    breadcrumb: 'Szobák',
+                    requiredRoles: ['Super Admin', 'Nagy Admin']
+                }, 
+                loadChildren: () => import('./demo/components/szobak/szobak.module').then(m => m.SzobakModule), 
+                canActivate: [AuthGuard] 
+            },
         ]
     },
 

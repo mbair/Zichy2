@@ -120,10 +120,10 @@ export class ConferenceListComponent implements OnInit {
 
     ngOnInit() {
         // Permissions
-        this.canCreate = this.userService.hasRole(['Super Admin', 'Nagy Admin'])
-        this.canEdit = this.userService.hasRole(['Super Admin', 'Nagy Admin'])
-        this.canDelete = this.userService.hasRole(['Super Admin', 'Nagy Admin'])
-        this.isOrganizer = this.userService.hasRole(['Szervezo'])
+        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canCreate => this.canCreate = canCreate)
+        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canEdit => this.canEdit = canEdit)
+        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
+        this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => this.isOrganizer = isOrganizer)
         this.loggedInUserId = this.userService.getLoggedInUserId()
 
         // Conferences

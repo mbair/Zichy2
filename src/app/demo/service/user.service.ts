@@ -208,8 +208,8 @@ export class UserService {
      * Get User Role
      * @returns
      */
-    public getuserrole(): string {
-        return localStorage.getItem('userrole') || "No Role"
+    public getUserRole(): Observable<string> {
+        return of(localStorage.getItem('userrole') || "No Role")
     }
 
     /**
@@ -219,11 +219,16 @@ export class UserService {
     getLoggedInUserId(): number {
         return Number(localStorage.getItem('userid'))
     }
-
-    // Role check
-    public hasRole(roles: string[]): boolean {
-        const userrole = this.getuserrole()
-        return roles.includes(userrole)
+    
+    /**
+     * Check if the user has any of the given roles
+     * @param roles role names
+     * @returns true if the user has any of the roles, false otherwise
+     */
+    public hasRole(roles: string[] = []): Observable<boolean> {
+        return this.getUserRole().pipe(
+            map(userRole => roles.includes(userRole))
+        )
     }
 
     /**
