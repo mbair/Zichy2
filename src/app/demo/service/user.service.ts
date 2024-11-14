@@ -209,7 +209,8 @@ export class UserService {
      * @returns
      */
     public getUserRole(): Observable<string> {
-        return of(localStorage.getItem('userrole') || "No Role")
+        const role = localStorage.getItem('userrole') || "No Role"
+        return of(role)
     }
 
     /**
@@ -227,7 +228,7 @@ export class UserService {
      */
     public hasRole(roles: string[] = []): Observable<boolean> {
         return this.getUserRole().pipe(
-            map(userRole => roles.includes(userRole))
+            map(userRole => roles.length === 0 || roles.includes(userRole))
         )
     }
 
