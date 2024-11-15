@@ -82,7 +82,7 @@ const routes: Routes = [
                 data: { 
                     breadcrumb: 'Vendégek' 
                 }, 
-                loadChildren: () => import('./demo/components/vendegek/vendegek.module').then(m => m.VendegekModule), 
+                loadChildren: () => import('./demo/components/guest/guest.module').then(m => m.GuestModule), 
                 canActivate: [AuthGuard] 
             },
             { 

@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { VendegekRoutingModule } from './vendegek-routing.module';
-import { VendegekComponent } from './vendegek.component';
+import { GuestRoutingModule } from './guest-routing.module';
+import { GuestComponent } from './guest.component';
 import { TableModule } from 'primeng/table';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ButtonModule } from 'primeng/button';
@@ -28,7 +28,7 @@ import { SelectorsModule } from '../../selectors/selectors.module';
 @NgModule({
     imports: [
         CommonModule,
-        VendegekRoutingModule,
+        GuestRoutingModule,
         TableModule,
         FileUploadModule,
         FormsModule,
@@ -52,6 +52,6 @@ import { SelectorsModule } from '../../selectors/selectors.module';
         CalendarModule,
         SelectorsModule,
     ],
-    declarations: [VendegekComponent]
+    declarations: [GuestComponent]
 })
-export class VendegekModule { }
+export class GuestModule { }

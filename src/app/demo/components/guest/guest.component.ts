@@ -24,7 +24,7 @@ moment.locale('hu')
 
 @Component({
     selector: 'guests',
-    templateUrl: './vendegek.component.html',
+    templateUrl: './guest.component.html',
     providers: [MessageService]
 })
 
@@ -32,7 +32,7 @@ moment.locale('hu')
 // BUT!!! Don't delete ngOnDestroy, it has to stay here!
 @AutoUnsubscribe()
 
-export class VendegekComponent implements OnInit {
+export class GuestComponent implements OnInit {
     @ViewChild('identifier') identifierElement: ElementRef;
 
     apiURL: string;                            // API URL depending on whether we are working on test or production
