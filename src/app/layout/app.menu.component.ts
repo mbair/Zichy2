@@ -16,6 +16,7 @@ export class AppMenuComponent implements OnInit {
         public userService: UserService) { }
 
     ngOnInit() {
+        // Get user roles
         this.userService.getUserRole().subscribe((roles: any) => {
             this.userRoles = roles
 
@@ -420,9 +421,16 @@ export class AppMenuComponent implements OnInit {
         })
     }
 
+    /**
+     * Filters the given items array to only include items that have either no required roles
+     * or have required roles that are included in the userRoles array.
+     * @param items array of items to filter
+     * @returns filtered array of items
+     */
     getFilteredItems(items: any[]): any[] {
         return items.filter(item => 
-            !item.requiredRoles || item.requiredRoles.some((role: any) => this.userRoles.includes(role))
-        );
+            item.requiredRoles.length === 0 || 
+            item.requiredRoles.some((role: string) => this.userRoles.includes(role))
+        )
     }
 }

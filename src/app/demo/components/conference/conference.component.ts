@@ -20,9 +20,8 @@ import * as moment from 'moment';
 moment.locale('hu')
 
 @Component({
-    selector: 'conferencelist',
-    templateUrl: './conferencelist.component.html',
-    styleUrls: ['./conferencelist.component.scss'],
+    selector: 'conference',
+    templateUrl: './conference.component.html',
     providers: [MessageService]
 })
 
@@ -30,7 +29,7 @@ moment.locale('hu')
 // BUT!!! Don't delete ngOnDestroy, it has to stay here!
 @AutoUnsubscribe()
 
-export class ConferenceListComponent implements OnInit {
+export class ConferenceComponent implements OnInit {
 
     loading: boolean = true                      // Loading overlay trigger value
     cols: any[] = []                             // Table columns
