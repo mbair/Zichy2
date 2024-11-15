@@ -104,17 +104,6 @@ export class AppMenuComponent implements OnInit {
                         }
                     ]
                 }
-    
-                        // {
-                        //     label: 'Egyéb szolgáltatások',
-                        //     icon: 'pi pi-fw pi-pencil',
-                        //     // routerLink: ['/pages/egyeb']
-                        // },
-                        // {
-                        //     label: 'Étel Voucher',
-                        //     icon: 'pi pi-fw pi-pencil',
-                        //     // routerLink: ['/pages/food-vouchers']
-                        // },
             ]
     
     
