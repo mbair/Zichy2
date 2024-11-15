@@ -3,7 +3,6 @@ import { RouterModule } from '@angular/router';
 
 @NgModule({
     imports: [RouterModule.forChild([
-        { path: 'etelek', data: { breadcrumb: 'Ételek' }, loadChildren: () => import('./etelek/etelek.module').then(m => m.EtelekModule) },
         { path: 'food-sensitivities', data: { breadcrumb: 'Étrendek' }, loadChildren: () => import('./food-sensitivities/food-sensitivities.module').then(m => m.FoodSensitivitiesModule) },
         { path: 'food-vouchers', data: { breadcrumb: 'Étel kuponok' }, loadChildren: () => import('./food-vouchers/food-vouchers.module').then(m => m.FoodVouchersModule) },
         { path: 'empty', data: { breadcrumb: 'Empty' }, loadChildren: () => import('./empty/emptydemo.module').then(m => m.EmptyDemoModule) },

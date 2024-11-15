@@ -111,11 +111,6 @@ export class AppMenuComponent implements OnInit {
                         //     // routerLink: ['/pages/egyeb']
                         // },
                         // {
-                        //     label: 'Ételek',
-                        //     icon: 'pi pi-fw pi-circle',
-                        //     // routerLink: ['/pages/etelek']
-                        // },
-                        // {
                         //     label: 'Étel Voucher',
                         //     icon: 'pi pi-fw pi-pencil',
                         //     // routerLink: ['/pages/food-vouchers']
