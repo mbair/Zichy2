@@ -4,8 +4,6 @@ import { Router } from '@angular/router';
 import { AuthService } from 'src/app/demo/service/auth.service';
 import { MessageService } from 'primeng/api';
 
-import { LayoutService } from 'src/app/layout/service/app.layout.service';
-
 @Component({
     templateUrl: './login.component.html',
     providers: [MessageService],
