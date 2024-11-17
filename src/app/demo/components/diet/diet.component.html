@@ -1,0 +1,209 @@
+<div class="grid">
+    <div class="col-12">
+        <div class="card px-0 py-0">
+            <p-table #dt
+                     dataKey="id"
+                     [value]="tableData"
+                     responsiveLayout="scroll"
+                     [rows]="rowsPerPage"
+                     [totalRecords]="totalRecords"
+                     [globalFilterFields]="['name']"
+                     [paginator]="true"
+                     [rowsPerPageOptions]="rowsPerPageOptions"
+                     [showCurrentPageReport]="true"
+                     currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
+                     [(selection)]="selected"
+                     selectionMode="multiple"
+                     [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
+                     [rowHover]="true"
+                     (onLazyLoad)="onLazyLoad($event)"
+                     [lazy]="true">
+
+                <ng-template pTemplate="caption">
+                    <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                        <h5 class="m-0">Étrendek</h5>
+                        <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <i class="pi pi-search"></i>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."  class="w-full sm:w-auto"/>
+                        </span>
+                        <span class="block mt-2 md:mt-0">
+                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="create()" [disabled]="!canCreate"></button>
+                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="bulkDeleteDialog = true" [disabled]="!selected || !selected.length || !canDelete"></button>
+                        </span>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th></th>
+                        <th pSortableColumn="name">Név <p-sortIcon field="name"></p-sortIcon></th>
+                        <th pSortableColumn="color">Szín <p-sortIcon field="color"></p-sortIcon></th>
+                        <th pSortableColumn="enabled">Engedélyezve <p-sortIcon field="enabled"></p-sortIcon></th>
+                        <th></th>
+                    </tr>
+                    <tr>
+                        <th style="width: 3rem">
+                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'name')"
+                                   placeholder="Keresés..."
+                                   style="min-width:30rem;"/>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'color')"
+                                   placeholder="Keresés..."
+                                   style="min-width:20rem;"/>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'enabled')"
+                                   placeholder="Keresés..."
+                                   style="min-width:15rem;"/>
+                        </th>
+                        <th></th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-diet>
+                    <tr>
+                        <td>
+                            <p-tableCheckbox [value]="diet"></p-tableCheckbox>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Név</span>
+                            {{diet.name}}
+                        </td>
+                        <td>
+                            <span class="p-column-title">Szín</span>
+                            <span [ngClass]="'diet-badge'" 
+                                  [ngStyle]="{
+                                        'background-color': colors[diet.color]?.backgroundColor, 
+                                        'color': colors[diet.color]?.textColor
+                                  }">
+                                {{diet.color}}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="p-column-title">Engedélyezve</span>
+							<i class="pi" [ngClass]="{'true-icon pi-check-circle text-green-500': diet.enabled, 'false-icon pi-times-circle text-pink-500': !diet.enabled}"></i>
+						</td>
+                        <td>
+                            <div class="flex">
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(diet)" [disabled]="!canEdit"></button>
+                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = diet; deleteDialog = true" [disabled]="!canDelete"></button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td [attr.colspan]="5" class="text-center">Nincs találat...</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+
+        <!-- New / Update sidebar -->
+        <p-sidebar id="sidebar" [(visible)]="sidebar" position="right" styleClass="p-sidebar-md">
+            
+            <!-- Sidebar header -->
+            <ng-template pTemplate="header">
+                <span class="font-semibold text-xl">
+                    {{ name?.value ? 'Étrend adatai' : 'Új étrend' }}
+                </span>
+            </ng-template>
+            
+            <form [formGroup]="dietForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
+                
+                <!-- Diet Id -->
+                <input formControlName="id" type="hidden">
+
+                <!-- Name -->
+                <div class="field mb-4 col-12">
+                    <label for="name" class="font-medium text-900">Név</label>
+                    <input id="name" type="text" pInputText formControlName="name">
+                    <div *ngIf="name?.dirty && name?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+                
+                <!-- Color -->
+                <div class="field mb-4 col-12">
+                    <label for="color" class="font-medium text-900">Szín</label>
+                    <input id="color" type="text" pInputText formControlName="color">
+                    <div *ngIf="color?.dirty && color?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- Enabled -->
+                <div class="field mb-4 col-12">
+                    <label for="enabled" class="font-medium text-900">Engedélyezve</label>
+                    <div class="block">
+                        <p-inputSwitch id="enabled" formControlName="enabled" />
+                    </div>
+                    <div *ngIf="enabled?.dirty && enabled?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+            </form>
+
+            <ng-template pTemplate="footer">
+                <div class="flex justify-content-end ap-2">
+                    <button pButton 
+                            pRipple 
+                            label="Mégsem" 
+                            icon="pi pi-times" 
+                            class="p-button-outlined"
+                            (click)="cancel()" 
+                            [disabled]="!dietForm.dirty">
+                    </button>
+                    <button pButton 
+                            pRipple 
+                            label="Mentés" 
+                            icon="pi pi-check" 
+                            class="p-button ml-2" 
+                            (click)="save()"
+                            [disabled]="!dietForm.valid || !dietForm.dirty">
+                    </button>
+                </div>
+            </ng-template>
+        </p-sidebar>
+
+        <!-- Delete dialog -->
+        <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
+            <div class="flex align-items-center justify-content-center">
+                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+                <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.name}}</b> étrendet?</span>
+            </div>
+            <ng-template pTemplate="footer">
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="deleteDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="delete()"></button>
+            </ng-template>
+        </p-dialog>
+
+        <!-- Bulk Delete dialog -->
+        <p-dialog [(visible)]="bulkDeleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
+            <div class="flex align-items-center justify-content-center">
+                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+                <span>Biztosan törölni akarja a kiválasztott étrendeket?</span>
+            </div>
+            <ng-template pTemplate="footer">
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="bulkDeleteDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="deleteSelected()"></button>
+            </ng-template>
+        </p-dialog>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<p-blockUI [autoZIndex]="true" [blocked]="loading">
+    <p-progressSpinner></p-progressSpinner>
+</p-blockUI>
+
+<!-- Notifications -->
+<p-toast></p-toast>

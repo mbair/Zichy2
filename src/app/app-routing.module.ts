@@ -94,6 +94,15 @@ const routes: Routes = [
                 loadChildren: () => import('./demo/components/szobak/szobak.module').then(m => m.SzobakModule), 
                 canActivate: [AuthGuard] 
             },
+            { 
+                path: 'diet', 
+                data: { 
+                    breadcrumb: 'Étrendek',
+                    requiredRoles: ['Super Admin', 'Nagy Admin']
+                }, 
+                loadChildren: () => import('./demo/components/diet/diet.module').then(m => m.DietModule), 
+                canActivate: [AuthGuard] 
+            }
         ]
     },
 

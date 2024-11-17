@@ -66,7 +66,7 @@ export class AppMenuComponent implements OnInit {
                         {
                             label: 'Étrendek',
                             icon: 'pi pi-fw pi-pencil',
-                            routerLink: ['/pages/food-sensitivities'],
+                            routerLink: ['/diet'],
                             requiredRoles: ['Super Admin', 'Nagy Admin']
                         },
                         // {

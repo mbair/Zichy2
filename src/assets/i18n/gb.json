@@ -104,5 +104,8 @@
     "Elküld": "Send",
     "Hozzáférés megtagadva": "Access denied",
     "Nincs jogosultsága az oldal eléréséhez": "You don't have the permissions to access this page",
-    "Tovább az irányítópultra": "Go to Dashboard"
+    "Tovább az irányítópultra": "Go to Dashboard",
+    "Képernyő zárolva": "Screen Locked",
+    "Kérjük, adja meg jelszavát": "Please enter your password",
+    "Felold": "Unlock"
 }

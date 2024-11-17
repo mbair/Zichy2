@@ -10,8 +10,9 @@ import { AuthService } from 'src/app/demo/service/auth.service';
 })
 export class LockScreenComponent { 
 
-	loading: boolean = false;
-    loginForm: FormGroup;
+	loading: boolean = false
+    loginForm: FormGroup
+    username: string | null
 
     constructor(
         private fb: FormBuilder,
@@ -22,6 +23,8 @@ export class LockScreenComponent {
         this.loginForm = this.fb.group({
             password: ['', Validators.required],
         })
+
+        this.username = localStorage.getItem('username')
     }
 
 	unlock() {
