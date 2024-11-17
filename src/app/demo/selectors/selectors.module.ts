@@ -14,6 +14,7 @@ import { PaymentSelectorComponent } from './payment-selector/payment-selector.co
 import { RoomTypeSelectorComponent } from './roomtype-selector/roomtype-selector.component';
 import { UserSelectorComponent } from './user-selector/user-selector.component';
 import { RoleSelectorComponent } from './role-selector/role-selector.component';
+import { ColorSelectorComponent } from './color-selector/color-selector.component';
 
 @NgModule({
     declarations: [
@@ -26,6 +27,7 @@ import { RoleSelectorComponent } from './role-selector/role-selector.component';
         RoomTypeSelectorComponent,
         UserSelectorComponent,
         RoleSelectorComponent,
+        ColorSelectorComponent,
     ],
     imports: [
         CommonModule,
@@ -45,6 +47,7 @@ import { RoleSelectorComponent } from './role-selector/role-selector.component';
         RoomTypeSelectorComponent,
         UserSelectorComponent,
         RoleSelectorComponent,
+        ColorSelectorComponent,
     ],
 })
 export class SelectorsModule {}

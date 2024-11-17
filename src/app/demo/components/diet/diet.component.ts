@@ -290,14 +290,9 @@ export class DietComponent implements OnInit {
     }
 
     /**
-     * Set colors based on the CSS variables. This function is used to set the colors for the
-     * table, sidebar, and other elements. The colors are set as follows:
-     * - surface: background color and text color
-     * - gray: background color and text color
-     * - teal: background color and text color
-     * - yellow: background color and text color
-     * - blue: background color and text color
-     * - red: background color and text color
+     * Sets the available colors for the color selector component.
+     * The colors are set to the values of the CSS variables for the colors
+     * in the theme.
      */
     setColors() {
         let rootStyles = getComputedStyle(document.documentElement),

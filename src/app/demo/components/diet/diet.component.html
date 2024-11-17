@@ -52,11 +52,10 @@
                                    style="min-width:30rem;"/>
                         </th>
                         <th>
-                            <input pInputText
-                                   type="text"
-                                   (input)="onFilter($event, 'color')"
-                                   placeholder="Keresés..."
-                                   style="min-width:20rem;"/>
+                            <app-color-selector 
+                                (change)="onFilter($event, 'color')" 
+                                [showClear]="true">
+                            </app-color-selector>
                         </th>
                         <th>
                             <input pInputText
@@ -79,7 +78,7 @@
                         </td>
                         <td>
                             <span class="p-column-title">Szín</span>
-                            <span [ngClass]="'diet-badge'" 
+                            <span [ngClass]="'color-badge'" 
                                   [ngStyle]="{
                                         'background-color': colors[diet.color]?.backgroundColor, 
                                         'color': colors[diet.color]?.textColor
@@ -134,7 +133,7 @@
                 <!-- Color -->
                 <div class="field mb-4 col-12">
                     <label for="color" class="font-medium text-900">Szín</label>
-                    <input id="color" type="text" pInputText formControlName="color">
+                    <app-color-selector [parentForm]="dietForm" controlName="color"></app-color-selector>
                     <div *ngIf="color?.dirty && color?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
