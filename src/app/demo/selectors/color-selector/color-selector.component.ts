@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
+import { ColorService } from '../../service/color.service';
 import { DropdownChangeEvent } from 'primeng/dropdown';
 
 export interface changeEvent {
@@ -21,7 +22,8 @@ export class ColorSelectorComponent {
     colors: any[] = []               // PrimeNG colors
     selectedColor: string = ''       // Selected color
 
-    constructor(private translate: TranslateService) {}
+    constructor(private translate: TranslateService, 
+                private colorService: ColorService) {}
 
     /**
      * Lifecycle hook: called when the component is initialized.
@@ -60,11 +62,10 @@ export class ColorSelectorComponent {
      * in the theme.
      */
     setColors() {
-        const colors = ['gray', 'teal', 'yellow', 'blue', 'red', 'surface', 'primary']
-        colors.forEach((key) => {
+        this.colorService.getColors().forEach((color) => {
             this.colors.push({
-                label: key,
-                value: key
+                label: color,
+                value: color
             })
         })
     }
