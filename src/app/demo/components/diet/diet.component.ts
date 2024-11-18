@@ -6,6 +6,7 @@ import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { DietService } from '../../service/diet.service';
 import { UserService } from '../../service/user.service';
+import { ColorService } from '../../service/color.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Diet } from '../../api/diet';
 import * as moment from 'moment';
@@ -53,6 +54,7 @@ export class DietComponent implements OnInit {
     constructor(
         private dietService: DietService,
         private userService: UserService,
+        private colorService: ColorService,
         private messageService: MessageService,
         private fb: FormBuilder) {
 
@@ -83,9 +85,6 @@ export class DietComponent implements OnInit {
                 this.page = data.currentPage || 0
             }
         })
-
-        // Define diet colors
-        this.setColors()
 
         // Form validation
         this.isFormValid$ = this.formChanges$.pipe(
@@ -289,23 +288,8 @@ export class DietComponent implements OnInit {
         }
     }
 
-    /**
-     * Sets the available colors for the color selector component.
-     * The colors are set to the values of the CSS variables for the colors
-     * in the theme.
-     */
-    setColors() {
-        let rootStyles = getComputedStyle(document.documentElement),
-            colorKeys = ['gray', 'teal', 'yellow', 'blue', 'red', 'surface']
-
-        colorKeys.forEach((key) => {
-            let backgroundColorIntensity = key === 'surface' ? 800 : 200,
-                textColorIntensity = key === 'surface' ? 200 : 800
-             
-            this.colors[key] = this.colors[key] || {}
-            this.colors[key].backgroundColor = rootStyles.getPropertyValue(`--${key}-${backgroundColorIntensity}`).trim()
-            this.colors[key].textColor = rootStyles.getPropertyValue(`--${key}-${textColorIntensity}`).trim()
-        })
+    getStyleByColor(color: string) {
+        return this.colorService.getStyleByColor(color)
     }
 
     // Don't delete this, its needed from a performance point of view,
