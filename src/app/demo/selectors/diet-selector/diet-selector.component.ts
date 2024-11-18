@@ -1,7 +1,9 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
 import { DropdownChangeEvent } from 'primeng/dropdown';
+import { TranslateService } from '@ngx-translate/core';
+import { DietService } from '../../service/diet.service';
+import { ColorService } from '../../service/color.service';
 
 export interface changeEvent {
     value: string;
@@ -21,7 +23,9 @@ export class DietSelectorComponent {
     diets: any[] = []               // Available diets
     selectedDiet: string = ''       // Selected diet
 
-    constructor(private translate: TranslateService) {}
+    constructor(private translate: TranslateService, 
+                private dietService: DietService,
+                private colorService: ColorService) {}
 
     /**
      * Lifecycle hook: called when the component is initialized.
@@ -54,20 +58,18 @@ export class DietSelectorComponent {
         return this.parentForm.get(this.controlName) as FormControl
     }
 
+    getStyleByColor(color: string) {
+        return this.colorService.getStyleByColor(color)
+    }
+
     /**
      * Sets the available diet options for the diet selector component.
      * Translates the diet labels to the current language and maps them to their respective values.
      */
     setDiets() {
-        this.diets = [
-            { label: this.translate.instant('DIETS.NORMAL'), value: 'normál', style: 'normal' },
-            { label: this.translate.instant('DIETS.MILKFREE'), value: 'tejmentes', style: 'milkfree' },
-            { label: this.translate.instant('DIETS.LACTOSEFREE'), value: 'laktózmentes', style: 'lactosefree' },
-            { label: this.translate.instant('DIETS.GLUTENFREE'), value: 'gluténmentes', style: 'glutenfree' },
-            { label: this.translate.instant('DIETS.GLUTEN-LACTOSE-MILKFREE'), value: 'glutén-, laktóz-, tejmentes', style: 'gluten-lactose-milkfree' },
-            { label: this.translate.instant('DIETS.VEGETARIAN'), value: 'vegetáriánus', style: 'vegetarian' },
-            { label: this.translate.instant('DIETS.NOTHING'), value: 'nem kér étkezést', style: 'nothing' }
-        ]
+        this.dietService.getDietsForSelector().subscribe((diets: any) => {
+            this.diets = diets
+        })
     }
 
     /**

@@ -225,25 +225,4 @@ export class DietService {
         })
         return dietColor
     }
-
-    /**
-     * Get diet style by diet name
-     * @param dietName
-     * @returns
-     */
-    public getDietStyle(dietName: string): string {
-
-        // TODO: put style value into diets.color field
-        let diets = [
-            { value: 'normál', style: 'normal' },
-            { value: 'tejmentes', style: 'milkfree' },
-            { value: 'laktózmentes', style: 'lactosefree' },
-            { value: 'gluténmentes', style: 'glutenfree' },
-            { value: 'glutén-, laktóz-, tejmentes', style: 'gluten-lactose-milkfree' },
-            { value: 'vegetáriánus', style: 'vegetarian' },
-            { value: 'nem kér étkezést', style: 'nothing' }
-        ]
-
-        return diets.find(diet => diet.value === dietName)?.style ?? ''
-    }
 }
