@@ -246,41 +246,6 @@
     font-weight: 700;
     font-size: 12px;
     letter-spacing: .3px;
-
-    &.normal {
-        background: var(--surface-800);
-        color: var(--surface-200);
-    }
-
-    &.milkfree {
-        background: var(--blue-200);
-        color: var(--blue-800);
-    }
-
-    &.lactosefree {
-        background: var(--blue-200);
-        color: var(--blue-800);
-    }
-
-    &.glutenfree {
-        background: var(--yellow-200);
-        color: var(--yellow-800);
-    }
-
-    &.gluten-lactose-milkfree {
-        background: var(--red-200);
-        color: var(--red-800);
-    }
-
-    &.vegetarian {
-        background: var(--teal-200);
-        color: var(--teal-800);
-    }
-
-    &.nothing {
-        background: var(--gray-200);
-        color: var(--gray-800);
-    }
 }
 
 /* Meals */

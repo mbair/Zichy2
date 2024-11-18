@@ -160,7 +160,7 @@
                             {{guest.roomNum}}
                         </td>
                         <td>
-                            <span *ngIf="hasDietName(guest.diet)" [ngClass]="'diet-badge ' + getDietStyle(guest.diet)">
+                            <span *ngIf="hasDietName(guest.diet)" [ngClass]="'diet-badge'" [ngStyle]="getCombinedStyle(guest.diet)">
                                 {{guest.diet}}
                             </span>
                             <span class="p-column-title">Étrend</span>

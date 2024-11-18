@@ -13,13 +13,12 @@ import { DietService } from '../../service/diet.service';
 import { MealService } from '../../service/meal.service';
 import { CountryService } from '../../service/country.service';
 import { LogService } from '../../service/log.service';
+import { ColorService } from '../../service/color.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
 import * as moment from 'moment';
-
-
 moment.locale('hu')
 
 @Component({
@@ -67,6 +66,7 @@ export class GuestComponent implements OnInit {
     filterValues: { [key: string]: string } = {} // Table filter conditions
     rfidFilterValue: any;                      // Store for RFID filter value
     debounce: { [key: string]: any } = {}      // Search delay in filter field
+    combinedCache = new Map<string, any>()     // Color + Style cache
 
     public selectedFile: File;
     private guestObs$: Observable<any> | undefined;
@@ -84,7 +84,8 @@ export class GuestComponent implements OnInit {
         private mealService: MealService,
         private countryService: CountryService,
         private messageService: MessageService,
-        private logService: LogService) { }
+        private logService: LogService,
+        private colorService: ColorService) { }
 
     ngOnInit() {
         // Set API URL
@@ -583,8 +584,17 @@ export class GuestComponent implements OnInit {
         return this.dietService.getDietColor(diet)
     }
 
-    getDietStyle(diet: string): string {
-        return this.dietService.getDietStyle(diet)
+    getStyleByColor(color: string) {
+        return this.colorService.getStyleByColor(color)
+    }
+
+    getCombinedStyle(diet: string): any {
+        if (!this.combinedCache.has(diet)) {
+            const color = this.getDietColor(diet)
+            const style = this.getStyleByColor(color)
+            this.combinedCache.set(diet, style)
+        }
+        return this.combinedCache.get(diet)
     }
 
     getAge(birthDate: string): string {

@@ -61,12 +61,13 @@
     "Hiba történt": "Something went wrong",
     "Válasszon...": "Select...",
     "Nincs találat...": "No results found...",
-    "MEALS": {
-        "BREAKFAST": "Breakfast",
-        "LUNCH": "Lunch",
-        "DINNER": "Dinner",
-        "NOTHING": "Doesn't ask for meal"
-    },
+    "normál": "Normal",
+    "tejmentes": "Milk-free",
+    "laktózmentes": "Lactose-free",
+    "gluténmentes": "Gluten-free",
+    "glutén-, laktóz-, tejmentes": "Gluten-, lactose-, milkfree",
+    "vegetáriánus": "Vegetarian",
+    "nem kér étkezést": "Doesn't ask for meal",
     "DIETS": {
         "NORMAL": "Normal",
         "MILKFREE": "Milk-free",
@@ -74,6 +75,12 @@
         "GLUTENFREE": "Gluten-free",
         "GLUTEN-LACTOSE-MILKFREE": "Gluten-, lactose-, milkfree",
         "VEGETARIAN": "Vegetarian",
+        "NOTHING": "Doesn't ask for meal"
+    },
+    "MEALS": {
+        "BREAKFAST": "Breakfast",
+        "LUNCH": "Lunch",
+        "DINNER": "Dinner",
         "NOTHING": "Doesn't ask for meal"
     },
     "ROOMTYPES": {

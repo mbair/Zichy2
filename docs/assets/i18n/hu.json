@@ -61,12 +61,13 @@
     "Hiba történt": "Hiba történt",
     "Válasszon...": "Válasszon...",
     "Nincs találat...": "Nincs találat...",
-    "MEALS": {
-        "BREAKFAST": "Reggeli",
-        "LUNCH": "Ebéd",
-        "DINNER": "Vacsora",
-        "NOTHING": "Nem kér étkezést"
-    },
+    "normál": "normál",
+    "tejmentes": "tejmentes",
+    "laktózmentes": "laktózmentes",
+    "gluténmentes": "gluténmentes",
+    "glutén-, laktóz-, tejmentes": "glutén-, laktóz-, tejmentes",
+    "vegetáriánus": "vegetáriánus",
+    "nem kér étkezést": "nem kér étkezést",
     "DIETS": {
         "NORMAL": "Normál",
         "MILKFREE": "Tejmentes",
@@ -74,6 +75,12 @@
         "GLUTENFREE": "Gluténmentes",
         "GLUTEN-LACTOSE-MILKFREE": "Glutén-, laktóz-, tejmentes",
         "VEGETARIAN": "Vegetáriánus",
+        "NOTHING": "Nem kér étkezést"
+    },
+    "MEALS": {
+        "BREAKFAST": "Reggeli",
+        "LUNCH": "Ebéd",
+        "DINNER": "Vacsora",
         "NOTHING": "Nem kér étkezést"
     },
     "ROOMTYPES": {
