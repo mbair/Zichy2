@@ -8,10 +8,24 @@ export class ColorService {
     colors: string[] = []       // List of available colors
 
     constructor() {
-        this.colors = ['gray', 'teal', 'yellow', 'blue', 'red', 'surface', 'primary']
+        this.colors = [
+            'surface',
+            'blue',
+            'green',
+            'yellow',
+            'cyan',
+            'pink',
+            'indigo',
+            'teal',
+            'orange',
+            'bluegray',
+            'purple',
+            'red',
+            'gray'
+        ]
     }
 
-    getColors() {
+    getColors(): string[] {
         return this.colors
     }
 

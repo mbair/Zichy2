@@ -288,10 +288,6 @@ export class DietComponent implements OnInit {
         }
     }
 
-    getStyleByColor(color: string) {
-        return this.colorService.getStyleByColor(color)
-    }
-
     // Don't delete this, its needed from a performance point of view,
     ngOnDestroy(): void {
     }

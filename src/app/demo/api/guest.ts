@@ -18,6 +18,7 @@ export interface Guest {
     enabled?: number;
     conferenceName?: string;
     diet?: string;
+    dietColor?: string;
     advancePaid?: boolean;
     email?: string;
     telephone?: string;

@@ -11,12 +11,12 @@
             appendTo="body">
 
     <ng-template pTemplate="item" let-option>
-        <span [ngClass]="'color-badge'" [ngStyle]="getStyleByColor(option?.value)">
+        <span [ngClass]="'color-badge ' + option?.value">
             {{ option.label }}
         </span>
     </ng-template>
     <ng-template pTemplate="selectedItem" let-selectedItem>
-        <span [ngClass]="'color-badge'" [ngStyle]="getStyleByColor(selectedItem?.value)">
+        <span [ngClass]="'color-badge ' + selectedItem?.value">
             {{ selectedItem?.label }}
         </span>
     </ng-template>
@@ -35,12 +35,12 @@
                 appendTo="body">
 
         <ng-template pTemplate="item" let-option>
-            <span [ngClass]="'color-badge'" [ngStyle]="getStyleByColor(option?.value)">
+            <span [ngClass]="'color-badge ' + option?.value">
                 {{ option.label }}
             </span>
         </ng-template>
         <ng-template pTemplate="selectedItem" let-selectedItem>
-            <span [ngClass]="'color-badge'" [ngStyle]="getStyleByColor(selectedItem?.value)">
+            <span [ngClass]="'color-badge ' + selectedItem?.value">
                 {{ selectedItem?.label }}
             </span>
         </ng-template>

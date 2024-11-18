@@ -100,6 +100,13 @@ export class GuestComponent implements OnInit {
                 this.totalRecords = data.totalItems || 0;
                 this.page = data.currentPage || 0;
 
+                // TODO: Remove when backend gives diet color
+                this.tableData.forEach((guest: Guest) => {
+                    if (guest.diet && this.diets.length > 0) {
+                        guest.dietColor = this.diets.find(d => d.name == guest.diet).color
+                    }
+                })
+
                 // Filter out test users on production
                 if (!isDevMode()) {
                     this.tableData = data.rows?.filter((guest: any) => guest.is_test == false) || []
@@ -122,6 +129,13 @@ export class GuestComponent implements OnInit {
         this.dietService.getDietsForSelector().subscribe({
             next: (data) => {
                 this.diets = data
+
+                // TODO: Remove when backend gives diet color
+                this.tableData.forEach((guest: Guest) => {
+                    if (guest.diet && this.diets.length > 0) {
+                        guest.dietColor = this.diets.find(d => d.name == guest.diet).color
+                    }
+                })
             }
         })
 
@@ -375,55 +389,11 @@ export class GuestComponent implements OnInit {
         if (!this.scannedCode) return;
 
         // Check if RFID is according to the diet
-        // this.tagService.getByRFID(this.scannedCode)
-        //     .pipe(
-        //         switchMap((tagResult) => {
-        //             if (tagResult.rows && tagResult.rows.length > 0) {
-        //                 let tag = tagResult.rows[0]
-        //                 let dietColor = this.getDietColor(this.guest.diet || '')
-        //                 dietColor = dietColor.split('-')[0]
-        //                 if (dietColor == 'gray') {
-        //                     dietColor = 'black'
-        //                 }
-
-        //                 // Wrong color
-        //                 if (dietColor !== tag.color) {
-        //                     this.messages = [
-        //                         { severity: 'error', summary: '', detail: 'Nem megfelelő a karszalag színe!' },
-        //                     ]
-        //                     this.identifierElement.nativeElement.focus()
-
-        //                     // Right color
-        //                 }
-        //             }
-
-
-        //             if (tagResult.success) {
-        //                 return this.guestService.getByRFID(this.scannedCode)
-        //             } else {
-        //                 throw new Error('Service 1 failed')
-        //             }
-        //         }),
-        //         tap(guestResult => {
-        //             if (guestResult.success) {
-        //                 console.log('Both services completed successfully')
-        //             } else {
-        //                 throw new Error('Service 2 failed')
-        //             }
-        //         }),
-        //         catchError(error => {
-        //             console.error('Error occurred:', error)
-        //             return of(null) // This ensures that the operation can be handled even in the event of an error
-        //         })
-        //     )
-        //     .subscribe();
-
-        // Check if RFID is according to the diet
         this.tagService.getByRFID(this.scannedCode).subscribe({
             next: (data) => {
                 if (data.rows && data.rows.length > 0) {
                     let tag = data.rows[0]
-                    let dietColor = this.getDietColor(this.guest.diet || '')
+                    let dietColor = this.diets.find(d => d.name == tag.diet).color
                     dietColor = dietColor.split('-')[0]
                     if (dietColor == 'gray') {
                         dietColor = 'black'
@@ -578,23 +548,6 @@ export class GuestComponent implements OnInit {
 
     hasDietName(dietName: string): boolean {
         return this.diets.some(diet => diet.name === dietName)
-    }
-
-    getDietColor(diet: string): string {
-        return this.dietService.getDietColor(diet)
-    }
-
-    getStyleByColor(color: string) {
-        return this.colorService.getStyleByColor(color)
-    }
-
-    getCombinedStyle(diet: string): any {
-        if (!this.combinedCache.has(diet)) {
-            const color = this.getDietColor(diet)
-            const style = this.getStyleByColor(color)
-            this.combinedCache.set(diet, style)
-        }
-        return this.combinedCache.get(diet)
     }
 
     getAge(birthDate: string): string {

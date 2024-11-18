@@ -19,11 +19,11 @@ export class ColorSelectorComponent {
     @Input() showClear: boolean
     @Output() change = new EventEmitter<changeEvent>()
 
-    colors: any[] = []               // PrimeNG colors
-    selectedColor: string = ''       // Selected color
+    colors: { label: string; value: string }[] = []    // PrimeNG colors
+    selectedColor: string                              // Selected color
 
-    constructor(private translate: TranslateService, 
-                private colorService: ColorService) {}
+    constructor(private translate: TranslateService,
+        private colorService: ColorService) { }
 
     /**
      * Lifecycle hook: called when the component is initialized.
@@ -62,33 +62,10 @@ export class ColorSelectorComponent {
      * in the theme.
      */
     setColors() {
-        this.colorService.getColors().forEach((color) => {
-            this.colors.push({
-                label: color,
-                value: color
-            })
-        })
-    }
-
-    /**
-     * Returns the style object for the given color.
-     * The style object contains the background-color and color properties.
-     * The intensity of the color is determined by the color name.
-     * If the color name is 'surface', the background-color will be the 800 intensity
-     * and the text color will be the 200 intensity. Otherwise, the background-color
-     * will be the 200 intensity and the text color will be the 800 intensity.
-     * @param color the color name
-     * @returns an object with 'background-color' and 'color' properties
-     */
-    getStyleByColor(color: string) {
-        let rootStyles = getComputedStyle(document.documentElement)
-        let backgroundColorIntensity = color === 'surface' ? 800 : 200,
-            textColorIntensity = color === 'surface' ? 200 : 800
-
-        return {
-            'background-color': rootStyles.getPropertyValue(`--${color}-${backgroundColorIntensity}`).trim(), 
-            'color': rootStyles.getPropertyValue(`--${color}-${textColorIntensity}`).trim()
-        }
+        this.colors = this.colorService.getColors().map((color) => ({
+            label: color,
+            value: color,
+        }))
     }
 
     /**

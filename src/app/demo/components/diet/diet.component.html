@@ -78,8 +78,7 @@
                         </td>
                         <td>
                             <span class="p-column-title">Szín</span>
-                            <span [ngClass]="'color-badge'" 
-                                  [ngStyle]="getStyleByColor(diet.color)">
+                            <span [ngClass]="'color-badge ' + diet.color">
                                 {{diet.color}}
                             </span>
                         </td>

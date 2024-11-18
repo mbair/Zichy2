@@ -160,7 +160,7 @@
                             {{guest.roomNum}}
                         </td>
                         <td>
-                            <span *ngIf="hasDietName(guest.diet)" [ngClass]="'diet-badge'" [ngStyle]="getCombinedStyle(guest.diet)">
+                            <span *ngIf="hasDietName(guest.diet)" [ngClass]="'color-badge ' + guest?.dietColor">
                                 {{guest.diet}}
                             </span>
                             <span class="p-column-title">Étrend</span>
@@ -351,25 +351,7 @@
                 </div>
                 <div class="field">
                     <label for="diet">Étrend</label>
-                    <p-dropdown
-                        inputId="dialogDiet"
-                        [options]="diets"
-                        [(ngModel)]="guest.diet"
-                        optionLabel="name"
-                        optionValue="name"
-                        placeholder="Válassz étrendet..."
-                        emptyMessage="Nincs találat...">
-                        <ng-template pTemplate="selectedItem">
-                            <p-tag [value]="guest.diet"
-                                   [style]="{'background': 'var(--'+getDietColor(guest.diet || '')+')'}">
-                            </p-tag>
-                        </ng-template>
-                        <ng-template let-option pTemplate="item">
-                            <p-tag [value]="option.name"
-                                   [style]="{'background': 'var(--'+getDietColor(option.name)+')'}">
-                            </p-tag>
-                        </ng-template>
-                    </p-dropdown>
+                    <app-diet-selector [(ngModel)]="guest.diet"></app-diet-selector>
                 </div>
                 <div class="formgrid grid">
                     <div class="field col">

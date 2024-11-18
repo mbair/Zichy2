@@ -3,7 +3,6 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { DropdownChangeEvent } from 'primeng/dropdown';
 import { TranslateService } from '@ngx-translate/core';
 import { DietService } from '../../service/diet.service';
-import { ColorService } from '../../service/color.service';
 
 export interface changeEvent {
     value: string;
@@ -24,8 +23,7 @@ export class DietSelectorComponent {
     selectedDiet: string = ''       // Selected diet
 
     constructor(private translate: TranslateService, 
-                private dietService: DietService,
-                private colorService: ColorService) {}
+                private dietService: DietService) {}
 
     /**
      * Lifecycle hook: called when the component is initialized.
@@ -56,10 +54,6 @@ export class DietSelectorComponent {
             return null
         }
         return this.parentForm.get(this.controlName) as FormControl
-    }
-
-    getStyleByColor(color: string) {
-        return this.colorService.getStyleByColor(color)
     }
 
     /**
