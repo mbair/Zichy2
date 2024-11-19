@@ -7,9 +7,9 @@ import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { UserService } from '../../service/user.service';
 import { RoleService } from '../../service/role.service';
+import { ResponsiveService } from '../../service/responsive.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { User } from '../../api/user';
-import { Role } from '../../api/role';
 import * as moment from 'moment';
 moment.locale('hu')
 
@@ -46,6 +46,7 @@ export class UserComponent implements OnInit {
     canCreate: boolean = false                   // User has permission to create new user
     canEdit: boolean = false                     // User has permission to update user
     canDelete: boolean = false                   // User has permission to delete user
+    isMobile: boolean = false                    // Mobile screen detection
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -56,6 +57,7 @@ export class UserComponent implements OnInit {
         public userService: UserService,
         private roleService: RoleService,
         private messageService: MessageService,
+        private responsiveService: ResponsiveService,
         private fb: FormBuilder) {
 
         // User form fields and validators
@@ -102,6 +104,11 @@ export class UserComponent implements OnInit {
 
         // Initialize the password validators according to the initial value of the id
         this.setPasswordValidators(this.userForm.get('id')?.value)
+
+        // Monitor the changes of the window size
+        this.responsiveService.isMobile$.subscribe((isMobile) => {
+            this.isMobile = isMobile
+        })
 
         // Form validation
         this.isFormValid$ = this.formChanges$.pipe(

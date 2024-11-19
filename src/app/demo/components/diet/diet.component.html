@@ -58,11 +58,10 @@
                             </app-color-selector>
                         </th>
                         <th>
-                            <input pInputText
-                                   type="text"
-                                   (input)="onFilter($event, 'enabled')"
-                                   placeholder="Keresés..."
-                                   style="min-width:15rem;"/>
+                            <app-enabled-selector 
+                                (change)="onFilter($event, 'enabled')" 
+                                [showClear]="true">
+                            </app-enabled-selector>
                         </th>
                         <th></th>
                     </tr>
@@ -74,7 +73,9 @@
                         </td>
                         <td>
                             <span class="p-column-title">Név</span>
-                            {{diet.name}}
+                            <span [ngClass]="'color-badge ' + diet.color">
+                                {{diet.name}}
+                            </span>
                         </td>
                         <td>
                             <span class="p-column-title">Szín</span>
@@ -84,7 +85,15 @@
                         </td>
                         <td class="text-center">
                             <span class="p-column-title">Engedélyezve</span>
-							<i class="pi" [ngClass]="{'true-icon pi-check-circle text-green-500': diet.enabled, 'false-icon pi-times-circle text-pink-500': !diet.enabled}"></i>
+							
+                            <span *ngIf="diet.enabled" class="color-badge">
+                                <i class="mr-1 pi true-icon pi-check-circle text-green-500"></i>
+                                {{ 'Engedélyezve' }}
+                            </span>
+                            <span *ngIf="!diet.enabled" class="color-badge">
+                                <i class="mr-1 pi false-icon pi-times-circle text-pink-500"></i>
+                                {{ 'Tiltva' }}
+                            </span>
 						</td>
                         <td>
                             <div class="flex">
@@ -103,7 +112,14 @@
         </div>
 
         <!-- New / Update sidebar -->
-        <p-sidebar id="sidebar" [(visible)]="sidebar" position="right" styleClass="p-sidebar-md">
+        <p-sidebar 
+            id="sidebar" 
+            [(visible)]="sidebar" 
+            position="right" 
+            styleClass="p-sidebar-md"
+            [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
+            [fullScreen]="isMobile"
+            [blockScroll]="true">
             
             <!-- Sidebar header -->
             <ng-template pTemplate="header">
@@ -176,8 +192,8 @@
                 <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.name}}</b> étrendet?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="deleteDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="delete()"></button>
+                <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="deleteDialog = false"></button>
+                    <button pButton pRipple label="Igen" icon="pi pi-check" class="p-button ml-2" (click)="delete()"></button>
             </ng-template>
         </p-dialog>
 
@@ -188,8 +204,8 @@
                 <span>Biztosan törölni akarja a kiválasztott étrendeket?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="bulkDeleteDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="deleteSelected()"></button>
+                <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="bulkDeleteDialog = false"></button>
+                <button pButton pRipple label="Igen" icon="pi pi-check" class="p-button ml-2" (click)="deleteSelected()"></button>
             </ng-template>
         </p-dialog>
     </div>

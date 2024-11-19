@@ -7,6 +7,7 @@ import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { emailDomainValidator } from '../../utils/email-validator';
 import { allLanguagesRequiredValidator } from '../../utils/all-languages-required-validator';
 import { ConferenceService } from '../../service/conference.service';
+import { ResponsiveService } from '../../service/responsive.service';
 import { QuestionService } from '../../service/question.service';
 import { ApiService } from '../../service/api.service';
 import { MessageService } from 'primeng/api';
@@ -60,6 +61,7 @@ export class ConferenceComponent implements OnInit {
     canDelete: boolean = false                   // User has permission to delete user
     isOrganizer: boolean = false                 // User has organizer role
     loggedInUserId: number                       // Logged in user id
+    isMobile: boolean = false                    // Mobile screen detection
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -75,7 +77,8 @@ export class ConferenceComponent implements OnInit {
         private questionService: QuestionService,
         private mealService: MealService,
         private apiService: ApiService,
-        private messageService: MessageService) {
+        private messageService: MessageService,
+        private responsiveService: ResponsiveService) {
 
         // Conference form fields and validators
         this.conferenceForm = this.formBuilder.group({
@@ -138,6 +141,11 @@ export class ConferenceComponent implements OnInit {
 
         // Get meals for selector
         this.meals = this.mealService.getMealsForSelector()
+
+        // Monitor the changes of the window size
+        this.responsiveService.isMobile$.subscribe((isMobile) => {
+            this.isMobile = isMobile
+        })
 
         // Form validation
         this.isFormValid$ = this.formChanges$.pipe(

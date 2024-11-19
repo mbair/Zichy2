@@ -257,7 +257,14 @@
         </div>
 
         <!-- Sidebar -->
-        <p-sidebar id="sidebar" [(visible)]="sidebar" position="right" styleClass="p-sidebar-md">
+        <p-sidebar
+            id="sidebar" 
+            [(visible)]="sidebar" 
+            position="right" 
+            styleClass="p-sidebar-md"
+            [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
+            [fullScreen]="isMobile"
+            [blockScroll]="true">
 
             <!-- Sidebar header -->
             <ng-template pTemplate="header">
@@ -343,7 +350,7 @@
                 </div>
 
                 <!-- Szerződő címe -->
-                <div class="field mb-4 col-6">
+                <div class="field mb-4 col-12 lg:col-6">
                     <label for="contractorAdress" class="font-medium text-900">Szerződő címe</label>
                     <input id="contractorAdress" type="text" pInputText formControlName="contractorAdress">
                     <div *ngIf="contractorAdress?.dirty && contractorAdress?.errors?.['required']"
@@ -403,7 +410,14 @@
         </p-sidebar>
 
         <!-- Questions sidebar -->
-        <p-sidebar id="questionsSidebar" [(visible)]="questionsSidebar" position="right" styleClass="p-sidebar-md">
+        <p-sidebar 
+            id="questionsSidebar" 
+            [(visible)]="questionsSidebar" 
+            position="right" 
+            styleClass="p-sidebar-md"
+            [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
+            [fullScreen]="isMobile"
+            [blockScroll]="true">
 
             <!-- Sidebar header -->
             <ng-template pTemplate="header">
@@ -470,10 +484,8 @@
             </div>
             <ng-template pTemplate="footer">
                 <div class="flex justify-content-end ap-2">
-                    <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined"
-                        (click)="deleteDialog = false"></button>
-                    <button pButton pRipple label="Igen" icon="pi pi-check" class="p-button ml-2"
-                        (click)="delete()"></button>
+                    <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="deleteDialog = false"></button>
+                    <button pButton pRipple label="Igen" icon="pi pi-check" class="p-button ml-2" (click)="delete()"></button>
                 </div>
             </ng-template>
         </p-dialog>
@@ -486,10 +498,8 @@
             </div>
             <ng-template pTemplate="footer">
                 <div class="flex justify-content-end ap-2">
-                    <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined"
-                        (click)="bulkDeleteDialog = false"></button>
-                    <button pButton pRipple label="Igen" icon="pi pi-check" class="p-button ml-2"
-                        (click)="deleteSelected()"></button>
+                    <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="bulkDeleteDialog = false"></button>
+                <button pButton pRipple label="Igen" icon="pi pi-check" class="p-button ml-2" (click)="deleteSelected()"></button>
                 </div>
             </ng-template>
         </p-dialog>

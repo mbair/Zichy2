@@ -6,7 +6,7 @@ import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { DietService } from '../../service/diet.service';
 import { UserService } from '../../service/user.service';
-import { ColorService } from '../../service/color.service';
+import { ResponsiveService } from '../../service/responsive.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Diet } from '../../api/diet';
 import * as moment from 'moment';
@@ -45,6 +45,7 @@ export class DietComponent implements OnInit {
     canEdit: boolean = false                     // User has permission to update diet
     canDelete: boolean = false                   // User has permission to delete diet
     colors: any = {}                             // PrimeNG colors
+    isMobile: boolean = false                    // Mobile screen detection
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -54,8 +55,8 @@ export class DietComponent implements OnInit {
     constructor(
         private dietService: DietService,
         private userService: UserService,
-        private colorService: ColorService,
         private messageService: MessageService,
+        private responsiveService: ResponsiveService,
         private fb: FormBuilder) {
 
         // Diet form fields and validators
@@ -84,6 +85,11 @@ export class DietComponent implements OnInit {
                 this.totalRecords = data.totalItems || 0
                 this.page = data.currentPage || 0
             }
+        })
+
+        // Monitor the changes of the window size
+        this.responsiveService.isMobile$.subscribe((isMobile) => {
+            this.isMobile = isMobile
         })
 
         // Form validation
@@ -127,7 +133,7 @@ export class DietComponent implements OnInit {
      * @param field
      */
     onFilter(event: any, field: string) {
-        const noWaitFields: string[] = []
+        const noWaitFields: string[] = ['color', 'enabled']
         let filterValue = ''
 
         // Calendar date as String

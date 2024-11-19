@@ -118,7 +118,14 @@
         </div>
 
         <!-- New / Update sidebar -->
-        <p-sidebar id="sidebar" [(visible)]="sidebar" position="right" styleClass="p-sidebar-md">
+        <p-sidebar 
+            id="sidebar" 
+            [(visible)]="sidebar" 
+            position="right" 
+            styleClass="p-sidebar-md"
+            [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
+            [fullScreen]="isMobile"
+            [blockScroll]="true">
             
             <!-- Sidebar header -->
             <ng-template pTemplate="header">
@@ -219,8 +226,8 @@
                 <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.fullname}}</b> felhasználót?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="deleteDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="delete()"></button>
+                <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="deleteDialog = false"></button>
+                <button pButton pRipple label="Igen" icon="pi pi-check" class="p-button ml-2" (click)="delete()"></button>
             </ng-template>
         </p-dialog>
 
@@ -231,8 +238,8 @@
                 <span>Biztosan törölni akarja a kiválasztott felhasználókat?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Nem" (click)="bulkDeleteDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Igen" (click)="deleteSelected()"></button>
+                <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="bulkDeleteDialog = false"></button>
+                <button pButton pRipple label="Igen" icon="pi pi-check" class="p-button ml-2" (click)="deleteSelected()"></button>
             </ng-template>
         </p-dialog>
     </div>
