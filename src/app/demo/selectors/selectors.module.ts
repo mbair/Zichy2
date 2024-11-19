@@ -15,6 +15,7 @@ import { RoomTypeSelectorComponent } from './roomtype-selector/roomtype-selector
 import { UserSelectorComponent } from './user-selector/user-selector.component';
 import { RoleSelectorComponent } from './role-selector/role-selector.component';
 import { ColorSelectorComponent } from './color-selector/color-selector.component';
+import { EnabledSelectorComponent } from './enabled-selector/enabled-selector.component';
 
 @NgModule({
     declarations: [
@@ -28,6 +29,7 @@ import { ColorSelectorComponent } from './color-selector/color-selector.componen
         UserSelectorComponent,
         RoleSelectorComponent,
         ColorSelectorComponent,
+        EnabledSelectorComponent,
     ],
     imports: [
         CommonModule,
@@ -48,6 +50,7 @@ import { ColorSelectorComponent } from './color-selector/color-selector.componen
         UserSelectorComponent,
         RoleSelectorComponent,
         ColorSelectorComponent,
+        EnabledSelectorComponent,
     ],
 })
 export class SelectorsModule {}
