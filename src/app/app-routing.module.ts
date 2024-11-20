@@ -19,18 +19,18 @@ const routes: Routes = [
                 canActivate: [AuthGuard] 
             },
             { 
-                path: 'rfid-tag', 
+                path: 'nfc-tag', 
                 data: { 
-                    breadcrumb: 'RFID címke',
+                    breadcrumb: 'NFC címke',
                     requiredRoles: ['Super Admin', 'Nagy Admin']
                 }, 
-                loadChildren: () => import('./demo/components/rfid-tag/rfid-tag.module').then(m => m.RFIDTagModule), 
+                loadChildren: () => import('./demo/components/nfc-tag/nfc-tag.module').then(m => m.NFCTagModule), 
                 canActivate: [AuthGuard] 
             },
             { 
                 path: 'user', 
                 data: { 
-                    breadcrumb: 'Felhasználók',
+                    breadcrumb: 'Felhasználó',
                     requiredRoles: ['Super Admin', 'Nagy Admin']
                 }, 
                 loadChildren: () => import('./demo/components/user/user.module').then(m => m.UserModule), 
@@ -47,7 +47,7 @@ const routes: Routes = [
             { 
                 path: 'conference', 
                 data: { 
-                    breadcrumb: 'Konferenciák'
+                    breadcrumb: 'Konferencia'
                 }, 
                 loadChildren: () => import('./demo/components/conference/conference.module').then(m => m.ConferenceModule), 
                 canActivate: [AuthGuard] 
@@ -71,7 +71,7 @@ const routes: Routes = [
             { 
                 path: 'logs', 
                 data: { 
-                    breadcrumb: 'Logok',
+                    breadcrumb: 'Napló',
                     requiredRoles: ['Super Admin', 'Nagy Admin']
                 }, 
                 loadChildren: () => import('./demo/components/logs/logs.module').then(m => m.LogsModule), 
@@ -80,7 +80,7 @@ const routes: Routes = [
             { 
                 path: 'guest', 
                 data: { 
-                    breadcrumb: 'Vendégek' 
+                    breadcrumb: 'Vendég' 
                 }, 
                 loadChildren: () => import('./demo/components/guest/guest.module').then(m => m.GuestModule), 
                 canActivate: [AuthGuard] 
@@ -88,7 +88,7 @@ const routes: Routes = [
             { 
                 path: 'room', 
                 data: { 
-                    breadcrumb: 'Szobák',
+                    breadcrumb: 'Szoba',
                     requiredRoles: ['Super Admin', 'Nagy Admin']
                 }, 
                 loadChildren: () => import('./demo/components/szobak/szobak.module').then(m => m.SzobakModule), 
@@ -97,7 +97,7 @@ const routes: Routes = [
             { 
                 path: 'diet', 
                 data: { 
-                    breadcrumb: 'Étrendek',
+                    breadcrumb: 'Étrend',
                     requiredRoles: ['Super Admin', 'Nagy Admin']
                 }, 
                 loadChildren: () => import('./demo/components/diet/diet.module').then(m => m.DietModule), 

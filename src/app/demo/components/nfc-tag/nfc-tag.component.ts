@@ -1,19 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
-import { DietService } from '../../service/diet.service';
+import { TagService } from '../../service/tag.service';
 import { UserService } from '../../service/user.service';
 import { ResponsiveService } from '../../service/responsive.service';
 import { ApiResponse } from '../../api/ApiResponse';
-import { Diet } from '../../api/diet';
+import { Tag } from '../../api/tag';
 import * as moment from 'moment';
 moment.locale('hu')
 
 @Component({
-    templateUrl: './diet.component.html',
+    templateUrl: './nfc-tag.component.html',
     providers: [MessageService]
 })
 
@@ -21,11 +21,11 @@ moment.locale('hu')
 // BUT!!! Don't delete ngOnDestroy, it has to stay here!
 @AutoUnsubscribe()
 
-export class DietComponent implements OnInit {
+export class NFCTagComponent implements OnInit {
 
     loading: boolean = true                      // Loading overlay trigger value
-    tableItem: Diet = {}                         // One diet object
-    tableData: Diet[] = []                       // Data set displayed in a table
+    tableItem: Tag = {}                          // One tag object
+    tableData: Tag[] = []                        // Data set displayed in a table
     rowsPerPageOptions = [20, 50, 100]           // Possible rows per page
     rowsPerPage: number = 20                     // Default rows per page
     totalRecords: number = 0                     // Total number of rows in the table
@@ -34,13 +34,17 @@ export class DietComponent implements OnInit {
     sortOrder: number = 1                        // Current sort order
     globalFilter: string = ''                    // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
+    nfcFilterValue: any                         // Store for RFID filter value
     debounce: { [key: string]: any } = {}        // Search delay in filter field
-    dietForm: FormGroup                          // Form for diet creation and modification
-    originalFormValues: any                      // The original values ​​of the form
-    sidebar: boolean = false                     // Table item maintenance sidebar
+    tagForm: FormGroup                           // Form for creating new tag
+    originalFormValues: any                      // Original form values
+    sidebar: boolean = false                     // Popup for creating new tag
     deleteDialog: boolean = false                // Popup for deleting table item
     bulkDeleteDialog: boolean = false            // Popup for deleting table items
-    selected: Diet[] = []                        // Table items chosen by diet
+    selected: Tag[] = []                         // Table items chosen by user
+    selectedTagColor: any | undefined;           // Tag color chosen by user
+    scanTemp: string = ''                        // Temporary storage used during NFC reading
+    scannedCode: string = ''                     // Scanned Tag Id
     canCreate: boolean = false                   // User has permission to create new diet
     canEdit: boolean = false                     // User has permission to update diet
     canDelete: boolean = false                   // User has permission to delete diet
@@ -49,22 +53,22 @@ export class DietComponent implements OnInit {
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
-    private dietObs$: Observable<any> | undefined
+    private tagObs$: Observable<any> | undefined
     private serviceMessageObs$: Observable<any> | undefined
 
     constructor(
-        private dietService: DietService,
+        private tagService: TagService,
         private userService: UserService,
         private messageService: MessageService,
         private responsiveService: ResponsiveService,
-        private fb: FormBuilder) {
+        private fb: FormBuilder) { 
 
-        // Diet form fields and validators
-        this.dietForm = this.fb.group({
+            // Diet form fields and validators
+        this.tagForm = this.fb.group({
             id: [''],
-            name: ['', Validators.required],
+            rfid: ['', Validators.required],
             color: ['', Validators.required],
-            enabled: ['', []],
+            enabled: [true, []],
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -77,8 +81,8 @@ export class DietComponent implements OnInit {
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
 
         // Diets
-        this.dietObs$ = this.dietService.dietObs
-        this.dietObs$.subscribe((data: ApiResponse) => {
+        this.tagObs$ = this.tagService.tagObs
+        this.tagObs$.subscribe((data: ApiResponse) => {
             this.loading = false
             if (data) {
                 this.tableData = data.rows || []
@@ -96,18 +100,18 @@ export class DietComponent implements OnInit {
         this.isFormValid$ = this.formChanges$.pipe(
             debounceTime(300),
             distinctUntilChanged(),
-            map(() => this.dietForm.valid)
+            map(() => this.tagForm.valid)
         )
 
         // Message
-        this.serviceMessageObs$ = this.dietService.messageObs
+        this.serviceMessageObs$ = this.tagService.messageObs
         this.serviceMessageObs$.subscribe(message => this.handleMessage(message))
     }
 
     // Getters for form validation
-    get name() { return this.dietForm.get('name') }
-    get color() { return this.dietForm.get('color') }
-    get enabled() { return this.dietForm.get('enabled') }
+    get rfid() { return this.tagForm.get('rfid') }
+    get color() { return this.tagForm.get('color') }
+    get enabled() { return this.tagForm.get('enabled') }
 
     /**
      * Load filtered data into the Table
@@ -121,10 +125,10 @@ export class DietComponent implements OnInit {
         const queryParams = filters.filter(x => x.length > 0).join('&')
 
         if (this.globalFilter !== '') {
-            return this.dietService.getBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
+            return this.tagService.getBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
         }
 
-        return this.dietService.get(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
+        return this.tagService.get(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
     }
 
     /**
@@ -143,11 +147,18 @@ export class DietComponent implements OnInit {
             filterValue = formattedDate
         } else {
             if (event && (event.value || event.target?.value)) {
-                filterValue = event.value || event.target?.value
-                filterValue = filterValue.toString()
+                if (field == "rfid") {
+                    filterValue = event.target?.value.replaceAll('ö', '0').replaceAll('Ö', '0')
+                    this.nfcFilterValue = filterValue
+                } else {
+                    filterValue = event.value || event.target?.value
+                    filterValue = filterValue.toString()
+                }
             } else {
                 this.filterValues[field] = ''
             }
+
+            
         }
 
         this.filterValues[field] = filterValue
@@ -196,57 +207,57 @@ export class DietComponent implements OnInit {
     }
 
     /**
-     * Create new Diet
+     * Create new Tag
      */
     create() {
-        this.dietForm.reset()
+        this.tagForm.reset()
         this.sidebar = true
     }
 
     /**
-     * Edit the Diet
-     * @param diet
+     * Edit the Tag
+     * @param tag
      */
-    edit(diet: Diet) {
-        this.dietForm.reset()
-        this.dietForm.patchValue(diet)
-        this.originalFormValues = this.dietForm.value
+    edit(tag: Tag) {
+        this.tagForm.reset()
+        this.tagForm.patchValue(tag)
+        this.originalFormValues = this.tagForm.value
         this.sidebar = true
     }
 
     /**
-     * Delete the Diet
+     * Delete the Tag
      */
     delete() {
         this.loading = true
         this.deleteDialog = false
-        this.dietService.delete(this.tableItem)
+        this.tagService.delete(this.tableItem)
     }
 
     /**
-     * Delete selected Diets
+     * Delete selected Tags
      */
     deleteSelected() {
         this.loading = true
         this.bulkDeleteDialog = false
-        this.dietService.bulkdelete(this.selected)
+        this.tagService.bulkdelete(this.selected)
     }
 
     /**
      * Saving the form
      */
     save() {
-        if (this.dietForm.valid) {
+        if (this.tagForm.valid) {
             this.loading = true
-            const formValues = this.dietForm.value
+            const formValues = this.tagForm.value
 
             // Create
             if (!formValues.id) {
-                this.dietService.create(formValues)
+                this.tagService.create(formValues)
 
             // Update
             } else {
-                this.dietService.update(formValues)
+                this.tagService.update(formValues)
             }
 
             this.sidebar = false
@@ -257,7 +268,30 @@ export class DietComponent implements OnInit {
      * Cancel saving the form
      */
     cancel() {
-        this.dietForm.reset(this.originalFormValues)
+        this.tagForm.reset(this.originalFormValues)
+    }
+
+    @HostListener('window:keypress', ['$event'])
+    keyEvent(event: KeyboardEvent): void {
+        if (event.key === 'Enter') {
+            // The QR/Bar code is ready here
+            // Do something here with the scanned code
+            this.scannedCode = this.scanTemp
+            this.nfcFilterValue = this.scannedCode
+            this.onFilter({ target: { value: this.scannedCode } }, 'rfid')
+            this.scanTemp = ''
+            console.log('this.scannedCode', this.scannedCode)
+        } else {
+            if (event.key === 'ö' || event.key === 'Ö') {
+                this.scanTemp += '0'
+            }
+            else if (/^[0-9]$/i.test(event.key)) {
+                this.scanTemp += event.key
+            }
+            else {
+                return
+            }
+        }
     }
 
     /**

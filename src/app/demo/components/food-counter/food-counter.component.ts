@@ -159,7 +159,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * RFID Read listener
+     * NFC Read listener
      * @param event
      * @returns
      */
@@ -170,7 +170,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
             // If the RFID query is still running, with previously scanned code
             // Avoid to querying again
             if (this.scannedCode === this.scanTemp) {
-                console.log('Előzővel azonos RFID kód')
+                console.log('Előzővel azonos NFC kód')
 
                 // Logging same RFID code
                 this.logService.create({

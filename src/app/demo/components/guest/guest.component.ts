@@ -1,5 +1,5 @@
 import { Component, OnInit, HostListener, isDevMode, ViewChild, ElementRef } from '@angular/core';
-import { catchError, Observable, of, switchMap, tap } from 'rxjs';
+import { Observable} from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { HttpClient } from '@angular/common/http';
 import { Message, MessageService } from 'primeng/api';
@@ -95,7 +95,7 @@ export class GuestComponent implements OnInit {
         this.guestObs$ = this.guestService.guestObs;
         this.guestObs$.subscribe((data: ApiResponse) => {
             this.loading = false
-            if (data && data.rows && data.rows?.length > 1) {
+            if (data && data.rows) {
                 this.tableData = data.rows || [];
                 this.totalRecords = data.totalItems || 0;
                 this.page = data.currentPage || 0;
@@ -177,8 +177,8 @@ export class GuestComponent implements OnInit {
             { field: 'name', header: 'Név' },  // lastName + firstName
             { field: 'roomNum', header: 'Szoba' },
             { field: 'diet', header: 'Étrend' },
-            { field: 'rfid', header: 'RFID' },
-            { field: 'lastRfidUsage', header: 'RFID használat' },
+            { field: 'rfid', header: 'NFC' },
+            { field: 'lastRfidUsage', header: 'NFC használat' },
             { field: 'dateOfArrival', header: 'Érkezés' },
             { field: 'dateOfDeparture', header: 'Távozás' }
         ]
@@ -355,7 +355,7 @@ export class GuestComponent implements OnInit {
         this.scannedCode = this.guest.rfid || '';
         this.guest = { ...guest };
         this.messages = [
-            { severity: 'info', summary: '', detail: 'Tartsa a ' + guest.diet + ' étrendhez tartozó RFID címkét az olvasóhoz...' },
+            { severity: 'info', summary: '', detail: 'Tartsa a ' + guest.diet + ' étrendhez tartozó NFC címkét az olvasóhoz...' },
         ]
         this.tagDialog = true;
     }

@@ -375,7 +375,7 @@
     font-size: 12px;
     letter-spacing: .3px;
 
-    &.surface {
+    &.black, &.surface {
         background: var(--surface-800);
         color: var(--surface-200);
     }

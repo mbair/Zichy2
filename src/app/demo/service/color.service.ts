@@ -9,7 +9,7 @@ export class ColorService {
 
     constructor() {
         this.colors = [
-            'surface',
+            'black',
             'blue',
             'green',
             'yellow',
@@ -33,7 +33,7 @@ export class ColorService {
      * Returns the style object for the given color.
      * The style object contains the background-color and color properties.
      * The intensity of the color is determined by the color name.
-     * If the color name is 'surface', the background-color will be the 800 intensity
+     * If the color name is 'black', the background-color will be the 800 intensity
      * and the text color will be the 200 intensity. Otherwise, the background-color
      * will be the 200 intensity and the text color will be the 800 intensity.
      * @param color the color name
@@ -41,8 +41,8 @@ export class ColorService {
      */
     getStyleByColor(color: string) {
         let rootStyles = getComputedStyle(document.documentElement)
-        let backgroundColorIntensity = color === 'surface' ? 800 : 200,
-            textColorIntensity = color === 'surface' ? 200 : 800
+        let backgroundColorIntensity = color === 'black' ? 800 : 200,
+            textColorIntensity = color === 'black' ? 200 : 800
 
         return {
             'background-color': rootStyles.getPropertyValue(`--${color}-${backgroundColorIntensity}`).trim(), 

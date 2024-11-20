@@ -35,27 +35,27 @@ export class AppMenuComponent implements OnInit {
                     label: 'Hotel',
                     items: this.getFilteredItems([
                         {
-                            label: 'Konferenciák',
+                            label: 'Konferencia',
                             icon: 'pi pi-fw pi-calendar',
                             routerLink: ['/conference'],
                             requiredRoles: [],
                         },
                         {
-                            label: 'Vendégek',
+                            label: 'Vendég',
                             icon: 'pi pi-fw pi-user',
                             routerLink: ['/guest'],
                             requiredRoles: []
                         },
                         {
-                            label: 'Szobák',
+                            label: 'Szoba',
                             icon: 'pi pi-fw pi-building',
                             routerLink: ['/room'],
                             requiredRoles: ['Super Admin', 'Nagy Admin']
                         },
                         {
-                            label: 'RFID címke',
+                            label: 'NFC címke',
                             icon: 'pi pi-fw pi-tags',
-                            routerLink: ['/rfid-tag'],
+                            routerLink: ['/nfc-tag'],
                             requiredRoles: ['Super Admin', 'Nagy Admin']
                         },
                     ])
@@ -64,7 +64,7 @@ export class AppMenuComponent implements OnInit {
                     label: 'Étterem',
                     items: [
                         {
-                            label: 'Étrendek',
+                            label: 'Étrend',
                             icon: 'pi pi-fw pi-pencil',
                             routerLink: ['/diet'],
                             requiredRoles: ['Super Admin', 'Nagy Admin']
@@ -91,13 +91,13 @@ export class AppMenuComponent implements OnInit {
                     label: 'Rendszer',
                     items: [
                         {
-                            label: 'Felhasználók',
+                            label: 'Felhasználó',
                             icon: 'pi pi-fw pi-users',
                             routerLink: ['/user'],
                             requiredRoles: ['Super Admin', 'Nagy Admin']
                         },
                         {
-                            label: 'Logok',
+                            label: 'Napló',
                             icon: 'pi pi-fw pi-list',
                             routerLink: ['/logs'],
                             requiredRoles: ['Super Admin', 'Nagy Admin']

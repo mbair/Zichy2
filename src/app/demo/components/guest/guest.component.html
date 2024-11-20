@@ -35,7 +35,7 @@
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left w-full sm:w-auto">
                             <i class="pi pi-search"></i>
-                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés bármely vendégadatra..." style="min-width: 300px;" pTooltip="RFID címkét a saját keresőmezőjébe csippantsd"/>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés bármely vendégadatra..." style="min-width: 300px;" pTooltip="NFC címkét a saját keresőmezőjébe csippantsd"/>
                         </span>
                         <span class="block mt-2 md:mt-0">
                             <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
@@ -68,8 +68,8 @@
                         <th pSortableColumn="lastName">Név <p-sortIcon field="lastName"></p-sortIcon></th>
                         <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
                         <th pSortableColumn="diet">Étrend <p-sortIcon field="diet"></p-sortIcon></th>
-                        <th pSortableColumn="rfid">RFID <span class="font-light">({{totalTaggedGuests}}/{{totalRecords}})</span> <p-sortIcon field="rfid"></p-sortIcon></th>
-                        <th pSortableColumn="lastRfidUsage">RFID használat<p-sortIcon field="lastRfidUsage"></p-sortIcon></th>
+                        <th pSortableColumn="rfid">NFC <span class="font-light">({{totalTaggedGuests}}/{{totalRecords}})</span> <p-sortIcon field="rfid"></p-sortIcon></th>
+                        <th pSortableColumn="lastRfidUsage">NFC használat<p-sortIcon field="lastRfidUsage"></p-sortIcon></th>
                         <th pSortableColumn="dateOfArrival">Érkezés <p-sortIcon field="dateOfArrival"></p-sortIcon></th>
                         <th pSortableColumn="dateOfDeparture">Távozás <p-sortIcon field="dateOfDeparture"></p-sortIcon></th>
                         <th></th>
@@ -105,7 +105,7 @@
                                    [(ngModel)]="rfidFilterValue"
                                    (input)="onFilter($event, 'rfid')"
                                    placeholder="Keresés..."
-                                   pTooltip="RFID címkére kereshet csippantással és manuális gépeléssel"
+                                   pTooltip="NFC címkére kereshet csippantással és manuális gépeléssel"
                                    tooltipPosition="top"
                                    style="width:12%; min-width:9rem;"/>
                         </th>
@@ -171,11 +171,11 @@
                                     pTooltip="Kérem módosítsa az étrendet!" />
                         </td>
                         <td>
-                            <span class="p-column-title">RFID</span>
+                            <span class="p-column-title">NFC</span>
                             {{guest.rfid}}
                         </td>
                         <td style="width:14%; min-width:10rem;">
-                            <span class="p-column-title">Utolsó RFID használat</span>
+                            <span class="p-column-title">Utolsó NFC használat</span>
                             {{guest.lastRfidUsage | date:'yyyy.MM.dd HH:mm:ss' }}
                         </td>
                         <td style="width:9%; min-width:8rem;">
@@ -334,7 +334,7 @@
                         <input type="text" pInputText [(ngModel)]="guest.roomNum" />
                     </div>
                     <div class="field col">
-                        <label for="rfid">RFID</label>
+                        <label for="rfid">NFC</label>
                         <input type="text" pInputText [(ngModel)]="guest.rfid" />
                     </div>
                 </div>
@@ -514,7 +514,7 @@
             </ng-template>
         </p-dialog>
 
-        <p-dialog [(visible)]="tagDialog" [style]="{width: '450px'}" header="RFID címke vendéghez rendelés" [modal]="true" class="p-fluid">
+        <p-dialog [(visible)]="tagDialog" [style]="{width: '450px'}" header="NFC címke vendéghez rendelés" [modal]="true" class="p-fluid">
             <ng-template pTemplate="content">
                 <p-messages [(value)]="messages" [enableService]="false" [closable]="false"></p-messages>
                 <div class="formgrid grid">

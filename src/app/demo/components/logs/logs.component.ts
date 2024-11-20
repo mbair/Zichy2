@@ -81,13 +81,13 @@ export class LogsComponent implements OnInit {
         // Modules for selector
         this.modules = [
             { name: 'Ételpult', code: 'food_counter', icon: 'pi pi-tablet' },
-            { name: 'Konferenciák', code: 'conference', icon: 'pi pi-calendar' },
-            { name: 'Vendégek', code: 'guest', icon: 'pi pi-user' },
-            { name: 'Szobák', code: 'room', icon: 'pi pi-building' },
-            { name: 'Címkék', code: 'rfid', icon: 'pi pi-tags' },
-            { name: 'Étrendek', code: 'diet', icon: 'pi pi-pencil' },
-            { name: 'Felhasználók', code: 'users', icon: 'pi pi-users' },
-            { name: 'Logok', code: 'logs', icon: 'pi pi-list' },
+            { name: 'Konferencia', code: 'conference', icon: 'pi pi-calendar' },
+            { name: 'Vendég', code: 'guest', icon: 'pi pi-user' },
+            { name: 'Szoba', code: 'room', icon: 'pi pi-building' },
+            { name: 'NFC címke', code: 'rfid', icon: 'pi pi-tags' },
+            { name: 'Étrend', code: 'diet', icon: 'pi pi-pencil' },
+            { name: 'Felhasználó', code: 'users', icon: 'pi pi-users' },
+            { name: 'Napló', code: 'logs', icon: 'pi pi-list' },
         ]
 
         // Action types for selector
