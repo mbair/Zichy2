@@ -109,6 +109,7 @@ export class NFCTagComponent implements OnInit {
     }
 
     // Getters for form validation
+    get id() { return this.tagForm.get('id') }
     get rfid() { return this.tagForm.get('rfid') }
     get color() { return this.tagForm.get('color') }
     get enabled() { return this.tagForm.get('enabled') }
@@ -277,8 +278,25 @@ export class NFCTagComponent implements OnInit {
             // The QR/Bar code is ready here
             // Do something here with the scanned code
             this.scannedCode = this.scanTemp
-            this.nfcFilterValue = this.scannedCode
-            this.onFilter({ target: { value: this.scannedCode } }, 'rfid')
+
+            // If the sidebar is open, update the form
+            if (this.sidebar === true) {
+                
+                // Patch the form with the scanned code
+                setTimeout(() => {
+                    if (this.tagForm.get('rfid')) {
+                        this.tagForm.patchValue({ rfid: this.scannedCode })
+                    } else {
+                        console.warn('RFID form control is not initialized yet.')
+                    }
+                })
+
+            // If the sidebar is closed, filter for the scanned code
+            } else {
+                this.nfcFilterValue = this.scannedCode
+                this.onFilter({ target: { value: this.scannedCode } }, 'rfid')
+            }
+            
             this.scanTemp = ''
             console.log('this.scannedCode', this.scannedCode)
         } else {

@@ -171,7 +171,7 @@
             <!-- Sidebar header -->
             <ng-template pTemplate="header">
                 <span class="font-semibold text-xl">
-                    {{ rfid?.value ? 'Címke adatai' : 'Új címke' }}
+                    {{ id?.value ? 'Címke adatai' : 'Új címke' }}
                 </span>
             </ng-template>
 
@@ -192,7 +192,14 @@
                 <!-- Identifier -->
                 <div class="field mb-4 col-12">
                     <label for="rfid" class="font-medium text-900">Azonosító</label>
-                    <input id="rfid" type="text" pInputText formControlName="rfid">
+                    <input 
+                        id="rfid" 
+                        type="text" 
+                        pInputText 
+                        formControlName="rfid" 
+                        pTooltip="Érintse a kártyaolvasóhoz az NFC címkét"
+                        tooltipPosition="top"
+                        readonly>
                     <div *ngIf="rfid?.dirty && rfid?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
