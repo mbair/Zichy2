@@ -167,6 +167,7 @@ export class ConferenceComponent implements OnInit {
     }
 
     // Getters for form validation
+    get id() { return this.conferenceForm.get('id') }
     get name() { return this.conferenceForm.get('name') }
     get beginDate() { return this.conferenceForm.get('beginDate') }
     get endDate() { return this.conferenceForm.get('endDate') }

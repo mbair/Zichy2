@@ -123,6 +123,7 @@ export class UserComponent implements OnInit {
     }
 
     // Getters for form validation
+    get id() { return this.userForm.get('id') }
     get username() { return this.userForm.get('username') }
     get fullname() { return this.userForm.get('fullname') }
     get user_rolesid() { return this.userForm.get('user_rolesid') }

@@ -105,6 +105,7 @@ export class DietComponent implements OnInit {
     }
 
     // Getters for form validation
+    get id() { return this.dietForm.get('id') }
     get name() { return this.dietForm.get('name') }
     get color() { return this.dietForm.get('color') }
     get enabled() { return this.dietForm.get('enabled') }
