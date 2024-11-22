@@ -91,7 +91,7 @@ const routes: Routes = [
                     breadcrumb: 'Szoba',
                     requiredRoles: ['Super Admin', 'Nagy Admin']
                 }, 
-                loadChildren: () => import('./demo/components/szobak/szobak.module').then(m => m.SzobakModule), 
+                loadChildren: () => import('./demo/components/room/room.module').then(m => m.RoomModule), 
                 canActivate: [AuthGuard] 
             },
             { 
