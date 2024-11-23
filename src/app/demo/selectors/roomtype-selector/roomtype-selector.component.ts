@@ -63,49 +63,49 @@ export class RoomTypeSelectorComponent {
             { 
                 label: this.translate.instant('ROOMTYPES.NOTHING'), 
                 value: 'Nem kérek szállást', 
-                style: 'nothing' 
+                color: 'gray' 
             },
             { 
                 label: this.translate.instant('ROOMTYPES.CASTLE'), 
                 description: this.translate.instant('ROOMTYPES.4-BED-ROOM'), 
                 value: 'Kastély szállás 4 ágyas szoba', 
-                style: 'castle' 
+                color: 'teal' 
             },
             { 
                 label: this.translate.instant('ROOMTYPES.CASTLE'), 
                 description: this.translate.instant('ROOMTYPES.6-BED-ROOM'), 
                 value: 'Kastély szállás 6 ágyas szoba', 
-                style: 'castle' 
+                color: 'teal' 
             },
             { 
                 label: this.translate.instant('ROOMTYPES.CASTLE'), 
                 description: this.translate.instant('ROOMTYPES.8-BED-ROOM'), 
                 value: 'Kastély szállás 8 ágyas szoba', 
-                style: 'castle' 
+                color: 'teal' 
             },
             { 
                 label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
                 description: this.translate.instant('ROOMTYPES.2-BED-ROOM'), 
                 value: 'Maranatha Panzióház 2 ágyas szoba (külön fürdős)', 
-                style: 'maranatha' 
+                color: 'yellow' 
             },
             { 
                 label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
                 description: this.translate.instant('ROOMTYPES.DOUBLE-BED-ROOM'), 
                 value: 'Maranatha Panzióház franciaágyas szoba (külön fürdős)', 
-                style: 'maranatha' 
+                color: 'yellow' 
             },
             { 
                 label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
                 description: this.translate.instant('ROOMTYPES.M-4-BED-ROOM'), 
                 value: 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)', 
-                style: 'maranatha' 
+                color: 'yellow' 
             },
             { 
                 label: this.translate.instant('ROOMTYPES.FAMILY-ROOM'), 
                 description: this.translate.instant('ROOMTYPES.WITH-KITCHEN'), 
                 value: 'Családi szoba (közös konyhával, fürdővel és nappalival)', 
-                style: 'family-room' 
+                color: 'orange' 
             },
         ]
     }

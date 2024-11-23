@@ -238,16 +238,6 @@
     }
 }
 
-/* Diets */
-.diet-badge {
-    border-radius: var(--border-radius);
-    padding: .25em .5rem;
-    text-transform: uppercase;
-    font-weight: 700;
-    font-size: 12px;
-    letter-spacing: .3px;
-}
-
 /* Meals */
 .meal-badge {
     border-radius: var(--border-radius);
@@ -331,39 +321,9 @@
 
 /* RoomTypes */
 .roomtype-badge {
-    border-radius: var(--border-radius);
-    padding: .25em .5rem;
-    text-transform: uppercase;
-    font-weight: 700;
-    font-size: 12px;
-    letter-spacing: .3px;
     display: inline-block;
     text-align: left;
     min-width: 80px;
-
-    small {
-        font-weight: 500;
-    }
-
-    &.castle {
-        background: var(--teal-200);
-        color: var(--teal-800);
-    }
-
-    &.maranatha {
-        background: var(--yellow-200);
-        color: var(--yellow-800);
-    }
-
-    &.family-room {
-        background: var(--orange-200);
-        color: var(--orange-800);
-    }
-
-    &.nothing {
-        background: var(--gray-200);
-        color: var(--gray-800);
-    }
 }
 
 /* Colors */
@@ -448,5 +408,9 @@
     i {
         line-height: 23px;
         vertical-align: middle;
+    }
+
+    small {
+        font-weight: 500;
     }
 }

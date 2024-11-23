@@ -11,14 +11,14 @@
             appendTo="body">
 
     <ng-template pTemplate="item" let-option>
-        <div [ngClass]="'roomtype-badge ' + option?.style">
+        <div [ngClass]="'color-badge roomtype-badge ' + option?.color">
             <div>{{ option.label }}</div>
             <small *ngIf="option.description">{{ option.description }}</small>
         </div>
     </ng-template>
 
     <ng-template pTemplate="selectedItem" let-selectedItem>
-        <div [ngClass]="'roomtype-badge ' + selectedItem?.style">
+        <div [ngClass]="'color-badge roomtype-badge ' + selectedItem?.color">
             <div>{{ selectedItem?.label }}</div>
             <small *ngIf="selectedItem.description">{{ selectedItem?.description }}</small>
         </div>
@@ -38,14 +38,14 @@
                 appendTo="body">
 
         <ng-template pTemplate="item" let-option>
-            <div [ngClass]="'roomtype-badge ' + option?.style">
+            <div [ngClass]="'color-badge roomtype-badge ' + option?.color">
                 <div>{{ option.label }}</div>
                 <small *ngIf="option.description">{{ option.description }}</small>
             </div>
         </ng-template>
 
         <ng-template pTemplate="selectedItem" let-selectedItem>
-            <div [ngClass]="'roomtype-badge ' + selectedItem?.style">
+            <div [ngClass]="'color-badge roomtype-badge ' + selectedItem?.color">
                 <div>{{ selectedItem?.label }}</div>
                 <small *ngIf="selectedItem.description">{{ selectedItem?.description }}</small>
             </div>
