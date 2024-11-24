@@ -3,6 +3,8 @@ import { BehaviorSubject, map, Observable, of } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { Room } from '../api/room';
+import { HttpClient } from '@angular/common/http';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({
     providedIn: 'root',
@@ -15,7 +17,7 @@ export class RoomService {
     private data$: BehaviorSubject<any>
     private message$: BehaviorSubject<any>
 
-    constructor(private apiService: ApiService) {
+    constructor(private apiService: ApiService, private http: HttpClient, private translate: TranslateService) {
         this.apiURL = apiService.apiURL
         this.data$ = new BehaviorSubject<any>(null)
         this.message$ = new BehaviorSubject<any>(null)
@@ -48,6 +50,15 @@ export class RoomService {
 
         const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
 
+        this.getSzobak().then(szobak => {
+            console.log('szobak', szobak);
+            let response = { rows: szobak, total: szobak.length };
+            this.data$.next(response);
+        }).catch(error => {
+            console.error('Error fetching szobak:', error);
+        })
+        return 
+
         this.apiService.get<ApiResponse>(`room/get/${url}`)
             .subscribe({
                 next: (response: ApiResponse) => {
@@ -58,7 +69,7 @@ export class RoomService {
                             room.name = room.name?.toLowerCase()
                         })
                     }
-
+                    
                     this.data$.next(response)
                 },
                 error: (error: any) => {
@@ -209,5 +220,83 @@ export class RoomService {
                 return rooms
             })
         )
+    }
+
+
+    getSzobak(): Promise<Room[]> {
+        return this.http.get<any>('assets/demo/data/szobak.json')
+            .toPromise()
+            .then(res => res as any[])
+    }
+
+    getRoomTypeByCode(code: string, beds: number) {
+
+        let roomTypes = [
+            { 
+                code: 'KB', // Kastély Bunked (emeleteságyas)
+                beds: 4,
+                label: this.translate.instant('ROOMTYPES.CASTLE'), 
+                description: this.translate.instant('ROOMTYPES.4-BED-ROOM'), 
+                value: 'Kastély szállás 4 ágyas szoba', 
+                color: 'teal' 
+            },
+            { 
+                code: 'KB', // Kastély Bunked (emeleteságyas)
+                beds: 6,
+                label: this.translate.instant('ROOMTYPES.CASTLE'), 
+                description: this.translate.instant('ROOMTYPES.6-BED-ROOM'), 
+                value: 'Kastély szállás 6 ágyas szoba', 
+                color: 'teal' 
+            },
+            { 
+                code: 'KB', // Kastély Bunked (emeleteságyas)
+                beds: 8,
+                label: this.translate.instant('ROOMTYPES.CASTLE'), 
+                description: this.translate.instant('ROOMTYPES.8-BED-ROOM'), 
+                value: 'Kastély szállás 8 ágyas szoba', 
+                color: 'teal' 
+            },
+            { 
+                code: 'MD', // Maranatha Double (kétágyas)
+                beds: 2,
+                label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
+                description: this.translate.instant('ROOMTYPES.2-BED-ROOM'), 
+                value: 'Maranatha Panzióház 2 ágyas szoba (külön fürdős)', 
+                color: 'yellow' 
+            },
+            { 
+                code: 'MQ', // Maranatha Queenbed (franciaágyas)
+                beds: 2,
+                label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
+                description: this.translate.instant('ROOMTYPES.DOUBLE-BED-ROOM'), 
+                value: 'Maranatha Panzióház franciaágyas szoba (külön fürdős)', 
+                color: 'yellow' 
+            },
+            { 
+                code: 'MB', // Maranatha Bunkbed (négyágyas emeleteságyas)
+                beds: 4,
+                label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
+                description: this.translate.instant('ROOMTYPES.M-4-BED-ROOM'), 
+                value: 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)', 
+                color: 'yellow' 
+            },
+            { 
+                code: 'A', // Apartman
+                label: this.translate.instant('ROOMTYPES.FAMILY-ROOM'), 
+                description: this.translate.instant('ROOMTYPES.WITH-KITCHEN'), 
+                value: 'Családi szoba (közös konyhával, fürdővel és nappalival)', 
+                color: 'orange' 
+            },
+        ]
+
+        let roomType = roomTypes.find(roomType => 
+            roomType.code === code && 
+            (roomType.beds === undefined || roomType.beds === beds)
+        )
+
+        return roomType
+
+
+        
     }
 }

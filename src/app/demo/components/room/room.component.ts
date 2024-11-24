@@ -14,6 +14,7 @@ moment.locale('hu')
 
 @Component({
     templateUrl: './room.component.html',
+    styleUrls: ['./room.component.scss'],
     providers: [MessageService]
 })
 
@@ -68,7 +69,7 @@ export class RoomComponent implements OnInit {
             matrace: ['', []],
             bathroom: ['', []],
             building: ['', []],
-            bedtype: ['', []],
+            bedType: ['', []],
             comment: ['', []],
         })
 
@@ -117,7 +118,7 @@ export class RoomComponent implements OnInit {
     get matrace() { return this.roomForm.get('matrace') }
     get bathroom() { return this.roomForm.get('bathroom') }
     get building() { return this.roomForm.get('building') }
-    get bedtype() { return this.roomForm.get('bedtype') }
+    get bedType() { return this.roomForm.get('bedType') }
     get comment() { return this.roomForm.get('comment') }
 
     /**
@@ -298,6 +299,10 @@ export class RoomComponent implements OnInit {
             // Query for data changes
             this.doQuery()
         }
+    }
+
+    getRoomTypeByCode(code: string, beds: number) { 
+        return this.roomService.getRoomTypeByCode(code, beds) 
     }
 
     // Don't delete this, its needed from a performance point of view,

@@ -16,6 +16,8 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { SidebarModule } from 'primeng/sidebar';
 import { InputSwitchModule } from 'primeng/inputswitch';
+import { TooltipModule } from 'primeng/tooltip';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { SelectorsModule } from '../../selectors/selectors.module';
 import { RoomService } from '../../service/room.service';
 
@@ -39,6 +41,8 @@ import { RoomService } from '../../service/room.service';
         SidebarModule,
         SelectorsModule,
         InputSwitchModule,
+        TooltipModule,
+        ProgressBarModule,
     ],
     declarations: [RoomComponent],
     providers: [RoomService]
