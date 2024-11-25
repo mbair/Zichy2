@@ -12,6 +12,7 @@ import { Question } from '../api/question';
 export class ConferenceService {
 
     public apiURL: string
+    private cache: Conference[] = []
     private data$: BehaviorSubject<any>
     private message$: BehaviorSubject<any>
 
@@ -180,6 +181,28 @@ export class ConferenceService {
                     this.message$.next(error)
                 }
             })
+    }
+
+    /**
+     * Get conferences for selector
+     * @returns
+     */
+    getConferencesForSelector(): Observable<Conference[]> {
+        // Check if there is already cached data
+        if (this.cache.length > 0) {
+            return of(this.cache)
+        }
+
+        this.get(0, 999, { sortField: 'id', sortOrder: 1 }, '')
+        return this.data$.asObservable().pipe(
+            map((data: any) => {
+                // Store conferences in cache
+                const conferences = data ? data.rows : []
+                this.cache = conferences
+
+                return conferences
+            })
+        )
     }
 
     /**

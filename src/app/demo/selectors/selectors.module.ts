@@ -5,6 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ChipModule } from 'primeng/chip';
 import { DropdownModule } from 'primeng/dropdown';
 import { TranslateModule } from '@ngx-translate/core';
+import { ConferenceSelectorComponent } from './conference-selector/conference-selector.component';
 import { CountrySelectorComponent } from './country-selector/country-selector.component';
 import { DietSelectorComponent } from './diet-selector/diet-selector.component';
 import { LanguageSelectorComponent } from './language-selector/language.component';
@@ -30,6 +31,7 @@ import { EnabledSelectorComponent } from './enabled-selector/enabled-selector.co
         RoleSelectorComponent,
         ColorSelectorComponent,
         EnabledSelectorComponent,
+        ConferenceSelectorComponent,
     ],
     imports: [
         CommonModule,
@@ -51,6 +53,7 @@ import { EnabledSelectorComponent } from './enabled-selector/enabled-selector.co
         RoleSelectorComponent,
         ColorSelectorComponent,
         EnabledSelectorComponent,
+        ConferenceSelectorComponent,
     ],
 })
 export class SelectorsModule {}

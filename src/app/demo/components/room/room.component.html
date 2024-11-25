@@ -22,6 +22,14 @@
                 <ng-template pTemplate="caption">
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
                         <h5 class="m-0">Szobák</h5>
+                        <span class="block mt-2 md:mt-0">
+                            <app-conference-selector
+                                (change)="onFilter($event, 'conferenceName')" 
+                                placeholder="Keresés..." 
+                                [showClear]="true"
+                                placeholder="Válasszon konferenciát...">
+                            </app-conference-selector>
+                        </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
                             <i class="pi pi-search"></i>
                             <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."  class="w-full sm:w-auto"/>

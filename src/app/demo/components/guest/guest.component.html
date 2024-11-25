@@ -24,14 +24,12 @@
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
                         <h5 class="m-0">Vendégek</h5>
                         <span class="block mt-2 md:mt-0">
-                            <p-dropdown
-                                [options]="conferences"
-                                [(ngModel)]="selectedConference"
-                                optionLabel="name"
+                            <app-conference-selector
+                                (change)="onFilter($event, 'conferenceName')" 
+                                placeholder="Keresés..." 
                                 [showClear]="true"
-                                (onChange)="onConferenceChange()"
                                 placeholder="Válasszon konferenciát...">
-                            </p-dropdown>
+                            </app-conference-selector>
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left w-full sm:w-auto">
                             <i class="pi pi-search"></i>
