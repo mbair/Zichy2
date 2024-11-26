@@ -5,7 +5,7 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "extraBeds": 0,
+          "adminBeds": 0,
           "guests": [
             {
               "id": 1,
@@ -16,9 +16,22 @@
               "id": 2,
               "guestName": "Balázs",
               "guestEmail": "9fzQX@example.com"
-            }
+            },
+            {
+                "id": 1,
+                "guestName": "Dávid",
+                "guestEmail": "9fzQX@example.com"
+              },
+              {
+                "id": 2,
+                "guestName": "Anna",
+                "guestEmail": "9fzQX@example.com"
+              }
           ],
-          "matracee": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -32,7 +45,7 @@
           "roomCode": "MB",
           "description": "4 ágyas szoba (emeletes ágyas, külön fürdős)",
           "beds": 4,
-          "extraBeds": 0,
+          "adminBeds": 0,
           "guests": [
             {
               "id": 1,
@@ -45,7 +58,7 @@
               "guestEmail": "9fzQX@example.com"
             }
           ],
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -59,7 +72,7 @@
           "roomCode": "MQ",
           "description": "franciaágyas szoba (külön fürdős)",
           "beds": 2,
-          "extraBeds": 0,
+          "adminBeds": 0,
           "guests": [
             {
               "id": 1,
@@ -72,7 +85,10 @@
               "guestEmail": "9fzQX@example.com"
             }
           ],
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -86,7 +102,10 @@
           "roomCode": "MB",
           "description": "4 ágyas szoba (emeletes ágyas, külön fürdős)",
           "beds": 4,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -100,7 +119,7 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -114,7 +133,7 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -128,7 +147,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "akadályment. fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -142,7 +164,10 @@
           "roomCode": "MB",
           "description": "4 ágyas szoba (emeletes ágyas, külön fürdős)",
           "beds": 4,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "akadályment. fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -156,7 +181,7 @@
           "roomCode": "MB",
           "description": "4 ágyas szoba (emeletes ágyas, külön fürdős)",
           "beds": 4,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -170,7 +195,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -184,7 +212,10 @@
           "roomCode": "MQ",
           "description": "franciaágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -198,7 +229,7 @@
           "roomCode": "MB",
           "description": "4 ágyas szoba (emeletes ágyas, külön fürdős)",
           "beds": 4,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -212,7 +243,10 @@
           "roomCode": "MB",
           "description": "4 ágyas szoba (emeletes ágyas, külön fürdős)",
           "beds": 4,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -226,7 +260,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -240,7 +277,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -254,7 +294,7 @@
           "roomCode": "MB",
           "description": "4 ágyas szoba (emeletes ágyas, külön fürdős)",
           "beds": 4,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -268,7 +308,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -282,7 +325,7 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -296,7 +339,7 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -310,7 +353,7 @@
           "roomCode": "MQ",
           "description": "franciaágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -324,7 +367,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -338,7 +384,10 @@
           "roomCode": "MQ",
           "description": "franciaágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -352,7 +401,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -366,7 +418,10 @@
           "roomCode": "MQ",
           "description": "franciaágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -380,7 +435,10 @@
           "roomCode": "MQ",
           "description": "franciaágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -394,7 +452,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -408,7 +469,10 @@
           "roomCode": "MQ",
           "description": "franciaágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -422,7 +486,7 @@
           "roomCode": "MB",
           "description": "4 ágyas szoba (emeletes ágyas, külön fürdős)",
           "beds": 4,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -436,7 +500,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -450,7 +517,7 @@
           "roomCode": "MB",
           "description": "4 ágyas szoba (emeletes ágyas, külön fürdős)",
           "beds": 4,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -464,7 +531,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -478,7 +548,7 @@
           "roomCode": "MB",
           "description": "4 ágyas szoba (emeletes ágyas, külön fürdős)",
           "beds": 4,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -492,7 +562,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "MM",
+          "extraBed": {
+            "value": "MM",
+            "label": "2 db matrac"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -506,7 +579,7 @@
           "roomCode": "MQ",
           "description": "franciaágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -520,7 +593,7 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -534,7 +607,10 @@
           "roomCode": "MQ",
           "description": "franciaágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -548,7 +624,7 @@
           "roomCode": "MQ",
           "description": "franciaágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -562,7 +638,7 @@
           "roomCode": "MQ",
           "description": "franciaágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -576,7 +652,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -590,7 +669,7 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -604,7 +683,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "MGy",
+          "extraBed": {
+            "value": "MGY",
+            "label": "Matrac + gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -618,7 +700,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "MM",
+          "extraBed": {
+            "value": "MM",
+            "label": "2 db matrac"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -632,7 +717,7 @@
           "roomCode": "MQ",
           "description": "franciaágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -646,7 +731,7 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -660,7 +745,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -674,7 +762,10 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "matrace": "MGY",
+          "extraBed": {
+            "value": "MGY",
+            "label": "Matrac + gyerekágy"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Maranatha Panzióház",
           "color": "orange",
@@ -687,7 +778,10 @@
           "roomNum": 13,
           "roomCode": "KB",
           "beds": 6,
-          "matrace": "MM",
+          "extraBed": {
+            "value": "MM",
+            "label": "2 db matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -700,7 +794,10 @@
           "roomNum": 14,
           "roomCode": "KB",
           "beds": 8,
-          "matrace": "MM",
+          "extraBed": {
+            "value": "MM",
+            "label": "2 db matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -713,7 +810,7 @@
           "roomNum": "15A",
           "roomCode": "KB",
           "beds": 4,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -726,7 +823,10 @@
           "roomNum": "15B",
           "roomCode": "KB",
           "beds": 6,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -739,7 +839,10 @@
           "roomNum": 16,
           "roomCode": "KB",
           "beds": 8,
-          "matrace": "MM",
+          "extraBed": {
+            "value": "MM",
+            "label": "2 db matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -752,7 +855,10 @@
           "roomNum": 17,
           "roomCode": "KB",
           "beds": 8,
-          "matrace": "MM",
+          "extraBed": {
+            "value": "MM",
+            "label": "2 db matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -765,7 +871,10 @@
           "roomNum": 18,
           "roomCode": "KB",
           "beds": 8,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -778,7 +887,10 @@
           "roomNum": 19,
           "roomCode": "KB",
           "beds": 8,
-          "matrace": "MM",
+          "extraBed": {
+            "value": "MM",
+            "label": "2 db matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -791,7 +903,10 @@
           "roomNum": "20A",
           "roomCode": "KB",
           "beds": 4,
-          "matrace": "Gy",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -804,7 +919,10 @@
           "roomNum": "20B",
           "roomCode": "KB",
           "beds": 6,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -817,7 +935,10 @@
           "roomNum": 21,
           "roomCode": "KB",
           "beds": 8,
-          "matrace": "MM",
+          "extraBed": {
+            "value": "MM",
+            "label": "2 db matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -830,7 +951,10 @@
           "roomNum": 37,
           "roomCode": "KB",
           "beds": 6,
-          "matrace": "MM",
+          "extraBed": {
+            "value": "MM",
+            "label": "2 db matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -843,7 +967,7 @@
           "roomNum": "38A",
           "roomCode": "KB",
           "beds": 4,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -856,7 +980,10 @@
           "roomNum": "38B",
           "roomCode": "KB",
           "beds": 6,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -869,7 +996,10 @@
           "roomNum": 39,
           "roomCode": "KB",
           "beds": 6,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -882,7 +1012,10 @@
           "roomNum": 40,
           "roomCode": "KB",
           "beds": 6,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -895,7 +1028,10 @@
           "roomNum": 41,
           "roomCode": "KB",
           "beds": 6,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -908,7 +1044,10 @@
           "roomNum": 43,
           "roomCode": "KB",
           "beds": 6,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -921,7 +1060,10 @@
           "roomNum": 44,
           "roomCode": "KB",
           "beds": 6,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -934,7 +1076,10 @@
           "roomNum": "49A",
           "roomCode": "KB",
           "beds": 4,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -947,7 +1092,10 @@
           "roomNum": "49B",
           "roomCode": "KB",
           "beds": 6,
-          "matrace": "MM",
+          "extraBed": {
+            "value": "MM",
+            "label": "2 db matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -960,7 +1108,10 @@
           "roomNum": 50,
           "roomCode": "KBF",
           "beds": 6,
-          "matrace": "MM",
+          "extraBed": {
+            "value": "MM",
+            "label": "2 db matrac"
+          },
           "bathroom": "saját fürdőszoba",
           "building": "Kastély",
           "color": "teal",
@@ -973,7 +1124,7 @@
           "roomNum": 54,
           "roomCode": "KQ",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "saját fürdőszoba",
           "building": "Kastély",
           "color": "teal",
@@ -986,7 +1137,7 @@
           "roomNum": 55,
           "roomCode": "KB",
           "beds": 8,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -999,7 +1150,10 @@
           "roomNum": 56,
           "roomCode": "KB",
           "beds": 4,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -1012,7 +1166,10 @@
           "roomNum": 57,
           "roomCode": "KB",
           "beds": 4,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -1025,7 +1182,10 @@
           "roomNum": 59,
           "roomCode": "KB",
           "beds": 8,
-          "matrace": "MM",
+          "extraBed": {
+            "value": "MM",
+            "label": "2 db matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -1038,7 +1198,10 @@
           "roomNum": 60,
           "roomCode": "KB",
           "beds": 8,
-          "matrace": "MM",
+          "extraBed": {
+            "value": "MM",
+            "label": "2 db matrac"
+          },
           "bathroom": "kollégiumi",
           "building": "Kastély",
           "color": "teal",
@@ -1051,7 +1214,10 @@
           "roomNum": "G11A",
           "roomCode": "AQ",
           "beds": 2,
-          "matrace": "MM",
+          "extraBed": {
+            "value": "MM",
+            "label": "2 db matrac"
+          },
           "bathroom": "",
           "floor": "Gondnoki fsz",
           "bedType": "franciaágy",
@@ -1062,7 +1228,10 @@
           "roomNum": "G11B",
           "roomCode": "AB",
           "beds": 4,
-          "matrace": "GY",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "",
           "floor": "",
           "bedType": "emeletes ágy",
@@ -1073,7 +1242,10 @@
           "roomNum": "G11C",
           "roomCode": "AB",
           "beds": 2,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "",
           "floor": "",
           "bedType": "emeletes ágy",
@@ -1084,7 +1256,10 @@
           "roomNum": "G21A",
           "roomCode": "AB",
           "beds": 4,
-          "matrace": "M",
+          "extraBed": {
+            "value": "M",
+            "label": "Matrac"
+          },
           "bathroom": "",
           "floor": "Gondnoki emelet",
           "bedType": "emeletes ágy",
@@ -1095,7 +1270,7 @@
           "roomNum": "G21B",
           "roomCode": "AQ",
           "beds": 2,
-          "matrace": "M/GY",
+          "extraBed": "M/GY",
           "bathroom": "",
           "floor": "",
           "bedType": "franciaágy",
@@ -1106,7 +1281,7 @@
           "roomNum": "G21C",
           "roomCode": "AB",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "",
           "floor": "",
           "bedType": "kétágyas",
@@ -1117,7 +1292,7 @@
           "roomNum": "K12a",
           "roomCode": "AB",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "",
           "floor": "Kapu első",
           "bedType": "emeletes ágy",
@@ -1128,7 +1303,10 @@
           "roomNum": "K12b",
           "roomCode": "AQ",
           "beds": 2,
-          "matrace": "GY",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "",
           "floor": "",
           "bedType": "franciaágy",
@@ -1139,7 +1317,10 @@
           "roomNum": "L11A",
           "roomCode": "AQ",
           "beds": 2,
-          "matrace": "GY",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "",
           "floor": "LogosHÁz főút felől",
           "bedType": "franciaágy",
@@ -1150,7 +1331,10 @@
           "roomNum": "L11B",
           "roomCode": "AB",
           "beds": 6,
-          "matrace": "MM",
+          "extraBed": {
+            "value": "MM",
+            "label": "2 db matrac"
+          },
           "bathroom": "",
           "floor": "",
           "bedType": "emeletes ágy",
@@ -1161,7 +1345,7 @@
           "roomNum": "L11C",
           "roomCode": "AD",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "",
           "floor": "",
           "bedType": "kétágyas",
@@ -1172,7 +1356,10 @@
           "roomNum": "L11D",
           "roomCode": "AD",
           "beds": 2,
-          "matrace": "GY",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "",
           "floor": "",
           "bedType": "kétágyas",
@@ -1183,7 +1370,10 @@
           "roomNum": "L11E",
           "roomCode": "AD",
           "beds": 2,
-          "matrace": "GY",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "",
           "floor": "",
           "bedType": "kétágyas",
@@ -1194,7 +1384,7 @@
           "roomNum": "L13 A",
           "roomCode": "AD",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "",
           "floor": "LogosHáz kert felől",
           "bedType": "kétágyas",
@@ -1205,7 +1395,7 @@
           "roomNum": "L13 B",
           "roomCode": "AQ",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "",
           "floor": "",
           "bedType": "franciaágy",
@@ -1216,7 +1406,7 @@
           "roomNum": "L13 C",
           "roomCode": "AD",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "",
           "floor": "",
           "bedType": "emeletes ágy",
@@ -1227,7 +1417,7 @@
           "roomNum": "L23 A",
           "roomCode": "A",
           "beds": 1,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "",
           "floor": "",
           "bedType": "egyágyas",
@@ -1238,7 +1428,7 @@
           "roomNum": "L23 B",
           "roomCode": "AD",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "",
           "floor": "",
           "bedType": "kétágyas",
@@ -1249,7 +1439,7 @@
           "roomNum": "L23 C",
           "roomCode": "AQ",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "",
           "floor": "",
           "bedType": "franciaágy",
@@ -1260,7 +1450,10 @@
           "roomNum": "S11A",
           "roomCode": "AD",
           "beds": 2,
-          "matrace": "GY",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "",
           "floor": "SarokHáz főút felől",
           "bedType": "kétágyas",
@@ -1271,7 +1464,7 @@
           "roomNum": "S11B",
           "roomCode": "AD",
           "beds": 2,
-          "matrace": "M/GY",
+          "extraBed": "M/GY",
           "bathroom": "",
           "floor": "",
           "bedType": "kétágyas",
@@ -1282,7 +1475,7 @@
           "roomNum": "S11C",
           "roomCode": "AD",
           "beds": 2,
-          "matrace": "M/GY",
+          "extraBed": "M/GY",
           "bathroom": "",
           "floor": "",
           "bedType": "kétágyas",
@@ -1293,7 +1486,7 @@
           "roomNum": "S11D",
           "roomCode": "AD",
           "beds": 2,
-          "matrace": "M/GY",
+          "extraBed": "M/GY",
           "bathroom": "",
           "floor": "",
           "bedType": "kétágyas",
@@ -1304,7 +1497,10 @@
           "roomNum": "S12A",
           "roomCode": "AS",
           "beds": 4,
-          "matrace": "GY",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "",
           "floor": "SarokHáz kert felől",
           "bedType": "emeletes ágy",
@@ -1315,7 +1511,7 @@
           "roomNum": "S12B",
           "roomCode": "AD",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "",
           "floor": "",
           "bedType": "kétágyas",
@@ -1326,7 +1522,10 @@
           "roomNum": "S12C",
           "roomCode": "AB",
           "beds": 2,
-          "matrace": "GY",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "",
           "floor": "",
           "bedType": "franciaágy",
@@ -1337,7 +1536,7 @@
           "roomNum": "S12D",
           "roomCode": "AQ",
           "beds": 1,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "",
           "floor": "",
           "bedType": "egyágyas",
@@ -1348,7 +1547,7 @@
           "roomNum": "S21A",
           "roomCode": "AD",
           "beds": 2,
-          "matrace": "M/GY",
+          "extraBed": "M/GY",
           "bathroom": "",
           "floor": "SarokHáz emelet",
           "bedType": "kétágyas",
@@ -1359,7 +1558,7 @@
           "roomNum": "S21B",
           "roomCode": "AD",
           "beds": 2,
-          "matrace": "M/GY",
+          "extraBed": "M/GY",
           "bathroom": "",
           "floor": "SarokHáz emelet",
           "bedType": "kétágyas",
@@ -1370,7 +1569,10 @@
           "roomNum": "V11A",
           "roomCode": "AQ",
           "beds": 2,
-          "matrace": "GY",
+          "extraBed": {
+            "value": "GY",
+            "label": "Gyerekágy"
+          },
           "bathroom": "",
           "floor": "Vadász ház",
           "bedType": "franciaágy",
@@ -1381,7 +1583,7 @@
           "roomNum": "V11B",
           "roomCode": "A",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "",
           "floor": "Vadász ház",
           "bedType": "kétágyas",
@@ -1392,7 +1594,7 @@
           "roomNum": "V11C",
           "roomCode": "A",
           "beds": 2,
-          "matrace": "",
+          "extraBed": "",
           "bathroom": "",
           "floor": "Vadász ház emelet",
           "bedType": "kinyitható kanapé",

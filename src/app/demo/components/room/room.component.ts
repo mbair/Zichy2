@@ -47,6 +47,9 @@ export class RoomComponent implements OnInit {
     canDelete: boolean = false                   // User has permission to delete room
     colors: any = {}                             // PrimeNG colors
     isMobile: boolean = false                    // Mobile screen detection
+    roomCodes: any[] = []                        // Room code options
+    matraces: any[] = []                         // Matrace options
+    bedTypes: any[] = []                         // Bed type options
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -66,12 +69,34 @@ export class RoomComponent implements OnInit {
             roomNum: ['', Validators.required],
             roomCode: ['', Validators.required],
             beds: ['', Validators.required],
-            matrace: ['', []],
+            extraBed: ['', []],
             bathroom: ['', []],
             building: ['', []],
             bedType: ['', []],
             comment: ['', []],
         })
+
+        this.roomCodes = [
+            { value: 'A', label: 'Apartman' },            // Apartman
+            { value: 'MD', label: 'Maranatha Double', },  // Maranatha Double (Maranatha kétágyas)
+            { value: 'MB', label: 'Maranatha Bunkbed' },  // Maranatha Bunkbed (Maranatha négyágyas emeleteságyas)
+            { value: 'MQ', label: 'Maranatha Queenbed' }, // Maranatha Queenbed (franciaágyas)
+            { value: 'KB', label: 'Kastély Bunked' },     // Kastély Bunked (Kastélyban emeleteságyas)
+        ]
+
+        // A szoba pótágyazhatóságát jelöli
+        this.matraces = [
+            { value: 'M', label: 'Matrac' },               // matrac fér be
+            { value: 'GY', label: 'Gyerekágy' },           // gyerekágy fér be, A matrac helyett befér gyerekágy de fordítva nem
+            { value: 'MM', label: '2 db matrac' },         // 2 db matrac fér
+            { value: 'MGY', label: 'Matrac + gyerekágy' }  // matrac és gyerekágy fér be
+        ]
+
+        this.bedTypes = [
+            { label: 'kétágyas', value: 'kétágyas' },
+            { label: 'emeletes ágy', value: 'emeletes ágy' },
+            { label: 'franciaágy', value: 'franciaágy' }
+        ]
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
     }
@@ -115,7 +140,7 @@ export class RoomComponent implements OnInit {
     get roomNum() { return this.roomForm.get('roomNum') }
     get roomCode() { return this.roomForm.get('roomCode') }
     get beds() { return this.roomForm.get('beds') }
-    get matrace() { return this.roomForm.get('matrace') }
+    get extraBed() { return this.roomForm.get('extraBed') }
     get bathroom() { return this.roomForm.get('bathroom') }
     get building() { return this.roomForm.get('building') }
     get bedType() { return this.roomForm.get('bedType') }
@@ -145,7 +170,7 @@ export class RoomComponent implements OnInit {
      * @param field
      */
     onFilter(event: any, field: string) {
-        const noWaitFields: string[] = ['color', 'enabled']
+        const noWaitFields: string[] = ['conferenceName']
         let filterValue = ''
 
         // Calendar date as String
@@ -169,7 +194,7 @@ export class RoomComponent implements OnInit {
             if (this.filterValues[field] === filterValue) {
                 this.doQuery()
             }
-        // otherwise wait for the debounce time
+            // otherwise wait for the debounce time
         } else {
             if (this.debounce[field]) {
                 clearTimeout(this.debounce[field])
@@ -256,7 +281,7 @@ export class RoomComponent implements OnInit {
             if (!formValues.id) {
                 this.roomService.create(formValues)
 
-            // Update
+                // Update
             } else {
                 this.roomService.update(formValues)
             }
@@ -299,10 +324,6 @@ export class RoomComponent implements OnInit {
             // Query for data changes
             this.doQuery()
         }
-    }
-
-    getRoomTypeByCode(code: string, beds: number) { 
-        return this.roomService.getRoomTypeByCode(code, beds) 
     }
 
     // Don't delete this, its needed from a performance point of view,

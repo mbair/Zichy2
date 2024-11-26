@@ -3,7 +3,7 @@ export interface Room {
     roomNum?: string;
     roomCode?: string;
     beds?: string;
-    matrace?: string;
+    extraBed?: string;
     bathroom?: string;
     building?: string;
     bedtype?: string;

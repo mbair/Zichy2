@@ -229,6 +229,7 @@ export class RoomService {
             .then(res => res as any[])
     }
 
+    // TODO: NOT USED
     getRoomTypeByCode(code: string, beds: number) {
 
         let roomTypes = [

@@ -44,9 +44,9 @@
                     <tr>
                         <th></th>
                         <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
-                        <th pSortableColumn="bedType">Ágytípus<p-sortIcon field="bedType"></p-sortIcon></th>
-                        <th pSortableColumn="matrace">Matrac <p-sortIcon field="matrace"></p-sortIcon></th>
+                        <th pSortableColumn="extraBed">Pótágy <p-sortIcon field="extraBed"></p-sortIcon></th>
                         <th pSortableColumn="comment">Komment <p-sortIcon field="comment"></p-sortIcon></th>
+                        <th pSortableColumn="guests">Vendégek <p-sortIcon field="guests"></p-sortIcon></th>
                         <th pSortableColumn="occupancy">Telítettség <p-sortIcon field="occupancy"></p-sortIcon></th>
                         <th></th>
                     </tr>
@@ -59,28 +59,28 @@
                                    type="text"
                                    (input)="onFilter($event, 'roomNum')"
                                    placeholder="Keresés..."
-                                   style="min-width:5rem;"/>
+                                   style="width:25rem"/>
                         </th>
                         <th>
                             <input pInputText
                                    type="text"
-                                   (input)="onFilter($event, 'bedType')"
+                                   (input)="onFilter($event, 'extraBed')"
                                    placeholder="Keresés..."
-                                   style="min-width:5rem;"/>
-                        </th>
-                        <th>
-                            <input pInputText
-                                   type="text"
-                                   (input)="onFilter($event, 'matrace')"
-                                   placeholder="Keresés..."
-                                   style="min-width:5rem;"/>
+                                   style="width:7rem"/>
                         </th>
                         <th>
                             <input pInputText
                                    type="text"
                                    (input)="onFilter($event, 'comment')"
                                    placeholder="Keresés..."
-                                   style="width:7rem;"/>
+                                   style="width:7rem"/>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'guests')"
+                                   placeholder="Keresés..."
+                                   style="width:10rem"/>
                         </th>
                         <th>
                             <input pInputText
@@ -114,7 +114,7 @@
                                                 {{ room.building }} <span class="font-normal text-sm uppercase">({{ room.floor }})</span>
                                             </span>
                                             <span class="font-small text-xs uppercase">
-                                                {{ room.description }}
+                                                {{ room.beds }} SZEMÉLYES ({{ room.bedType }}, {{ room.bathroom }})
                                             </span>
                                         </div>
                                     </div>
@@ -146,16 +146,24 @@
                             </div> -->
                         </td>
                         <td>
-                            <span class="p-column-title">Ágytípus</span>
-                            {{room.bedType}}
-                        </td>
-                        <td>
-                            <span class="p-column-title">Matrac</span>
-                            {{room.matrace}}
+                            <span class="p-column-title">Pótágy</span>
+                            {{ room.extraBed?.label }}
                         </td>
                         <td>
                             <span class="p-column-title">Komment</span>
                             {{room.comment}}
+                        </td>
+                        <td>
+                            <span class="p-column-title">Vendégek</span>
+                            <p-avatarGroup >
+                                <p-avatar *ngFor="let guest of room.guests" 
+                                           icon="pi pi-user" 
+                                           size="large" 
+                                           shape="circle"
+                                           pTooltip="{{guest.guestName}}" 
+                                           tooltipPosition="top">
+                                </p-avatar>
+                            </p-avatarGroup>
                         </td>
                         <td>
                             <span class="p-column-title">Telítettség</span>
@@ -206,7 +214,7 @@
                 <input formControlName="id" type="hidden">
 
                 <!-- roomNum -->
-                <div class="field mb-4 col-12">
+                <div class="field mb-4 col-6">
                     <label for="roomNum" class="font-medium text-900">Szoba szám</label>
                     <input id="roomNum" type="text" pInputText formControlName="roomNum">
                     <div *ngIf="roomNum?.dirty && roomNum?.errors?.['required']" class="block p-error">
@@ -215,7 +223,7 @@
                 </div>
                 
                 <!-- roomCode -->
-                <div class="field mb-4 col-12">
+                <div class="field mb-4 col-6">
                     <label for="roomCode" class="font-medium text-900">Szoba kód</label>
                     <input id="roomCode" type="text" pInputText formControlName="roomCode">
                     <div *ngIf="roomCode?.dirty && roomCode?.errors?.['required']" class="block p-error">
@@ -224,7 +232,7 @@
                 </div>
 
                 <!-- beds -->
-                <div class="field mb-4 col-12">
+                <div class="field mb-4 col-6">
                     <label for="beds" class="font-medium text-900">Ágyak száma</label>
                     <input id="beds" type="text" pInputText formControlName="beds">
                     <div *ngIf="beds?.dirty && beds?.errors?.['required']" class="block p-error">
@@ -232,17 +240,26 @@
                     </div>
                 </div>
 
-                <!-- matrace -->
-                <div class="field mb-4 col-12">
-                    <label for="matrace" class="font-medium text-900">Matrac</label>
-                    <input id="matrace" type="text" pInputText formControlName="matrace">
-                    <div *ngIf="matrace?.dirty && matrace?.errors?.['required']" class="block p-error">
+                <!-- bedType -->
+                <div class="field mb-4 col-6">
+                    <label for="bedType" class="font-medium text-900">Ágytípus</label>
+                    <input id="bedType" type="text" pInputText formControlName="bedType">
+                    <div *ngIf="bedType?.dirty && bedType?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- extraBed -->
+                <div class="field mb-4 col-6">
+                    <label for="extraBed" class="font-medium text-900">Pótágy</label>
+                    <input id="extraBed" type="text" pInputText formControlName="extraBed">
+                    <div *ngIf="extraBed?.dirty && extraBed?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>
 
                 <!-- bathroom -->
-                <div class="field mb-4 col-12">
+                <div class="field mb-4 col-6">
                     <label for="bathroom" class="font-medium text-900">Fürdőszoba</label>
                     <input id="bathroom" type="text" pInputText formControlName="bathroom">
                     <div *ngIf="bathroom?.dirty && bathroom?.errors?.['required']" class="block p-error">
@@ -255,15 +272,6 @@
                     <label for="building" class="font-medium text-900">Épület</label>
                     <input id="building" type="text" pInputText formControlName="building">
                     <div *ngIf="building?.dirty && building?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- bedType -->
-                <div class="field mb-4 col-12">
-                    <label for="bedType" class="font-medium text-900">Ágytípus</label>
-                    <input id="bedType" type="text" pInputText formControlName="bedType">
-                    <div *ngIf="bedType?.dirty && bedType?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>
