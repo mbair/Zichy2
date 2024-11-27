@@ -101,6 +101,12 @@
         "SZEP-CARD": "SZEP card",    
         "CASH": "Cash"
     },
+    "EXTRABEDS": {
+        "M": "mattress",
+        "MM": "2 mattresses",
+        "MGY": "mattress + children's bed",
+        "GY": "children's bed"
+    },
     "Jelentkezzen be a folytatáshoz": "Please login to continue",
     "Jelszó": "Password",
     "Elfelejtette jelszavát": "Forgot your password",

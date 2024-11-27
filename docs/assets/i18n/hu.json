@@ -101,6 +101,12 @@
         "SZEP-CARD": "SZÉP kártya",    
         "CASH": "Készpénz"
     },
+    "EXTRABEDS": {
+        "M": "matrac",
+        "MM": "2 db matrac",
+        "MGY": "matrac + gyerekágy",
+        "GY": "gyerekágy"
+    },
     "Jelentkezzen be a folytatáshoz": "Jelentkezzen be a folytatáshoz",
     "Jelszó": "Jelszó",
     "Elfelejtette jelszavát": "Elfelejtette jelszavát",

@@ -20,6 +20,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
+import { SliderModule } from 'primeng/slider';
 import { SelectorsModule } from '../../selectors/selectors.module';
 import { RoomService } from '../../service/room.service';
 
@@ -47,6 +48,7 @@ import { RoomService } from '../../service/room.service';
         ProgressBarModule,
         AvatarModule,
         AvatarGroupModule,
+        SliderModule,
     ],
     declarations: [RoomComponent],
     providers: [RoomService]

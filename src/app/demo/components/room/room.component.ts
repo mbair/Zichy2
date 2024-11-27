@@ -50,6 +50,7 @@ export class RoomComponent implements OnInit {
     roomCodes: any[] = []                        // Room code options
     matraces: any[] = []                         // Matrace options
     bedTypes: any[] = []                         // Bed type options
+    occupancyFilter: any
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -82,14 +83,6 @@ export class RoomComponent implements OnInit {
             { value: 'MB', label: 'Maranatha Bunkbed' },  // Maranatha Bunkbed (Maranatha négyágyas emeleteságyas)
             { value: 'MQ', label: 'Maranatha Queenbed' }, // Maranatha Queenbed (franciaágyas)
             { value: 'KB', label: 'Kastély Bunked' },     // Kastély Bunked (Kastélyban emeleteságyas)
-        ]
-
-        // A szoba pótágyazhatóságát jelöli
-        this.matraces = [
-            { value: 'M', label: 'Matrac' },               // matrac fér be
-            { value: 'GY', label: 'Gyerekágy' },           // gyerekágy fér be, A matrac helyett befér gyerekágy de fordítva nem
-            { value: 'MM', label: '2 db matrac' },         // 2 db matrac fér
-            { value: 'MGY', label: 'Matrac + gyerekágy' }  // matrac és gyerekágy fér be
         ]
 
         this.bedTypes = [
@@ -170,7 +163,7 @@ export class RoomComponent implements OnInit {
      * @param field
      */
     onFilter(event: any, field: string) {
-        const noWaitFields: string[] = ['conferenceName']
+        const noWaitFields: string[] = ['conferenceName', 'extraBed']
         let filterValue = ''
 
         // Calendar date as String

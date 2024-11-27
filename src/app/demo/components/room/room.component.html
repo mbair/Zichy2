@@ -51,7 +51,7 @@
                         <th></th>
                     </tr>
                     <tr>
-                        <th style="width: 3rem">
+                        <th styleClass="w-3rem">
                             <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                         </th>
                         <th>
@@ -59,35 +59,34 @@
                                    type="text"
                                    (input)="onFilter($event, 'roomNum')"
                                    placeholder="Keresés..."
-                                   style="width:25rem"/>
+                                   styleClass="w-25rem"/>
                         </th>
                         <th>
-                            <input pInputText
-                                   type="text"
-                                   (input)="onFilter($event, 'extraBed')"
-                                   placeholder="Keresés..."
-                                   style="width:7rem"/>
+                            <app-extrabed-selector
+                                    (change)="onFilter($event, 'extraBed')"
+                                    [showClear]="true">
+                            </app-extrabed-selector>
                         </th>
                         <th>
                             <input pInputText
                                    type="text"
                                    (input)="onFilter($event, 'comment')"
                                    placeholder="Keresés..."
-                                   style="width:7rem"/>
+                                   styleClass="w-7rem"/>
                         </th>
                         <th>
                             <input pInputText
                                    type="text"
                                    (input)="onFilter($event, 'guests')"
                                    placeholder="Keresés..."
-                                   style="width:10rem"/>
+                                   styleClass="w-10rem"/>
                         </th>
                         <th>
-                            <input pInputText
-                                   type="text"
-                                   (input)="onFilter($event, 'occupancy')"
-                                   placeholder="Keresés..."
-                                   style="width:7rem;"/>
+                            <p-slider 
+                                [(ngModel)]="occupancyFilter"
+                                (input)="onFilter($event, 'occupancy')" 
+                                [step]="20" 
+                                styleClass="w-7rem" />
                         </th>
                         <th></th>
                     </tr>
@@ -147,7 +146,9 @@
                         </td>
                         <td>
                             <span class="p-column-title">Pótágy</span>
-                            {{ room.extraBed?.label }}
+                            <span class="extrabed-badge {{ room.extraBed?.value }}">
+                                {{ room.extraBed?.label }}
+                            </span>
                         </td>
                         <td>
                             <span class="p-column-title">Komment</span>
@@ -252,7 +253,7 @@
                 <!-- extraBed -->
                 <div class="field mb-4 col-6">
                     <label for="extraBed" class="font-medium text-900">Pótágy</label>
-                    <input id="extraBed" type="text" pInputText formControlName="extraBed">
+                    <app-extrabed-selector [parentForm]="roomForm" controlName="extraBed"></app-extrabed-selector>
                     <div *ngIf="extraBed?.dirty && extraBed?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
