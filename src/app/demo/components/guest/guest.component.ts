@@ -100,13 +100,6 @@ export class GuestComponent implements OnInit {
                 this.totalRecords = data.totalItems || 0;
                 this.page = data.currentPage || 0;
 
-                // TODO: Remove when backend gives diet color
-                this.tableData.forEach((guest: Guest) => {
-                    if (guest.diet && this.diets.length > 0) {
-                        guest.dietColor = this.diets.find(d => d.name == guest.diet).color
-                    }
-                })
-
                 // Filter out test users on production
                 if (!isDevMode()) {
                     this.tableData = data.rows?.filter((guest: any) => guest.is_test == false) || []

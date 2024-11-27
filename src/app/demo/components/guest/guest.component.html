@@ -158,7 +158,7 @@
                             {{guest.roomNum}}
                         </td>
                         <td>
-                            <span *ngIf="hasDietName(guest.diet)" [ngClass]="'color-badge ' + guest?.dietColor">
+                            <span *ngIf="hasDietName(guest.diet)" [ngClass]="'color-badge ' + guest?.dietDetails?.color">
                                 {{guest.diet}}
                             </span>
                             <span class="p-column-title">Étrend</span>
