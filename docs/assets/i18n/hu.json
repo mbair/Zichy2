@@ -114,6 +114,11 @@
         "CORNERHOUSE": "Sarokház",
         "HUNTINGLODGE": "Vadászház"
     },
+    "BEDTYPES": {
+        "DOUBLE": "kétágyas",
+        "KINGBED": "franciaágy",
+        "BUNKBED": "emeletes ágy"
+    },
     "Jelentkezzen be a folytatáshoz": "Jelentkezzen be a folytatáshoz",
     "Jelszó": "Jelszó",
     "Elfelejtette jelszavát": "Elfelejtette jelszavát",

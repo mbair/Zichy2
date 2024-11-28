@@ -66,6 +66,11 @@
                                    [showClear]="true"
                                    placeholder="Épület...">
                            </app-building-selector>
+                           <app-bedtype-selector
+                                   (change)="onFilter($event, 'bedType')"
+                                   [showClear]="true"
+                                   placeholder="Ágytipus...">
+                           </app-bedtype-selector>
                         </th>
                         <th>
                             <app-extrabed-selector
@@ -250,7 +255,7 @@
                 <!-- bedType -->
                 <div class="field mb-4 col-6">
                     <label for="bedType" class="font-medium text-900">Ágytípus</label>
-                    <input id="bedType" type="text" pInputText formControlName="bedType">
+                    <app-bedtype-selector [parentForm]="roomForm" controlName="bedType"></app-bedtype-selector>
                     <div *ngIf="bedType?.dirty && bedType?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
