@@ -14,7 +14,6 @@ moment.locale('hu')
 
 @Component({
     templateUrl: './room.component.html',
-    styleUrls: ['./room.component.scss'],
     providers: [MessageService]
 })
 
@@ -70,11 +69,13 @@ export class RoomComponent implements OnInit {
             roomNum: ['', Validators.required],
             roomCode: ['', Validators.required],
             beds: ['', Validators.required],
-            extraBed: ['', []],
-            bathroom: ['', []],
-            building: ['', []],
-            bedType: ['', []],
+            extraBed: ['', Validators.required],
+            bathroom: ['', Validators.required],
+            building: ['', Validators.required],
+            floor: ['', Validators.required],
+            bedType: ['', Validators.required],
             comment: ['', []],
+            extraCapacity: ['', []],
         })
 
         this.roomCodes = [
@@ -136,8 +137,10 @@ export class RoomComponent implements OnInit {
     get extraBed() { return this.roomForm.get('extraBed') }
     get bathroom() { return this.roomForm.get('bathroom') }
     get building() { return this.roomForm.get('building') }
+    get floor() { return this.roomForm.get('floor') }
     get bedType() { return this.roomForm.get('bedType') }
     get comment() { return this.roomForm.get('comment') }
+    get extraCapacity() { return this.roomForm.get('extraCapacity') }
 
     /**
      * Load filtered data into the Table

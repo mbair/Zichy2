@@ -107,6 +107,13 @@
         "MGY": "mattress + children's bed",
         "GY": "children's bed"
     },
+    "BUILDINGS": {
+        "CASTLE": "Castle accommodation",
+        "MARANATHA": "Maranatha Pension House",
+        "FAMILYROOM": "Family room",
+        "CORNERHOUSE": "Corner house",
+        "HUNTINGLODGE": "Hounting lodge"
+    },
     "Jelentkezzen be a folytatáshoz": "Please login to continue",
     "Jelszó": "Password",
     "Elfelejtette jelszavát": "Forgot your password",

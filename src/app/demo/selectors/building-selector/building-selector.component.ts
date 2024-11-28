@@ -9,38 +9,43 @@ export interface changeEvent {
 }
 
 @Component({
-    selector: 'app-extrabed-selector',
-    templateUrl: './extrabed-selector.component.html'
+    selector: 'app-building-selector',
+    templateUrl: './building-selector.component.html'
 })
-export class ExtrabedSelectorComponent {
+export class BuildingSelectorComponent {
     @Input() parentForm: FormGroup
     @Input() controlName: string
+    @Input() placeholder: string
     @Input() showClear: boolean
     @Output() change = new EventEmitter<changeEvent>()
     
-    extrabeds: any[] = []            // Available extrabeds
-    selectedExtrabed: string = ''    // Selected extrabed
+    buildings: any[] = []            // Available buildings
+    selectedBuilding: string = ''    // Selected building
 
-    constructor(private translate: TranslateService) {}
+    constructor(private translate: TranslateService) {
+        if (!this.placeholder) {
+            this.placeholder = 'Válasszon...'
+        }
+    }
 
     /**
      * Lifecycle hook: called when the component is initialized.
-     * Subscribes to language change events and sets the extrabeds
+     * Subscribes to language change events and sets the buildings
      * for the selector when the language changes.
      */
     ngOnInit() {
         this.translate.onLangChange.subscribe(() => {
-            this.setExtrabeds()
+            this.setBuildings()
         })
     }
 
     /**
      * Lifecycle hook: called when any data-bound property of a directive changes.
-     * Updates the available extrabed options when input properties change.
+     * Updates the available building options when input properties change.
      * @param changes An object of key-value pairs for the changed properties.
      */
     ngOnChanges(changes: SimpleChanges) {
-        this.setExtrabeds()
+        this.setBuildings()
     }
 
     /**
@@ -58,19 +63,20 @@ export class ExtrabedSelectorComponent {
      * Sets the available accommodation options for the accommodation selector component.
      * Translates the accommodation labels to the current language and maps them to their respective values.
      */
-    setExtrabeds() {
-        this.extrabeds = [
-            { label: this.translate.instant('EXTRABEDS.M'), value: 'M' },     // matrac fér be
-            { label: this.translate.instant('EXTRABEDS.MM'), value: 'MM' },   // 2 db matrac fér
-            { label: this.translate.instant('EXTRABEDS.MGY'), value: 'MGY' }, // matrac és gyerekágy fér be
-            { label: this.translate.instant('EXTRABEDS.GY'), value: 'GY' },   // gyerekágy fér be, A matrac helyett befér gyerekágy de fordítva nem
+    setBuildings() {
+        this.buildings = [
+            { label: this.translate.instant('BUILDINGS.CASTLE'), value: 'castle' },
+            { label: this.translate.instant('BUILDINGS.MARANATHA'), value: 'maranatha' },
+            { label: this.translate.instant('BUILDINGS.FAMILYROOM'), value: 'familyroom' },
+            { label: this.translate.instant('BUILDINGS.CORNERHOUSE'), value: 'cornerhouse' },
+            { label: this.translate.instant('BUILDINGS.HUNTINGLODGE'), value: 'huntinglodge' },
         ]
     }
 
     /**
-     * Handles the change event of the extrabed selector and emits a new value with the
+     * Handles the change event of the building selector and emits a new value with the
      * changed field name.
-     * @param event the change event of the extrabed selector
+     * @param event the change event of the building selector
      */
     handleOnChange(event: DropdownChangeEvent) {
         this.change.emit({ value: event.value, field: this.controlName })

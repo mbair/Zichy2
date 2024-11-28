@@ -57,9 +57,15 @@
                         <th>
                             <input pInputText
                                    type="text"
+                                   class="mr-2"
                                    (input)="onFilter($event, 'roomNum')"
-                                   placeholder="Keresés..."
-                                   styleClass="w-25rem"/>
+                                   placeholder="Szobaszám..."
+                                   style="width:8rem"/>
+                           <app-building-selector
+                                   (change)="onFilter($event, 'building')"
+                                   [showClear]="true"
+                                   placeholder="Épület...">
+                           </app-building-selector>
                         </th>
                         <th>
                             <app-extrabed-selector
@@ -72,14 +78,14 @@
                                    type="text"
                                    (input)="onFilter($event, 'comment')"
                                    placeholder="Keresés..."
-                                   styleClass="w-7rem"/>
+                                   style="width:7rem"/>
                         </th>
                         <th>
                             <input pInputText
                                    type="text"
                                    (input)="onFilter($event, 'guests')"
                                    placeholder="Keresés..."
-                                   styleClass="w-10rem"/>
+                                   style="width:10rem"/>
                         </th>
                         <th>
                             <p-slider 
@@ -234,7 +240,7 @@
 
                 <!-- beds -->
                 <div class="field mb-4 col-6">
-                    <label for="beds" class="font-medium text-900">Ágyak száma</label>
+                    <label for="beds" class="font-medium text-900">Férőhelyek száma</label>
                     <input id="beds" type="text" pInputText formControlName="beds">
                     <div *ngIf="beds?.dirty && beds?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
@@ -269,19 +275,37 @@
                 </div>
 
                 <!-- building -->
-                <div class="field mb-4 col-12">
+                <div class="field mb-4 col-6">
                     <label for="building" class="font-medium text-900">Épület</label>
-                    <input id="building" type="text" pInputText formControlName="building">
+                    <app-building-selector [parentForm]="roomForm" controlName="building"></app-building-selector>
                     <div *ngIf="building?.dirty && building?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>
 
-                <!-- bedType -->
-                <div class="field mb-4 col-12">
+                <!-- floor -->
+                <div class="field mb-4 col-6">
+                    <label for="floor" class="font-medium text-900">Emelet</label>
+                    <input id="floor" type="text" pInputText formControlName="floor">
+                    <div *ngIf="floor?.dirty && floor?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- comment -->
+                <div class="field mb-4 col-6">
                     <label for="comment" class="font-medium text-900">Megjegyzés</label>
                     <input id="comment" type="text" pInputText formControlName="comment">
                     <div *ngIf="comment?.dirty && comment?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- extraCapacity -->
+                <div class="field mb-4 col-6">
+                    <label for="extraCapacity" class="font-medium text-900">Extra férőhely</label>
+                    <input id="extraCapacity" type="text" pInputText formControlName="extraCapacity">
+                    <div *ngIf="extraCapacity?.dirty && extraCapacity?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>
@@ -313,7 +337,7 @@
         <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.roomNum}}</b> szobaet?</span>
+                <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.roomNum}}</b> szobát?</span>
             </div>
             <ng-template pTemplate="footer">
                 <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="deleteDialog = false"></button>
@@ -325,7 +349,7 @@
         <p-dialog [(visible)]="bulkDeleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span>Biztosan törölni akarja a kiválasztott szobaeket?</span>
+                <span>Biztosan törölni akarja a kiválasztott szobákat?</span>
             </div>
             <ng-template pTemplate="footer">
                 <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="bulkDeleteDialog = false"></button>

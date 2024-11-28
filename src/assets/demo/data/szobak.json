@@ -5,7 +5,7 @@
           "roomCode": "MD",
           "description": "2 ágyas szoba (külön fürdős)",
           "beds": 2,
-          "adminBeds": 0,
+          "extraCapacity": 0,
           "guests": [
             {
               "id": 1,
@@ -45,7 +45,7 @@
           "roomCode": "MB",
           "description": "4 ágyas szoba (emeletes ágyas, külön fürdős)",
           "beds": 4,
-          "adminBeds": 0,
+          "extraCapacity": 0,
           "guests": [
             {
               "id": 1,
@@ -72,7 +72,7 @@
           "roomCode": "MQ",
           "description": "franciaágyas szoba (külön fürdős)",
           "beds": 2,
-          "adminBeds": 0,
+          "extraCapacity": 0,
           "guests": [
             {
               "id": 1,

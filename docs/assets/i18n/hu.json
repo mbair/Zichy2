@@ -107,6 +107,13 @@
         "MGY": "matrac + gyerekágy",
         "GY": "gyerekágy"
     },
+    "BUILDINGS": {
+        "CASTLE": "Kastély szállás",
+        "MARANATHA": "Maranatha Panzióház",
+        "FAMILYROOM": "Családi szoba",
+        "CORNERHOUSE": "Sarokház",
+        "HUNTINGLODGE": "Vadászház"
+    },
     "Jelentkezzen be a folytatáshoz": "Jelentkezzen be a folytatáshoz",
     "Jelszó": "Jelszó",
     "Elfelejtette jelszavát": "Elfelejtette jelszavát",

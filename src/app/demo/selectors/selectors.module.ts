@@ -18,6 +18,7 @@ import { RoleSelectorComponent } from './role-selector/role-selector.component';
 import { ColorSelectorComponent } from './color-selector/color-selector.component';
 import { EnabledSelectorComponent } from './enabled-selector/enabled-selector.component';
 import { ExtrabedSelectorComponent } from './extrabed-selector/extrabed-selector.component';
+import { BuildingSelectorComponent } from './building-selector/building-selector.component';
 
 @NgModule({
     declarations: [
@@ -34,6 +35,7 @@ import { ExtrabedSelectorComponent } from './extrabed-selector/extrabed-selector
         EnabledSelectorComponent,
         ConferenceSelectorComponent,
         ExtrabedSelectorComponent,
+        BuildingSelectorComponent,
     ],
     imports: [
         CommonModule,
@@ -57,6 +59,7 @@ import { ExtrabedSelectorComponent } from './extrabed-selector/extrabed-selector
         EnabledSelectorComponent,
         ConferenceSelectorComponent,
         ExtrabedSelectorComponent,
+        BuildingSelectorComponent,
     ],
 })
 export class SelectorsModule {}
