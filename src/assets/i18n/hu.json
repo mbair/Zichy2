@@ -119,6 +119,11 @@
         "KINGBED": "franciaágy",
         "BUNKBED": "emeletes ágy"
     },
+    "BATHROOMS": {
+        "OWN": "saját fürdőszoba",
+        "DORMITORY": "kollégiumi fürdőszoba",
+        "BARRIER-FREE": "akadályment. fürdőszoba"
+    },
     "Jelentkezzen be a folytatáshoz": "Jelentkezzen be a folytatáshoz",
     "Jelszó": "Jelszó",
     "Elfelejtette jelszavát": "Elfelejtette jelszavát",

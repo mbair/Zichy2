@@ -119,6 +119,11 @@
         "KINGBED": "kingbed",
         "BUNKBED": "bunk bed"
     },
+    "BATHROOMS": {
+        "OWN": "private bathroom",
+        "DORMITORY": "dormitory bathroom",
+        "BARRIER-FREE": "barrier-free bathroom"
+    },
     "Jelentkezzen be a folytatáshoz": "Please login to continue",
     "Jelszó": "Password",
     "Elfelejtette jelszavát": "Forgot your password",

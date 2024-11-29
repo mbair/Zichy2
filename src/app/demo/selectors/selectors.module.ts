@@ -20,6 +20,7 @@ import { EnabledSelectorComponent } from './enabled-selector/enabled-selector.co
 import { ExtrabedSelectorComponent } from './extrabed-selector/extrabed-selector.component';
 import { BuildingSelectorComponent } from './building-selector/building-selector.component';
 import { BedtypeSelectorComponent } from './bedtype-selector/bedtype-selector.component';
+import { BathroomSelectorComponent } from './bathroom-selector/bathroom-selector.component';
 
 @NgModule({
     declarations: [
@@ -38,6 +39,7 @@ import { BedtypeSelectorComponent } from './bedtype-selector/bedtype-selector.co
         ExtrabedSelectorComponent,
         BuildingSelectorComponent,
         BedtypeSelectorComponent,
+        BathroomSelectorComponent,
     ],
     imports: [
         CommonModule,
@@ -63,6 +65,7 @@ import { BedtypeSelectorComponent } from './bedtype-selector/bedtype-selector.co
         ExtrabedSelectorComponent,
         BuildingSelectorComponent,
         BedtypeSelectorComponent,
+        BathroomSelectorComponent,
     ],
 })
 export class SelectorsModule {}

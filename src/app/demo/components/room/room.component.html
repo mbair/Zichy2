@@ -62,6 +62,7 @@
                                    placeholder="Szobaszám..."
                                    style="width:8rem"/>
                            <app-building-selector
+                                   class="mr-2"
                                    (change)="onFilter($event, 'building')"
                                    [showClear]="true"
                                    placeholder="Épület...">
@@ -71,6 +72,11 @@
                                    [showClear]="true"
                                    placeholder="Ágytipus...">
                            </app-bedtype-selector>
+                           <!-- <app-bathroom-selector
+                                   (change)="onFilter($event, 'bathroom')"
+                                   [showClear]="true"
+                                   placeholder="Fürdő...">
+                           </app-bathroom-selector> -->
                         </th>
                         <th>
                             <app-extrabed-selector
@@ -273,7 +279,7 @@
                 <!-- bathroom -->
                 <div class="field mb-4 col-6">
                     <label for="bathroom" class="font-medium text-900">Fürdőszoba</label>
-                    <input id="bathroom" type="text" pInputText formControlName="bathroom">
+                    <app-bathroom-selector [parentForm]="roomForm" controlName="bathroom"></app-bathroom-selector>
                     <div *ngIf="bathroom?.dirty && bathroom?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
