@@ -297,7 +297,7 @@
                 <!-- floor -->
                 <div class="field mb-4 col-6">
                     <label for="floor" class="font-medium text-900">Emelet</label>
-                    <input id="floor" type="text" pInputText formControlName="floor">
+                    <app-floor-selector [parentForm]="roomForm" controlName="floor"></app-floor-selector>
                     <div *ngIf="floor?.dirty && floor?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>

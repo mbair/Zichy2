@@ -124,6 +124,14 @@
         "DORMITORY": "kollégiumi fürdőszoba",
         "BARRIER-FREE": "akadályment. fürdőszoba"
     },
+    "FLOORS": {
+        "BASEMENT": "szuterén",
+        "GROUND": "fsz.",
+        "I-FLOOR": "I. em.",
+        "II-FLOOR": "II. em.",
+        "GATE": "Kapu első",
+        "CARETAKER": "Gondnoki emelet"
+    },
     "Jelentkezzen be a folytatáshoz": "Jelentkezzen be a folytatáshoz",
     "Jelszó": "Jelszó",
     "Elfelejtette jelszavát": "Elfelejtette jelszavát",

@@ -124,6 +124,14 @@
         "DORMITORY": "dormitory bathroom",
         "BARRIER-FREE": "barrier-free bathroom"
     },
+    "FLOORS": {
+        "BASEMENT": "basement",
+        "GROUND": "ground floor",
+        "I-FLOOR": "1st floor",
+        "II-FLOOR": "2nd floor",
+        "GATE": "gate",
+        "CARETAKER": "caretaker floor"
+    },
     "Jelentkezzen be a folytatáshoz": "Please login to continue",
     "Jelszó": "Password",
     "Elfelejtette jelszavát": "Forgot your password",
