@@ -14,12 +14,14 @@ export class GuestService {
     private guestData$: BehaviorSubject<any>
     private createdGuest$: BehaviorSubject<any>
     private serviceMessage$: BehaviorSubject<any>
+    private message$: BehaviorSubject<any>
 
     constructor(private apiService: ApiService) {
         this.apiURL = apiService.apiURL
         this.guestData$ = new BehaviorSubject<any>(null)
         this.createdGuest$ = new BehaviorSubject<any>(null)
         this.serviceMessage$ = new BehaviorSubject<any>(null)
+        this.message$ = new BehaviorSubject<any>(null)
     }
 
     public get guestObs(): Observable<ApiResponse | null> {
@@ -144,30 +146,45 @@ export class GuestService {
             );
     }
 
-    public deleteGuest(guest: Guest): void {
+    /**
+     * Room delete
+     * @param guest
+     */
+    public delete(guest: Guest): void {
         this.apiService.delete(`guest/delete/${guest.id}`)
             .subscribe({
                 next: (response: any) => {
-                    this.serviceMessage$.next(response)
+                    this.message$.next({
+                        severity: 'success',
+                        summary: 'Sikeres vendég törlés',
+                        detail: `${guest.lastName} ${guest.firstName} törölve`,
+                    })
                 },
                 error: (error: any) => {
-                    this.serviceMessage$.next(error)
+                    this.message$.next(error)
                 }
             })
     }
 
-    public deleteGuests(guests: Guest[]): void {
+    /**
+     * Bulk delete of guests
+     * @param guests
+     */
+    public bulkdelete(guests: Guest[]): void {
         let params = {
             ids: guests.map(guest => guest.id)
         }
-
-        this.apiService.post('guest/bulkdelete', params)
+        this.apiService.post(`guest/bulkdelete`, params)
             .subscribe({
                 next: (response: any) => {
-                    this.serviceMessage$.next(response)
+                    this.message$.next({
+                        severity: 'success',
+                        summary: 'Sikeres szoba törlés',
+                        detail: `${guests.length} vendég törölve`,
+                    })
                 },
                 error: (error: any) => {
-                    this.serviceMessage$.next(error)
+                    this.message$.next(error)
                 }
             })
     }

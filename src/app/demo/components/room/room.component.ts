@@ -13,6 +13,7 @@ import * as moment from 'moment';
 moment.locale('hu')
 
 @Component({
+    selector: 'room-component',
     templateUrl: './room.component.html',
     providers: [MessageService]
 })

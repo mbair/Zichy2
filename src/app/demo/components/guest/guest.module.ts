@@ -18,6 +18,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
+import { SidebarModule } from 'primeng/sidebar';
 import { TagModule } from 'primeng/tag';
 import { TreeTableModule } from 'primeng/treetable';
 import { TooltipModule } from 'primeng/tooltip';
@@ -45,6 +46,7 @@ import { SelectorsModule } from '../../selectors/selectors.module';
         DialogModule,
         ProgressSpinnerModule,
         BlockUIModule,
+        SidebarModule,
         TagModule,
         TreeTableModule,
         TooltipModule,

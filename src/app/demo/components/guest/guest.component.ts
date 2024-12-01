@@ -1,8 +1,9 @@
 import { Component, OnInit, HostListener, isDevMode, ViewChild, ElementRef } from '@angular/core';
-import { Observable} from 'rxjs';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
-import { HttpClient } from '@angular/common/http';
 import { Message, MessageService } from 'primeng/api';
+import { HttpClient } from '@angular/common/http';
 import { FileSendEvent, FileUpload, FileUploadErrorEvent } from 'primeng/fileupload';
 import { Table } from 'primeng/table';
 import { GuestService } from '../../service/guest.service';
@@ -22,7 +23,7 @@ import * as moment from 'moment';
 moment.locale('hu')
 
 @Component({
-    selector: 'guests',
+    selector: 'guest-component',
     templateUrl: './guest.component.html',
     providers: [MessageService]
 })
@@ -34,41 +35,50 @@ moment.locale('hu')
 export class GuestComponent implements OnInit {
     @ViewChild('identifier') identifierElement: ElementRef;
 
-    apiURL: string;                            // API URL depending on whether we are working on test or production
-    loading: boolean = true;                   // Loading overlay trigger value
-    tableData: Guest[] = [];                   // Data set displayed in a table
-    messages: Message[] = [];                  // A message used for notifications and displaying errors
-    successfulMessage: Message[] = [];         // Message displayed on success
-    tag: Tag = {};                             // NFC tag
-    tagDialog: boolean = false;                // Tag assignment popup
-    conferences: any[] = [];                   // Optional conferences
-    selectedConference: any;                   // Conference chosen by user
-    guest: Guest = {};                         // One guest object
-    guestDialog: boolean = false;              // Guests maintenance popup
-    deleteGuestDialog: boolean = false;        // Popup for deleting guest
-    deleteGuestsDialog: boolean = false;       // Popup for deleting guests
-    selectedGuests: Guest[] = [];              // Guest chosen by user
-    cols: any[] = [];                          // Table columns
-    diets: any[] = [];                         // Possible diets
-    meals: any[] = [];                         // Possible meals
-    genders: any[] = [];                       // Possible genders
-    countries: any[] = [];                     // Possible countries
-    scanTemp: string = '';                     // Temporary storage used during NFC reading
-    scannedCode: string = '';                  // Scanned Tag Id
-    rowsPerPageOptions = [20, 50, 100];        // Possible rows per page
-    rowsPerPage: number = 20;                  // Default rows per page
-    totalRecords: number = 0;                  // Total number of rows in the table
-    totalTaggedGuests: number = 0;             // Total number of tagged Guests
-    page: number = 0;                          // Current page
-    sortField: string = '';                    // Current sort field
-    sortOrder: number = 1;                     // Current sort order
-    globalFilter: string = '';                 // Global filter
+    apiURL: string;                              // API URL depending on whether we are working on test or production
+    loading: boolean = true;                     // Loading overlay trigger value
+    tableItem: Guest = {}                        // One guest object
+    tableData: Guest[] = [];                     // Data set displayed in a table
+    rowsPerPageOptions = [20, 50, 100]           // Possible rows per page
+    rowsPerPage: number = 20                     // Default rows per page
+    totalRecords: number = 0                     // Total number of rows in the table
+    page: number = 0;                            // Current page
+    sortField: string = '';                      // Current sort field
+    sortOrder: number = 1;                       // Current sort order
+    globalFilter: string = '';                   // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
-    rfidFilterValue: any;                      // Store for RFID filter value
-    debounce: { [key: string]: any } = {}      // Search delay in filter field
-    combinedCache = new Map<string, any>()     // Color + Style cache
+    rfidFilterValue: any;                        // Store for RFID filter value
+    debounce: { [key: string]: any } = {}        // Search delay in filter field
+    guestForm: FormGroup                         // Form for guest creation and modification
+    originalFormValues: any                      // The original values ​​of the form
+    sidebar: boolean = false                     // Table item maintenance sidebar
+    deleteDialog: boolean = false                // Popup for deleting table item
+    bulkDeleteDialog: boolean = false            // Popup for deleting table items
+    selected: Guest[] = []                       // Table items chosen by guest
+    canCreate: boolean = false                   // User has permission to create new guest
+    canEdit: boolean = false                     // User has permission to update guest
+    canDelete: boolean = false                   // User has permission to delete guest
+    isMobile: boolean = false                    // Mobile screen detection
+    messages: Message[] = [];                    // A message used for notifications and displaying errors
+    successfulMessage: Message[] = [];           // Message displayed on success
+    tag: Tag = {};                               // NFC tag
+    tagDialog: boolean = false;                  // Tag assignment popup
+    conferences: any[] = [];                     // Optional conferences
+    selectedConference: any;                     // Conference chosen by user
+    guest: Guest = {};                           // One guest object
+    guestDialog: boolean = false;                // Guests maintenance popup
+    cols: any[] = [];                            // Table columns
+    diets: any[] = [];                           // Possible diets
+    meals: any[] = [];                           // Possible meals
+    genders: any[] = [];                         // Possible genders
+    countries: any[] = [];                       // Possible countries
+    scanTemp: string = '';                       // Temporary storage used during NFC reading
+    scannedCode: string = '';                    // Scanned Tag Id
+    totalTaggedGuests: number = 0;               // Total number of tagged Guests
 
     public selectedFile: File;
+    private isFormValid$: Observable<boolean>
+    private formChanges$: Subject<void> = new Subject()
     private guestObs$: Observable<any> | undefined;
     private conferenceObs$: Observable<any> | undefined;
     private genderObs$: Observable<any> | undefined;
@@ -177,6 +187,9 @@ export class GuestComponent implements OnInit {
         ]
     }
 
+    // Getters for form validation
+    get id() { return this.guestForm.get('id') }
+
     // Load filtered Guests data into the Table
     doQuery() {
         this.loading = true;
@@ -254,7 +267,7 @@ export class GuestComponent implements OnInit {
     }
 
     deleteSelectedGuests() {
-        this.deleteGuestsDialog = true;
+        this.bulkDeleteDialog = true;
     }
 
     editGuest(guest: Guest) {
@@ -262,32 +275,41 @@ export class GuestComponent implements OnInit {
         this.guestDialog = true;
     }
 
-    deleteGuest(guest: Guest) {
-        this.deleteGuestDialog = true;
-        this.guest = { ...guest };
+    /**
+     * Create new Guest
+     */
+    create() {
+        this.guestForm.reset()
+        this.sidebar = true
     }
 
-    confirmDeleteSelected() {
-        this.loading = true;
-        this.deleteGuestsDialog = false;
-        this.guestService.deleteGuests(this.selectedGuests)
-        // this.tableData = this.tableData.filter(val => !this.selectedGuests.includes(val))
-        this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendégek törölve', life: 3000 })
-        this.selectedGuests = []
-        this.loading = false;
-        setTimeout(() => {
-            this.doQuery()
-        }, 300);
+    /**
+     * Edit the Guest
+     * @param guest
+     */
+    edit(guest: Guest) {
+        this.guestForm.reset()
+        this.guestForm.patchValue(guest)
+        this.originalFormValues = this.guestForm.value
+        this.sidebar = true
     }
 
-    confirmDelete() {
-        this.loading = true;
-        this.deleteGuestDialog = false;
-        this.tableData = this.tableData.filter(val => val.id !== this.guest.id);
-        this.guestService.deleteGuest(this.guest)
-        this.messageService.add({ severity: 'success', summary: 'Sikeres törlés', detail: 'Vendég törölve', life: 3000 });
-        this.guest = {};
-        this.loading = false;
+    /**
+     * Delete the Guest
+     */
+    delete() {
+        this.loading = true
+        this.deleteDialog = false
+        this.guestService.delete(this.tableItem)
+    }
+
+    /**
+     * Delete selected Guests
+     */
+    deleteSelected() {
+        this.loading = true
+        this.bulkDeleteDialog = false
+        this.guestService.bulkdelete(this.selected)
     }
 
     hideDialog() {
