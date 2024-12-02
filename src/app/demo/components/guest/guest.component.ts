@@ -7,6 +7,7 @@ import { HttpClient } from '@angular/common/http';
 import { FileSendEvent, FileUpload, FileUploadErrorEvent } from 'primeng/fileupload';
 import { Table } from 'primeng/table';
 import { GuestService } from '../../service/guest.service';
+import { UserService } from '../../service/user.service';
 import { ConferenceService } from '../../service/conference.service';
 import { GenderService } from '../../service/gender.service';
 import { TagService } from '../../service/tag.service';
@@ -87,6 +88,7 @@ export class GuestComponent implements OnInit {
 
     constructor(private http: HttpClient,
         private guestService: GuestService,
+        private userService: UserService,
         private tagService: TagService,
         private conferenceService: ConferenceService,
         private genderService: GenderService,
@@ -100,6 +102,11 @@ export class GuestComponent implements OnInit {
     ngOnInit() {
         // Set API URL
         this.apiURL = this.guestService.apiURL
+
+        // Permissions
+        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canCreate => this.canCreate = canCreate)
+        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canEdit => this.canEdit = canEdit)
+        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
 
         // Guests
         this.guestObs$ = this.guestService.guestObs;

@@ -38,6 +38,7 @@
                         <th pSortableColumn="id">ID <p-sortIcon field="id"></p-sortIcon></th>
                         <th pSortableColumn="color">Szín <p-sortIcon field="color"></p-sortIcon></th>
                         <th pSortableColumn="rfid">Azonosító <p-sortIcon field="rfid"></p-sortIcon></th>
+                        <th pSortableColumn="guestData">Vendég <p-sortIcon field="guestData"></p-sortIcon></th>
                         <th pSortableColumn="enabled">Engedélyezve <p-sortIcon field="enabled"></p-sortIcon></th>
                         <th pSortableColumn="createdAt">Létrehozva <p-sortIcon field="createdAt"></p-sortIcon></th>
                         <th pSortableColumn="updatedAt">Módosítva <p-sortIcon field="updatedAt"></p-sortIcon></th>
@@ -70,6 +71,13 @@
                                    placeholder="Keresés..."
                                    pTooltip="Azonosítóra kereshet csippantással és manuális gépeléssel"
                                    tooltipPosition="top"
+                                   style="min-width: 8rem"/>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'guestData')"
+                                   placeholder="Keresés..."
                                    style="min-width: 8rem"/>
                         </th>
                         <th>
@@ -121,6 +129,13 @@
                             <span class="color-badge gray">
                                 <i class="mr-1 pi pi-tags"></i>
                                 {{tag.rfid}}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Vendég</span>
+                            <span *ngIf="tag.guestData" [ngClass]="'color-badge ' + tag.color">
+                                <i class="mr-1 pi pi-user"></i>
+                                {{tag.guestData?.lastName}} {{tag.guestData?.firstName}}
                             </span>
                         </td>
                         <td class="text-center">
