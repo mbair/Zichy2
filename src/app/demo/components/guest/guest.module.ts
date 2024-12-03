@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { GuestRoutingModule } from './guest-routing.module';
 import { GuestComponent } from './guest.component';
 import { TableModule } from 'primeng/table';
@@ -25,6 +25,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { CheckboxModule } from 'primeng/checkbox';
 import { CalendarModule } from 'primeng/calendar';
 import { SelectorsModule } from '../../selectors/selectors.module';
+import { WidgetModule } from '../../widget/widget.module';
 
 @NgModule({
     imports: [
@@ -33,6 +34,7 @@ import { SelectorsModule } from '../../selectors/selectors.module';
         TableModule,
         FileUploadModule,
         FormsModule,
+        ReactiveFormsModule,
         ButtonModule,
         RippleModule,
         ToastModule,
@@ -53,6 +55,7 @@ import { SelectorsModule } from '../../selectors/selectors.module';
         CheckboxModule,
         CalendarModule,
         SelectorsModule,
+        WidgetModule,
     ],
     declarations: [GuestComponent]
 })

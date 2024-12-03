@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, isDevMode, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, HostListener, isDevMode, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
@@ -6,6 +6,7 @@ import { Message, MessageService } from 'primeng/api';
 import { HttpClient } from '@angular/common/http';
 import { FileSendEvent, FileUpload, FileUploadErrorEvent } from 'primeng/fileupload';
 import { Table } from 'primeng/table';
+import { dateRangeValidator } from '../../utils/date-range-validator';
 import { GuestService } from '../../service/guest.service';
 import { UserService } from '../../service/user.service';
 import { ConferenceService } from '../../service/conference.service';
@@ -76,6 +77,10 @@ export class GuestComponent implements OnInit {
     scanTemp: string = '';                       // Temporary storage used during NFC reading
     scannedCode: string = '';                    // Scanned Tag Id
     totalTaggedGuests: number = 0;               // Total number of tagged Guests
+    birthDateMin: Date                           // Minimum birth date
+    birthDateMax: Date                           // Maximum birth date
+    beginDate: any                               // Conference begin date
+    endDate: any                                 // Conference end date
 
     public selectedFile: File;
     private isFormValid$: Observable<boolean>
@@ -97,7 +102,45 @@ export class GuestComponent implements OnInit {
         private countryService: CountryService,
         private messageService: MessageService,
         private logService: LogService,
-        private colorService: ColorService) { }
+        private colorService: ColorService,
+        private cdRef: ChangeDetectorRef,
+        private fb: FormBuilder) {
+
+        // Guest form fields and validators
+        this.guestForm = this.fb.group({
+            id: [''],
+            firstName: ['', Validators.required],
+            lastName: ['', Validators.required],
+            gender: ['', Validators.required],
+            nationality: ['', Validators.required],
+            country: ['', Validators.required],
+            zipCode: ['', Validators.required],
+            roomNum: [''],
+            dateOfArrival: ['', Validators.required],
+            firstMeal: ['', Validators.required],
+            dateOfDeparture: ['', Validators.required],
+            lastMeal: ['', Validators.required],
+            szepCard: ['', []],
+            accommodationExtra: ['', []],
+            birthDate: ['', Validators.required],
+            rfid: ['', []],
+            rfidColor: ['', []],
+            enabled: ['', []],
+            conferenceName: ['', Validators.required],
+            diet: ['', Validators.required],
+            lastRfidUsage: ['', []],
+            is_test: ['', []],
+            email: ['', []],
+            telephone: ['', []],
+            roomType: ['', []],
+            payment: ['', []],
+            babyBed: ['', []],
+            roomMate: ['', []],
+            idCard: [null]
+        }, {
+            validators: dateRangeValidator('dateOfArrival', 'dateOfDeparture')
+        })
+    }
 
     ngOnInit() {
         // Set API URL
@@ -192,10 +235,62 @@ export class GuestComponent implements OnInit {
             { field: 'dateOfArrival', header: 'Érkezés' },
             { field: 'dateOfDeparture', header: 'Távozás' }
         ]
+
+        this.isFormValid$ = this.formChanges$.pipe(
+            debounceTime(300),
+            distinctUntilChanged(),
+            map(() => this.guestForm.valid)
+        )
+
+        // Monitor the changes of the form
+        this.guestForm.valueChanges.pipe(
+            debounceTime(300)
+        ).subscribe(() => this.formChanges$.next())
+
+        // On dateOfArrival change, update the firstMeal
+        this.guestForm.get('dateOfArrival')?.valueChanges.subscribe(() => {
+            this.getEarliestFirstMeal()
+            this.getLatestFirstMeal()
+            this.cdRef.detectChanges()
+        })
+
+        // On dateOfDeparture change, update the lastMeal
+        this.guestForm.get('dateOfDeparture')?.valueChanges.subscribe(() => {
+            this.getEarliestLastMeal()
+            this.getLatestLastMeal()
+            this.cdRef.detectChanges()
+        })
     }
 
     // Getters for form validation
     get id() { return this.guestForm.get('id') }
+    get firstName() { return this.guestForm.get('firstName') }
+    get lastName() { return this.guestForm.get('lastName') }
+    get gender() { return this.guestForm.get('gender') }
+    get nationality() { return this.guestForm.get('nationality') }
+    get country() { return this.guestForm.get('country') }
+    get zipCode() { return this.guestForm.get('zipCode') }
+    get roomNum() { return this.guestForm.get('roomNum') }
+    get dateOfArrival() { return this.guestForm.get('dateOfArrival') }
+    get firstMeal() { return this.guestForm.get('firstMeal') }
+    get dateOfDeparture() { return this.guestForm.get('dateOfDeparture') }
+    get lastMeal() { return this.guestForm.get('lastMeal') }
+    get szepCard() { return this.guestForm.get('szepCard') }
+    get accommodationExtra() { return this.guestForm.get('accommodationExtra') }
+    get birthDate() { return this.guestForm.get('birthDate') }
+    get rfidColor() { return this.guestForm.get('rfidColor') }
+    get enabled() { return this.guestForm.get('enabled') }
+    get conferenceName() { return this.guestForm.get('conferenceName') }
+    get diet() { return this.guestForm.get('diet') }
+    get lastRfidUsage() { return this.guestForm.get('lastRfidUsage') }
+    get is_test() { return this.guestForm.get('is_test') }
+    get email() { return this.guestForm.get('email') }
+    get telephone() { return this.guestForm.get('telephone') }
+    get roomType() { return this.guestForm.get('roomType') }
+    get payment() { return this.guestForm.get('payment') }
+    get babyBed() { return this.guestForm.get('babyBed') }
+    get roomMate() { return this.guestForm.get('roomMate') }
+    get idCard() { return this.guestForm.get('idCard') }
 
     // Load filtered Guests data into the Table
     doQuery() {
@@ -491,6 +586,13 @@ export class GuestComponent implements OnInit {
     }
 
     /**
+     * Cancel saving the form
+     */
+    cancel() {
+        this.guestForm.reset(this.originalFormValues)
+    }
+
+    /**
      * An event indicating that the request was sent to the server.
      * Useful when a request may be retried multiple times,
      * to distinguish between retries on the final event stream.
@@ -592,6 +694,70 @@ export class GuestComponent implements OnInit {
 
     getCountryNameInHungarian(code: string): string | null {
         return this.countryService.getHuCountryName(code)
+    }
+
+    /**
+     * Returns the earliest first meal of the conference, if the date of arrival is on the first day of the conference.
+     * Otherwise, returns undefined.
+     * @returns The earliest first meal of the conference, or undefined.
+     */
+    getEarliestFirstMeal(): string | undefined {
+        const dateOfArrival = this.guestForm.get('dateOfArrival')?.value
+        const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
+
+        // If dateOfArrival is on the first day of the conference, the earliest first meal is the first meal of the conference
+        if (dateOfArrival === formattedBeginDate) {
+            return this.guest.firstMeal
+        }
+        return undefined
+    }
+
+    /**
+     * Returns the latest first meal of the conference, if the date of arrival is on the last day of the conference.
+     * Otherwise, returns undefined.
+     * @returns The latest first meal of the conference, or undefined.
+     */
+    getLatestFirstMeal(): string | undefined {
+        const dateOfArrival = this.guestForm.get('dateOfArrival')?.value
+        const formattedEndDate = this.endDate?.toISOString().split('T')[0]
+
+        // If dateOfArrival is on the last day of the conference, the latest first meal is the last meal of the conference
+        if (dateOfArrival === formattedEndDate) {
+            return this.guest.lastMeal
+        }
+        return undefined
+    }
+
+    /**
+     * Returns the earliest last meal of the conference, if the date of departure is on the first day of the conference.
+     * Otherwise, returns undefined.
+     * @returns The earliest last meal of the conference, or undefined.
+     */
+    getEarliestLastMeal(): string | undefined {
+        const dateOfDeparture = this.guestForm.get('dateOfDeparture')?.value
+        const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
+
+        // If dateOfDeparture is on the first day of the conference, the earliest last meal is the first meal of the conference
+        if (dateOfDeparture === formattedBeginDate) {
+            return this.guest.firstMeal
+        }
+        return undefined
+    }
+
+    /**
+     * Returns the latest last meal of the conference, if the date of departure is on the last day of the conference.
+     * Otherwise, returns undefined.
+     * @returns The latest last meal of the conference, or undefined.
+     */
+    getLatestLastMeal(): string | undefined {
+        const dateOfDeparture = this.guestForm.get('dateOfDeparture')?.value
+        const formattedEndDate = this.endDate?.toISOString().split('T')[0]
+
+        // If dateOfDeparture is on the last day of the conference, the latest last meal is the last meal of the conference
+        if (dateOfDeparture === formattedEndDate) {
+            return this.guest.lastMeal
+        }
+        return undefined
     }
 
     @HostListener('window:keypress', ['$event'])
