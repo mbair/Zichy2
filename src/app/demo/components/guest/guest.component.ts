@@ -2,7 +2,7 @@ import { Component, OnInit, HostListener, isDevMode, ViewChild, ElementRef, Chan
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
-import { Message, MessageService } from 'primeng/api';
+import { MenuItem, Message, MessageService } from 'primeng/api';
 import { HttpClient } from '@angular/common/http';
 import { FileSendEvent, FileUpload, FileUploadErrorEvent } from 'primeng/fileupload';
 import { Table } from 'primeng/table';
@@ -21,6 +21,7 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
+import * as FileSaver from 'file-saver';
 import * as moment from 'moment';
 moment.locale('hu')
 
@@ -36,12 +37,13 @@ moment.locale('hu')
 
 export class GuestComponent implements OnInit {
     @ViewChild('identifier') identifierElement: ElementRef;
+    @ViewChild('dt') table!: Table;
 
     apiURL: string;                              // API URL depending on whether we are working on test or production
     loading: boolean = true;                     // Loading overlay trigger value
     tableItem: Guest = {}                        // One guest object
     tableData: Guest[] = [];                     // Data set displayed in a table
-    rowsPerPageOptions = [20, 50, 100]           // Possible rows per page
+    rowsPerPageOptions = [20, 50, 100, 9999]     // Possible rows per page
     rowsPerPage: number = 20                     // Default rows per page
     totalRecords: number = 0                     // Total number of rows in the table
     page: number = 0;                            // Current page
@@ -81,6 +83,7 @@ export class GuestComponent implements OnInit {
     birthDateMax: Date                           // Maximum birth date
     beginDate: any                               // Conference begin date
     endDate: any                                 // Conference end date
+    exportButtonItems: MenuItem[]                // Export button items
 
     public selectedFile: File;
     private isFormValid$: Observable<boolean>
@@ -140,6 +143,23 @@ export class GuestComponent implements OnInit {
         }, {
             validators: dateRangeValidator('dateOfArrival', 'dateOfDeparture')
         })
+
+        this.exportButtonItems = [
+            {
+                label: 'Üres sablon',
+                icon: 'pi pi-file-excel',
+                command: () => {
+                    this.downloadImportTemplate()
+                }
+            },
+            {
+                label: 'Táblázat Excel',
+                icon: 'pi pi-file-excel',
+                command: () => {
+                    this.exportExcel()
+                }
+            }
+        ]
     }
 
     ngOnInit() {
@@ -758,6 +778,57 @@ export class GuestComponent implements OnInit {
             return this.guest.lastMeal
         }
         return undefined
+    }
+
+    /**
+     * Exports the current table data to an Excel file.
+     * If the table has a filter applied, the filtered data is exported.
+     * Otherwise, the entire table data is exported.
+     * The file is named "guests" with a timestamp suffix.
+     */
+    exportExcel() {
+        import("xlsx").then(xlsx => {
+            // If the table has a filter applied, use the filtered data
+            const data = (this.table.filteredValue || this.tableData).map(row => {
+                const { id, ...rest } = row // Remove the 'id' column
+                return rest
+            })
+            const worksheet = xlsx.utils.json_to_sheet(data)
+            const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
+            const excelBuffer: any = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
+            this.saveAsExcelFile(excelBuffer, "guests")
+        })
+    }
+
+    /**
+     * Saves the provided buffer as an Excel file with the specified file name.
+     * The file is saved in the 'xlsx' format and is named with a timestamp suffix.
+     *
+     * @param buffer - The data buffer to be saved as an Excel file.
+     * @param fileName - The base name of the file to be saved, without extension.
+     */
+    saveAsExcelFile(buffer: any, fileName: string): void {
+        let EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+        let EXCEL_EXTENSION = '.xlsx';
+        const data: Blob = new Blob([buffer], {
+            type: EXCEL_TYPE
+        })
+        FileSaver.saveAs(data, fileName + '_export_' + moment().format('YYYYMMDD') + EXCEL_EXTENSION);
+    }
+
+    downloadImportTemplate() {
+        import("xlsx").then(xlsx => {
+            const headers = Object.keys(this.tableData[0] || {}).filter(key => key !== 'id')
+            const worksheet = xlsx.utils.aoa_to_sheet([headers])
+            const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
+            const excelBuffer: any = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
+            const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+            const EXCEL_EXTENSION = '.xlsx';
+            const data: Blob = new Blob([excelBuffer], {
+                type: EXCEL_TYPE
+            })
+            FileSaver.saveAs(data, 'NFCReserve_import_template' + EXCEL_EXTENSION)
+        })
     }
 
     @HostListener('window:keypress', ['$event'])

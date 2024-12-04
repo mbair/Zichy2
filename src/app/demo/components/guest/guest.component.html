@@ -35,7 +35,7 @@
                             <i class="pi pi-search"></i>
                             <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés bármely vendégadatra..." style="min-width: 300px;" pTooltip="NFC címkét a saját keresőmezőjébe csippantsd"/>
                         </span>
-                        <span class="block mt-2 md:mt-0">
+                        <span class="block mt-2 md:mt-0 flex align-items-center flex-wrap">
                             <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="create()" [disabled]="!canCreate"></button>
                             <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="bulkDeleteDialog = true" [disabled]="!selected || !selected.length || !canDelete"></button>
                             <p-fileUpload
@@ -55,7 +55,12 @@
                                 (onUpload)="onUpload($event)"
                                 pTooltip="Kizárólag a táblázathoz tartozó Excel fájl importálható"
                                 tooltipPosition="top"/>
-                            <!-- <button pButton pRipple label="Export" icon="pi pi-download" class="p-button-help" (click)="dt.exportCSV()"></button> -->
+                            <p-splitButton 
+                                icon="pi pi-download" 
+                                label="Export" 
+                                [model]="exportButtonItems" 
+                                styleClass="p-button-help"
+                                severity="help" />
                         </span>
                     </div>
                 </ng-template>
