@@ -197,7 +197,7 @@
                         </td>
                         <td>
                             <div class="flex">
-                                <button pButton pRipple icon="pi pi-tags" class="p-button-rounded p-button-success mr-2" (click)="assignTag(guest)"></button>
+                                <button pButton pRipple icon="pi pi-tags" class="p-button-rounded p-button-success mr-2" (click)="assignTag(guest)" [disabled]="!canAssign"></button>
                                 <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(guest)" [disabled]="!canEdit"></button>
                                 <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = guest; deleteDialog = true" [disabled]="!canDelete"></button>
                             </div>

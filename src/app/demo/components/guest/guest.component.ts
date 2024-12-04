@@ -62,6 +62,7 @@ export class GuestComponent implements OnInit {
     canCreate: boolean = false                   // User has permission to create new guest
     canEdit: boolean = false                     // User has permission to update guest
     canDelete: boolean = false                   // User has permission to delete guest
+    canAssign: boolean = false                   // User has permission to assign Tag to guest
     isMobile: boolean = false                    // Mobile screen detection
     messages: Message[] = [];                    // A message used for notifications and displaying errors
     successfulMessage: Message[] = [];           // Message displayed on success
@@ -170,6 +171,7 @@ export class GuestComponent implements OnInit {
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canCreate => this.canCreate = canCreate)
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canEdit => this.canEdit = canEdit)
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
+        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canAssign => this.canAssign = canAssign)
 
         // Guests
         this.guestObs$ = this.guestService.guestObs;
