@@ -145,5 +145,6 @@
     "Tovább az irányítópultra": "Go to Dashboard",
     "Képernyő zárolva": "Screen Locked",
     "Kérjük, adja meg jelszavát": "Please enter your password",
-    "Felold": "Unlock"
+    "Felold": "Unlock",
+    "szepCardMessage": "Payment with the SZÉP card is possible until the closing day of the conference. After that, arrangements must be made with the conference organizer."
 }

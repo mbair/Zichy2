@@ -8,7 +8,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { emailDomainValidator } from '../../utils/email-validator';
 import { dateRangeValidator } from '../../utils/date-range-validator';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
-import { MessageService } from 'primeng/api';
+import { Message, MessageService } from 'primeng/api';
 import { ConferenceService } from '../../service/conference.service';
 import { AnswerService } from '../../service/answer.service';
 import { GuestService } from '../../service/guest.service';
@@ -43,6 +43,7 @@ export class ConferenceFormComponent implements OnInit {
     registrationEnded: boolean = false           // Registration ended
     darkMode: boolean = false                    // Dark mode
     subscription: Subscription                   // Subscription for dark mode
+    szepCardMessage: Message[]                   // Message for szep card payment
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -304,6 +305,14 @@ export class ConferenceFormComponent implements OnInit {
             this.getLatestLastMeal()
             this.cdRef.detectChanges()
         })
+
+        // Set the szepCardMessage
+        this.setSzepCardMessage()
+
+        // On language change, update the szepCardMessage
+        this.translate.onLangChange.subscribe(() => {
+            this.setSzepCardMessage()
+        })
     }
 
     get lastName() { return this.conferenceForm.get('lastName') }
@@ -419,6 +428,23 @@ export class ConferenceFormComponent implements OnInit {
             return this.conference.lastMeal
         }
         return undefined
+    }
+
+    /**
+     * Sets the message for the SZÉP card warning message.
+     * Translates the 'szepCardMessage' translation key and sets the message to the translated value.
+     * @returns void
+     */
+    setSzepCardMessage(): void {
+        this.translate.get('szepCardMessage').subscribe((translatedMessage: string) => {
+            this.szepCardMessage = [
+                {
+                    severity: 'info',
+                    summary: '',
+                    detail: translatedMessage,
+                },
+            ]
+        })
     }
 
     /**
