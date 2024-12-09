@@ -18,6 +18,7 @@ export class ConferenceSelectorComponent {
     @Input() controlName: string
     @Input() showClear: boolean
     @Input() placeholder: string
+    @Input() selectFirstOption: boolean
     @Output() change = new EventEmitter<changeEvent>()
 
     conferences: any[] = []               // Available conferences
@@ -64,6 +65,18 @@ export class ConferenceSelectorComponent {
     setConferences() {
         this.conferenceService.getConferencesForSelector().subscribe((conferences: any) => {
             this.conferences = conferences
+
+            if (this.selectFirstOption == true && this.conferences && this.conferences.length > 0) {
+                // this.selectedConference = this.conferences[0].name
+                // this.getFormControl()?.setValue(this.selectedConference)
+                
+                // const event: DropdownChangeEvent = {
+                //     originalEvent: {} as Event,
+                //     value: this.selectedConference
+                // }
+    
+                // this.handleOnChange(event)
+            }
         })
     }
 

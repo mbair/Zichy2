@@ -30,4 +30,5 @@ export interface Guest {
     idcardtype?: string;
     lastRfidUsage?: string | null;
     rfidColor?: string | null;
+    prepaid?: boolean;
 }

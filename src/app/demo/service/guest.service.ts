@@ -88,6 +88,11 @@ export class GuestService {
             })
     }
 
+    public getByConferenceName(conferenceName: string): Observable<any> {
+        // return this.apiService.get(`guest/getbyconferancename/${conferenceName}`) // TODO: typo in backend
+        return this.apiService.get(`guest/searchquery?conferenceName=${conferenceName}`)
+    }
+
     public getByRFID(rfid: string): Observable<any> {
         return this.apiService.get(`guest/getbyrfid/${rfid}`)
     }

@@ -187,13 +187,24 @@ export class ConferenceService {
      * Get conferences for selector
      * @returns
      */
-    getConferencesForSelector(): Observable<Conference[]> {
+    public getConferencesForSelector(): Observable<Conference[]> {
         // Check if there is already cached data
-        if (this.cache.length > 0) {
-            return of(this.cache)
+        // if (this.cache.length > 0) {
+        //     return of(this.cache)
+        // }
+
+        // Get user role & id
+        const userrole = localStorage.getItem('userrole')
+        const userid = localStorage.getItem('userid')
+
+        let queryParams = ''
+
+        // Organizers can only see their own conferences
+        if (userrole === 'Szervezo' && userid) {
+            queryParams = `organizer_user_id=${userid}`
         }
 
-        this.get(0, 999, { sortField: 'id', sortOrder: 1 }, '')
+        this.get(0, 999, { sortField: 'id', sortOrder: 1 }, queryParams)
         return this.data$.asObservable().pipe(
             map((data: any) => {
                 // Store conferences in cache

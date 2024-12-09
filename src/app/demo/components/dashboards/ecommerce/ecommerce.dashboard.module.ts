@@ -12,6 +12,8 @@ import { ChartModule } from 'primeng/chart';
 import { KnobModule } from 'primeng/knob';
 import { RatingModule } from 'primeng/rating';
 import { RippleModule } from 'primeng/ripple';
+import { CardModule } from 'primeng/card';
+import { SelectorsModule } from '../../../selectors/selectors.module';
 
 @NgModule({
 	imports: [
@@ -26,7 +28,9 @@ import { RippleModule } from 'primeng/ripple';
 		InputTextareaModule,
 		ChartModule,
 		RatingModule,
-		KnobModule
+		KnobModule,
+		CardModule,
+		SelectorsModule
 	],
 	declarations: [EcommerceDashboardComponent]
 })

@@ -14,12 +14,15 @@ export class UserService {
     public apiURL: string
     private data$: BehaviorSubject<any>
     private message$: BehaviorSubject<any>
+    private userRole$: BehaviorSubject<string>
     private userCache: { [id: number]: User } = {}
 
     constructor(private apiService: ApiService) {
+        const role = localStorage.getItem('userrole') || 'No Role'
         this.apiURL = apiService.apiURL
         this.data$ = new BehaviorSubject<any>(null)
         this.message$ = new BehaviorSubject<any>(null)
+        this.userRole$ = new BehaviorSubject<string>(role)
     }
 
     public get userObs(): Observable<ApiResponse | null> {
@@ -209,8 +212,17 @@ export class UserService {
      * @returns
      */
     public getUserRole(): Observable<string> {
-        const role = localStorage.getItem('userrole') || "No Role"
-        return of(role)
+        return this.userRole$.asObservable()
+    }
+
+    /**
+     * Updates the user's role in local storage and broadcasts the new role
+     * to all subscribers of the userRole$ observable.
+     * @param role The new user role.
+     */
+    public updateUserRole(role: string): void {
+        localStorage.setItem('userrole', role)
+        this.userRole$.next(role)
     }
 
     /**
