@@ -11,32 +11,36 @@ import { Guest } from '../api/guest';
 export class GuestService {
 
     public apiURL: string
-    private guestData$: BehaviorSubject<any>
+    private data$: BehaviorSubject<any>
     private createdGuest$: BehaviorSubject<any>
-    private serviceMessage$: BehaviorSubject<any>
     private message$: BehaviorSubject<any>
 
     constructor(private apiService: ApiService) {
         this.apiURL = apiService.apiURL
-        this.guestData$ = new BehaviorSubject<any>(null)
+        this.data$ = new BehaviorSubject<any>(null)
         this.createdGuest$ = new BehaviorSubject<any>(null)
-        this.serviceMessage$ = new BehaviorSubject<any>(null)
         this.message$ = new BehaviorSubject<any>(null)
     }
 
     public get guestObs(): Observable<ApiResponse | null> {
-        return this.guestData$.asObservable()
+        return this.data$.asObservable()
     }
 
     public get createdGuestObs(): Observable<ApiResponse | null> {
         return this.createdGuest$.asObservable()
     }
 
-    public get serviceMessageObs(): Observable<any> {
-        return this.serviceMessage$.asObservable()
+    public get messageObs(): Observable<any> {
+        return this.message$.asObservable()
     }
 
-    public getGuests(page: number, rowsPerPage: number, sort: any, queryParams: string): void {
+    /**
+     * Get guests
+     * @param page
+     * @param rowsPerPage
+     * @param sort
+     */
+    public get(page: number, rowsPerPage: number, sort: any, queryParams: string): void {
         let pageSort: string = '';
         if (sort !== '') {
             const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC';
@@ -46,19 +50,26 @@ export class GuestService {
         const query = pageSort !== '' && queryParams !== '' ? pageSort + "&" + queryParams :
             pageSort !== '' && queryParams === '' ? pageSort :
                 pageSort === '' && queryParams !== '' ? queryParams : '';
+
         const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
+        
         this.apiService.get<ApiResponse>(`guest/get/${url}`)
             .subscribe({
                 next: (response: ApiResponse) => {
-                    this.guestData$.next(response)
+                    this.data$.next(response)
                 },
                 error: (error: any) => {
-                    this.serviceMessage$.next(error)
+                    this.message$.next(error)
                 }
             })
     }
 
-    public getGuestsBySearch(globalFilter: string, sort: any): void {
+    /**
+     * Get guests by Search
+     * @param globalFilter
+     * @param sort
+     */
+    public getBySearch(globalFilter: string, sort: any): void {
         let pageSort: string = '';
         if (sort !== '') {
             const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC';
@@ -68,46 +79,69 @@ export class GuestService {
         this.apiService.get<ApiResponse>(`guest/search/${globalFilter}${pageSort}`)
             .subscribe({
                 next: (response: ApiResponse) => {
-                    this.guestData$.next(response)
+                    this.data$.next(response)
                 },
                 error: (error: any) => {
-                    this.serviceMessage$.next(error)
+                    this.message$.next(error)
                 }
             })
     }
 
-    public getGuestsBySearchQuery(filters: string): void {
+    /**
+     * Get guests by Search query
+     * @param filters
+     */
+    public getBySearchQuery(filters: string): void {
         this.apiService.get<ApiResponse>(`guest/searchquery?${filters}`)
             .subscribe({
                 next: (response: ApiResponse) => {
-                    this.guestData$.next(response)
+                    this.data$.next(response)
                 },
                 error: (error: any) => {
-                    this.serviceMessage$.next(error)
+                    this.message$.next(error)
                 }
             })
     }
 
+    /**
+     * Retrieves guests associated with a specific conference name.
+     * @param conferenceName - The name of the conference to search guests for.
+     * @returns An Observable containing the response with the list of guests.
+     */
     public getByConferenceName(conferenceName: string): Observable<any> {
         // return this.apiService.get(`guest/getbyconferancename/${conferenceName}`) // TODO: typo in backend
         return this.apiService.get(`guest/searchquery?conferenceName=${conferenceName}`)
     }
 
+    /**
+     * Get a guest by RFID identifier
+     * @param rfid
+     * @returns An Observable containing the response with the guest information
+     */
     public getByRFID(rfid: string): Observable<any> {
         return this.apiService.get(`guest/getbyrfid/${rfid}`)
     }
 
+    /**
+     * Updates the last tag usage of the guest identified by the given id.
+     * @param guestId The id of the guest to update the last tag usage for.
+     */
     public updateLastTagUsage(guestId: string | undefined): void {
         this.apiService.get<ApiResponse>(`guest/updatelasttagusage/${guestId}`)
             .subscribe({
                 next: (response: ApiResponse) => { },
                 error: (error: any) => {
-                    this.serviceMessage$.next(error)
+                    this.message$.next(error)
                 }
             })
     }
 
-    public createGuest(guest: Guest, files: File[]): void {
+    /**
+     * Guest create
+     * @param guest
+     * @param files
+     */
+    public create(guest: Guest, files: File[]): void {
 
         const formData = new FormData()
         formData.append('guest', JSON.stringify(guest))
@@ -123,22 +157,36 @@ export class GuestService {
             .subscribe({
                 next: (response: any) => {
                     this.createdGuest$.next(response)
-                    this.serviceMessage$.next('success')
+                    this.message$.next('success')
+                    // this.message$.next({
+                    //     severity: 'success',
+                    //     summary: 'Sikeres vendég rögzítés',
+                    //     detail: `${response.lastName} ${response.firstName} rögzítve`,
+                    // })
                 },
                 error: (error: any) => {
-                    this.serviceMessage$.next(error)
+                    this.message$.next(error)
                 }
             })
     }
 
-    public updateGuest(modifiedGuest: Guest): void {
+    /**
+     * Guest update
+     * @param guest
+     */
+    public update(modifiedGuest: Guest): void {
         this.apiService.put(`guest/update/${modifiedGuest.id}`, modifiedGuest)
             .subscribe({
                 next: () => {
-                    this.serviceMessage$.next('success')
+                    this.message$.next('success')
+                    // this.message$.next({
+                    //     severity: 'success',
+                    //     summary: 'Sikeres vendég módosítás',
+                    //     detail: `${response.lastName} ${response.firstName} rögzítve`,
+                    // })
                 },
                 error: (error: any) => {
-                    this.serviceMessage$.next(error)
+                    this.message$.next(error)
                 }
             })
     }
@@ -148,11 +196,11 @@ export class GuestService {
             .pipe(
                 tap(() => console.log(`updated guest id=${modifiedGuest.id}`)),
                 catchError(this.handleError<any>('updateGuest2'))
-            );
+            )
     }
 
     /**
-     * Room delete
+     * Guest delete
      * @param guest
      */
     public delete(guest: Guest): void {
@@ -184,7 +232,7 @@ export class GuestService {
                 next: (response: any) => {
                     this.message$.next({
                         severity: 'success',
-                        summary: 'Sikeres szoba törlés',
+                        summary: 'Sikeres vendég törlés',
                         detail: `${guests.length} vendég törölve`,
                     })
                 },

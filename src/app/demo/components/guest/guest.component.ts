@@ -93,7 +93,7 @@ export class GuestComponent implements OnInit {
     private conferenceObs$: Observable<any> | undefined;
     private genderObs$: Observable<any> | undefined;
     private dietObs$: Observable<any> | undefined;
-    private serviceMessageObs$: Observable<any> | undefined;
+    private messageObs$: Observable<any> | undefined;
 
     constructor(private http: HttpClient,
         private guestService: GuestService,
@@ -237,8 +237,8 @@ export class GuestComponent implements OnInit {
         this.conferenceService.get(0, 999, '', '')
 
         // Message
-        this.serviceMessageObs$ = this.guestService.serviceMessageObs;
-        this.serviceMessageObs$.subscribe((data) => {
+        this.messageObs$ = this.guestService.messageObs;
+        this.messageObs$.subscribe((data) => {
             this.loading = false;
             if (data == 'ERROR') {
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Hiba történt!' });
@@ -314,19 +314,22 @@ export class GuestComponent implements OnInit {
     get roomMate() { return this.guestForm.get('roomMate') }
     get idCard() { return this.guestForm.get('idCard') }
 
-    // Load filtered Guests data into the Table
+    /**
+     * Load filtered data into the Table
+     * @returns
+     */
     doQuery() {
-        this.loading = true;
+        this.loading = true
 
         const filters = Object.keys(this.filterValues)
             .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
         const queryParams = filters.filter(x => x.length > 0).join('&')
 
         if (this.globalFilter !== '') {
-            return this.guestService.getGuestsBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
+            return this.guestService.getBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
         }
 
-        return this.guestService.getGuests(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
+        return this.guestService.get(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
     }
 
     onFilter(event: any, field: string) {
@@ -370,33 +373,34 @@ export class GuestComponent implements OnInit {
         }
     }
 
+    /**
+     * Lazy mode is handy to deal with large datasets, instead of loading
+     * the entire data, small chunks of data is loaded by invoking onLazyLoad
+     * callback every time paging, sorting and filtering happens.
+     * @param event
+     */
     onLazyLoad(event: any) {
-        this.page = event.first! / event.rows!;
-        this.rowsPerPage = event.rows ?? this.rowsPerPage;
-        this.sortField = event.sortField ?? '';
-        this.sortOrder = event.sortOrder ?? 1;
-        this.globalFilter = event.globalFilter ?? '';
+        this.page = event.first! / event.rows!
+        this.rowsPerPage = event.rows ?? this.rowsPerPage
+        this.sortField = event.sortField ?? ''
+        this.sortOrder = event.sortOrder ?? 1
+        this.globalFilter = event.globalFilter ?? ''
         this.doQuery()
+    }
+
+    /**
+     * Filter table by any column
+     * @param table
+     * @param event
+     */
+    onGlobalFilter(table: Table, event: Event) {
+        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
 
     onConferenceChange() {
         this.filterValues['conferenceName'] = this.selectedConference?.name || ''
         this.tableData = []
         this.doQuery()
-    }
-
-    openNew() {
-        this.guest = {};
-        this.guestDialog = true;
-    }
-
-    deleteSelectedGuests() {
-        this.bulkDeleteDialog = true;
-    }
-
-    editGuest(guest: Guest) {
-        this.guest = { ...guest };
-        this.guestDialog = true;
     }
 
     /**
@@ -444,32 +448,32 @@ export class GuestComponent implements OnInit {
         this.tagDialog = false;
     }
 
-    saveGuest() {
-        if (this.guest.firstName?.trim()) {
-            // UPDATE
-            if (this.guest.id) {
-                this.guestService.updateGuest(this.guest)
-                this.tableData[this.findIndexById(this.guest.id)] = this.guest;
-                this.successfulMessage = [{
-                    severity: 'success',
-                    summary: '',
-                    detail: 'Sikeres vendégmódosítás!'
-                }]
-                // INSERT
+    /**
+     * Saving the form
+     */
+    save() {
+        if (this.guestForm.valid) {
+            this.loading = true
+            const formValues = this.guestForm.value
+
+            // Create
+            if (!formValues.id) {
+                this.guestService.create(formValues, [])
+
+            // Update
             } else {
-                this.guestService.createGuest(this.guest, [this.selectedFile])
-                this.tableData.push(this.guest)
-                this.successfulMessage = [{
-                    severity: 'success',
-                    summary: '',
-                    detail: 'Sikeres vendég rögzítés!'
-                }]
+                this.guestService.update(formValues)
             }
 
-            this.tableData = [...this.tableData]
-            this.guestDialog = false
-            this.guest = {}
+            this.sidebar = false
         }
+    }
+
+    /**
+     * Cancel saving the form
+     */
+    cancel() {
+        this.guestForm.reset(this.originalFormValues)
     }
 
     findIndexById(id: string | undefined): number {
@@ -482,10 +486,6 @@ export class GuestComponent implements OnInit {
         }
 
         return index;
-    }
-
-    onGlobalFilter(table: Table, event: Event) {
-        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
 
     assignTag(guest: any) {
@@ -502,7 +502,7 @@ export class GuestComponent implements OnInit {
     unAssignTag() {
         this.guest.rfid = null;
         this.guest.lastRfidUsage = null;
-        this.guestService.updateGuest(this.guest);
+        this.guestService.update(this.guest);
         let guestsClone = JSON.parse(JSON.stringify(this.tableData))
         guestsClone[this.findIndexById(this.guest.id)] = this.guest;
         this.tableData = guestsClone
@@ -524,7 +524,7 @@ export class GuestComponent implements OnInit {
         })
     }
 
-    save() {
+    saveTag() {
         if (!this.scannedCode) return;
 
         // Check if RFID is according to the diet
@@ -571,7 +571,7 @@ export class GuestComponent implements OnInit {
                             // Strange, but this is the OK way
                             error: (error) => {
                                 this.guest.rfid = this.scannedCode;
-                                // this.guestService.updateGuest({ id: this.guest.id, rfid: this.scannedCode})
+                                // this.guestService.update({ id: this.guest.id, rfid: this.scannedCode})
                                 this.guestService.updateGuest2(this.guest).subscribe(() => {
                                     let guestsClone = JSON.parse(JSON.stringify(this.tableData))
                                     guestsClone[this.findIndexById(this.guest.id)] = this.guest;
@@ -608,13 +608,6 @@ export class GuestComponent implements OnInit {
     }
 
     /**
-     * Cancel saving the form
-     */
-    cancel() {
-        this.guestForm.reset(this.originalFormValues)
-    }
-
-    /**
      * An event indicating that the request was sent to the server.
      * Useful when a request may be retried multiple times,
      * to distinguish between retries on the final event stream.
@@ -628,7 +621,7 @@ export class GuestComponent implements OnInit {
      * Callback to invoke on upload error.
      * @param event
      */
-    onUploadError(event: FileUploadErrorEvent, fileUpload: FileUpload) {
+    onExcelUploadError(event: FileUploadErrorEvent, fileUpload: FileUpload) {
         this.loading = false
         this.messageService.add({
             severity: 'error',
@@ -653,7 +646,7 @@ export class GuestComponent implements OnInit {
      * Callback to invoke when file upload is complete.
      * @param event
      */
-    onUpload(event: any) {  // Files were missing from UploadEvent, although they are included
+    onExcelUpload(event: any) {  // Files were missing from UploadEvent, although they are included
         this.loading = false
         this.doQuery()
         this.messageService.add({

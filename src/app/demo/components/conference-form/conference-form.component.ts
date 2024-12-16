@@ -258,7 +258,7 @@ export class ConferenceFormComponent implements OnInit {
         })
 
         // Guest Message
-        this.guestServiceMessageObs$ = this.guestService.serviceMessageObs
+        this.guestServiceMessageObs$ = this.guestService.messageObs
         this.guestServiceMessageObs$.subscribe(message => {
             this.loading = false
             if (message == 'success') {
@@ -486,7 +486,7 @@ export class ConferenceFormComponent implements OnInit {
             delete guestData.idCard
             delete guestData.privacy
 
-            this.guestService.createGuest(guestData, files)
+            this.guestService.create(guestData, files)
         } else {
             this.messageService.add({
                 severity: "error",

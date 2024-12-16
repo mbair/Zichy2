@@ -105,7 +105,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         // }
         // })
         // Get guests to define current meals number
-        // this.guestService.getGuests()
+        // this.guestService.get()
 
         // TODO: TESZT
         // setTimeout(() => {
@@ -382,7 +382,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
 
                 // Insert Timestamp to lastRfidUsage
                 // this.guest.lastRfidUsage = moment().format('YYYY-MM-DD HH:mm:ss')
-                // this.guestService.updateGuest(this.guest)
+                // this.guestService.update(this.guest)
                 this.guestService.updateLastTagUsage(this.guest.id)
 
             },

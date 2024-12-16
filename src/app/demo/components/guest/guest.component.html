@@ -50,8 +50,8 @@
                                 [auto]="true"
                                 [maxFileSize]="9999999"
                                 (onSend)="onSend($event)"
-                                (onError)="onUploadError($event, fileUpload)"
-                                (onUpload)="onUpload($event)"
+                                (onError)="onExcelUploadError($event, fileUpload)"
+                                (onUpload)="onExcelUpload($event)"
                                 pTooltip="Kizárólag a táblázathoz tartozó Excel fájl importálható"
                                 tooltipPosition="top"/>
                             <p-splitButton 
@@ -668,7 +668,7 @@
             </ng-template>
             <ng-template pTemplate="footer">
                 <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="hideTagDialog()"></button>
-                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="save()"></button>
+                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="saveTag()"></button>
             </ng-template>
         </p-dialog>
     </div>
