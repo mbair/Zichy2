@@ -300,7 +300,7 @@ export class EcommerceDashboardComponent implements OnInit {
 
     onConferenceChange(event: any) {
         const conferenceName = event.value
-        this.conferenceService.getBySearchQuery(`name=${conferenceName}`)
+        // this.conferenceService.getBySearchQuery(`name=${conferenceName}`)
         this.guestService.getByConferenceName(conferenceName).subscribe((guests: any) => {
             this.conferenceGuests = guests.rows || []
             this.prepaidPercentage = Math.round((this.prepaid / this.registrations) * 100)
