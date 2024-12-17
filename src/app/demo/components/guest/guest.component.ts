@@ -87,6 +87,7 @@ export class GuestComponent implements OnInit {
     endDate: any                                 // Conference end date
     exportButtonItems: MenuItem[]                // Export button items
     isOrganizer: boolean = false                 // User has organizer role
+    imageUrl: string | null = null               // idCard image URL
 
     public selectedFile: File;
     private isFormValid$: Observable<boolean>
@@ -407,6 +408,17 @@ export class GuestComponent implements OnInit {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
 
+    /**
+     * When a row is expanded, load the guest data.
+     * If the conference has an guest, load the guest's data from the user service.
+     * @param conference The guest object for the row that was expanded.
+     */
+    onRowExpand(guest: Guest): void {
+        // Load idCard image
+        let idCard = guest.idcard || ''
+        this.getIdCardURL(idCard)
+    }
+
     onConferenceChange() {
         this.filterValues['conferenceName'] = this.selectedConference?.name || ''
         this.tableData = []
@@ -676,6 +688,18 @@ export class GuestComponent implements OnInit {
 
     onFileSelected(event: any): void {
         this.selectedFile = event.target.files[0]
+    }
+
+    getIdCardURL(idCardName: string) {
+        if (!idCardName) return undefined
+
+        // TODO: Use array instead of commas...
+        const cleanedIdCardName = idCardName.endsWith(',') ? idCardName.slice(0, -1) : idCardName
+
+        this.http.get(this.apiURL + '/guest/idcardimage/' + cleanedIdCardName, { responseType: 'blob' }).subscribe((blob) => {
+            this.imageUrl = window.URL.createObjectURL(blob)
+            return this.imageUrl
+        })
     }
 
     downloadIdCard(idCardName: string) {

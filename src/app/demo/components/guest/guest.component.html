@@ -17,6 +17,7 @@
                      selectionMode="multiple"
                      [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
                      [rowHover]="true"
+                     (onRowExpand)="onRowExpand($event.data)"
                      (onLazyLoad)="onLazyLoad($event)"
                      [lazy]="true" >
 
@@ -303,6 +304,14 @@
                                                             (click)="downloadIdCard(guest.idcard)">
                                                     </button>
                                                 </div>
+                                                <div *ngIf="imageUrl">
+                                                    <p-image 
+                                                        [src]="imageUrl" 
+                                                        alt="Image" 
+                                                        width="250" 
+                                                        [preview]="true" />
+                                                </div>
+                                                
                                             </div>
                                         </div>
                                     </div>
@@ -596,7 +605,7 @@
                     <app-reactive-file-upload
                         name="idCard"
                         formControlName="idCard" 
-                        accept=".jpg,.jpeg,.png,.pdf" 
+                        accept=".jpg,.jpeg,.png" 
                         chooseLabel="Tallózás" 
                         cancelLabel="Mégsem">
                     </app-reactive-file-upload>

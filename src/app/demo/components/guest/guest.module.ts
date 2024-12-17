@@ -20,6 +20,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { SidebarModule } from 'primeng/sidebar';
 import { TagModule } from 'primeng/tag';
+import { ImageModule } from 'primeng/image';
 import { TreeTableModule } from 'primeng/treetable';
 import { TooltipModule } from 'primeng/tooltip';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -51,6 +52,7 @@ import { WidgetModule } from '../../widget/widget.module';
         BlockUIModule,
         SidebarModule,
         TagModule,
+        ImageModule,
         TreeTableModule,
         TooltipModule,
         CheckboxModule,
