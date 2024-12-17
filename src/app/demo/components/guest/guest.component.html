@@ -25,7 +25,7 @@
                         <h5 class="m-0">Vendégek</h5>
                         <span class="block mt-2 md:mt-0">
                             <app-conference-selector
-                                (change)="onFilter($event, 'conferenceName')" 
+                                (change)="setSelectedConference($event); onFilter($event, 'conferenceName')" 
                                 [showClear]="true"
                                 placeholder="Válasszon konferenciát...">
                             </app-conference-selector>
@@ -52,6 +52,7 @@
                                 (onSend)="onSend($event)"
                                 (onError)="onExcelUploadError($event, fileUpload)"
                                 (onUpload)="onExcelUpload($event)"
+                                [disabled]="!canImport"
                                 pTooltip="Kizárólag a táblázathoz tartozó Excel fájl importálható"
                                 tooltipPosition="top"/>
                             <p-splitButton 

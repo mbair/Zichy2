@@ -63,6 +63,7 @@ export class GuestComponent implements OnInit {
     canEdit: boolean = false                     // User has permission to update guest
     canDelete: boolean = false                   // User has permission to delete guest
     canAssign: boolean = false                   // User has permission to assign Tag to guest
+    canImport: boolean = false                   // User has permission to import Excel
     isMobile: boolean = false                    // Mobile screen detection
     messages: Message[] = [];                    // A message used for notifications and displaying errors
     successfulMessage: Message[] = [];           // Message displayed on success
@@ -85,6 +86,7 @@ export class GuestComponent implements OnInit {
     beginDate: any                               // Conference begin date
     endDate: any                                 // Conference end date
     exportButtonItems: MenuItem[]                // Export button items
+    isOrganizer: boolean = false                 // User has organizer role
 
     public selectedFile: File;
     private isFormValid$: Observable<boolean>
@@ -172,6 +174,8 @@ export class GuestComponent implements OnInit {
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervező']).subscribe(canEdit => this.canEdit = canEdit)
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canAssign => this.canAssign = canAssign)
+        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canImport => this.canImport = canImport)
+        this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => this.isOrganizer = isOrganizer)
 
         // Guests
         this.guestObs$ = this.guestService.guestObs;
@@ -319,6 +323,9 @@ export class GuestComponent implements OnInit {
      * @returns
      */
     doQuery() {
+        // Organizer need select conference
+        if (this.isOrganizer && !this.selectedConference) return
+        
         this.loading = true
 
         const filters = Object.keys(this.filterValues)
@@ -333,6 +340,9 @@ export class GuestComponent implements OnInit {
     }
 
     onFilter(event: any, field: string) {
+        // Organizer need select conference
+        if (this.isOrganizer && !this.selectedConference) return
+
         const noWaitFields = ['diet', 'lastRfidUsage', 'dateOfArrival', 'dateOfDeparture']
         let filterValue = ''
 
@@ -773,6 +783,11 @@ export class GuestComponent implements OnInit {
             return this.guest.lastMeal
         }
         return undefined
+    }
+
+    setSelectedConference(event: any) {
+        this.selectedConference = event.value
+        this.doQuery()
     }
 
     /**
