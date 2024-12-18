@@ -38,6 +38,19 @@ export class ConferenceService {
      * @param queryParams
      */
     public get(page: number, rowsPerPage: number, sort: any, queryParams: string): void {
+        
+        // Get user role & id
+        const userrole = localStorage.getItem('userrole')
+        const userid = localStorage.getItem('userid')
+
+        // Organizers can only see their own conferences
+        if (userrole === 'Szervezo' && userid) {
+            const organizerFilter = `organizer_user_id=${userid}`
+            queryParams = queryParams 
+                ? `${queryParams}&${organizerFilter}` 
+                : organizerFilter
+        }
+        
         let pageSort: string = '';
         if (sort !== '') {
             const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC';
@@ -193,16 +206,7 @@ export class ConferenceService {
         //     return of(this.cache)
         // }
 
-        // Get user role & id
-        const userrole = localStorage.getItem('userrole')
-        const userid = localStorage.getItem('userid')
-
         let queryParams = ''
-
-        // Organizers can only see their own conferences
-        if (userrole === 'Szervezo' && userid) {
-            queryParams = `organizer_user_id=${userid}`
-        }
 
         this.get(0, 999, { sortField: 'id', sortOrder: 1 }, queryParams)
         return this.data$.asObservable().pipe(
