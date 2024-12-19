@@ -817,18 +817,32 @@ export class GuestComponent implements OnInit {
     }
 
     /**
-     * Exports the current table data to an Excel file.
-     * If the table has a filter applied, the filtered data is exported.
-     * Otherwise, the entire table data is exported.
-     * The file is named "guests" with a timestamp suffix.
+     * Exports the currently selected table rows (or filtered rows, or all rows if no selection is made) to an Excel file.
+     * The file is named "guests.xlsx" and is saved in the user's Downloads folder.
+     * The export uses the xlsx library and is done asynchronously.
+     * @export
      */
     exportExcel() {
         import("xlsx").then(xlsx => {
-            // If the table has a filter applied, use the filtered data
-            const data = (this.table.filteredValue || this.tableData).map(row => {
+            // Use only selected rows for export
+            const data = this.selected.map(row => {
                 const { id, ...rest } = row // Remove the 'id' column
                 return rest
             })
+            
+            if (data.length === 0) {
+                // Fallback: If no rows are selected, use filtered or full table data
+                console.warn("No rows selected for export. Exporting filtered or full data.")
+                
+                // If the table has a filter applied, use the filtered data
+                const fallbackData = (this.table.filteredValue || this.tableData).map(row => {
+                    const { id, ...rest } = row
+                    return rest
+                })
+
+                data.push(...fallbackData)
+            }
+
             const worksheet = xlsx.utils.json_to_sheet(data)
             const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
             const excelBuffer: any = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
