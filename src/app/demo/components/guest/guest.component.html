@@ -600,7 +600,7 @@
                 </div>
 
                 <!-- idCard -->
-                <div class="field mb-4 col-12 lg:col-12">
+                <div class="field mb-4 col-12 lg:col-8">
                     <label for="idCard" class="font-medium text-900">Személyi igazolvány</label>
                     <app-reactive-file-upload
                         name="idCard"
@@ -611,6 +611,24 @@
                     </app-reactive-file-upload>
                     <div *ngIf="idCard?.dirty && idCard?.errors?.['required']" class="p-error">
                         Kérjük, töltse fel a személyi igazolványának másolatát!
+                    </div>
+                </div>
+
+                <!-- prepaid -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="prepaid" class="font-medium text-900">Előleget fizetett?</label>
+                    <div class="flex flex-wrap gap-3 my-3">
+                        <div class="flex align-items-center">
+                            <p-radioButton name="prepaid" value="1" formControlName="prepaid" inputId="prepaid-yes"></p-radioButton>
+                            <label for="prepaid-yes" class="ml-2">Igen</label>
+                        </div>
+                        <div class="flex align-items-center">
+                            <p-radioButton name="prepaid" value="0" formControlName="prepaid" inputId="prepaid-no"></p-radioButton>
+                            <label for="prepaid-no" class="ml-2">Nem</label>
+                        </div>
+                    </div>
+                    <div *ngIf="prepaid?.dirty && prepaid?.errors?.['required']" class="p-error">
+                        Kérjük válassza ki, hogy kér-e babaágyat!
                     </div>
                 </div>
             </form>

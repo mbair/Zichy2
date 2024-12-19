@@ -142,6 +142,7 @@ export class GuestComponent implements OnInit {
             roomType: ['', []],
             payment: ['', []],
             babyBed: ['', []],
+            prepaid: ['', []],
             roomMate: ['', []],
             idCard: [null]
         }, {
@@ -316,6 +317,7 @@ export class GuestComponent implements OnInit {
     get roomType() { return this.guestForm.get('roomType') }
     get payment() { return this.guestForm.get('payment') }
     get babyBed() { return this.guestForm.get('babyBed') }
+    get prepaid() { return this.guestForm.get('prepaid') }
     get roomMate() { return this.guestForm.get('roomMate') }
     get idCard() { return this.guestForm.get('idCard') }
 
