@@ -457,15 +457,13 @@
                 <!-- conferenceName -->
                 <div class="field mb-4 col-8">
                     <label for="conferenceName" class="font-medium text-900">Konferencia</label>
-                    <p-dropdown
-                        inputId="conferences"
-                        [options]="conferences"
-                        optionLabel="name"
-                        optionValue="name"
-                        formControlName="conferenceName"
+                    <app-conference-selector
+                        [parentForm]="guestForm" 
+                        controlName="conferenceName"
+                        [showClear]="true"
                         placeholder="Válasszon konferenciát...">
-                    </p-dropdown>
-                    <div *ngIf="firstName?.dirty && firstName?.errors?.['required']" class="block p-error">
+                    </app-conference-selector>
+                    <div *ngIf="conferenceName?.dirty && conferenceName?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>
@@ -503,8 +501,8 @@
                     <app-meal-selector 
                         [parentForm]="guestForm" 
                         controlName="firstMeal"
-                        [earliestMeal]="getEarliestFirstMeal()"
-                        [latestMeal]="getLatestFirstMeal()"  
+                        [earliestMeal]="earliestFirstMeal"
+                        [latestMeal]="latestFirstMeal"  
                         [showNothing]="true">
                     </app-meal-selector>
                     <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
@@ -548,8 +546,8 @@
                     <app-meal-selector 
                         [parentForm]="guestForm" 
                         controlName="lastMeal" 
-                        [earliestMeal]="getEarliestLastMeal()" 
-                        [latestMeal]="getLatestLastMeal()" 
+                        [earliestMeal]="earliestLastMeal" 
+                        [latestMeal]="latestLastMeal" 
                         [showNothing]="true">
                     </app-meal-selector>
                     <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="p-error">

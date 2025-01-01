@@ -17,6 +17,7 @@ export interface Guest {
     rfid?: string | null;
     enabled?: number;
     conferenceName?: string;
+    conferenceid?: number;
     diet?: string;
     dietColor?: string;
     advancePaid?: boolean;

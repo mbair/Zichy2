@@ -88,6 +88,11 @@ export class GuestComponent implements OnInit {
     exportButtonItems: MenuItem[]                // Export button items
     isOrganizer: boolean = false                 // User has organizer role
     imageUrl: string | null = null               // idCard image URL
+    guestConference: Conference | undefined      // Guest's conference
+    earliestFirstMeal: string | undefined        // Earliest first meal
+    latestFirstMeal: string | undefined          // Latest first meal
+    earliestLastMeal: string | undefined         // Earliest last meal
+    latestLastMeal: string | undefined           // Latest last meal
 
     public selectedFile: File;
     private isFormValid$: Observable<boolean>
@@ -220,27 +225,10 @@ export class GuestComponent implements OnInit {
             }
         })
 
-        // Get meals for selector
-        this.meals = this.mealService.getMealsForSelector()
-
-        // Get countries for selector
+        // Get countries for flags
         this.countryService.getCountries().subscribe(countries => {
             this.countries = countries
         })
-
-        // Conferences
-        this.conferenceObs$ = this.conferenceService.conferenceObs;
-        this.conferenceObs$.subscribe((data: any) => {
-            if (data && data.rows) {
-                let conferencesArray: Conference[] = []
-                data.rows.map((conference: Conference) => {
-                    conferencesArray.push(conference)
-                })
-                this.conferences = conferencesArray
-            }
-        })
-        // Get conferences for selector
-        this.conferenceService.get(0, 999, '', '')
 
         // Message
         this.messageObs$ = this.guestService.messageObs;
@@ -444,6 +432,24 @@ export class GuestComponent implements OnInit {
         this.guestForm.patchValue(guest)
         this.originalFormValues = this.guestForm.value
         this.sidebar = true
+        
+        // Get guest conference details
+        if (guest.conferenceid) {
+            this.conferenceService.getById(guest.conferenceid).subscribe(conference => {
+
+                this.guestConference = conference
+                
+                // Set arrival and departure date limitations
+                this.beginDate = conference.beginDate ? new Date(conference.beginDate) : undefined
+                this.endDate = conference.endDate ? new Date(conference.endDate) : undefined
+
+                this.getEarliestFirstMeal()
+                this.getLatestFirstMeal()
+                this.getEarliestLastMeal()
+                this.getLatestLastMeal()
+                this.cdRef.detectChanges()
+            })
+        }
     }
 
     /**
@@ -752,15 +758,16 @@ export class GuestComponent implements OnInit {
      * Otherwise, returns undefined.
      * @returns The earliest first meal of the conference, or undefined.
      */
-    getEarliestFirstMeal(): string | undefined {
+    getEarliestFirstMeal() {
         const dateOfArrival = this.guestForm.get('dateOfArrival')?.value
         const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
 
         // If dateOfArrival is on the first day of the conference, the earliest first meal is the first meal of the conference
         if (dateOfArrival === formattedBeginDate) {
-            return this.guest.firstMeal
+            this.earliestFirstMeal = this.guestConference?.firstMeal
+        } else {
+            this.earliestFirstMeal = undefined
         }
-        return undefined
     }
 
     /**
@@ -768,15 +775,16 @@ export class GuestComponent implements OnInit {
      * Otherwise, returns undefined.
      * @returns The latest first meal of the conference, or undefined.
      */
-    getLatestFirstMeal(): string | undefined {
+    getLatestFirstMeal() {
         const dateOfArrival = this.guestForm.get('dateOfArrival')?.value
         const formattedEndDate = this.endDate?.toISOString().split('T')[0]
 
         // If dateOfArrival is on the last day of the conference, the latest first meal is the last meal of the conference
         if (dateOfArrival === formattedEndDate) {
-            return this.guest.lastMeal
+            this.latestFirstMeal = this.guestConference?.lastMeal
+        } else {
+            this.latestFirstMeal = undefined
         }
-        return undefined
     }
 
     /**
@@ -784,15 +792,16 @@ export class GuestComponent implements OnInit {
      * Otherwise, returns undefined.
      * @returns The earliest last meal of the conference, or undefined.
      */
-    getEarliestLastMeal(): string | undefined {
+    getEarliestLastMeal() {
         const dateOfDeparture = this.guestForm.get('dateOfDeparture')?.value
         const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
 
         // If dateOfDeparture is on the first day of the conference, the earliest last meal is the first meal of the conference
         if (dateOfDeparture === formattedBeginDate) {
-            return this.guest.firstMeal
+            this.earliestLastMeal = this.guestConference?.firstMeal
+        } else {
+            this.earliestLastMeal = undefined
         }
-        return undefined
     }
 
     /**
@@ -800,15 +809,16 @@ export class GuestComponent implements OnInit {
      * Otherwise, returns undefined.
      * @returns The latest last meal of the conference, or undefined.
      */
-    getLatestLastMeal(): string | undefined {
+    getLatestLastMeal() {
         const dateOfDeparture = this.guestForm.get('dateOfDeparture')?.value
         const formattedEndDate = this.endDate?.toISOString().split('T')[0]
 
         // If dateOfDeparture is on the last day of the conference, the latest last meal is the last meal of the conference
         if (dateOfDeparture === formattedEndDate) {
-            return this.guest.lastMeal
+            this.latestLastMeal = this.guestConference?.lastMeal
+        } else {
+            this.latestLastMeal = undefined
         }
-        return undefined
     }
 
     setSelectedConference(event: any) {

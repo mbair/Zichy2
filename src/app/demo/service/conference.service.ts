@@ -221,6 +221,15 @@ export class ConferenceService {
     }
 
     /**
+     * Retrieves a conference by its unique identifier.
+     * @param id - The unique identifier of the conference to retrieve.
+     * @returns An Observable containing the response with the conference details.
+     */
+    public getById(id: number): Observable<any> {
+        return this.apiService.get(`conference/getbyid/${id}`)
+    }
+
+    /**
      * Conference SLUG validator
      * @param slug 
      * @returns 
