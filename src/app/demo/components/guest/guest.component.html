@@ -72,7 +72,8 @@
                         <th pSortableColumn="lastName">Név <p-sortIcon field="lastName"></p-sortIcon></th>
                         <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
                         <th pSortableColumn="diet">Étrend <p-sortIcon field="diet"></p-sortIcon></th>
-                        <th pSortableColumn="rfid">NFC <span class="font-light">({{totalTaggedGuests}}/{{totalRecords}})</span> <p-sortIcon field="rfid"></p-sortIcon></th>
+                        <th *ngIf="!isOrganizer" pSortableColumn="rfid">NFC <span class="font-light">({{totalTaggedGuests}}/{{totalRecords}})</span> <p-sortIcon field="rfid"></p-sortIcon></th>
+                        <th *ngIf="isOrganizer" pSortableColumn="prepaid">Előleget fizetett <p-sortIcon field="prepaid"></p-sortIcon></th>
                         <th pSortableColumn="lastRfidUsage">NFC használat<p-sortIcon field="lastRfidUsage"></p-sortIcon></th>
                         <th pSortableColumn="dateOfArrival">Érkezés <p-sortIcon field="dateOfArrival"></p-sortIcon></th>
                         <th pSortableColumn="dateOfDeparture">Távozás <p-sortIcon field="dateOfDeparture"></p-sortIcon></th>
@@ -104,7 +105,8 @@
                             </app-diet-selector>
                         </th>
                         <th>
-                            <input pInputText
+                            <input *ngIf="!isOrganizer"
+                                   pInputText
                                    type="text"
                                    [(ngModel)]="rfidFilterValue"
                                    (input)="onFilter($event, 'rfid')"
@@ -112,6 +114,17 @@
                                    pTooltip="NFC címkére kereshet csippantással és manuális gépeléssel"
                                    tooltipPosition="top"
                                    style="width:12%; min-width:9rem;"/>
+
+                            <p-dropdown 
+                                *ngIf="isOrganizer"
+                                [options]="prepaidOptions" 
+                                [(ngModel)]="prepaidFilterValue"
+                                optionLabel="name"
+                                optionValue="value"
+                                (onChange)="onFilter($event, 'prepaid')"
+                                [showClear]="true"
+                                placeholder="Válasszon...">
+                            </p-dropdown>
                         </th>
                         <th>
                             <p-calendar
@@ -174,9 +187,13 @@
                                     value="Hibás étrend"
                                     pTooltip="Kérem módosítsa az étrendet!" />
                         </td>
-                        <td>
+                        <td *ngIf="!isOrganizer">
                             <span class="p-column-title">NFC</span>
                             {{guest.rfid}}
+                        </td>
+                        <td *ngIf="isOrganizer">
+                            <span class="p-column-title">Előleget fizetett</span>
+                            {{guest.prepaid ? 'Igen' : 'Nem'}}
                         </td>
                         <td style="width:14%; min-width:10rem;">
                             <span class="p-column-title">Utolsó NFC használat</span>

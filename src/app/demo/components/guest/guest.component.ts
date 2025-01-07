@@ -52,6 +52,7 @@ export class GuestComponent implements OnInit {
     globalFilter: string = '';                   // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
     rfidFilterValue: any;                        // Store for RFID filter value
+    prepaidFilterValue: any;                     // Store for Prepaid filter value
     debounce: { [key: string]: any } = {}        // Search delay in filter field
     guestForm: FormGroup                         // Form for guest creation and modification
     originalFormValues: any                      // The original values ​​of the form
@@ -93,6 +94,7 @@ export class GuestComponent implements OnInit {
     latestFirstMeal: string | undefined          // Latest first meal
     earliestLastMeal: string | undefined         // Earliest last meal
     latestLastMeal: string | undefined           // Latest last meal
+    prepaidOptions: any[] = []                   // Possible prepaid options
 
     public selectedFile: File;
     private isFormValid$: Observable<boolean>
@@ -252,6 +254,12 @@ export class GuestComponent implements OnInit {
             { field: 'dateOfDeparture', header: 'Távozás' }
         ]
 
+        // Prepaid options
+        this.prepaidOptions = [
+            { name: 'Igen', value: 'true' },
+            { name: 'Nem', value: 'false' }
+        ]
+
         this.isFormValid$ = this.formChanges$.pipe(
             debounceTime(300),
             distinctUntilChanged(),
@@ -331,10 +339,12 @@ export class GuestComponent implements OnInit {
     }
 
     onFilter(event: any, field: string) {
+
+        console.log('field', field, event.value)
         // Organizer need select conference
         if (this.isOrganizer && !this.selectedConference) return
 
-        const noWaitFields = ['diet', 'lastRfidUsage', 'dateOfArrival', 'dateOfDeparture']
+        const noWaitFields = ['diet', 'lastRfidUsage', 'dateOfArrival', 'dateOfDeparture', 'prepaid']
         let filterValue = ''
 
         // Calendar date as String
@@ -355,12 +365,15 @@ export class GuestComponent implements OnInit {
 
         this.filterValues[field] = filterValue
 
+        console.log('this.filterValues', this.filterValues)
+
         // If the field is a dropdown, run doQuery immediately
         if (noWaitFields.includes(field)) {
             if (this.filterValues[field] === filterValue) {
+                console.log('this.filterValues[field]', this.filterValues[field])
                 this.doQuery()
             }
-            // otherwise wait for the debounce time
+        // otherwise wait for the debounce time
         } else {
             if (this.debounce[field]) {
                 clearTimeout(this.debounce[field])
