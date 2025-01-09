@@ -20,6 +20,7 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { DialogModule } from 'primeng/dialog';
 import { TranslateModule } from '@ngx-translate/core';
 import { HttpClientModule } from '@angular/common/http';
 import { SelectorsModule } from '../../selectors/selectors.module';
@@ -46,6 +47,7 @@ import { WidgetModule } from '../../widget/widget.module';
         TagModule,
         ToastModule,
         TooltipModule,
+        DialogModule,
         HttpClientModule,
         TranslateModule,
         SelectorsModule,

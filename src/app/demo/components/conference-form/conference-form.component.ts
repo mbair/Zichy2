@@ -44,6 +44,7 @@ export class ConferenceFormComponent implements OnInit {
     darkMode: boolean = false                    // Dark mode
     subscription: Subscription                   // Subscription for dark mode
     szepCardMessage: Message[]                   // Message for szep card payment
+    idCardTemplateVisible: boolean = false       // ID card template visible
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -532,6 +533,10 @@ export class ConferenceFormComponent implements OnInit {
         this.conferenceForm.reset()
         this.messageService.clear()
         this.getConferenceBySlug()
+    }
+
+    showIDCardTemplate() {
+        this.idCardTemplateVisible = true
     }
 
     /**
