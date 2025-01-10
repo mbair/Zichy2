@@ -291,6 +291,10 @@
                                                     <td class="font-medium">Babaágyat kér:</td>
                                                     <td>{{guest.babyBed == true ? 'Igen' : 'Nem'}}</td>
                                                 </tr>
+                                                <tr>
+                                                    <td class="font-medium">Klímát kér:</td>
+                                                    <td>{{guest.climate == true ? 'Igen' : 'Nem'}}</td>
+                                                </tr>
                                             </table>
                                         </div>
                                         <div class="col-7">
@@ -629,8 +633,25 @@
                     </div>
                 </div>
 
-                <!-- prepaid -->
                 <div class="field mb-4 col-12 lg:col-4">
+                    
+                    <!-- climate -->
+                    <label for="climate" class="font-medium text-900">Klímát kérsz?</label>
+                    <div class="flex flex-wrap gap-3 my-3">
+                        <div class="flex align-items-center">
+                            <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes"></p-radioButton>
+                            <label for="climate-yes" class="ml-2">Igen</label>
+                        </div>
+                        <div class="flex align-items-center">
+                            <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no"></p-radioButton>
+                            <label for="climate-no" class="ml-2">Nem</label>
+                        </div>
+                    </div>
+                    <div *ngIf="prepaid?.dirty && prepaid?.errors?.['required']" class="p-error">
+                        Kérjük válassza ki, hogy kér-e babaágyat!
+                    </div>
+
+                    <!-- prepaid -->
                     <label for="prepaid" class="font-medium text-900">Előleget fizetett?</label>
                     <div class="flex flex-wrap gap-3 my-3">
                         <div class="flex align-items-center">

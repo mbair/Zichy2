@@ -43,6 +43,7 @@ export class ConferenceFormComponent implements OnInit {
     registrationEnded: boolean = false           // Registration ended
     darkMode: boolean = false                    // Dark mode
     subscription: Subscription                   // Subscription for dark mode
+    showClimateField: boolean = false            // Climate field visibility
     szepCardMessage: Message[]                   // Message for szep card payment
     idCardTemplateVisible: boolean = false       // ID card template visible
 
@@ -96,6 +97,7 @@ export class ConferenceFormComponent implements OnInit {
             roomMate: new FormControl<string[] | null>(null),
             payment: ['', Validators.required],
             babyBed: ['', Validators.required],
+            climate: [''],
             idCard: [null, Validators.required],
             privacy: ['', Validators.required],
             answers: this.formBuilder.array([]),
@@ -106,12 +108,7 @@ export class ConferenceFormComponent implements OnInit {
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
     }
 
-
-
     ngOnInit() {
-        // this.layoutService.config.theme = 'organge';
-        // this.layoutService.onConfigUpdate()
-
         // Get conference by URL
         this.getConferenceBySlug()
 
@@ -171,12 +168,34 @@ export class ConferenceFormComponent implements OnInit {
         // Watch roomType value changes to enable/disable roomMate
         this.conferenceForm.get('roomType')?.valueChanges.subscribe(value => {
             const roomMateControl = this.conferenceForm.get('roomMate')
+            const climateControl = this.conferenceForm.get('climate')
+
             if (value === 'Nem kérek szállást') {
                 // Clear any previously entered value
                 roomMateControl?.reset()
                 roomMateControl?.disable()
             } else {
                 roomMateControl?.enable()
+
+                // Climate field visibility handling
+                // TODO: Later, it depends on whether the room type includes this climate
+                const roomTypeWithClimate = [
+                    'Maranatha Panzióház 2 ágyas szoba (külön fürdős)',
+                    'Maranatha Panzióház franciaágyas szoba (külön fürdős)',
+                    'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)',
+                    'Családi szoba (közös konyhával, fürdővel és nappalival)',
+                ]
+
+                this.showClimateField = roomTypeWithClimate.includes(value)
+
+                // Set validators for the climate field
+                if (this.showClimateField) {
+                    climateControl?.setValidators(Validators.required)
+                } else {
+                    climateControl?.clearValidators()
+                }
+
+                climateControl?.updateValueAndValidity()
             }
         })
 
@@ -334,6 +353,7 @@ export class ConferenceFormComponent implements OnInit {
     get roomMate() { return this.conferenceForm.get('roomMate') }
     get payment() { return this.conferenceForm.get('payment') }
     get babyBed() { return this.conferenceForm.get('babyBed') }
+    get climate() { return this.conferenceForm.get('climate') }
     get idCard() { return this.conferenceForm.get('idCard') }
     get privacy() { return this.conferenceForm.get('privacy') }
 

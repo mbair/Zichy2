@@ -268,6 +268,39 @@
                                             </div>
                                         </div>
 
+                                        <!-- Klímát kérsz? -->
+                                        <div *ngIf="showClimateField" class="field mb-4 col-12 lg:col-4">
+                                            <label for="climate" class="font-medium text-900">{{'Klímát kérsz' | translate }}?</label>
+                                            <div class="flex flex-wrap gap-3 my-3">
+                                                <div class="flex align-items-center">
+                                                    <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes"></p-radioButton>
+                                                    <label for="climate-yes" class="ml-2">{{'Igen' | translate }}</label>
+                                                </div>
+                                                <div class="flex align-items-center">
+                                                    <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no"></p-radioButton>
+                                                    <label for="climate-no" class="ml-2">{{'Nem' | translate }}</label>
+                                                </div>
+                                            </div>
+                                            <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
+                                                {{'Kérjük válassza ki, hogy kér-e klímát' | translate }}!
+                                            </div>
+                                        </div>
+
+                                        <!-- Kivel laknál egy szobában -->
+                                        <div class="field mb-4 col-12 lg:col-8">
+                                            <label for="roomMate" class="font-medium text-900">{{'Kivel laknál egy szobában' | translate }}?</label>
+                                            <p-chips formControlName="roomMate" 
+                                                    separator="," 
+                                                    [showClear]="true"
+                                                    [addOnBlur]="true"
+                                                    pTooltip="{{'Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában' | translate }}" 
+                                                    tooltipPosition="top">
+                                                <ng-template let-item pTemplate="item">
+                                                    <i class="pi pi-user mr-2"></i> {{ item }}
+                                                </ng-template>
+                                            </p-chips>
+                                        </div>
+
                                         <!-- Fizetési mód -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="payment" class="font-medium text-900">{{'Fizetési mód' | translate }}</label>
@@ -282,23 +315,9 @@
                                             </div>
                                         </div>
 
+                                        <!-- Figyelmeztetés SZÉP kártyás fizetés esetén -->
                                         <div *ngIf="payment?.value === 'SZÉP kártya'" class="field mb-4 col-12">
                                             <p-messages [value]="szepCardMessage" [closable]="false"/>
-                                        </div>
-
-                                        <!-- Kivel laknál egy szobában -->
-                                        <div class="field mb-4 col-12 lg:col-12">
-                                            <label for="roomMate" class="font-medium text-900">{{'Kivel laknál egy szobában' | translate }}?</label>
-                                            <p-chips formControlName="roomMate" 
-                                                     separator="," 
-                                                     [showClear]="true"
-                                                     [addOnBlur]="true"
-                                                     pTooltip="{{'Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában' | translate }}" 
-                                                     tooltipPosition="top">
-                                                <ng-template let-item pTemplate="item">
-                                                    <i class="pi pi-user mr-2"></i> {{ item }}
-                                                </ng-template>
-                                            </p-chips>
                                         </div>
 
                                         <!-- Extra kérdések -->
