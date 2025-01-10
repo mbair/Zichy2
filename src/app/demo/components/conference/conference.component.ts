@@ -96,6 +96,7 @@ export class ConferenceComponent implements OnInit {
             contactPhone: ['', Validators.required],
             formUrl: ['', Validators.required],
             registrationEndDate: ['', Validators.required],
+            guestEditEndDate: ['', Validators.required],
             organizer_user_id: ['']
         })
 
@@ -181,6 +182,7 @@ export class ConferenceComponent implements OnInit {
     get contactPhone() { return this.conferenceForm.get('contactPhone') }
     get formUrl() { return this.conferenceForm.get('formUrl') }
     get registrationEndDate() { return this.conferenceForm.get('registrationEndDate') }
+    get guestEditEndDate() { return this.conferenceForm.get('guestEditEndDate') }
 
     // Gets the FormArray of questions
     get questions(): FormArray {

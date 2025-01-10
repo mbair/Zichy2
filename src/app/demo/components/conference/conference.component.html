@@ -219,6 +219,10 @@
                                                     <td class="font-medium">Regisztráció vége</td>
                                                     <td>{{conference.registrationEndDate | date:'yyyy.MM.dd'}}</td>
                                                 </tr>
+                                                <tr>
+                                                    <td class="font-medium">Vendég módosítás határideje</td>
+                                                    <td>{{conference.guestEditEndDate | date:'yyyy.MM.dd'}}</td>
+                                                </tr>
                                             </table>
                                         </div>
                                         <div class="col-5">
@@ -396,6 +400,19 @@
                         dateFormat="yy-mm-dd" [showButtonBar]="true">
                     </p-calendar>
                     <div *ngIf="registrationEndDate?.dirty && registrationEndDate?.errors?.['required']"
+                        class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- Vendég módosítás határideje -->
+                <div class="field mb-4 col-12 lg:col-6">
+                    <label for="guestEditEndDate" class="font-medium text-900">Vendég módosítás határideje</label>
+                    <p-calendar formControlName="guestEditEndDate" 
+                                appendTo="body" 
+                                dataType="string" 
+                                dateFormat="yy-mm-dd" 
+                                [showButtonBar]="true">
+                    </p-calendar>
+                    <div *ngIf="guestEditEndDate?.dirty && guestEditEndDate?.errors?.['required']"
                         class="block p-error">Kötelező kitölteni</div>
                 </div>
             </form>

@@ -18,6 +18,7 @@ export interface Conference {
     registrationEndDate?: string | null;
     questions?: any;
     organizer_user_id?: any;
+    guestEditEndDate?: string | null;
 
     // Can be deleted
     code?: string;
