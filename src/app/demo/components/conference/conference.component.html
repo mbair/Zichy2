@@ -223,6 +223,10 @@
                                                     <td class="font-medium">Vendég módosítás határideje</td>
                                                     <td>{{conference.guestEditEndDate | date:'yyyy.MM.dd'}}</td>
                                                 </tr>
+                                                <tr>
+                                                    <td class="font-medium">Engedélyezve</td>
+                                                    <td>{{conference.enabled ? 'Igen' : 'Nem'}}</td>
+                                                </tr>
                                             </table>
                                         </div>
                                         <div class="col-5">
@@ -414,6 +418,17 @@
                     </p-calendar>
                     <div *ngIf="guestEditEndDate?.dirty && guestEditEndDate?.errors?.['required']"
                         class="block p-error">Kötelező kitölteni</div>
+                </div>
+
+                <!-- Enabled -->
+                <div class="field mb-4 col-12 lg:col-6">
+                    <label for="enabled" class="font-medium text-900">Engedélyezve</label>
+                    <div class="block">
+                        <p-inputSwitch id="enabled" formControlName="enabled" />
+                    </div>
+                    <div *ngIf="enabled?.dirty && enabled?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
                 </div>
             </form>
             <ng-template pTemplate="footer">

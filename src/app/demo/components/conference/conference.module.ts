@@ -26,6 +26,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { CheckboxModule } from 'primeng/checkbox';
 import { CalendarModule } from 'primeng/calendar';
 import { SkeletonModule } from 'primeng/skeleton';
+import { InputSwitchModule } from 'primeng/inputswitch';
 import { SelectorsModule } from '../../selectors/selectors.module';
 
 @NgModule({
@@ -55,6 +56,7 @@ import { SelectorsModule } from '../../selectors/selectors.module';
         CheckboxModule,
         CalendarModule,
         SkeletonModule,
+        InputSwitchModule,
         SelectorsModule,
 	],
 	declarations: [ConferenceComponent]

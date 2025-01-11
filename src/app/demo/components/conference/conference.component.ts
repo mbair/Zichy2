@@ -97,7 +97,8 @@ export class ConferenceComponent implements OnInit {
             formUrl: ['', Validators.required],
             registrationEndDate: ['', Validators.required],
             guestEditEndDate: ['', Validators.required],
-            organizer_user_id: ['']
+            organizer_user_id: [''],
+            enabled: ['', []],
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -183,6 +184,7 @@ export class ConferenceComponent implements OnInit {
     get formUrl() { return this.conferenceForm.get('formUrl') }
     get registrationEndDate() { return this.conferenceForm.get('registrationEndDate') }
     get guestEditEndDate() { return this.conferenceForm.get('guestEditEndDate') }
+    get enabled() { return this.conferenceForm.get('enabled') }
 
     // Gets the FormArray of questions
     get questions(): FormArray {
