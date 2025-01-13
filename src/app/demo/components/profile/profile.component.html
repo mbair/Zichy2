@@ -16,7 +16,7 @@
                         <label for="fullname" class="font-medium text-900">Név</label>
                         <input pInputText type="text" id="fullname" formControlName="fullname" autofocus />
                         <div *ngIf="userForm.get('fullname')?.invalid && userForm.get('fullname')?.dirty">
-                            <div *ngIf="userForm.get('fullname')?.errors?.['required']" class="p-error">Kötelező kitölteni</div>
+                            <small *ngIf="userForm.get('fullname')?.errors?.['required']" class="p-error">Kötelező kitölteni</small>
                         </div>
                     </div>
                     <div class="field mb-4 col-12 md:col-6">
@@ -44,22 +44,22 @@
                             </ng-template>
                         </p-dropdown>
                         <div *ngIf="userForm.get('user_rolesid')?.invalid && userForm.get('user_rolesid')?.dirty">
-                            <div *ngIf="userForm.get('user_rolesid')?.errors?.['required']" class="p-error">Kötelező kitölteni</div>
+                            <small *ngIf="userForm.get('user_rolesid')?.errors?.['required']" class="p-error">Kötelező kitölteni</small>
                         </div>
                     </div>
                     <div class="field mb-4 col-12 md:col-6">
                         <label for="email" class="font-medium text-900">Email</label>
                         <input pInputText type="text" id="email" formControlName="email" />
                         <div *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.dirty">
-                            <div *ngIf="userForm.get('email')?.errors?.['required']" class="block p-error">Kötelező kitölteni</div>
-                            <div *ngIf="userForm.get('email')?.errors?.['invalidEmail']" class="block p-error">Nem megfelelő email formátum</div>
+                            <small *ngIf="userForm.get('email')?.errors?.['required']" class="block p-error">Kötelező kitölteni</small>
+                            <small *ngIf="userForm.get('email')?.errors?.['invalidEmail']" class="block p-error">Nem megfelelő email formátum</small>
                         </div>
                     </div>
                     <div class="field mb-4 col-12 md:col-6">
                         <label for="phone" class="font-medium text-900">Telefon</label>
                         <input pInputText type="text" id="phone" formControlName="phone" />
                         <div *ngIf="userForm.get('phone')?.invalid && userForm.get('phone')?.dirty">
-                            <div *ngIf="userForm.get('phone')?.errors?.['required']" class="p-error">Kötelező kitölteni</div>
+                            <small *ngIf="userForm.get('phone')?.errors?.['required']" class="p-error">Kötelező kitölteni</small>
                         </div>
                     </div>
                     <div class="field mb-4 col-12 md:col-6">
@@ -73,7 +73,7 @@
                                     strongLabel="Komplex jelszó">
                         </p-password>
                         <div *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.dirty">
-                            <div *ngIf="userForm.get('password')?.errors?.['required']" class="p-error">Kötelező kitölteni</div>
+                            <small *ngIf="userForm.get('password')?.errors?.['required']" class="p-error">Kötelező kitölteni</small>
                         </div>
                     </div>
                     <div class="field mb-4 col-12 md:col-6">
@@ -84,10 +84,10 @@
                                     [feedback]="false">
                         </p-password>
                         <div *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.dirty">
-                            <div *ngIf="userForm.get('password')?.errors?.['required']" class="p-error">Kötelező kitölteni</div>
+                            <small *ngIf="userForm.get('password')?.errors?.['required']" class="p-error">Kötelező kitölteni</small>
                         </div>
                         <div *ngIf="userForm.errors?.['passwordsDoNotMatch'] && userForm.get('password')?.dirty">
-                            <div class="p-error">A jelszavak nem egyeznek!</div>
+                            <small class="p-error">A jelszavak nem egyeznek!</small>
                         </div>
                     </div>
 

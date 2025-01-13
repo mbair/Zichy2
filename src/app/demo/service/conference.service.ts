@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, map, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { Conference } from '../api/conference';
-import { Question } from '../api/question';
 
 @Injectable({
     providedIn: 'root',
@@ -12,7 +11,6 @@ import { Question } from '../api/question';
 export class ConferenceService {
 
     public apiURL: string
-    private cache: Conference[] = []
     private data$: BehaviorSubject<any>
     private message$: BehaviorSubject<any>
 
@@ -38,19 +36,6 @@ export class ConferenceService {
      * @param queryParams
      */
     public get(page: number, rowsPerPage: number, sort: any, queryParams: string): void {
-        
-        // Get user role & id
-        const userrole = localStorage.getItem('userrole')
-        const userid = localStorage.getItem('userid')
-
-        // Organizers can only see their own conferences
-        if (userrole === 'Szervezo' && userid) {
-            const organizerFilter = `organizer_user_id=${userid}`
-            queryParams = queryParams 
-                ? `${queryParams}&${organizerFilter}` 
-                : organizerFilter
-        }
-        
         let pageSort: string = '';
         if (sort !== '') {
             const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC';
@@ -194,57 +179,5 @@ export class ConferenceService {
                     this.message$.next(error)
                 }
             })
-    }
-
-    /**
-     * Get conferences for selector
-     * @returns
-     */
-    public getConferencesForSelector(): Observable<Conference[]> {
-        // Check if there is already cached data
-        // if (this.cache.length > 0) {
-        //     return of(this.cache)
-        // }
-
-        let queryParams = ''
-
-        this.get(0, 999, { sortField: 'id', sortOrder: 1 }, queryParams)
-        return this.data$.asObservable().pipe(
-            map((data: any) => {
-                // Store conferences in cache
-                const conferences = data ? data.rows : []
-                this.cache = conferences
-
-                return conferences
-            })
-        )
-    }
-
-    /**
-     * Retrieves a conference by its unique identifier.
-     * @param id - The unique identifier of the conference to retrieve.
-     * @returns An Observable containing the response with the conference details.
-     */
-    public getById(id: number): Observable<any> {
-        return this.apiService.get(`conference/getbyid/${id}`)
-    }
-
-    /**
-     * Conference SLUG validator
-     * @param slug 
-     * @returns 
-     */
-    public isSlugValid(slug: string): Observable<boolean> {
-        this.get(0, 20, 'slug=', 'sort')
-
-        // Figyeljük a data$ stream-et, hogy van-e találat
-        return this.data$.pipe(
-            map((response: any) => {
-                console.log('isSlugValid response', response)
-                // Ellenőrzés: ha van adat és az adatok nem üresek, akkor érvényes a slug
-                return response && response.data && response.rows.length > 0;
-            }),
-            catchError(() => of(false)) // Hibakezelés: ha hiba történik, érvénytelen a slug
-        )
     }
 }

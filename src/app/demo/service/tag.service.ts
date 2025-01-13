@@ -130,7 +130,7 @@ export class TagService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres címke rögzítés',
-                        detail: `${tag.rfid} rögzítve`,
+                        detail: `${tag.identifier} rögzítve`,
                     })
                 },
                 error: (error: any) => {
@@ -150,7 +150,7 @@ export class TagService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres címke módosítás',
-                        detail: `${modifiedTag.rfid} módosítva`,
+                        detail: `${modifiedTag.identifier} módosítva`,
                     })
                 },
                 error: (error: any) => {
@@ -170,7 +170,7 @@ export class TagService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres címke törlés',
-                        detail: `${tag.rfid} törölve`,
+                        detail: `${tag.identifier} törölve`,
                     })
                 },
                 error: (error: any) => {

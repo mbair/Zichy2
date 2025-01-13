@@ -11,7 +11,7 @@ import { AuthInterceptor } from './demo/interceptors/auth.interceptor';
 import { ErrorInterceptor } from './demo/interceptors/error.interceptor';
 
 export function HttpLoaderFactory(http: HttpClient) {
-    return new TranslateHttpLoader(http, '../assets/i18n/', '.json')
+    return new TranslateHttpLoader(http, '../assets/i18n/', '.json');
 }
 
 @NgModule({

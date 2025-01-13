@@ -6,13 +6,9 @@ import { Subscription } from 'rxjs';
 import { DashboardService } from 'src/app/demo/service/dashboard.service';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { ActivityService } from 'src/app/demo/service/activity.service';
-import { ConferenceService } from 'src/app/demo/service/conference.service';
-import { GuestService } from 'src/app/demo/service/guest.service';
-import { UserService } from 'src/app/demo/service/user.service';
+import { ApiResponse } from 'src/app/demo/api/ApiResponse';
 import { Table } from 'primeng/table';
 import * as moment from 'moment';
-import { Conference } from 'src/app/demo/api/conference';
-import { Guest } from 'src/app/demo/api/guest';
 moment.locale('hu')
 
 @Component({
@@ -27,7 +23,6 @@ moment.locale('hu')
 export class EcommerceDashboardComponent implements OnInit {
 
     loading: boolean = true;                     // Loading overlay trigger value
-    userRole: string = '';
     activities: any[] = [];
     information: any;
     selectedWeek: any;
@@ -40,11 +35,6 @@ export class EcommerceDashboardComponent implements OnInit {
     subscription: Subscription;
     cols: any[] = [];
     rfidPercentage: number = 85;
-    prepaidPercentage: number = 0;
-    selectedConference: Conference;
-    conferenceData: any;
-    conferenceGuests: Guest[] = [];
-    taskList: any[] = [];
 
     conferences: any = { active: 0, inactive: 0 };
     guests: any = { active: 0, inactive: 0 };
@@ -64,15 +54,13 @@ export class EcommerceDashboardComponent implements OnInit {
         }
     }
 
-    private dashboardObs$: Observable<any> | undefined
-    private conferenceObs$: Observable<any> | undefined
-    private rfidCountObs$: Observable<any> | undefined
-    private serviceMessageObs$: Observable<any> | undefined
+
+
+    private dashboardObs$: Observable<any> | undefined;
+    private rfidCountObs$: Observable<any> | undefined;
+    private serviceMessageObs$: Observable<any> | undefined;
 
     constructor(private dashboardService: DashboardService,
-                private conferenceService: ConferenceService,
-                private guestService: GuestService,
-                private userService: UserService,
                 private activityService: ActivityService,
                 private layoutService: LayoutService) {
 
@@ -82,17 +70,13 @@ export class EcommerceDashboardComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        // User Role
-        this.userService.getUserRole().subscribe(role => {
-            this.userRole = role
-            console.log('Updated userRole', this.userRole)
-        })
-
         // Dashboard Informations
         this.dashboardObs$ = this.dashboardService.dashboardObs;
         this.dashboardObs$.subscribe((data: any) => {
+            console.log('data', data)
             this.loading = false
             if (data) {
+                console.log('data', data)
                 this.conferences = data.conferences
                 this.guests = data.guests
                 this.rooms.active = 106 // Temporary solution (its not yet stored in DB)
@@ -108,32 +92,6 @@ export class EcommerceDashboardComponent implements OnInit {
         })
         this.dashboardService.getInformations()
 
-        // Conferences
-        this.conferenceObs$ = this.conferenceService.conferenceObs;
-        this.conferenceObs$.subscribe((data: any) => {
-            if (data && data.rows) {
-                this.conferenceData = data.rows[0]
-            }
-        })
-
-        // Tasks
-        this.taskList = [
-            {
-                name: 'Regisztrációk jóváhagyása',
-                startDate: '2025.01.01',
-                completed: false,
-            },
-            {
-                name: 'Vendégek szobához adása',
-                startDate: '2025.01.01',
-                completed: false,
-            },
-            {
-                name: 'Előlegek ellenőrzése',
-                startDate: '2025.01.01',
-                completed: false,
-            },
-        ]
 
         this.activities = this.activityService.getActivities();
         this.information = this.activityService.getInformation()
@@ -267,26 +225,6 @@ export class EcommerceDashboardComponent implements OnInit {
         };
     }
 
-    get registrations(): number {
-        return this.conferenceGuests?.length || 0
-    }
-
-    get guestsWithoutRoom(): number {
-        return this.conferenceGuests?.filter((guest: Guest) => guest.roomNum === null).length || 0
-    }
-
-    get registrationEndDate(): string {
-        let endDate = ''
-        if (this.conferenceData?.registrationEndDate) {
-            endDate = moment(this.conferenceData.registrationEndDate).format('YYYY.MM.DD')
-        }
-        return endDate
-    }
-
-    get prepaid(): number {
-        return this.conferenceGuests?.filter((guest: Guest) => guest.prepaid === null).length || 0
-    }
-
     onWeekChange() {
         let newBarData = {...this.barData};
         newBarData.datasets[0].data = this.selectedWeek.data[0];
@@ -296,15 +234,6 @@ export class EcommerceDashboardComponent implements OnInit {
 
     onGlobalFilter(table: Table, event: Event) {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
-    }
-
-    onConferenceChange(event: any) {
-        const conferenceName = event.value
-        // this.conferenceService.getBySearchQuery(`name=${conferenceName}`)
-        this.guestService.getByConferenceName(conferenceName).subscribe((guests: any) => {
-            this.conferenceGuests = guests.rows || []
-            this.prepaidPercentage = Math.round((this.prepaid / this.registrations) * 100)
-        })
     }
 
     // Don't delete this, its needed from a performance point of view,

@@ -129,12 +129,25 @@
                                    style="min-width:23rem"/>
                         </th>
                         <th>
-                            <app-user-selector 
-                                (change)="onFilter($event, 'userid')"
+                            <p-dropdown
+                                inputId="userfilter"
+                                [options]="users"
+                                optionLabel="fullname"
+                                optionValue="id"
                                 placeholder="Keresés..."
+                                emptyMessage="Nincs találat..."
                                 [showClear]="true"
+                                (onChange)="onUserSelected($event); onFilter($event, 'userid')"
                                 [style]="{'minWidth':'13rem'}">
-                            </app-user-selector>
+                                <ng-template let-option pTemplate="item">
+                                        {{ option.fullname }}
+                                </ng-template>
+                                <ng-template pTemplate="selectedItem">
+                                    <span *ngIf="selectedUser">
+                                        {{ selectedUser.fullname }}
+                                    </span>
+                                </ng-template>
+                            </p-dropdown>
                         </th>
                     </tr>
                 </ng-template>
@@ -155,8 +168,8 @@
                         </td>
                         <td>
                             <span class="p-column-title">Modul</span>
-                            <i [ngClass]="getModuleByTableName(logs.table_name)?.icon" style="color: slateblue"></i>
-                            <span class="ml-2">{{ getModuleByTableName(logs.table_name)?.name }}</span>
+                            <i [ngClass]="getModuleByTableName(logs.table_name).icon" style="color: slateblue"></i>
+                            <span class="ml-2">{{ getModuleByTableName(logs.table_name).name }}</span>
                         </td>
                         <td>
                             <span class="p-column-title">Művelet</span>
@@ -170,7 +183,6 @@
                                 <i *ngIf="logs.action_type.toLowerCase() == 'tag duplicate'" class="pi pi-clone"></i>
                                 <i *ngIf="logs.action_type.toLowerCase() == 'already received food'" class="pi pi-times-circle"></i>
                                 <i *ngIf="logs.action_type.toLowerCase() == 'unknown device'" class="pi pi-question-circle"></i>
-                                <i *ngIf="logs.action_type.toLowerCase() == 'import'" class="pi pi-file-import"></i>
                                 {{ logs.action_type }}
                             </span>
                         </td>
@@ -190,7 +202,7 @@
                             <div class="grid p-2">
 
                                 <!-- Original data table -->
-                                <div class="col-6" *ngIf="log.original_data">
+                                <div class="col-6">
                                     <p-table [value]="transformData(log.original_data)" responsiveLayout="scroll">
                                         <ng-template pTemplate="header">
                                             <tr>
@@ -207,7 +219,7 @@
                                 </div>
 
                                 <!-- Response data table -->
-                                <div class="col-6" *ngIf="log.new_data">
+                                <div class="col-6">
                                     <p-table [value]="transformData(log.new_data)" responsiveLayout="scroll">
                                         <ng-template pTemplate="header">
                                             <tr>

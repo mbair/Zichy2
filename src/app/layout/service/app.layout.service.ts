@@ -41,7 +41,7 @@ export class LayoutService {
         theme: 'indigo',
         scale: 14,
         menuTheme: 'colorScheme'
-    }
+    };
 
     state: LayoutState = {
         staticMenuDesktopInactive: false,
@@ -52,75 +52,75 @@ export class LayoutService {
         menuHoverActive: false,
         sidebarActive:false,
         anchored: false
-    }
+    };
 
-    private configUpdate = new Subject<AppConfig>()
+    private configUpdate = new Subject<AppConfig>();
 
-    private overlayOpen = new Subject<any>()
+    private overlayOpen = new Subject<any>();
 
-    configUpdate$ = this.configUpdate.asObservable()
+    configUpdate$ = this.configUpdate.asObservable();
 
-    overlayOpen$ = this.overlayOpen.asObservable()
+    overlayOpen$ = this.overlayOpen.asObservable();
 
     onMenuToggle() {
         if (this.isOverlay()) {
-            this.state.overlayMenuActive = !this.state.overlayMenuActive
+            this.state.overlayMenuActive = !this.state.overlayMenuActive;
 
             if (this.state.overlayMenuActive) {
-                this.overlayOpen.next(null)
+                this.overlayOpen.next(null);
             }
         }
 
         if (this.isDesktop()) {
-            this.state.staticMenuDesktopInactive = !this.state.staticMenuDesktopInactive
+            this.state.staticMenuDesktopInactive = !this.state.staticMenuDesktopInactive;
         }
         else {
-            this.state.staticMenuMobileActive = !this.state.staticMenuMobileActive
+            this.state.staticMenuMobileActive = !this.state.staticMenuMobileActive;
 
             if (this.state.staticMenuMobileActive) {
-                this.overlayOpen.next(null)
+                this.overlayOpen.next(null);
             }
         }
     }
 
     onOverlaySubmenuOpen() {
-        this.overlayOpen.next(null)
+        this.overlayOpen.next(null);
     }
 
     showProfileSidebar() {
-        this.state.profileSidebarVisible = true
+        this.state.profileSidebarVisible = true;
     }
 
     showConfigSidebar() {
-        this.state.configSidebarVisible = true
+        this.state.configSidebarVisible = true;
     }
 
     isOverlay() {
-        return this.config.menuMode === 'overlay'
+        return this.config.menuMode === 'overlay';
     }
 
     isDesktop() {
-        return window.innerWidth > 991
+        return window.innerWidth > 991;
     }
 
     isSlim() {
-        return this.config.menuMode === 'slim'
+        return this.config.menuMode === 'slim';
     }
 
     isSlimPlus() {
-        return this.config.menuMode === 'slim-plus'
+        return this.config.menuMode === 'slim-plus';
     }
 
     isHorizontal() {
-        return this.config.menuMode === 'horizontal'
+        return this.config.menuMode === 'horizontal';
     }
 
     isMobile() {
-        return !this.isDesktop()
+        return !this.isDesktop();
     }
 
     onConfigUpdate() {
-        this.configUpdate.next(this.config)
+        this.configUpdate.next(this.config);
     }
 
 }

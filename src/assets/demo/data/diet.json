@@ -1,0 +1,40 @@
+{
+    "data": [
+        {
+            "id": 1,
+            "name": "Normál",
+            "value": "normal",
+            "enabled": true
+        },
+        {
+            "id": 2,
+            "name": "Gluténmentes",
+            "value": "glutenFree",
+            "enabled": true
+        },
+        {
+            "id": 3,
+            "name": "Laktózmentes",
+            "value": "lactoseFree",
+            "enabled": true
+        },
+        {
+            "id": 4,
+            "name": "Tejmentes",
+            "value": "milkFree",
+            "enabled": true
+        },
+        {
+            "id": 5,
+            "name": "glutén-, laktóz-, tejmentes",
+            "value": "glutenAndLactoseFree",
+            "enabled": true
+        },
+        {
+            "id": 6,
+            "name": "Vegetáriánus",
+            "value": "vegetarian",
+            "enabled": true
+        }
+    ]
+  }

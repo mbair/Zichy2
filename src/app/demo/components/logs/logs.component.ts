@@ -8,6 +8,7 @@ import { LogService } from 'src/app/demo/service/log.service';
 import { UserService } from '../../service/user.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Log } from '../../api/log';
+import { User } from '../../api/user';
 import * as moment from 'moment';
 moment.locale('hu')
 
@@ -38,6 +39,8 @@ export class LogsComponent implements OnInit {
     deleteDialog: boolean = false;                 // Popup for deleting table item
     bulkDeleteDialog: boolean = false;             // Popup for deleting table items
     selected: Log[] = [];                          // Table items chosen by user
+    selectedUser: User | undefined;                // User chosen by user
+    users: User[] = []                             // Possible users
     action_types: any[] = []                       // Possible action types
     modules: any[] = []                            // Possible modules
     statuses: any[] = []                           // Possible HTTP statuses
@@ -78,16 +81,23 @@ export class LogsComponent implements OnInit {
             }
         })
 
+        // Get users for selector
+        this.userService.getUsersForSelector().subscribe({
+            next: (data) => {
+                this.users = data
+            }
+        })
+
         // Modules for selector
         this.modules = [
             { name: 'Ételpult', code: 'food_counter', icon: 'pi pi-tablet' },
-            { name: 'Konferencia', code: 'conference', icon: 'pi pi-calendar' },
-            { name: 'Vendég', code: 'guest', icon: 'pi pi-user' },
-            { name: 'Szoba', code: 'room', icon: 'pi pi-building' },
-            { name: 'NFC címke', code: 'rfid', icon: 'pi pi-tags' },
-            { name: 'Étrend', code: 'diet', icon: 'pi pi-pencil' },
-            { name: 'Felhasználó', code: 'users', icon: 'pi pi-users' },
-            { name: 'Napló', code: 'logs', icon: 'pi pi-list' },
+            { name: 'Konferenciák', code: 'conference', icon: 'pi pi-calendar' },
+            { name: 'Vendégek', code: 'guest', icon: 'pi pi-user' },
+            { name: 'Szobák', code: 'room', icon: 'pi pi-building' },
+            { name: 'Címkék', code: 'rfid', icon: 'pi pi-tags' },
+            { name: 'Étrendek', code: 'diet', icon: 'pi pi-pencil' },
+            { name: 'Felhasználók', code: 'users', icon: 'pi pi-users' },
+            { name: 'Logok', code: 'logs', icon: 'pi pi-list' },
         ]
 
         // Action types for selector
@@ -95,7 +105,6 @@ export class LogsComponent implements OnInit {
             'create',
             'update',
             'delete',
-            'bulkdelete',
             'scanned code',
             'assign tag',
             'unassign',
@@ -103,7 +112,6 @@ export class LogsComponent implements OnInit {
             'tag duplicate',
             'already received food',
             'unknown device',
-            'import',
         ]
 
         // HTTP statuses for selector
@@ -227,6 +235,14 @@ export class LogsComponent implements OnInit {
     }
 
     /**
+     * User selected
+     * @param event
+     */
+    onUserSelected(event: any) {
+        this.selectedUser = this.users.find(user => user.id === event.value)
+    }
+
+    /**
      * Create new Log
      */
     create() {
@@ -337,11 +353,6 @@ export class LogsComponent implements OnInit {
         }
     }
 
-    /**
-     * Determines if a row can be expanded.
-     * @param rowData The data for the row, must have an 'expandable' property.
-     * @returns True if the row can be expanded, false otherwise.
-     */
     canRowBeExpanded(rowData: any): boolean {
         return rowData.expandable
     }

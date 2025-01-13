@@ -35,5 +35,22 @@ export class GenderService {
         ]
 
         this.genderData$.next(response)
+
+        // let pageSort: string = '';
+        // if (sort !== '') {
+        //     const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC';
+        //     pageSort = sort.sortField != "" ? `?sort=${sort.sortField}&order=${sortOrder}` : '';
+        // }
+
+        // this.apiService.get<ApiResponse>(`gender/get/${pageSort !== '' ? 0 : page}/${rowsPerPage}${pageSort}`)
+        //     .subscribe({
+        //         next: (response: ApiResponse) => {
+        //             this.dataCache = response.rows ? response.rows : null;
+        //             this.genderData$.next(response)
+        //         },
+        //         error: (error: any) => {
+        //             this.serviceMessage$.next(error)
+        //         }
+        //     })
     }
 }

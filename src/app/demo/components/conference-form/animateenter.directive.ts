@@ -1,83 +1,87 @@
-import { Directive, ElementRef, OnDestroy, Renderer2, Input, OnInit, HostBinding, AfterViewInit } from '@angular/core';
+import {  Directive, ElementRef, OnDestroy, Renderer2, Input, OnInit, HostBinding, AfterViewInit } from '@angular/core';
 
 @Directive({
+    // eslint-disable-next-line @angular-eslint/directive-selector
     selector: '[animateEnter]'
 })
 export class AnimateEnterDirective implements OnInit, AfterViewInit, OnDestroy {
 
-    @Input('animateEnter') animation!: string
+    @Input('animateEnter') animation!: string;
 
-    documentScrollListener: (() => void) | null = null
-    loadListener: () => void = () => {}
-    entered: boolean = false
+    documentScrollListener: Function | null = null;
 
-    @HostBinding('class.visibility-hidden') visibilityHidden: boolean = true
+    loadListener: Function = () => { };
 
-    constructor(private el: ElementRef, private renderer: Renderer2) { }
+    entered: boolean = false;
+
+    @HostBinding('class.visibility-hidden') visibilityHidden: boolean = true;
+
+    constructor(public el: ElementRef, public renderer: Renderer2) { }
 
     ngOnInit() {
         if (this.isImage()) {
             this.loadListener = this.renderer.listen(this.el.nativeElement, 'load', () => {
-                this.checkAndAnimate()
-            })
+                this.bind();
+            });
         }
     }
 
     ngAfterViewInit() {
-        // A short delay to allow the animation to start on load
-        setTimeout(() => {
-            this.checkAndAnimate()
-        }, 100)
-
-        // Listen to the scroll event
-        this.bindEventListeners()
-    }
-
-    // Checks if the component is in the viewport and animates it if necessary
-    checkAndAnimate(): void {
-        if (this.isInViewPort() && !this.entered) {
-            this.enter()
+        if (!this.isImage()) {
+            this.bind();
         }
     }
 
-    // Listen to the scroll event
-    bindEventListeners(): void {
+    bind(): void {
+        if (this.isInViewPort()) {
+            this.enter();
+        }
+
         if (!this.entered) {
             this.documentScrollListener = this.renderer.listen('window', 'scroll', () => {
-                this.checkAndAnimate()
-            })
+                if (this.isInViewPort() && this.documentScrollListener) {
+                    this.enter();
+                    this.documentScrollListener();
+                    this.documentScrollListener = null;
+                }
+            });
         }
     }
 
-    // Remove events when they are no longer needed
-    removeEventListeners(): void {
-        if (this.documentScrollListener) {
-            this.documentScrollListener()
-            this.documentScrollListener = null
-        }
+    shouldEnter(): boolean {
+        return this.entered ? false: this.isInViewPort();
     }
 
-    isInViewPort(): boolean {
-        const rect = this.el.nativeElement.getBoundingClientRect()
-        const winHeight = window.innerHeight || document.documentElement.clientHeight
-        return rect.top >= 0 && rect.top <= winHeight
+    isInViewPort() {
+        let rect = this.el.nativeElement.parentElement.parentElement.parentElement.getBoundingClientRect();
+        let docElement = document.documentElement;
+        let winHeight = docElement.clientHeight;
+
+        if (rect.top > 0) {
+            return (rect.top >= 0 && winHeight >= rect.top);
+        } 
+        else {
+            return true
+        }
     }
 
     enter(): void {
-        this.el.nativeElement.classList.add('hidden', this.animation)
-        this.el.nativeElement.classList.remove('visibility-hidden', 'hidden')
-        this.entered = true
-        this.removeEventListeners()
+        this.el.nativeElement.classList.add('hidden', this.animation);
+        this.el.nativeElement.classList.remove('visibility-hidden', 'hidden');
+        this.entered = true;
     }
 
     isImage(): boolean {
-        return this.el.nativeElement.tagName === 'IMG'
+        return this.el.nativeElement.tagName === 'IMG';
     }
 
     ngOnDestroy() {
-        this.removeEventListeners()
+        if (this.documentScrollListener) {
+            this.documentScrollListener();
+        }
+
         if (this.loadListener) {
-            this.loadListener()
+            this.loadListener();
         }
     }
 }

@@ -7,6 +7,7 @@ import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MessageService } from 'primeng/api';
 import { UserService } from '../../service/user.service';
 import { RoleService } from '../../service/role.service';
+import { ApiResponse } from '../../api/ApiResponse';
 import { Role } from '../../api/role';
 import { User } from '../../api/user';
 
@@ -22,7 +23,7 @@ import { User } from '../../api/user';
 export class ProfileComponent implements OnInit {
 
     loading: boolean = true;                     // Loading overlay trigger value
-    roles: Role[] = []                           // Possible roles
+    roles: Role[] = []                            // Possible roles
     userForm: FormGroup;                         // Form for User whose profile we are currently editing
     originalFormValues: any;                     // The original values ​​of the form
 
@@ -37,6 +38,8 @@ export class ProfileComponent implements OnInit {
 
     ngOnInit() {
         // Get User data
+        // const fullname = localStorage.getItem('fullname')
+        // this.userService.getBySearchQuery(`fullname=${fullname}`)
         this.userService.getOwnData()
 
         // User form
