@@ -1,0 +1,54 @@
+<!-- ReactiveForms -->
+<p-dropdown *ngIf="getFormControl() as control; else useNgModel"
+            [formControl]="control"
+            [options]="users"
+            optionLabel="fullname"
+            optionValue="id"
+            (onChange)="handleOnChange($event)"
+            placeholder="{{ 'Válasszon...' | translate }}"
+            emptyMessage="{{ 'Nincs találat...' | translate }}"
+            [showClear]="showClear"
+            [style]="{'minWidth':'13rem'}"
+            appendTo="body">
+
+    <ng-template pTemplate="item" let-option>
+        <span [ngClass]="getRoleStyleClass(option.user_rolesid)">
+            <i class="pi pi-user mr-1"></i>
+            {{ option.fullname }}
+        </span>
+    </ng-template>
+    <ng-template pTemplate="selectedItem" let-selectedItem>
+        <span [ngClass]="getRoleStyleClass(selectedItem.user_rolesid)">
+            <i class="pi pi-user mr-1"></i>
+            {{ selectedItem.fullname }}
+        </span>
+    </ng-template>
+</p-dropdown>
+
+<!-- ngModel -->
+<ng-template #useNgModel>
+    <p-dropdown [(ngModel)]="selecteduser"
+                [options]="users"
+                optionLabel="fullname"
+                optionValue="id"
+                (onChange)="handleOnChange($event)"
+                placeholder="{{ 'Válasszon...' | translate }}"
+                emptyMessage="{{ 'Nincs találat...' | translate }}"
+                [showClear]="showClear"
+                [style]="{'minWidth':'13rem'}"
+                appendTo="body">
+
+        <ng-template pTemplate="item" let-option>
+            <span [ngClass]="getRoleStyleClass(option.user_rolesid)">
+                <i class="pi pi-user mr-1"></i>
+                {{ option.fullname }}
+            </span>
+        </ng-template>
+        <ng-template pTemplate="selectedItem" let-selectedItem>
+            <span [ngClass]="getRoleStyleClass(selectedItem.user_rolesid)">
+                <i class="pi pi-user mr-1"></i>
+                {{ selectedItem?.fullname }}
+            </span>
+        </ng-template>
+    </p-dropdown>
+</ng-template>

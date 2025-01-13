@@ -17,7 +17,19 @@ export interface Guest {
     rfid?: string | null;
     enabled?: number;
     conferenceName?: string;
+    conferenceid?: number;
     diet?: string;
+    dietColor?: string;
+    advancePaid?: boolean;
+    email?: string;
+    telephone?: string;
+    roomType?: string;
+    payment?: string;
+    babyBed?: boolean;
+    roomMate?: string;
+    idcard?: string;
+    idcardtype?: string;
     lastRfidUsage?: string | null;
     rfidColor?: string | null;
+    prepaid?: boolean;
 }

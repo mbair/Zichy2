@@ -3,6 +3,7 @@ import { Injectable } from "@angular/core";
 import { Router } from '@angular/router';
 import { tap, shareReplay, catchError } from "rxjs/operators";
 import { ApiService } from "./api.service";
+import { UserService } from "./user.service";
 import * as moment from "moment";
 import { throwError } from "rxjs";
 moment.locale('hu')
@@ -12,7 +13,11 @@ export class AuthService {
 
     public apiURL: string;
 
-    constructor(private http: HttpClient, private apiService: ApiService, private router: Router) {
+    constructor(private http: HttpClient, 
+                private apiService: ApiService, 
+                private userService: UserService,
+                private router: Router) {
+
         // Set API URL
         this.apiURL = this.apiService.apiURL
     }
@@ -34,6 +39,9 @@ export class AuthService {
         localStorage.removeItem("phone")
         localStorage.removeItem("userrole")
         localStorage.removeItem("user_rolesid")
+
+        // Update user role
+        this.userService.updateUserRole('No Role')
     }
 
     public passwordReset(email: string) {
@@ -64,6 +72,9 @@ export class AuthService {
         localStorage.setItem("phone", authResult.body.phone)
         localStorage.setItem("userrole", authResult.body.role)
         localStorage.setItem("user_rolesid", authResult.body.user_rolesid)
+
+        // Update user role
+        this.userService.updateUserRole(authResult.body.role)
     }
 
     private handleError(error: string) {

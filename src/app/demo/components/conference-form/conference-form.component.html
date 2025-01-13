@@ -4,26 +4,7 @@
     <div class="landing-wrapper">
 
         <div class="absolute top-0 right-0 flex align-items-center px-3 py-3">
-            <p-dropdown inputId="system_language"
-                        [options]="languages"
-                        optionLabel="name"
-                        [(ngModel)]="selectedLanguage"
-                        (onChange)="changeLanguage(selectedLanguage)"
-                        appendTo="body"
-                        placeholder="Válasszon...">
-                <ng-template let-country pTemplate="selectedItem">
-                    <div class="flex align-items-center gap-2" *ngIf="nationality">
-                        <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code?.toLowerCase()" style="width: 18px"/>
-                        <div>{{country.hunationality}}</div>
-                    </div>
-                </ng-template>
-                <ng-template let-country pTemplate="item">
-                    <div class="flex align-items-center">
-                        <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + country.code?.toLowerCase()" style="width:18px"/>
-                        <div>{{country.hunationality}}</div>
-                    </div>
-                </ng-template>
-            </p-dropdown>
+            <app-language-selector></app-language-selector>
         </div>
 
         <div class="py-6 px-4 mx-0 md:mx-6 lg:mx-8 lg:px-8 z-2">
@@ -53,7 +34,7 @@
                 <div class="col-12 lg:col-7 md:col-12 flex-order-1 md:flex-order-1 mb-6 md:mb-0 border-round">
                     <div class="card w-full h-full border-round shadow-2 animation-duration-1000 animation-ease-out" animateEnter="moveinright">
                         <div class="card-title block text-900 font-bold text-2xl">
-                            Zichy-Vajta Konferencia Központ
+                            {{ conference && conference.name }}
                         </div>
                         <div class="card-subtitle block text-600 font-bold text-lg">
                             {{ 'Vendég Regisztrációs Űrlap' | translate }}
@@ -64,28 +45,28 @@
                                 <!-- SYSTEM MESSAGE -->
                                 <p-messages></p-messages>
 
-                                <div>
+                                <!-- Show registration form if registration is not ended -->
+                                <div *ngIf="registrationEnded === false && showForm === true">
 
+                                    <!-- Registration form -->
                                     <form [formGroup]="conferenceForm" (ngSubmit)="onSubmit()" novalidate class="grid formgrid p-fluid">
 
                                         <!-- Vezetéknév -->
-                                        <div class="field mb-4 col-12 lg:col-4 md:col-12" >
+                                        <div class="field mb-4 col-12 lg:col-4 md:col-12">
                                             <label for="lastName" class="font-medium text-900">{{'Vezetéknév' | translate }}</label>
-                                            <input id="lastName" type="text" pInputText formControlName="lastName" [ngClass]="{
-                                                'ng-invalid': lastName.invalid && (lastName.dirty || lastName.touched),
-                                                'ng-dirty': lastName.dirty || lastName.touched
-                                              }">
-                                            <div *ngIf="lastName.invalid && (lastName.dirty || lastName.touched)" class="text-red-500">{{'Vezetéknév' | translate }} {{'kötelező' | translate }}</div>
+                                            <input id="lastName" type="text" pInputText formControlName="lastName">
+                                            <div *ngIf="lastName?.dirty && lastName?.errors?.['required']" class="p-error">
+                                                {{'Vezetéknév' | translate }} {{'kötelező' | translate }}
+                                            </div>
                                         </div>
 
                                         <!-- Keresztnév -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
                                             <label for="firstName" class="font-medium text-900">{{'Keresztnév' | translate }}</label>
-                                            <input id="firstName" type="text" pInputText formControlName="firstName" [ngClass]="{
-                                                'ng-invalid': firstName.invalid && (firstName.dirty || firstName.touched),
-                                                'ng-dirty': firstName.dirty || firstName.touched
-                                              }">
-                                            <div *ngIf="firstName.invalid && (firstName.dirty || firstName.touched)" class="text-red-500">{{'Keresztnév' | translate }} {{'kötelező' | translate }}</div>
+                                            <input id="firstName" type="text" pInputText formControlName="firstName">
+                                            <div *ngIf="firstName?.dirty && firstName?.errors?.['required']" class="p-error">
+                                                {{'Keresztnév' | translate }} {{'kötelező' | translate }}
+                                            </div>
                                         </div>
 
                                         <!-- Neme -->
@@ -93,120 +74,73 @@
                                             <label for="gender" class="font-medium text-900">{{'Neme' | translate }}</label>
                                             <div class="flex flex-wrap gap-3 my-3">
                                                 <div class="flex align-items-center">
-                                                    <p-radioButton name="gender" value="male" formControlName="gender" inputId="gender1" [ngClass]="{
-                                                        'ng-invalid': firstName.invalid && (firstName.dirty || firstName.touched),
-                                                        'ng-dirty': firstName.dirty || firstName.touched
-                                                      }"></p-radioButton>
+                                                    <p-radioButton name="gender" value="1" formControlName="gender" inputId="gender1"></p-radioButton>
                                                     <label for="gender1" class="ml-2">{{'Férfi' | translate }}</label>
                                                 </div>
 
                                                 <div class="flex align-items-center">
-                                                    <p-radioButton name="gender" value="female" formControlName="gender" inputId="gender2" [ngClass]="{
-                                                        'ng-invalid': firstName.invalid && (firstName.dirty || firstName.touched),
-                                                        'ng-dirty': firstName.dirty || firstName.touched
-                                                      }"></p-radioButton>
+                                                    <p-radioButton name="gender" value="2" formControlName="gender" inputId="gender2"></p-radioButton>
                                                     <label for="gender2" class="ml-2">{{'Nő' | translate }}</label>
                                                 </div>
                                             </div>
-                                            <div *ngIf="gender.invalid && (gender.dirty || gender.touched)" class="text-red-500">{{'Neme' | translate }} {{'kötelező' | translate }}</div>
+                                            <div *ngIf="gender?.dirty && gender?.errors?.['required']" class="p-error">
+                                                {{'Neme' | translate }} {{'kötelező' | translate }}
+                                            </div>
                                         </div>
 
                                         <!-- Születési dátum -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="birthdate" class="font-medium text-900">{{'Születési dátum' | translate }}</label>
-                                            <p-calendar formControlName="birthdate" dateFormat="yy.mm.dd" appendTo="body" dataType="string" [ngClass]="{
-                                                'ng-invalid': birthdate.invalid && (birthdate.dirty || birthdate.touched),
-                                                'ng-dirty': birthdate.dirty || birthdate.touched
-                                              }"></p-calendar>
-                                            <div *ngIf="birthdate.invalid && (birthdate.dirty || birthdate.touched)" class="text-red-500">{{'Születési dátum' | translate }} {{'kötelező' | translate }}</div>
+                                            <label for="birthDate" class="font-medium text-900">{{'Születési dátum' | translate }}</label>
+                                            <p-calendar id="birthDate"
+                                                        formControlName="birthDate"
+                                                        [defaultDate]="birthDateMax"
+                                                        [minDate]="birthDateMin" 
+                                                        [maxDate]="birthDateMax" 
+                                                        dateFormat="yy-mm-dd" 
+                                                        dataType="string"
+                                                        appendTo="body">
+                                            </p-calendar>
+                                            <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
+                                                {{'Születési dátum' | translate }} {{'kötelező' | translate }}
+                                            </div>
                                         </div>
 
                                         <!-- Állampolgárság -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="nationality" class="font-medium text-900">{{'Állampolgárság' | translate }}</label>
-                                            <p-dropdown inputId="nationality"
-                                                        formControlName="nationality"
-                                                        [options]="countries"
-                                                        optionLabel="name"
-                                                        [filter]="true"
-                                                        filterBy="hunationality"
-                                                        placeholder="Válasszon..."
-                                                        [virtualScroll]="true"
-                                                        [virtualScrollItemSize]="30"
-                                                        [ngClass]="{
-                                                            'ng-invalid': nationality.invalid && (nationality.dirty || nationality.touched),
-                                                            'ng-dirty': nationality.dirty || nationality.touched
-                                                        }">
-                                                <ng-template let-country pTemplate="selectedItem">
-                                                    <div class="flex align-items-center gap-2" *ngIf="nationality">
-                                                        <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code?.toLowerCase()" style="width: 18px"/>
-                                                        <div>{{country.hunationality}}</div>
-                                                    </div>
-                                                </ng-template>
-                                                <ng-template let-country pTemplate="item">
-                                                    <div class="flex align-items-center">
-                                                        <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + country.code?.toLowerCase()" style="width:18px"/>
-                                                        <div>{{country.hunationality}}</div>
-                                                    </div>
-                                                </ng-template>
-                                            </p-dropdown>
-                                            <div *ngIf="nationality.invalid && (nationality.dirty || nationality.touched)" class="text-red-500">{{'Állampolgárság' | translate }} {{'kötelező' | translate }}</div>
+                                            <app-nationality-selector [parentForm]="conferenceForm" controlName="nationality"></app-nationality-selector>
+                                            <div *ngIf="nationality?.dirty && nationality?.errors?.['required']" class="p-error">
+                                                {{'Állampolgárság' | translate }} {{'kötelező' | translate }}
+                                            </div>
                                         </div>
 
                                         <!-- Lakóhely - ország -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="country" class="font-medium text-900">{{'Lakóhely - ország' | translate }}</label>
-                                            <p-dropdown inputId="country"
-                                                        formControlName="country"
-                                                        [options]="countries"
-                                                        optionLabel="name"
-                                                        [filter]="true"
-                                                        filterBy="huname"
-                                                        placeholder="Válasszon..."
-                                                        [virtualScroll]="true"
-                                                        [virtualScrollItemSize]="30"
-                                                        [ngClass]="{
-                                                            'ng-invalid': country.invalid && (country.dirty || country.touched),
-                                                            'ng-dirty': country.dirty || country.touched
-                                                        }">
-                                                <ng-template let-country pTemplate="selectedItem">
-                                                    <div class="flex align-items-center gap-2" *ngIf="country">
-                                                        <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'flag flag-' + country.code?.toLowerCase()" style="width: 18px"/>
-                                                        <div>{{country.huname}}</div>
-                                                    </div>
-                                                </ng-template>
-                                                <ng-template let-country pTemplate="item">
-                                                    <div class="flex align-items-center">
-                                                        <img src="assets/demo/images/flag/flag_placeholder.png" [class]="'mr-2 flag flag-' + country.code?.toLowerCase()" style="width:18px"/>
-                                                        <div>{{country.huname}}</div>
-                                                    </div>
-                                                </ng-template>
-                                            </p-dropdown>
-                                            <div *ngIf="country.invalid && (country.dirty || country.touched)" class="text-red-500">{{'Ország' | translate }} {{'kötelező' | translate }}</div>
+                                            <app-country-selector [parentForm]="conferenceForm" controlName="country"></app-country-selector>
+                                            <div *ngIf="country?.dirty && country?.errors?.['required']" class="p-error">
+                                                {{'Ország' | translate }} {{'kötelező' | translate }}
+                                            </div>
                                         </div>
 
                                         <!-- Lakóhely - irányítószám -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
-                                            <label for="zipcode" class="font-medium text-900">{{'Lakóhely - irányítószám' | translate }}</label>
-                                            <input id="zipcode" type="text" pInputText formControlName="zipcode" [ngClass]="{
-                                                'ng-invalid': zipcode.invalid && (zipcode.dirty || zipcode.touched),
-                                                'ng-dirty': zipcode.dirty || zipcode.touched
-                                              }">
-                                            <div *ngIf="zipcode.invalid && (zipcode.dirty || zipcode.touched)" class="text-red-500">{{'Irányítószám' | translate }} {{'kötelező' | translate }}</div>
+                                            <label for="zipCode" class="font-medium text-900">{{'Lakóhely - irányítószám' | translate }}</label>
+                                            <input id="zipCode" type="text" pInputText formControlName="zipCode">
+                                            <div *ngIf="zipCode?.dirty && zipCode?.errors?.['required']" class="p-error">
+                                                {{'Irányítószám' | translate }} {{'kötelező' | translate }}
+                                            </div>
                                         </div>
 
                                         <!-- Email -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
                                             <label for="email" class="font-medium text-900">{{'Email' | translate }}</label>
-                                            <input id="email" type="text" pInputText formControlName="email" [ngClass]="{
-                                                'ng-invalid': email.invalid && (email.dirty || email.touched),
-                                                'ng-dirty': email.dirty || email.touched
-                                              }">
-                                            <div *ngIf="email.invalid && (email.dirty || email.touched)" class="text-red-500">
-                                                <div *ngIf="email.errors?.['required']">
+                                            <input id="email" type="email" pInputText formControlName="email" autocomplete="email">
+                                            <div *ngIf="email?.dirty" class="p-error">
+                                                <div *ngIf="email?.errors?.['required']">
                                                     {{'Email' | translate }} {{'kötelező' | translate }}
                                                 </div>
-                                                <div *ngIf="email.errors?.['email']">
+                                                <div *ngIf="email?.errors?.['email']">
                                                     {{'Nem megfelelő email formátum' | translate }}
                                                 </div>
                                             </div>
@@ -214,134 +148,96 @@
 
                                         <!-- Telefon -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
-                                            <label for="telefon" class="font-medium text-900">{{'Telefon' | translate }}</label>
-                                            <input id="telefon" type="text" pInputText formControlName="telefon" [ngClass]="{
-                                                'ng-invalid': telefon.invalid && (telefon.dirty || telefon.touched),
-                                                'ng-dirty': telefon.dirty || telefon.touched
-                                              }">
-                                            <div *ngIf="telefon.invalid && (telefon.dirty || telefon.touched)" class="text-red-500">
-                                                <div *ngIf="telefon.errors?.['required']">
-                                                    {{'Telefon' | translate }} {{'kötelező' | translate }}
-                                                </div>
+                                            <label for="telephone" class="font-medium text-900">{{'Telefon' | translate }}</label>
+                                            <input id="telephone" type="text" pInputText formControlName="telephone">
+                                            <div *ngIf="telephone?.dirty && telephone?.errors?.['required']" class="p-error">
+                                                {{'Telefon' | translate }} {{'kötelező' | translate }}
                                             </div>
                                         </div>
 
                                         <!-- Érkezés dátuma -->
-                                        <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['arrivalDate'].invalid && (conferenceForm.controls['arrivalDate'].dirty || conferenceForm.controls['arrivalDate'].touched) }">
-                                            <label for="beginDate" class="font-medium text-900">{{'Érkezés dátuma' | translate }}</label>
-                                            <p-calendar id="beginDate"
-                                                        formControlName="arrivalDate"
-                                                        dateFormat="yy.mm.dd"
+                                        <div class="field mb-4 col-12 lg:col-4">
+                                            <label for="dateOfArrival" class="font-medium text-900">{{'Érkezés dátuma' | translate }}</label>
+                                            <p-calendar id="dateOfArrival"
+                                                        formControlName="dateOfArrival"
+                                                        [ngClass]="{'ng-invalid': conferenceForm.errors?.['dateRangeInvalid']}"
+                                                        [defaultDate]="beginDate"
+                                                        [minDate]="beginDate" 
+                                                        [maxDate]="endDate"
+                                                        dateFormat="yy-mm-dd"
                                                         dataType="string"
                                                         appendTo="body">
                                             </p-calendar>
-                                            <div *ngIf="conferenceForm.controls['arrivalDate'].invalid && (conferenceForm.controls['arrivalDate'].dirty || conferenceForm.controls['arrivalDate'].touched)" class="text-red-500">{{'Kérjük, adja meg az érkezés dátumát' | translate }}!</div>
+                                            <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['required']" class="p-error">
+                                                {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
+                                            </div>
+                                            <div *ngIf="conferenceForm.errors?.['dateRangeInvalid']" class="p-error">
+                                                {{'Az érkezés dátumának korábbinak kell lennie, mint a távozási dátum' | translate }}!
+                                            </div>
                                         </div>
 
                                         <!-- Első étkezés -->
-                                        <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['firstMeal'].invalid && (conferenceForm.controls['firstMeal'].dirty || conferenceForm.controls['firstMeal'].touched) }">
+                                        <div class="field mb-4 col-12 lg:col-4">
                                             <label for="firstMeal" class="font-medium text-900">{{'Első étkezés' | translate }}</label>
-                                            <p-dropdown id="firstMeal"
-                                                        formControlName="firstMeal"
-                                                        [options]="meals"
-                                                        optionLabel="label"
-                                                        optionValue="value"
-                                                        placeholder="Válasszon..."
-                                                        appendTo="body">
-                                            </p-dropdown>
-                                            <div *ngIf="conferenceForm.controls['firstMeal'].invalid && (conferenceForm.controls['firstMeal'].dirty || conferenceForm.controls['firstMeal'].touched)" class="text-red-500">{{'Kérjük, válassza ki az első étkezését' | translate }}!</div>
+                                            <app-meal-selector 
+                                                [parentForm]="conferenceForm" 
+                                                controlName="firstMeal"
+                                                [earliestMeal]="getEarliestFirstMeal()"
+                                                [latestMeal]="getLatestFirstMeal()"  
+                                                [showNothing]="true">
+                                            </app-meal-selector>
+                                            <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
+                                                {{'Kérjük, válassza ki az első étkezését' | translate }}!
+                                            </div>
                                         </div>
 
                                         <!-- Étrend -->
-                                        <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['diet'].invalid && (conferenceForm.controls['diet'].dirty || conferenceForm.controls['diet'].touched) }">
-                                            <label for="zipcode" class="font-medium text-900">{{'Étrend' | translate }}</label>
-                                            <p-dropdown
-                                                inputId="dialogDiet"
-                                                [options]="diets"
-                                                formControlName="diet"
-                                                optionLabel="name"
-                                                optionValue="name"
-                                                appendTo="body"
-                                                placeholder="Válasszon..."
-                                                emptyMessage="Nincs találat...">
-                                                <ng-template pTemplate="selectedItem">
-                                                    <p-tag [value]="conferenceForm.get('diet')?.value"
-                                                           [style]="{'background': 'var(--'+getDietColor(conferenceForm.get('diet')?.value || '')+')'}">
-                                                    </p-tag>
-                                                </ng-template>
-                                                <ng-template let-option pTemplate="item">
-                                                    <p-tag [value]="option.name"
-                                                           [style]="{'background': 'var(--'+getDietColor(option.name)+')'}">
-                                                    </p-tag>
-                                                </ng-template>
-                                            </p-dropdown>
-                                            <div *ngIf="conferenceForm.controls['diet'].invalid && (conferenceForm.controls['diet'].dirty || conferenceForm.controls['diet'].touched)" class="text-red-500">{{'Kérjük, válassza ki az étrendjét' | translate }}!</div>
+                                        <div class="field mb-4 col-12 lg:col-4">
+                                            <label for="diet" class="font-medium text-900">{{'Étrend' | translate }}</label>
+                                            <app-diet-selector [parentForm]="conferenceForm" controlName="diet"></app-diet-selector>
+                                            <div *ngIf="diet?.dirty && diet?.errors?.['required']" class="p-error">
+                                                {{'Kérjük, válassza ki az étrendjét' | translate }}!
+                                            </div>
                                         </div>
 
                                         <!-- Távozás dátuma -->
-                                        <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['departureDate'].invalid && (conferenceForm.controls['departureDate'].dirty || conferenceForm.controls['departureDate'].touched) }">
-                                            <label for="endDate" class="font-medium text-900">{{'Távozás dátuma' | translate }}</label>
-                                            <p-calendar id="endDate"
-                                                        formControlName="departureDate"
-                                                        dateFormat="yy.mm.dd"
+                                        <div class="field mb-4 col-12 lg:col-4">
+                                            <label for="dateOfDeparture" class="font-medium text-900">{{'Távozás dátuma' | translate }}</label>
+                                            <p-calendar id="dateOfDeparture"
+                                                        formControlName="dateOfDeparture"
+                                                        [ngClass]="{'ng-invalid': conferenceForm.errors?.['dateRangeInvalid']}"
+                                                        [defaultDate]="beginDate"
+                                                        [minDate]="beginDate" 
+                                                        [maxDate]="endDate"
+                                                        dateFormat="yy-mm-dd"
                                                         dataType="string"
                                                         appendTo="body">
                                             </p-calendar>
-                                            <div *ngIf="conferenceForm.controls['departureDate'].invalid && (conferenceForm.controls['departureDate'].dirty || conferenceForm.controls['departureDate'].touched)" class="text-red-500">{{'Kérjük, adja meg a távozás dátumát' | translate }}!</div>
+                                            <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['required']" class="p-error">
+                                                {{'Kérjük, adja meg a távozás dátumát' | translate }}!
+                                            </div>
+                                            <div *ngIf="conferenceForm.errors?.['dateRangeInvalid']" class="p-error">
+                                                {{'A távozás dátumának későbbinek kell lennie, mint az érkezési dátum' | translate }}!
+                                            </div>
                                         </div>
 
                                         <!-- Utolsó étkezés -->
-                                        <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['lastMeal'].invalid && (conferenceForm.controls['lastMeal'].dirty || conferenceForm.controls['lastMeal'].touched) }">
-                                            <label for="lastMeal" class="font-medium text-900">{{'Utolsó étkezés' | translate }}</label>
-                                            <p-dropdown id="lastMeal"
-                                                        formControlName="lastMeal"
-                                                        [options]="meals"
-                                                        optionLabel="label"
-                                                        optionValue="value"
-                                                        appendTo="body">
-                                            </p-dropdown>
-                                            <div *ngIf="conferenceForm.controls['lastMeal'].invalid && (conferenceForm.controls['lastMeal'].dirty || conferenceForm.controls['lastMeal'].touched)" class="text-red-500">{{'Kérjük, válassza ki az utolsó étkezését' | translate }}!</div>
-                                        </div>
-
-                                        <!-- Szállástípus -->
-                                        <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['roomType'].invalid && (conferenceForm.controls['roomType'].dirty || conferenceForm.controls['roomType'].touched) }">
-                                            <label for="roomType" class="font-medium text-900">{{'Szállástípus' | translate }}</label>
-                                            <p-dropdown id="roomType"
-                                                        formControlName="roomType"
-                                                        [options]="roomTypes"
-                                                        optionLabel="label"
-                                                        optionValue="value"
-                                                        pTooltip="A preferenciákat igyekszünk figyelembe venni, de mivel korlátozott mennyiségben van a szállás, ezért nem tudjuk megígérni, hogy biztosan a megjelölt szállástípusra osztunk be"
-                                                        tooltipPosition="top"
-                                                        placeholder="Válasszon..."
-                                                        appendTo="body">
-                                            </p-dropdown>
-                                            <div *ngIf="conferenceForm.controls['roomType'].invalid && (conferenceForm.controls['roomType'].dirty || conferenceForm.controls['roomType'].touched)" class="text-red-500">{{'Kérjük válassza ki a szállástípust' | translate }}!</div>
-                                        </div>
-
-                                        <!-- Kivel laknál egy szobában -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="roommate" class="font-medium text-900">{{'Kivel laknál egy szobában' | translate }}?</label>
-                                            <input id="roommate" type="text" pInputText formControlName="roommate">
-                                        </div>
-
-                                        <!-- Fizetési mód -->
-                                        <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['payment'].invalid && (conferenceForm.controls['payment'].dirty || conferenceForm.controls['payment'].touched) }">
-                                            <label for="payment" class="font-medium text-900">{{'Fizetési mód' | translate }}</label>
-                                            <p-dropdown id="payment"
-                                                        formControlName="payment"
-                                                        [options]="payments"
-                                                        optionLabel="label"
-                                                        optionValue="value"
-                                                        pTooltip="A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen"
-                                                        tooltipPosition="top"
-                                                        appendTo="body">
-                                            </p-dropdown>
-                                            <div *ngIf="conferenceForm.controls['payment'].invalid && (conferenceForm.controls['payment'].dirty || conferenceForm.controls['payment'].touched)" class="text-red-500">Kérjük válassza ki a fizetési módot!</div>
+                                            <label for="lastMeal" class="font-medium text-900">{{'Utolsó étkezés' | translate }}</label>
+                                            <app-meal-selector 
+                                                [parentForm]="conferenceForm" 
+                                                controlName="lastMeal" 
+                                                [earliestMeal]="getEarliestLastMeal()" 
+                                                [latestMeal]="getLatestLastMeal()" 
+                                                [showNothing]="true">
+                                            </app-meal-selector>
+                                            <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="p-error">
+                                                {{'Kérjük, válassza ki az utolsó étkezését' | translate }}!
+                                            </div>
                                         </div>
 
                                         <!-- Babaágyat kérsz? -->
-                                        <div class="field mb-4 col-12 lg:col-4" [ngClass]="{ 'error': conferenceForm.controls['babyBed'].invalid && (conferenceForm.controls['babyBed'].dirty || conferenceForm.controls['babyBed'].touched) }">
+                                        <div class="field mb-4 col-12 lg:col-4">
                                             <label for="babyBed" class="font-medium text-900">{{'Babaágyat kérsz' | translate }}?</label>
                                             <div class="flex flex-wrap gap-3 my-3">
                                                 <div class="flex align-items-center">
@@ -353,18 +249,119 @@
                                                     <label for="baby-bed-no" class="ml-2">{{'Nem' | translate }}</label>
                                                 </div>
                                             </div>
-                                            <div *ngIf="conferenceForm.controls['babyBed'].invalid && (conferenceForm.controls['babyBed'].dirty || conferenceForm.controls['babyBed'].touched)" class="text-red-500">{{'Kérjük válassza ki, hogy kér-e babaágyat' | translate }}!</div>
+                                            <div *ngIf="babyBed?.dirty && babyBed?.errors?.['required']" class="p-error">
+                                                {{'Kérjük válassza ki, hogy kér-e babaágyat' | translate }}!
+                                            </div>
+                                        </div>
+
+                                        <!-- Szállástípus -->
+                                        <div class="field mb-4 col-12 lg:col-8">
+                                            <label for="roomType" class="font-medium text-900">{{'Szállástípus' | translate }}</label>
+                                            <app-roomtype-selector 
+                                                [parentForm]="conferenceForm" 
+                                                controlName="roomType" 
+                                                pTooltip="{{'A preferenciákat igyekszünk figyelembe venni, de mivel korlátozott mennyiségben van a szállás, ezért nem tudjuk megígérni, hogy biztosan a megjelölt szállástípusra osztunk be' | translate }}" 
+                                                tooltipPosition="top">
+                                            </app-roomtype-selector>
+                                            <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
+                                                {{'Kérjük válassza ki a szállástípust' | translate }}!
+                                            </div>
+                                        </div>
+
+                                        <!-- Klímát kérsz? -->
+                                        <div *ngIf="showClimateField" class="field mb-4 col-12 lg:col-4">
+                                            <label for="climate" class="font-medium text-900">{{'Klímát kérsz' | translate }}?</label>
+                                            <div class="flex flex-wrap gap-3 my-3">
+                                                <div class="flex align-items-center">
+                                                    <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes"></p-radioButton>
+                                                    <label for="climate-yes" class="ml-2">{{'Igen' | translate }}</label>
+                                                </div>
+                                                <div class="flex align-items-center">
+                                                    <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no"></p-radioButton>
+                                                    <label for="climate-no" class="ml-2">{{'Nem' | translate }}</label>
+                                                </div>
+                                            </div>
+                                            <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
+                                                {{'Kérjük válassza ki, hogy kér-e klímát' | translate }}!
+                                            </div>
+                                        </div>
+
+                                        <!-- Kivel laknál egy szobában -->
+                                        <div class="field mb-4 col-12 lg:col-8">
+                                            <label for="roomMate" class="font-medium text-900">{{'Kivel laknál egy szobában' | translate }}?</label>
+                                            <p-chips formControlName="roomMate" 
+                                                    separator="," 
+                                                    [showClear]="true"
+                                                    [addOnBlur]="true"
+                                                    pTooltip="{{'Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában' | translate }}" 
+                                                    tooltipPosition="top">
+                                                <ng-template let-item pTemplate="item">
+                                                    <i class="pi pi-user mr-2"></i> {{ item }}
+                                                </ng-template>
+                                            </p-chips>
+                                        </div>
+
+                                        <!-- Fizetési mód -->
+                                        <div class="field mb-4 col-12 lg:col-4">
+                                            <label for="payment" class="font-medium text-900">{{'Fizetési mód' | translate }}</label>
+                                            <app-payment-selector 
+                                                [parentForm]="conferenceForm" 
+                                                controlName="payment" 
+                                                pTooltip="{{'A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen' | translate }}" 
+                                                tooltipPosition="top">
+                                            </app-payment-selector>
+                                            <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
+                                                {{'Kérjük válassza ki a fizetési módot' | translate }}!
+                                            </div>
+                                        </div>
+
+                                        <!-- Figyelmeztetés SZÉP kártyás fizetés esetén -->
+                                        <div *ngIf="payment?.value === 'SZÉP kártya'" class="field mb-4 col-12">
+                                            <p-messages [value]="szepCardMessage" [closable]="false"/>
+                                        </div>
+
+                                        <!-- Extra kérdések -->
+                                        <div formArrayName="answers" class="field col-12 mb-0">
+                                            <div *ngFor="let answer of answers.controls; let i = index">
+                                                <ng-container *ngIf="getTranslatedQuestion(i)">
+                                                    <div class="mb-4">
+                                                        <label class="font-medium text-900">
+                                                            {{ getTranslatedQuestion(i) }}
+                                                        </label>
+                                                        <input pInputText [formControlName]="i" />
+                                                        <div *ngIf="answer?.dirty && answer?.errors?.['required']" class="p-error">
+                                                            Kötelező kitölteni
+                                                        </div>
+                                                    </div>
+                                                </ng-container>
+                                            </div>
                                         </div>
 
                                         <!-- Személyi igazolvány -->
-                                        <div class="field mb-4 col-12 lg:col-12" [ngClass]="{ 'error': conferenceForm.controls['idCard'].invalid && (conferenceForm.controls['idCard'].dirty || conferenceForm.controls['idCard'].touched) }">
-                                            <label for="idCard" class="font-medium text-900">{{'Személyi igazolvány' | translate }}</label>
-                                            <app-reactive-file-upload formControlName="idCard"></app-reactive-file-upload>
-                                            <div *ngIf="conferenceForm.controls['idCard'].invalid && (conferenceForm.controls['idCard'].dirty || conferenceForm.controls['idCard'].touched)" class="text-red-500">{{'Kérjük, töltse fel a személyi igazolványának másolatát' | translate }}!</div>
+                                        <div class="field mb-4 col-12 lg:col-12">
+                                            <label for="idCard" class="font-medium text-900">
+                                                {{'Személyi igazolvány hátoldala' | translate }}
+                                                <i pTooltip="<img src='/assets/demo/images/eszemelyi-back.jpg' alt='ID Card back' style='max-width: 30vw;'/>"
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
+                                            <app-reactive-file-upload
+                                                name="idCard"
+                                                formControlName="idCard" 
+                                                accept=".jpg,.jpeg,.png" 
+                                                chooseLabel="{{'Tallózás' | translate }}" 
+                                                cancelLabel="{{'Mégsem' | translate }}">
+                                            </app-reactive-file-upload>
+                                            <div *ngIf="idCard?.dirty && idCard?.errors?.['required']" class="p-error">
+                                                {{'Kérjük, töltse fel a személyi igazolványának másolatát' | translate }}!
+                                            </div>
                                         </div>
 
                                         <!-- Adatvédelem + Felhasználói feltételek -->
-                                        <div class="field mb-4 col-12" [ngClass]="{ 'error': conferenceForm.controls['privacy'].invalid && (conferenceForm.controls['privacy'].dirty || conferenceForm.controls['privacy'].touched) }">
+                                        <div class="field mb-4 col-12">
                                             <p-checkbox formControlName="privacy" [binary]="true" inputId="privacy"></p-checkbox>
                                             <span class="ml-2">
                                                 {{'Elfogadom az' | translate }}
@@ -379,13 +376,30 @@
                                                     {{'Felhasználói feltételeket' | translate }}
                                                 </a>
                                             </span>
-                                            <div *ngIf="conferenceForm.controls['privacy'].invalid && (conferenceForm.controls['privacy'].dirty || conferenceForm.controls['privacy'].touched)" class="text-red-500">{{'Az adatvédelmi irányelvek és a felhasználói feltételek elfogadása kötelező' | translate }}!</div>
+                                            <div *ngIf="privacy?.dirty && privacy?.errors?.['required']" class="p-error">
+                                                {{'Az adatvédelmi irányelvek és a felhasználói feltételek elfogadása kötelező' | translate }}!
+                                            </div>
                                         </div>
 
-
-                                        <p-button type="submit" class="white-space-nowrap ml-3" icon="pi pi-check" label="Elküldöm a regisztrációmat" [loading]="loading"></p-button>
-
+                                        <!-- SUBMIT -->
+                                        <p-button type="submit" 
+                                                  class="white-space-nowrap ml-3" 
+                                                  icon="pi pi-check" 
+                                                  label="{{'Elküldöm a regisztrációmat' | translate }}" 
+                                                  [loading]="loading">
+                                        </p-button>
                                     </form>
+                                </div>
+
+                                <!-- New registration -->
+                                <div *ngIf="registrationEnded === false && showForm === false"
+                                     class="flex col-12 align-items-center justify-content-center">
+                                    
+                                     <p-button class="white-space-nowrap mt-3" 
+                                               icon="pi pi-plus"
+                                               label="{{'Új vendéget regisztrálok' | translate }}"
+                                               (onClick)="newRegistration()">
+                                    </p-button>
                                 </div>
                             </div>
                         </div>
@@ -448,6 +462,5 @@
     </div>
 </div>
 
-
-
-<app-config [minimal]="true"></app-config>
+<!-- Notifications -->
+<p-toast></p-toast>

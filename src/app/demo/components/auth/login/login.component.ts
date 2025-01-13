@@ -1,11 +1,8 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { AuthService } from 'src/app/demo/service/auth.service';
 import { MessageService } from 'primeng/api';
-
-import { LayoutService } from 'src/app/layout/service/app.layout.service';
 
 @Component({
     templateUrl: './login.component.html',

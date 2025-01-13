@@ -1,6 +1,15 @@
 <ul class="layout-menu">
-    <ng-container *ngFor="let item of model; let i = index;">
-        <li app-menuitem *ngIf="!item.separator" [item]="item" [index]="i" [root]="true"></li>
+    <ng-container *ngFor="let item of model">
+        <li *ngIf="!item.separator" app-menuitem [item]="item" [root]="true">
+            <ng-container *ngFor="let subItem of item.items">
+                <li *ngIf="subItem.show$ | async">
+                    <a [routerLink]="subItem.routerLink">
+                        <i [class]="subItem.icon"></i>
+                        <span>{{ subItem.label }}</span>
+                    </a>
+                </li>
+            </ng-container>
+        </li>
         <li *ngIf="item.separator" class="menu-separator"></li>
     </ng-container>
 </ul>

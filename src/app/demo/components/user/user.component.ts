@@ -1,15 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { emailDomainValidator } from 'src/app/demo/utils/email-validator';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { UserService } from '../../service/user.service';
 import { RoleService } from '../../service/role.service';
+import { ResponsiveService } from '../../service/responsive.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { User } from '../../api/user';
-import { Role } from '../../api/role';
 import * as moment from 'moment';
 moment.locale('hu')
 
@@ -24,37 +24,43 @@ moment.locale('hu')
 
 export class UserComponent implements OnInit {
 
-    loading: boolean = true;                     // Loading overlay trigger value
-    tableItem: User = {};                        // One user object
-    tableData: User[] = [];                      // Data set displayed in a table
-    rowsPerPageOptions = [20, 50, 100];          // Possible rows per page
-    rowsPerPage: number = 20;                    // Default rows per page
-    totalRecords: number = 0;                    // Total number of rows in the table
-    page: number = 0;                            // Current page
-    sortField: string = '';                      // Current sort field
-    sortOrder: number = 1;                       // Current sort order
-    globalFilter: string = '';                   // Global filter
+    loading: boolean = true                      // Loading overlay trigger value
+    tableItem: User = {}                         // One user object
+    tableData: User[] = []                       // Data set displayed in a table
+    rowsPerPageOptions = [20, 50, 100]           // Possible rows per page
+    rowsPerPage: number = 20                     // Default rows per page
+    totalRecords: number = 0                     // Total number of rows in the table
+    page: number = 0                             // Current page
+    sortField: string = ''                       // Current sort field
+    sortOrder: number = 1                        // Current sort order
+    globalFilter: string = ''                    // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
     debounce: { [key: string]: any } = {}        // Search delay in filter field
-    dialog: boolean = false;                     // Table item maintenance modal
-    deleteDialog: boolean = false;               // Popup for deleting table item
-    bulkDeleteDialog: boolean = false;           // Popup for deleting table items
-    selected: User[] = [];                       // Table items chosen by user
-    selectedUserRole: string;                    // User Role chosen by user
-    roles: Role[] = []                            // Possible roles
-    userForm: FormGroup;                         // Form for user registration and modification
+    userForm: FormGroup                          // Form for user registration and modification
+    originalFormValues: any                      // The original values ​​of the form
+    sidebar: boolean = false                     // Table item maintenance sidebar
+    deleteDialog: boolean = false                // Popup for deleting table item
+    bulkDeleteDialog: boolean = false            // Popup for deleting table items
+    selected: User[] = []                        // Table items chosen by user
+    selectedUserRole: string                     // User Role chosen by user
+    canCreate: boolean = false                   // User has permission to create new user
+    canEdit: boolean = false                     // User has permission to update user
+    canDelete: boolean = false                   // User has permission to delete user
+    isMobile: boolean = false                    // Mobile screen detection
 
-    private userObs$: Observable<any> | undefined;
-    private serviceMessageObs$: Observable<any> | undefined;
+    private isFormValid$: Observable<boolean>
+    private formChanges$: Subject<void> = new Subject()
+    private userObs$: Observable<any> | undefined
+    private serviceMessageObs$: Observable<any> | undefined
 
     constructor(
         public userService: UserService,
-        public roleService: RoleService,
+        private roleService: RoleService,
         private messageService: MessageService,
-        private fb: FormBuilder) { }
+        private responsiveService: ResponsiveService,
+        private fb: FormBuilder) {
 
-    ngOnInit() {
-        // User form
+        // User form fields and validators
         this.userForm = this.fb.group({
             id: [''],
             username: [''],
@@ -63,6 +69,26 @@ export class UserComponent implements OnInit {
             email: ['', [Validators.required, emailDomainValidator()]],
             phone: ['', [Validators.required]],
             password: ['', [Validators.required]],
+        })
+
+        this.isFormValid$ = new BehaviorSubject<boolean>(false)
+    }
+
+    ngOnInit() {
+        // Permissions
+        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canCreate => this.canCreate = canCreate)
+        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canEdit => this.canEdit = canEdit)
+        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
+
+        // Users
+        this.userObs$ = this.userService.userObs;
+        this.userObs$.subscribe((data: ApiResponse) => {
+            this.loading = false
+            if (data) {
+                this.tableData = data.rows || []
+                this.totalRecords = data.totalItems || 0
+                this.page = data.currentPage || 0
+            }
         })
 
         // TODO: Remove username from backend
@@ -79,54 +105,38 @@ export class UserComponent implements OnInit {
         // Initialize the password validators according to the initial value of the id
         this.setPasswordValidators(this.userForm.get('id')?.value)
 
-        // Users
-        this.userObs$ = this.userService.userObs;
-        this.userObs$.subscribe((data: ApiResponse) => {
-            this.loading = false
-            if (data) {
-                this.tableData = data.rows || [];
-                this.totalRecords = data.totalItems || 0;
-                this.page = data.currentPage || 0;
-            }
+        // Monitor the changes of the window size
+        this.responsiveService.isMobile$.subscribe((isMobile) => {
+            this.isMobile = isMobile
         })
 
-        // Get roles for selector
-        this.roleService.getRolesForSelector().subscribe({
-            next: (data) => {
-                this.roles = data
-            }
-        })
+        // Form validation
+        this.isFormValid$ = this.formChanges$.pipe(
+            debounceTime(300),
+            distinctUntilChanged(),
+            map(() => this.userForm.valid)
+        )
 
         // Message
-        this.serviceMessageObs$ = this.userService.messageObs;
-        this.serviceMessageObs$.subscribe((data) => {
-            this.loading = false;
-            if (data == 'ERROR') {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'Hiba történt!'
-                })
-            } else {
-                // Show service response message
-                this.messageService.add(data)
-
-                // Reset selected table Item(s)
-                this.tableItem = {}
-                this.selected = []
-
-                // Query for data changes
-                this.doQuery()
-            }
-        })
+        this.serviceMessageObs$ = this.userService.messageObs
+        this.serviceMessageObs$.subscribe(message => this.handleMessage(message))
     }
+
+    // Getters for form validation
+    get id() { return this.userForm.get('id') }
+    get username() { return this.userForm.get('username') }
+    get fullname() { return this.userForm.get('fullname') }
+    get user_rolesid() { return this.userForm.get('user_rolesid') }
+    get email() { return this.userForm.get('email') }
+    get phone() { return this.userForm.get('phone') }
+    get password() { return this.userForm.get('password') }
 
     /**
      * Load filtered data into the Table
      * @returns
      */
     doQuery() {
-        this.loading = true;
+        this.loading = true
 
         const filters = Object.keys(this.filterValues)
             .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
@@ -157,6 +167,8 @@ export class UserComponent implements OnInit {
             if (event && (event.value || event.target?.value)) {
                 filterValue = event.value || event.target?.value
                 filterValue = filterValue.toString()
+            } else {
+                this.filterValues[field] = ''
             }
         }
 
@@ -167,7 +179,7 @@ export class UserComponent implements OnInit {
             if (this.filterValues[field] === filterValue) {
                 this.doQuery()
             }
-            // otherwise wait for the debounce time
+        // otherwise wait for the debounce time
         } else {
             if (this.debounce[field]) {
                 clearTimeout(this.debounce[field])
@@ -188,11 +200,11 @@ export class UserComponent implements OnInit {
      * @param event
      */
     onLazyLoad(event: any) {
-        this.page = event.first! / event.rows!;
-        this.rowsPerPage = event.rows ?? this.rowsPerPage;
-        this.sortField = event.sortField ?? '';
-        this.sortOrder = event.sortOrder ?? 1;
-        this.globalFilter = event.globalFilter ?? '';
+        this.page = event.first! / event.rows!
+        this.rowsPerPage = event.rows ?? this.rowsPerPage
+        this.sortField = event.sortField ?? ''
+        this.sortOrder = event.sortOrder ?? 1
+        this.globalFilter = event.globalFilter ?? ''
         this.doQuery()
     }
 
@@ -210,7 +222,7 @@ export class UserComponent implements OnInit {
      */
     create() {
         this.userForm.reset()
-        this.dialog = true
+        this.sidebar = true
     }
 
     /**
@@ -218,16 +230,18 @@ export class UserComponent implements OnInit {
      * @param user
      */
     edit(user: User) {
+        this.userForm.reset()
         this.userForm.patchValue(user)
-        this.dialog = true
+        this.originalFormValues = this.userForm.value
+        this.sidebar = true
     }
 
     /**
      * Delete the User
      */
     delete() {
-        this.loading = true;
-        this.deleteDialog = false;
+        this.loading = true
+        this.deleteDialog = false
         this.userService.delete(this.tableItem)
     }
 
@@ -235,8 +249,8 @@ export class UserComponent implements OnInit {
      * Delete selected Users
      */
     deleteSelected() {
-        this.loading = true;
-        this.bulkDeleteDialog = false;
+        this.loading = true
+        this.bulkDeleteDialog = false
         this.userService.bulkdelete(this.selected)
     }
 
@@ -245,6 +259,7 @@ export class UserComponent implements OnInit {
      */
     save() {
         if (this.userForm.valid) {
+            this.loading = true
             const formValues = this.userForm.value
 
             // If the password field is empty, it is deleted from the object
@@ -252,14 +267,16 @@ export class UserComponent implements OnInit {
                 delete formValues.password
             }
 
-            // UPDATE
-            if (formValues.id) {
-                this.userService.update(formValues)
-                // INSERT
-            } else {
+            // Create
+            if (!formValues.id) {
                 this.userService.create(formValues)
+
+            // Update
+            } else {
+                this.userService.update(formValues)
             }
-            this.dialog = false
+
+            this.sidebar = false
         }
     }
 
@@ -267,8 +284,15 @@ export class UserComponent implements OnInit {
      * Cancel saving the form
      */
     cancel() {
-        this.userForm.reset()
-        this.dialog = false
+        this.userForm.reset(this.originalFormValues)
+    }
+
+    getRoleStyleClass(roleId: string): string {
+        return this.roleService.getRoleStyleClass(roleId)
+    }
+    
+    getRoleName(roleId: string): string {
+        return this.roleService.getRoleName(roleId)
     }
 
     /**
@@ -281,11 +305,40 @@ export class UserComponent implements OnInit {
         // At User create, it is mandatory to enter the password
         if (!idValue) {
             passwordControl?.setValidators([Validators.required])
-            // It is not mandatory for modification
+        // It is not mandatory for modification
         } else {
             passwordControl?.clearValidators()
         }
         passwordControl?.updateValueAndValidity()
+    }
+
+    /**
+     * Handles service response messages and reset selected table item(s)
+     * After the message is shown, query for data changes
+     * @param message service response message
+     */
+    handleMessage(message: any) {
+        if (!message) return
+
+        this.loading = false
+
+        if (message == 'ERROR') {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Hiba történt!'
+            })
+        } else {
+            // Show service response message
+            this.messageService.add(message)
+
+            // Reset selected table Item(s)
+            this.tableItem = {}
+            this.selected = []
+
+            // Query for data changes
+            this.doQuery()
+        }
     }
 
     // Don't delete this, its needed from a performance point of view,

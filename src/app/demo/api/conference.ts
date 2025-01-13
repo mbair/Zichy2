@@ -14,8 +14,11 @@ export interface Conference {
     contactName?: string;
     contactEmail?: string;
     contactPhone?: string;
-    formURL?: string;
+    formUrl?: string;
     registrationEndDate?: string | null;
+    questions?: any;
+    organizer_user_id?: any;
+    guestEditEndDate?: string | null;
 
     // Can be deleted
     code?: string;

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { User } from '../api/user';
@@ -12,14 +12,17 @@ import { User } from '../api/user';
 export class UserService {
 
     public apiURL: string
-    private cache: User[] = []
     private data$: BehaviorSubject<any>
     private message$: BehaviorSubject<any>
+    private userRole$: BehaviorSubject<string>
+    private userCache: { [id: number]: User } = {}
 
     constructor(private apiService: ApiService) {
+        const role = localStorage.getItem('userrole') || 'No Role'
         this.apiURL = apiService.apiURL
         this.data$ = new BehaviorSubject<any>(null)
         this.message$ = new BehaviorSubject<any>(null)
+        this.userRole$ = new BehaviorSubject<string>(role)
     }
 
     public get userObs(): Observable<ApiResponse | null> {
@@ -208,34 +211,80 @@ export class UserService {
      * Get User Role
      * @returns
      */
-    public getuserrole(): string {
-        return localStorage.getItem('userrole') || "No Role"
+    public getUserRole(): Observable<string> {
+        return this.userRole$.asObservable()
     }
 
-    // Role check
-    public hasRole(roles: string[]): boolean {
-        const userrole = this.getuserrole()
-        return roles.includes(userrole)
+    /**
+     * Updates the user's role in local storage and broadcasts the new role
+     * to all subscribers of the userRole$ observable.
+     * @param role The new user role.
+     */
+    public updateUserRole(role: string): void {
+        localStorage.setItem('userrole', role)
+        this.userRole$.next(role)
+    }
+
+    /**
+     * Returns the current user's ID from local storage.
+     * @returns The user ID as a number.
+     */
+    getLoggedInUserId(): number {
+        return Number(localStorage.getItem('userid'))
+    }
+    
+    /**
+     * Check if the user has any of the given roles
+     * @param roles role names
+     * @returns true if the user has any of the roles, false otherwise
+     */
+    public hasRole(roles: string[] = []): Observable<boolean> {
+        return this.getUserRole().pipe(
+            map(userRole => roles.length === 0 || roles.includes(userRole))
+        )
     }
 
     /**
      * Get users for selector
      * @returns
      */
-    public getUsersForSelector(): Observable<User[]> {
-        // Check if there is already cached data
-        if (this.cache.length > 0) {
-            return of(this.cache)
-        }
+    public getUsersForSelector(user_rolesid?: number): Observable<User[]> {
+        const queryParams = user_rolesid ? `user_rolesid=${user_rolesid}` : ''
+        this.get(0, 999, { sortField: 'fullname', sortOrder: 1 }, queryParams)
 
-        this.get(0, 999, { sortField: 'fullname', sortOrder: 1 }, '')
         return this.data$.asObservable().pipe(
             map((data: any) => {
-                // Store users in cache
-                const roles = data ? data.rows : []
-                this.cache = roles
+                const users = data ? data.rows : []
+                return users
+            })
+        )
+    }
 
-                return roles
+    /**
+     * Get a user by ID.
+     * First checks the cache, and if the user is not found there, makes a request to the API.
+     * If the API request fails, returns null and logs an error message to the console.
+     * @param userId The ID of the user to retrieve.
+     * @returns An observable of the user with the given ID, or null if not found.
+     */
+    getUserById(userId: number): Observable<User | null> {
+        // First check if user is in cache
+        if (this.userCache[userId]) {
+            return of(this.userCache[userId])
+        }
+
+        // If not in cache, fetch from API
+        return this.apiService.get<ApiResponse>(`users/getbyid/${userId}`).pipe(
+            map((response: any) => {
+                const user = response.users || null
+                if (user) {
+                    this.userCache[userId] = user
+                }
+                return user
+            }),
+            catchError(error => {
+                console.error(`Hiba a szervező adatainak lekérdezésekor: ${error}`)
+                return of(null)
             })
         )
     }
