@@ -162,6 +162,11 @@
         color: var(--red-800);
     }
 
+    &.bulkdelete {
+        background: var(--red-200);
+        color: var(--red-800);
+    }
+
     &.scanned {
         background: var(--green-200);
         color: var(--green-800);
@@ -196,6 +201,11 @@
         background: var(--red-200);
         color: var(--red-800);
     }
+
+    &.import {
+        background: var(--teal-200);
+        color: var(--teal-800);
+    }
 }
 
 /* HTTP Statuses */
@@ -228,4 +238,244 @@
     }
 }
 
-/* TODO: Diet badges */
+/* Meals */
+.meal-badge {
+    border-radius: var(--border-radius);
+    padding: .25em .5rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .3px;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
+
+    &.breakfast {
+        background: var(--teal-200);
+        color: var(--teal-800);
+    }
+
+    &.lunch {
+        background: var(--yellow-200);
+        color: var(--yellow-800);
+    }
+
+    &.dinner {
+        background: var(--orange-200);
+        color: var(--orange-800);
+    }
+
+    &.nothing {
+        background: var(--gray-200);
+        color: var(--gray-800);
+    }
+}
+
+/* Payments */
+.payment-badge {
+    border-radius: var(--border-radius);
+    padding: .25em .5rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .3px;
+
+    &.bank-transfer {
+        background: var(--purple-200);
+        color: var(--purple-800);
+    }
+
+    &.szep-card {
+        background: var(--green-200);
+        color: var(--green-800);
+    }
+
+    &.cash {
+        background: var(--orange-200);
+        color: var(--orange-800);
+    }
+
+    i {
+        line-height: 23px;
+        vertical-align: middle;
+    }
+}
+
+/* ExtraBeds badge */
+.extrabed-badge {
+    border-radius: var(--border-radius);
+    padding: .25em .5rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .3px;
+
+    &.M {
+        background: var(--yellow-200);
+        color: var(--yellow-800);
+    }
+
+    &.MM {
+        background: var(--orange-200);
+        color: var(--orange-800);
+    }
+
+    &.MGY {
+        background: var(--cyan-200);
+        color: var(--cyan-800);
+    }
+
+    &.GY {
+        background: var(--green-200);
+        color: var(--green-800);
+    }
+}
+
+/* Building badge */
+.building-badge {
+    border-radius: var(--border-radius);
+    padding: .25em .5rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .3px;
+
+    &.castle {
+        background: var(--teal-200);
+        color: var(--teal-800);
+    }
+
+    &.maranatha {
+        background: var(--yellow-200);
+        color: var(--yellow-800);
+    }
+
+    &.familyroom {
+        background: var(--orange-200);
+        color: var(--orange-800);
+    }
+
+    &.cornerhouse {
+        background: var(--bluegray-200);
+        color: var(--bluegray-800);
+    }
+
+    &.huntinglodge {
+        background: var(--green-200);
+        color: var(--green-800);
+    }
+}
+
+/* Calendar badge */
+.calendar-badge {
+    border-radius: var(--border-radius);
+    padding: .25em .5rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .3px;
+
+    background: var(--gray-200);
+    color: var(--gray-800);
+
+    i {
+        line-height: 23px;
+        vertical-align: top;
+    }
+}
+
+/* RoomTypes */
+.roomtype-badge {
+    display: inline-block;
+    text-align: left;
+    min-width: 80px;
+}
+
+/* Colors */
+.color-badge {
+    border-radius: var(--border-radius);
+    padding: .25em .5rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .3px;
+
+    &.black, &.surface {
+        background: var(--surface-800);
+        color: var(--surface-200);
+    }
+
+    &.blue {
+        background: var(--blue-200);
+        color: var(--blue-800);
+    }
+
+    &.green {
+        background: var(--green-200);
+        color: var(--green-800);
+    }
+
+    &.yellow {
+        background: var(--yellow-200);
+        color: var(--yellow-800);
+    }
+
+    &.cyan {
+        background: var(--cyan-200);
+        color: var(--cyan-800);
+    }
+
+    &.pink {
+        background: var(--pink-200);
+        color: var(--pink-800);
+    }
+
+    &.indigo {
+        background: var(--indigo-200);
+        color: var(--indigo-800);
+    }
+
+    &.teal {
+        background: var(--teal-200);
+        color: var(--teal-800);
+    }
+
+    &.orange {
+        background: var(--orange-200);
+        color: var(--orange-800);
+    }
+
+    &.bluegray {
+        background: var(--bluegray-200);
+        color: var(--bluegray-800);
+    }
+
+    &.purple {
+        background: var(--purple-200);
+        color: var(--purple-800);
+    }
+
+    &.purple {
+        background: var(--purple-200);
+        color: var(--purple-800);
+    }
+
+    &.red {
+        background: var(--red-200);
+        color: var(--red-800);
+    }
+
+    &.gray {
+        background: var(--gray-200);
+        color: var(--gray-800);
+    }
+
+    i {
+        line-height: 23px;
+        vertical-align: middle;
+    }
+
+    small {
+        font-weight: 500;
+    }
+}

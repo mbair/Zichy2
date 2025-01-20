@@ -1,4 +1,6 @@
 export interface Tag {
     id?: number;
-    identifier?: string;
+    rfid?: string;
+    color?: string;
+    enabled?: boolean;
 }

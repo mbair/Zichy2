@@ -234,7 +234,35 @@ export class RoleService {
             roleName = this.getRoleName(role)
         }
         roleStyleClass = roleName.trim()?.toLowerCase().replace(/\s+/g, '')
-
         return `user-role-badge role-${roleStyleClass}`
+    }
+
+    /**
+     * Get roles as an observable
+     * @returns Observable<Role[]>
+     */
+    public fetchRoles(): Observable<Role[]> {
+        // Check if there is already cached data
+        if (this.cache.length > 0) {
+            return of(this.cache)
+        }
+
+        // Call the get method to fetch roles
+        this.get(0, 999, { sortField: 'id', sortOrder: 1 }, '')
+
+        // Return the data observable
+        return this.data$.pipe(
+            map((data: ApiResponse | null) => {
+                if (data && data.rows) {
+                    // Only Super Admins are allowed to choose the Super Admin role
+                    if (!this.userService.hasRole(['Super Admin'])) {
+                        data.rows = data.rows.filter((role: Role) => role.name !== 'Super Admin')
+                    }
+                    this.cache = data.rows // Store roles in cache
+                    return data.rows
+                }
+                return []
+            })
+        )
     }
 }

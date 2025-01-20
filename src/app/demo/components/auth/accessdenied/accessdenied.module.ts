@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { AccessdeniedRoutingModule } from './accessdenied-routing.module';
 import { AccessdeniedComponent } from './accessdenied.component'
 import { ButtonModule } from 'primeng/button';
@@ -8,7 +9,8 @@ import { ButtonModule } from 'primeng/button';
     imports: [
         CommonModule,
         AccessdeniedRoutingModule,
-        ButtonModule
+        ButtonModule,
+        TranslateModule
     ],
     declarations: [AccessdeniedComponent]
 })

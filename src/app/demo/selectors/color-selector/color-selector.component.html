@@ -1,0 +1,48 @@
+<!-- ReactiveForms -->
+<p-dropdown *ngIf="getFormControl() as control; else useNgModel"
+            [formControl]="control"
+            [options]="colors"
+            optionLabel="label"
+            optionValue="value"
+            (onChange)="handleOnChange($event)"
+            placeholder="{{ 'Válasszon...' | translate }}"
+            emptyMessage="{{ 'Nincs találat...' | translate }}"
+            [showClear]="showClear"
+            appendTo="body">
+
+    <ng-template pTemplate="item" let-option>
+        <span [ngClass]="'color-badge ' + option?.value">
+            {{ option.label }}
+        </span>
+    </ng-template>
+    <ng-template pTemplate="selectedItem" let-selectedItem>
+        <span [ngClass]="'color-badge ' + selectedItem?.value">
+            {{ selectedItem?.label }}
+        </span>
+    </ng-template>
+</p-dropdown>
+
+<!-- ngModel -->
+<ng-template #useNgModel>
+    <p-dropdown [(ngModel)]="selectedColor"
+                [options]="colors"
+                optionLabel="label"
+                optionValue="value"
+                (onChange)="handleOnChange($event)"
+                placeholder="{{ 'Válasszon...' | translate }}"
+                emptyMessage="{{ 'Nincs találat...' | translate }}"
+                [showClear]="showClear"
+                appendTo="body">
+
+        <ng-template pTemplate="item" let-option>
+            <span [ngClass]="'color-badge ' + option?.value">
+                {{ option.label }}
+            </span>
+        </ng-template>
+        <ng-template pTemplate="selectedItem" let-selectedItem>
+            <span [ngClass]="'color-badge ' + selectedItem?.value">
+                {{ selectedItem?.label }}
+            </span>
+        </ng-template>
+    </p-dropdown>
+</ng-template>

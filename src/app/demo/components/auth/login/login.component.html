@@ -9,8 +9,8 @@
     <div class="px-5 min-h-screen flex justify-content-center align-items-center">
         <div class="border-1 surface-border surface-card border-round py-7 px-4 md:px-7 z-1">
             <div class="mb-4">
-                <div class="text-900 text-xl font-bold mb-2">Zichy Hotel</div>
-                <span class="text-600 font-medium">Jelentkezzen be a folytatáshoz</span>
+                <div class="text-900 text-xl font-bold mb-2">NFC Reserve</div>
+                <span class="text-600 font-medium">{{ 'Jelentkezzen be a folytatáshoz' | translate }}</span>
             </div>
             <div class="flex flex-column">
                 <!-- SYSTEM MESSAGE -->
@@ -22,7 +22,7 @@
                            type="text"
                            pInputText
                            class="w-full md:w-25rem"
-                           placeholder="Email"
+                           placeholder="{{ 'Email' | translate }}"
                            formControlName="email"
                            [autofocus]="true">
                 </span>
@@ -30,7 +30,7 @@
                     <i class="pi pi-lock z-2"></i>
                     <p-password id="password"
                                 formControlName="password"
-                                placeholder="Jelszó"
+                                placeholder="{{ 'Jelszó' | translate }}"
                                 styleClass="w-full"
                                 [inputStyle]="{paddingLeft: '2.5rem'}"
                                 inputStyleClass="w-full md:w-25rem"
@@ -39,9 +39,17 @@
                     </p-password>
                 </span>
                 <div class="mb-4 flex flex-wrap gap-3">
-                    <a [routerLink]="['/auth/forgotpassword']" class="text-600 cursor-pointer hover:text-primary cursor-pointer ml-auto transition-colors transition-duration-300">Elfelejtette jelszavát?</a>
+                    <a [routerLink]="['/auth/forgotpassword']" class="text-600 cursor-pointer hover:text-primary cursor-pointer ml-auto transition-colors transition-duration-300">
+                        {{ 'Elfelejtette jelszavát' | translate }}?
+                    </a>
                 </div>
-                <button pButton pRipple label="Bejelentkezés" class="w-full" (click)="login()" [loading]="loading" [disabled]="!loginForm.valid"></button>
+                <button pButton 
+                        pRipple 
+                        label="{{ 'Bejelentkezés' | translate }}" 
+                        class="w-full" (click)="login()" 
+                        [loading]="loading" 
+                        [disabled]="!loginForm.valid">
+                </button>
             </div>
         </div>
     </div>
