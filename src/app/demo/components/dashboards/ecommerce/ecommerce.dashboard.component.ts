@@ -277,8 +277,9 @@ export class EcommerceDashboardComponent implements OnInit {
 
     get registrationEndDate(): string {
         let endDate = ''
-        if (this.conferenceData?.registrationEndDate) {
-            endDate = moment(this.conferenceData.registrationEndDate).format('YYYY.MM.DD')
+        console.log('selectedConference', this.selectedConference)
+        if (this.selectedConference?.registrationEndDate) {
+            endDate = moment(this.selectedConference.registrationEndDate).format('YYYY.MM.DD')
         }
         return endDate
     }
@@ -299,7 +300,8 @@ export class EcommerceDashboardComponent implements OnInit {
     }
 
     onConferenceChange(event: any) {
-        const conferenceName = event.value
+        this.selectedConference = event.value
+        const conferenceName = event.value?.name
         // this.conferenceService.getBySearchQuery(`name=${conferenceName}`)
         this.guestService.getByConferenceName(conferenceName).subscribe((guests: any) => {
             this.conferenceGuests = guests.rows || []

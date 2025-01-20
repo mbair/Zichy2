@@ -22,7 +22,7 @@ export class ConferenceSelectorComponent {
     @Output() change = new EventEmitter<changeEvent>()
 
     conferences: any[] = []               // Available conferences
-    selectedConference: string = ''       // Selected conference
+    selectedConference: any = {}          // Selected conference
 
     constructor(private translate: TranslateService, 
                 private conferenceService: ConferenceService) {}
@@ -62,20 +62,37 @@ export class ConferenceSelectorComponent {
      * Sets the available conference options for the conference selector component.
      * Translates the conference labels to the current language and maps them to their respective values.
      */
+    // setConferences() {
+    //     this.conferenceService.getConferencesForSelector().subscribe((conferences: any) => {
+    //         this.conferences = conferences
+
+    //         if (this.selectFirstOption == true && this.conferences && this.conferences.length > 0) {
+    //             // this.selectedConference = this.conferences[0].name
+    //             // this.getFormControl()?.setValue(this.selectedConference)
+                
+    //             // const event: DropdownChangeEvent = {
+    //             //     originalEvent: {} as Event,
+    //             //     value: this.selectedConference
+    //             // }
+    
+    //             // this.handleOnChange(event)
+    //         }
+    //     })
+    // }
+
     setConferences() {
         this.conferenceService.getConferencesForSelector().subscribe((conferences: any) => {
-            this.conferences = conferences
-
-            if (this.selectFirstOption == true && this.conferences && this.conferences.length > 0) {
-                // this.selectedConference = this.conferences[0].name
-                // this.getFormControl()?.setValue(this.selectedConference)
-                
-                // const event: DropdownChangeEvent = {
-                //     originalEvent: {} as Event,
-                //     value: this.selectedConference
-                // }
+            this.conferences = conferences; // Konferencia objektumok teljes tömbje
+            if (this.selectFirstOption && this.conferences.length > 0) {
+                this.selectedConference = this.conferences[0]; // Első konferencia objektum
+                this.getFormControl()?.setValue(this.selectedConference.name);
     
-                // this.handleOnChange(event)
+                const event: DropdownChangeEvent = {
+                    originalEvent: {} as Event,
+                    value: this.selectedConference.name
+                };
+    
+                this.handleOnChange(event); // Automatikus esemény trigger az első beállításhoz
             }
         })
     }
@@ -85,7 +102,19 @@ export class ConferenceSelectorComponent {
      * changed field name.
      * @param event the change event of the conference selector
      */
+    // handleOnChange(event: DropdownChangeEvent) {
+    //     this.change.emit({ value: event.value, field: this.controlName })
+    // }
+
+    /**
+     * Handles the change event of the conference selector and emits the selected conference object
+     * with the changed field name.
+     * @param event the change event of the conference selector
+     */
     handleOnChange(event: DropdownChangeEvent) {
-        this.change.emit({ value: event.value, field: this.controlName })
+        const selectedConference = this.conferences.find(c => c.name === event.value)
+        if (selectedConference) {
+            this.change.emit({ value: selectedConference, field: this.controlName })
+        }
     }
 }
