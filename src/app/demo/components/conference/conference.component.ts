@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, isDevMode, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
@@ -109,12 +109,17 @@ export class ConferenceComponent implements OnInit {
             const productionURL = this.apiService.productionURL
             const developmentURL = this.apiService.developmentURL
 
+            let url = productionURL
+            if (!isDevMode()) {
+                url = developmentURL
+            }
+
             // Create a slug from the name
             let slug = this.slugify(nameValue)
 
             // Set the slug in the form
             this.conferenceForm.patchValue({
-                formUrl: `${developmentURL}/#/conference-form/${slug}`
+                formUrl: `${url}/#/conference-form/${slug}`
             })
         })
 
