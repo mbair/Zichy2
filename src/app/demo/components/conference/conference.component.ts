@@ -110,7 +110,7 @@ export class ConferenceComponent implements OnInit {
             const developmentURL = this.apiService.developmentURL
 
             let url = productionURL
-            if (!isDevMode()) {
+            if (isDevMode()) {
                 url = developmentURL
             }
 
