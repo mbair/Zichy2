@@ -97,7 +97,7 @@ export class ConferenceFormComponent implements OnInit {
             roomMate: new FormControl<string[] | null>(null),
             payment: ['', Validators.required],
             babyBed: ['', Validators.required],
-            climate: [''],
+            climate: [false],
             idCard: [null, Validators.required],
             privacy: ['', Validators.required],
             answers: this.formBuilder.array([]),
@@ -219,8 +219,10 @@ export class ConferenceFormComponent implements OnInit {
                     if (this.conference?.questions?.length > 0) {
                         const answersArray = this.conferenceForm.get('answers') as FormArray
                         this.conference.questions[0].translations?.forEach((question: any) => {
-                            if (question['hu'] !== '' || question['en'] !== '') {
-                                answersArray.push(this.formBuilder.control('', Validators.required))
+                            if (answersArray.length !== this.conference.questions.length) {
+                                if (question['hu'] !== '' || question['en'] !== '') {
+                                    answersArray.push(this.formBuilder.control('', Validators.required))
+                                }
                             }
                         })
                     }
@@ -509,10 +511,26 @@ export class ConferenceFormComponent implements OnInit {
 
             this.guestService.create(guestData, files)
         } else {
+            const invalidFields: string[] = []
+            Object.keys(this.conferenceForm.controls).forEach(key => {
+                const control = this.conferenceForm.get(key)
+                if (control?.invalid) {
+                    invalidFields.push(key)
+                }
+
+                if (control instanceof FormArray) {
+                    control.controls.forEach(answerControl => {
+                        if (answerControl.invalid) {
+                            invalidFields.push(`${key}.${answerControl}`)
+                        }
+                    })
+                }
+            })
+
             this.messageService.add({
                 severity: "error",
                 summary: "Hiba!",
-                detail: "Az űrlap nem lett megfelelően kitöltve!",
+                detail: `Az űrlap nem lett megfelelően kitöltve! A következő mezők nem megfelelőek: ${invalidFields.join(', ')}`,
             })
         }
     }
