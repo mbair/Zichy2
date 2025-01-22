@@ -151,7 +151,8 @@ export class GuestComponent implements OnInit {
             babyBed: ['', []],
             prepaid: ['', []],
             roomMate: ['', []],
-            idCard: [null]
+            idCard: [null],
+            climate: ['', []]
         }, {
             validators: dateRangeValidator('dateOfArrival', 'dateOfDeparture')
         })
@@ -316,6 +317,7 @@ export class GuestComponent implements OnInit {
     get prepaid() { return this.guestForm.get('prepaid') }
     get roomMate() { return this.guestForm.get('roomMate') }
     get idCard() { return this.guestForm.get('idCard') }
+    get climate() { return this.guestForm.get('climate') }
 
     /**
      * Load filtered data into the Table
@@ -340,7 +342,6 @@ export class GuestComponent implements OnInit {
 
     onFilter(event: any, field: string) {
 
-        console.log('field', field, event.value)
         // Organizer need select conference
         if (this.isOrganizer && !this.selectedConference) return
 
@@ -364,13 +365,10 @@ export class GuestComponent implements OnInit {
         }
 
         this.filterValues[field] = filterValue
-
-        console.log('this.filterValues', this.filterValues)
-
+        
         // If the field is a dropdown, run doQuery immediately
         if (noWaitFields.includes(field)) {
             if (this.filterValues[field] === filterValue) {
-                console.log('this.filterValues[field]', this.filterValues[field])
                 this.doQuery()
             }
         // otherwise wait for the debounce time
@@ -420,12 +418,6 @@ export class GuestComponent implements OnInit {
         // Load idCard image
         let idCard = guest.idcard || ''
         this.getIdCardURL(idCard)
-    }
-
-    onConferenceChange() {
-        this.filterValues['conferenceName'] = this.selectedConference?.name || ''
-        this.tableData = []
-        this.doQuery()
     }
 
     /**
@@ -835,7 +827,9 @@ export class GuestComponent implements OnInit {
     }
 
     setSelectedConference(event: any) {
-        this.selectedConference = event.value
+        this.selectedConference = event.value ? event.value : null
+        this.filterValues['conferenceName'] = this.selectedConference?.name || ''
+        this.tableData = []
         this.doQuery()
     }
 

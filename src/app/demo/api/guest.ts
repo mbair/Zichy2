@@ -32,4 +32,5 @@ export interface Guest {
     lastRfidUsage?: string | null;
     rfidColor?: string | null;
     prepaid?: boolean;
+    climate?: boolean;
 }
