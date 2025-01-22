@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectorRef } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { CountryService } from '../../service/country.service';
@@ -25,7 +25,8 @@ export class NationalitySelectorComponent {
     filterBy: string = 'hunationality'
 
     constructor(private translate: TranslateService, 
-                private countryService: CountryService) {}
+                private countryService: CountryService,
+                private cdRef: ChangeDetectorRef) {}
 
     /**
      * Lifecycle hook: called when the component is initialized.
@@ -36,12 +37,18 @@ export class NationalitySelectorComponent {
         // Fetch countries
         this.countryService.getCountries().subscribe(countries => {
             this.countries = countries
+            // Set Hungary as default nationality if applicable
+            const hungary = this.countries.find(country => country.name === 'Hungary')
+            if (hungary && this.parentForm && this.controlName) {
+                this.parentForm.get(this.controlName)?.setValue(hungary.code)
+                this.cdRef.detectChanges() // Notify Angular about the change
+            }
         })
         
         // Set the country options when the language changes
         this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
-            this.optionLabel = event.lang === 'hu' ? 'huname' : 'name'
-            this.filterBy    = event.lang === 'hu' ? 'huname' : 'name'
+            this.optionLabel = event.lang === 'hu' ? 'hunationality' : 'nationality'
+            this.filterBy    = event.lang === 'hu' ? 'hunationality' : 'nationality'
         })
     }
 
@@ -65,7 +72,3 @@ export class NationalitySelectorComponent {
         this.change.emit({ value: event.value, field: this.controlName })
     }
 }
-
-
-
-
