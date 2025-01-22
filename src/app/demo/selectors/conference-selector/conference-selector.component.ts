@@ -62,49 +62,23 @@ export class ConferenceSelectorComponent {
      * Sets the available conference options for the conference selector component.
      * Translates the conference labels to the current language and maps them to their respective values.
      */
-    // setConferences() {
-    //     this.conferenceService.getConferencesForSelector().subscribe((conferences: any) => {
-    //         this.conferences = conferences
-
-    //         if (this.selectFirstOption == true && this.conferences && this.conferences.length > 0) {
-    //             // this.selectedConference = this.conferences[0].name
-    //             // this.getFormControl()?.setValue(this.selectedConference)
-                
-    //             // const event: DropdownChangeEvent = {
-    //             //     originalEvent: {} as Event,
-    //             //     value: this.selectedConference
-    //             // }
-    
-    //             // this.handleOnChange(event)
-    //         }
-    //     })
-    // }
-
     setConferences() {
         this.conferenceService.getConferencesForSelector().subscribe((conferences: any) => {
-            this.conferences = conferences; // Konferencia objektumok teljes tömbje
+            this.conferences = conferences
             if (this.selectFirstOption && this.conferences.length > 0) {
-                this.selectedConference = this.conferences[0]; // Első konferencia objektum
-                this.getFormControl()?.setValue(this.selectedConference.name);
-    
+                this.selectedConference = this.conferences[0] // First conference
+                this.getFormControl()?.setValue(this.selectedConference?.name || null)
+        
                 const event: DropdownChangeEvent = {
                     originalEvent: {} as Event,
-                    value: this.selectedConference.name
-                };
-    
-                this.handleOnChange(event); // Automatikus esemény trigger az első beállításhoz
+                    value: this.selectedConference?.name || null
+                }
+        
+                this.handleOnChange(event)
             }
         })
     }
-
-    /**
-     * Handles the change event of the conference selector and emits a new value with the
-     * changed field name.
-     * @param event the change event of the conference selector
-     */
-    // handleOnChange(event: DropdownChangeEvent) {
-    //     this.change.emit({ value: event.value, field: this.controlName })
-    // }
+    
 
     /**
      * Handles the change event of the conference selector and emits the selected conference object
@@ -112,9 +86,20 @@ export class ConferenceSelectorComponent {
      * @param event the change event of the conference selector
      */
     handleOnChange(event: DropdownChangeEvent) {
-        const selectedConference = this.conferences.find(c => c.name === event.value)
-        if (selectedConference) {
-            this.change.emit({ value: selectedConference, field: this.controlName })
-        }
+        const selectedConference = this.conferences.find(c => c.name === event.value) || null
+        this.change.emit({ value: selectedConference, field: this.controlName })
+    }
+
+    /**
+     * Handles the clear event of the conference selector and emits a new value with the
+     * changed field name.
+     * @param event the clear event of the conference selector
+     */
+    handleOnClear() {
+        this.selectedConference = null
+        this.getFormControl()?.setValue(null)
+    
+        // Meghívjuk a handleOnChange metódust, mintha egy "null" értéket választottak volna
+        this.handleOnChange({ value: null, originalEvent: {} as Event })
     }
 }

@@ -108,11 +108,7 @@ export class ConferenceComponent implements OnInit {
 
             const productionURL = this.apiService.productionURL
             const developmentURL = this.apiService.developmentURL
-
-            let url = productionURL
-            if (isDevMode()) {
-                url = developmentURL
-            }
+            const url = isDevMode() ? developmentURL : productionURL
 
             // Create a slug from the name
             let slug = this.slugify(nameValue)
