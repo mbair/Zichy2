@@ -219,11 +219,11 @@ export class ConferenceFormComponent implements OnInit {
                     if (this.conference?.questions?.length > 0) {
                         const answersArray = this.conferenceForm.get('answers') as FormArray
                         this.conference.questions[0].translations?.forEach((question: any) => {
-                            if (answersArray.length !== this.conference.questions.length) {
+                            // if (answersArray.length !== this.conference.questions.length) {
                                 if (question['hu'] !== '' || question['en'] !== '') {
                                     answersArray.push(this.formBuilder.control('', Validators.required))
                                 }
-                            }
+                            // }
                         })
                     }
 
