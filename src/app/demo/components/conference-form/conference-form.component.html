@@ -259,14 +259,14 @@
                                             <label for="roomType" class="font-medium text-900">{{'Szállástípus' | translate }}</label>
                                             <app-roomtype-selector 
                                                 [parentForm]="conferenceForm" 
-                                                controlName="roomType" 
-                                                pTooltip="{{'A preferenciákat igyekszünk figyelembe venni, de mivel korlátozott mennyiségben van szállás és klímával felszerelt szoba, ezért nem tudjuk megígérni, hogy biztosan a megjelölt szállástípusra osztunk be' | translate }}" 
-                                                tooltipEvent="focus"
-                                                tooltipPosition="top">
+                                                controlName="roomType">
                                             </app-roomtype-selector>
                                             <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki a szállástípust' | translate }}!
                                             </div>
+                                            <small id="roomType-help">
+                                                {{'A preferenciákat igyekszünk figyelembe venni, de mivel korlátozott mennyiségben van szállás és klímával felszerelt szoba, ezért nem tudjuk megígérni, hogy biztosan a megjelölt szállástípusra osztunk be' | translate }}.
+                                            </small>
                                         </div>
 
                                         <!-- Klímát kérsz? -->
@@ -289,26 +289,27 @@
 
                                         <!-- Kivel laknál egy szobában -->
                                         <div class="field mb-4 col-12 lg:col-8">
-                                            <label for="roomMate" class="font-medium text-900">{{'Kivel laknál egy szobában' | translate }}?
-                                                <i pTooltip="{{'Kérjük a regisztrációkor megadott nevet tüntesse itt fel' | translate }}"
+                                            <label for="roomMate" class="font-medium text-900">{{'Kivel laknál egy szobában' | translate }}?</label>
+                                            <i pTooltip="{{'Kérjük a regisztrációkor megadott nevet tüntesse itt fel' | translate }}."
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
-                                                    tooltipEvent="focus"
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
-                                            </label>
                                             <p-chips formControlName="roomMate" 
                                                     separator="," 
                                                     [showClear]="true"
-                                                    [addOnBlur]="true"
-                                                    tooltipEvent="focus"
-                                                    pTooltip="{{'Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában' | translate }}" 
-                                                    tooltipPosition="bottom">
+                                                    [addOnBlur]="true">
                                                 <ng-template let-item pTemplate="item">
                                                     <i class="pi pi-user mr-2"></i> {{ item }}
                                                 </ng-template>
                                             </p-chips>
+                                            <small id="roomMate-help">
+                                                {{'Kérjük a regisztrációkor megadott nevet tüntesse itt fel' | translate }}.
+                                            </small>
+                                            <small id="roomMate-help">
+                                                {{'Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában' | translate }}.
+                                            </small>
                                         </div>
 
                                         <!-- Fizetési mód -->
@@ -316,9 +317,7 @@
                                             <label for="payment" class="font-medium text-900">{{'Fizetési mód' | translate }}</label>
                                             <app-payment-selector 
                                                 [parentForm]="conferenceForm" 
-                                                controlName="payment" 
-                                                pTooltip="{{'A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen' | translate }}" 
-                                                tooltipPosition="top">
+                                                controlName="payment">
                                             </app-payment-selector>
                                             <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki a fizetési módot' | translate }}!
