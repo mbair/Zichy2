@@ -97,7 +97,7 @@ export class ConferenceFormComponent implements OnInit {
             roomMate: new FormControl<string[] | null>(null),
             payment: ['', Validators.required],
             babyBed: ['', Validators.required],
-            climate: [false],
+            climate: [0],
             idCard: [null, Validators.required],
             privacy: ['', Validators.required],
             answers: this.formBuilder.array([]),
