@@ -192,9 +192,9 @@ export class GuestComponent implements OnInit {
         this.guestObs$.subscribe((data: ApiResponse) => {
             this.loading = false
             if (data && data.rows) {
-                this.tableData = data.rows || [];
-                this.totalRecords = data.totalItems || 0;
-                this.page = data.currentPage || 0;
+                this.tableData = data.rows || []
+                this.totalRecords = data.totalItems || 0
+                this.page = data.currentPage || 0
 
                 // Filter out test users on production
                 if (!isDevMode()) {
@@ -498,6 +498,12 @@ export class GuestComponent implements OnInit {
             // Update
             } else {
                 this.guestService.update(formValues)
+
+                // Update Guest in the table and rowexpansion
+                const index = this.tableData.findIndex(guest => guest.id === formValues.id)
+                if (index !== -1) {
+                    this.tableData[index] = { ...formValues }
+                }
             }
 
             this.sidebar = false

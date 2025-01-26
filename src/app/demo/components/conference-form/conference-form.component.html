@@ -288,14 +288,8 @@
                                         </div>
 
                                         <!-- Kivel laknál egy szobában -->
-                                        <div class="field mb-4 col-12 lg:col-8">
+                                        <div class="field mb-4 col-12 lg:col-8" *ngIf="conferenceForm.get('roomType')?.value !== 'Nem kérek szállást'">
                                             <label for="roomMate" class="font-medium text-900">{{'Kivel laknál egy szobában' | translate }}?</label>
-                                            <i pTooltip="<div style='display: block; min-width: 100px'>{{'Kérjük a regisztrációkor megadott nevet tüntesse itt fel' | translate }}.</div>"
-                                                    [escape]="false"
-                                                    appendTo="body"
-                                                    class="pi pi-info-circle"
-                                                    tooltipPosition="top"
-                                                    tooltipStyleClass="tooltip"></i>
                                             <p-chips formControlName="roomMate" 
                                                     separator="," 
                                                     [showClear]="true"
