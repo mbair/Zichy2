@@ -261,6 +261,7 @@
                                                 [parentForm]="conferenceForm" 
                                                 controlName="roomType" 
                                                 pTooltip="{{'A preferenciákat igyekszünk figyelembe venni, de mivel korlátozott mennyiségben van szállás és klímával felszerelt szoba, ezért nem tudjuk megígérni, hogy biztosan a megjelölt szállástípusra osztunk be' | translate }}" 
+                                                tooltipEvent="focus"
                                                 tooltipPosition="top">
                                             </app-roomtype-selector>
                                             <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
@@ -303,7 +304,7 @@
                                                     [addOnBlur]="true"
                                                     tooltipEvent="focus"
                                                     pTooltip="{{'Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában' | translate }}" 
-                                                    tooltipPosition="top">
+                                                    tooltipPosition="bottom">
                                                 <ng-template let-item pTemplate="item">
                                                     <i class="pi pi-user mr-2"></i> {{ item }}
                                                 </ng-template>
