@@ -325,14 +325,19 @@
                                                             (click)="downloadIdCard(guest.idcard)">
                                                     </button>
                                                 </div>
-                                                <div *ngIf="imageUrl">
+                                                <div>
+                                                    <p-skeleton 
+                                                        *ngIf="!imageUrl" 
+                                                        width="250px" 
+                                                        height="164px" />
+                                                    
                                                     <p-image 
+                                                        *ngIf="imageUrl"
                                                         [src]="imageUrl" 
                                                         alt="Image" 
                                                         width="250" 
                                                         [preview]="true" />
                                                 </div>
-                                                
                                             </div>
                                         </div>
                                     </div>
