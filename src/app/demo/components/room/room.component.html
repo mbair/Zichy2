@@ -127,6 +127,7 @@
                                         <div class="flex flex-column align-items-left justify-content-center">
                                             <span class="font-semibold uppercase">
                                                 {{ room.building }} <span class="font-normal text-sm uppercase">({{ room.floor }})</span>
+                                                <span *ngIf="room.climate" class="pl-1">❄️</span>
                                             </span>
                                             <span class="font-small text-xs uppercase">
                                                 {{ room.beds }} SZEMÉLYES ({{ room.bedType }}, {{ room.bathroom }})

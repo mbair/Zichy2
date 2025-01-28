@@ -37,7 +37,8 @@
           "color": "orange",
           "floor": "fsz",
           "bedType": "kétágyas",
-          "comment": "kapcs.: 102"
+          "comment": "kapcs.: 102",
+          "climate": true
       },
       {
           "id": 2,
@@ -94,7 +95,8 @@
           "color": "orange",
           "floor": "fsz",
           "bedType": "franciaágy",
-          "comment": "kapcs.: 104"
+          "comment": "kapcs.: 104",
+          "climate": true
       },
       {
           "id": 4,
