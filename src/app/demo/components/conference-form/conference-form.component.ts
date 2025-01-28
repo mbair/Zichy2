@@ -174,6 +174,7 @@ export class ConferenceFormComponent implements OnInit {
                 // Clear any previously entered value
                 roomMateControl?.reset()
                 roomMateControl?.disable()
+                this.showClimateField = false
             } else {
                 roomMateControl?.enable()
 

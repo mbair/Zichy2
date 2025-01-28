@@ -416,6 +416,7 @@ export class GuestComponent implements OnInit {
      */
     onRowExpand(guest: Guest): void {
         // Load idCard image
+        this.imageUrl = null
         let idCard = guest.idcard || ''
         this.getIdCardURL(idCard)
     }
