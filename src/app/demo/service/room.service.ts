@@ -222,6 +222,14 @@ export class RoomService {
         )
     }
 
+    /**
+     * Get available rooms for a conference
+     * @param conferenceId The ID of the conference
+     * @returns Observable of available rooms
+     */
+    public getAvailableRooms(conferenceId: number): Observable<Room[]> {
+        return this.http.get<Room[]>(`${this.apiURL}/room/available/${conferenceId}`);
+    }
 
     getSzobak(): Promise<Room[]> {
         return this.http.get<any>('assets/demo/data/szobak.json')

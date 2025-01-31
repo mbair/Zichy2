@@ -1,0 +1,21 @@
+<div class="bg-{{room.color}}-200 border-round-xl w-min">
+    <div class="flex align-items-center justify-content-center py-1 px-1">
+        <div class="flex align-items-center justify-content-center gap-2 px-2">
+            <i class="pi pi-key text-{{room.color}}-800 vertical-align-middle"></i>
+            <span class="text-2xl text-{{room.color}}-800 font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ room.roomNum }}" tooltipPosition="top">
+                {{ room.roomNum }}
+            </span>
+        </div>
+        <div class="block min-w-max border-left-1 px-2 border-{{room.color}}-300 text-{{room.color}}-800" pTooltip="Szoba kód: {{ room.roomCode }}" tooltipPosition="top">
+            <div class="flex flex-column align-items-left justify-content-center">
+                <span class="font-semibold uppercase">
+                    {{ room.building }} <span class="font-normal text-sm uppercase">({{ room.floor }})</span>
+                    <span *ngIf="room.climate" class="pl-1">❄️</span>
+                </span>
+                <span class="font-small text-xs uppercase">
+                    {{ room.beds }} SZEMÉLYES ({{ room.bedType }}, {{ room.bathroom }})
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
