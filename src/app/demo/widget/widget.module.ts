@@ -4,11 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { FileUploadModule } from 'primeng/fileupload';
+import { DialogModule } from 'primeng/dialog';
+import { TableModule } from 'primeng/table';
 import { ReactiveFileUploadComponent } from './reactive-file-upload/reactive-file-upload.component';
+import { RoomConferenceBinderComponent } from './room-conference-binder/room-conference-binder.component';
+import { SelectorsModule } from "../selectors/selectors.module";
 
 @NgModule({
     declarations: [
         ReactiveFileUploadComponent,
+        RoomConferenceBinderComponent,
     ],
     imports: [
         CommonModule,
@@ -16,9 +21,13 @@ import { ReactiveFileUploadComponent } from './reactive-file-upload/reactive-fil
         ReactiveFormsModule,
         TranslateModule,
         FileUploadModule,
+        DialogModule,
+        SelectorsModule,
+        TableModule
     ],
     exports: [
         ReactiveFileUploadComponent,
+        RoomConferenceBinderComponent,
     ],
 })
 export class WidgetModule {}

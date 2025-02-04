@@ -1,21 +1,173 @@
-<div class="bg-{{room.color}}-200 border-round-xl w-min">
-    <div class="flex align-items-center justify-content-center py-1 px-1">
-        <div class="flex align-items-center justify-content-center gap-2 px-2">
-            <i class="pi pi-key text-{{room.color}}-800 vertical-align-middle"></i>
-            <span class="text-2xl text-{{room.color}}-800 font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ room.roomNum }}" tooltipPosition="top">
-                {{ room.roomNum }}
-            </span>
-        </div>
-        <div class="block min-w-max border-left-1 px-2 border-{{room.color}}-300 text-{{room.color}}-800" pTooltip="Szoba kód: {{ room.roomCode }}" tooltipPosition="top">
-            <div class="flex flex-column align-items-left justify-content-center">
-                <span class="font-semibold uppercase">
-                    {{ room.building }} <span class="font-normal text-sm uppercase">({{ room.floor }})</span>
-                    <span *ngIf="room.climate" class="pl-1">❄️</span>
-                </span>
-                <span class="font-small text-xs uppercase">
-                    {{ room.beds }} SZEMÉLYES ({{ room.bedType }}, {{ room.bathroom }})
-                </span>
-            </div>
-        </div>
+<!-- Dialog trigger button-->
+<button pButton 
+        pRipple 
+        label="Szoba konferenciához rendelés" 
+        icon="pi pi-list-check" 
+        class="p-button mr-2"
+        severity="help"
+        (click)="showDialog()"
+        [disabled]="!canBindRoomToConference">
+</button>
+
+<!-- Dialog -->
+<p-dialog header="Szoba konferenciához rendelés" 
+          [modal]="true" 
+          [(visible)]="visible" 
+          [style]="{ width: '50rem' }">
+
+    <div class="flex w-full">
+        <app-conference-selector
+            [(ngModel)]="selectedConference"
+            (change)="setSelectedConference($event)" 
+            [showClear]="true"
+            placeholder="Válasszon konferenciát...">
+        </app-conference-selector>
     </div>
-</div>
+
+    <div class="flex w-full">
+        <p-table #dt
+                     dataKey="id"
+                     [value]="tableData"
+                     responsiveLayout="scroll"
+                     [rows]="rowsPerPage"
+                     [totalRecords]="totalRecords"
+                     [globalFilterFields]="['roomNum']"
+                     [paginator]="true"
+                     [rowsPerPageOptions]="rowsPerPageOptions"
+                     [showCurrentPageReport]="true"
+                     currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
+                     [(selection)]="selected"
+                     selectionMode="multiple"
+                     [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
+                     [rowHover]="true"
+                     (onLazyLoad)="onLazyLoad($event)"
+                     [lazy]="true">
+
+                <ng-template pTemplate="caption">
+                    <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                        <h5 class="m-0">Szobák</h5>
+                        <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <i class="pi pi-search"></i>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."  class="w-full sm:w-auto"/>
+                        </span>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th></th>
+                        <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
+                        <th pSortableColumn="extraBed">Pótágy <p-sortIcon field="extraBed"></p-sortIcon></th>
+                        <th pSortableColumn="comment">Komment <p-sortIcon field="comment"></p-sortIcon></th>
+                        <th pSortableColumn="guests">Vendégek <p-sortIcon field="guests"></p-sortIcon></th>
+                        <th pSortableColumn="occupancy">Telítettség <p-sortIcon field="occupancy"></p-sortIcon></th>
+                        <th></th>
+                    </tr>
+                    <tr>
+                        <th styleClass="w-3rem">
+                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   class="mr-2"
+                                   (input)="onFilter($event, 'roomNum')"
+                                   placeholder="Szobaszám..."
+                                   style="width:8rem"/>
+                           <app-building-selector
+                                   class="mr-2"
+                                   (change)="onFilter($event, 'building')"
+                                   [showClear]="true"
+                                   placeholder="Épület...">
+                           </app-building-selector>
+                           <app-bedtype-selector
+                                   (change)="onFilter($event, 'bedType')"
+                                   [showClear]="true"
+                                   placeholder="Ágytipus...">
+                           </app-bedtype-selector>
+                        </th>
+                        <th>
+                            <app-extrabed-selector
+                                    (change)="onFilter($event, 'extraBed')"
+                                    [showClear]="true">
+                            </app-extrabed-selector>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'comment')"
+                                   placeholder="Keresés..."
+                                   style="width:7rem"/>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'guests')"
+                                   placeholder="Keresés..."
+                                   style="width:10rem"/>
+                        </th>
+                        <th></th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-room>
+                    <tr>
+                        <td>
+                            <p-tableCheckbox [value]="room"></p-tableCheckbox>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Szoba szám</span>
+
+                            <div class="bg-{{room.color}}-200 border-round-xl w-min">
+                                <div class="flex align-items-center justify-content-center py-1 px-1">
+                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
+                                        <i class="pi pi-key text-{{room.color}}-800 vertical-align-middle"></i>
+                                        <span class="text-2xl text-{{room.color}}-800 font-semibold white-space-nowrap vertical-align-middle">
+                                            {{ room.roomNum }}
+                                        </span>
+                                    </div>
+                                    <div class="block min-w-max border-left-1 px-2 border-{{room.color}}-300 text-{{room.color}}-800">
+                                        <div class="flex flex-column align-items-left justify-content-center">
+                                            <span class="font-semibold uppercase">
+                                                {{ room.building }} <span class="font-normal text-sm uppercase">({{ room.floor }})</span>
+                                                <span *ngIf="room.climate" class="pl-1">❄️</span>
+                                            </span>
+                                            <span class="font-small text-xs uppercase">
+                                                {{ room.beds }} SZEMÉLYES ({{ room.bedType }}, {{ room.bathroom }})
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </td>
+                        <td>
+                            <span class="p-column-title">Pótágy</span>
+                            <span class="extrabed-badge {{ room.extraBed?.value }}">
+                                {{ room.extraBed?.label }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Komment</span>
+                            {{room.comment}}
+                        </td>
+                        <td>
+                            <span class="p-column-title">Vendégek</span>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Telítettség</span>
+                            
+                        </td>
+                        <td>
+                            <div class="flex">
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2"></button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td [attr.colspan]="6" class="text-center">Nincs találat...</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+    </div>
+</p-dialog>
