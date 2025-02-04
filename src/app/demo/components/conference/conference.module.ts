@@ -28,6 +28,7 @@ import { CalendarModule } from 'primeng/calendar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { SelectorsModule } from '../../selectors/selectors.module';
+import { WidgetModule } from '../../widget/widget.module';
 
 @NgModule({
 	imports: [
@@ -58,6 +59,7 @@ import { SelectorsModule } from '../../selectors/selectors.module';
         SkeletonModule,
         InputSwitchModule,
         SelectorsModule,
+        WidgetModule,
 	],
 	declarations: [ConferenceComponent]
 })

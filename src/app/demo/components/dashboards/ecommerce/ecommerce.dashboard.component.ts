@@ -277,9 +277,16 @@ export class EcommerceDashboardComponent implements OnInit {
 
     get registrationEndDate(): string {
         let endDate = ''
-        console.log('selectedConference', this.selectedConference)
         if (this.selectedConference?.registrationEndDate) {
             endDate = moment(this.selectedConference.registrationEndDate).format('YYYY.MM.DD')
+        }
+        return endDate
+    }
+
+    get guestEditEndDate(): string {
+        let endDate = ''
+        if (this.selectedConference?.guestEditEndDate) {
+            endDate = moment(this.selectedConference.guestEditEndDate).format('YYYY.MM.DD')
         }
         return endDate
     }
