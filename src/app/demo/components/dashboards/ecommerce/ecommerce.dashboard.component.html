@@ -191,7 +191,7 @@
     </div>
     
     <div class="grid">
-        <div class="col-12 md:col-6 xl:col-3">
+        <div class="col-12 md:col-6 xl:col-2">
             <div class="card h-full">
                 <span class="font-semibold text-lg">Regisztrációk száma</span>
                 <div class="flex justify-content-between align-items-start mt-3">
@@ -201,7 +201,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 md:col-6 xl:col-3">
+        <div class="col-12 md:col-6 xl:col-2">
             <div class="card h-full">
                 <span class="font-semibold text-lg">Szobára várók</span>
                 <div class="flex justify-content-between align-items-start mt-3">
@@ -213,9 +213,9 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 md:col-6 xl:col-3">
+        <div class="col-12 md:col-6 xl:col-2">
             <div class="card h-full">
-                <span class="font-semibold text-lg">Regisztrációs határidő</span>
+                <span class="font-semibold text-lg">Regisztráció határidő</span>
                 <div class="flex justify-content-between align-items-start mt-3">
                     <div class="w-6">
                         <span class="text-4xl font-bold text-900">
@@ -225,7 +225,19 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 md:col-6 xl:col-3">
+        <div class="col-12 md:col-6 xl:col-2">
+            <div class="card h-full">
+                <span class="font-semibold text-lg">Módosítás határidő</span>
+                <div class="flex justify-content-between align-items-start mt-3">
+                    <div class="w-6">
+                        <span class="text-4xl font-bold text-900">
+                            {{ guestEditEndDate }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 md:col-6 xl:col-4">
             <div class="card h-full">
                 <span class="font-semibold text-lg">Előleget fizetett / összes vendég</span>
                 <div class="flex justify-content-between align-items-start mt-3">
