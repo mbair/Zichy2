@@ -188,7 +188,7 @@ export class GuestComponent implements OnInit {
         this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => this.isOrganizer = isOrganizer)
 
         // Guests
-        this.guestObs$ = this.guestService.guestObs;
+        this.guestObs$ = this.guestService.guestObs
         this.guestObs$.subscribe((data: ApiResponse) => {
             this.loading = false
             if (data && data.rows) {
@@ -836,6 +836,12 @@ export class GuestComponent implements OnInit {
     setSelectedConference(event: any) {
         this.selectedConference = event.value ? event.value : null
         this.filterValues['conferenceName'] = this.selectedConference?.name || ''
+
+        // Organizer can edit guests if the current date is less than the guestEditEndDate of the conference
+        if (this.isOrganizer && this.selectedConference && this.selectedConference.guestEditEndDate) {
+            this.canEdit = new Date() < new Date(this.selectedConference.guestEditEndDate)
+        }
+
         this.tableData = []
         this.doQuery()
     }
