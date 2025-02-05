@@ -9,6 +9,7 @@
             [placeholder]="placeholder"
             emptyMessage="{{ 'Nincs találat...' | translate }}"
             [showClear]="showClear"
+            [style]="style"
             appendTo="body">
 
     <ng-template pTemplate="item" let-option>
@@ -30,7 +31,7 @@
                 [placeholder]="placeholder"
                 emptyMessage="{{ 'Nincs találat...' | translate }}"
                 [showClear]="showClear"
-                [style]="{ width: '100% !important' }"
+                [style]="style"
                 appendTo="body">
 
         <ng-template pTemplate="item" let-option>
