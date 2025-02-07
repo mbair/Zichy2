@@ -69,6 +69,12 @@ export class AppMenuComponent implements OnInit {
                             routerLink: ['/diet'],
                             requiredRoles: ['Super Admin', 'Nagy Admin']
                         },
+                        {
+                            label: 'Konyhanaptár',
+                            icon: 'pi pi-fw pi-calendar',
+                            routerLink: ['/kitchen-calendar'],
+                            requiredRoles: ['Super Admin']
+                        },
                         // {
                         //     label: 'Ételpult',
                         //     icon: 'pi pi-fw pi-tablet',
@@ -79,12 +85,6 @@ export class AppMenuComponent implements OnInit {
                         //     icon: 'pi pi-fw pi-circle',
                         //     // routerLink: ['/pages/menuk']
                         // },
-                        {
-                            label: 'Konyhanaptár*',
-                            icon: 'pi pi-fw pi-calendar',
-                            // routerLink: ['/pages/konyhanaptar'],
-                            requiredRoles: ['Super Admin', 'Nagy Admin']
-                        },
                     ]
                 },
                 {

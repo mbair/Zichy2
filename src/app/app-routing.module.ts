@@ -102,6 +102,15 @@ const routes: Routes = [
                 }, 
                 loadChildren: () => import('./demo/components/diet/diet.module').then(m => m.DietModule), 
                 canActivate: [AuthGuard] 
+            },
+            { 
+                path: 'kitchen-calendar', 
+                data: { 
+                    breadcrumb: 'Konyhanaptár',
+                    requiredRoles: ['Super Admin']
+                }, 
+                loadChildren: () => import('./demo/components/kitchen-calendar/kitchen-calendar.module').then(m => m.KitchenCalendarModule), 
+                canActivate: [AuthGuard] 
             }
         ]
     },

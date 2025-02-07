@@ -1,0 +1,139 @@
+<p-table *ngIf="mealData[0]" [value]="mealData" [tableStyle]="{ 'padding-bottom': '2rem' }" responsiveLayout="scroll">
+    <ng-template pTemplate="header">
+        <tr>
+            <th rowspan="3">Étrend</th>
+            <th colspan="6" class="text-center text-lg border-x-1">Hétfő</th>
+            <th colspan="6" class="text-center text-lg border-x-1">Kedd</th>
+            <th colspan="6" class="text-center text-lg border-x-1">Szerda</th>
+            <th colspan="6" class="text-center text-lg border-x-1">Csütörtök</th>
+            <th colspan="6" class="text-center text-lg border-x-1">Péntek</th>
+            <th colspan="6" class="text-center text-lg border-x-1">Szombat</th>
+            <th colspan="6" class="text-center text-lg border-x-1">Vasárnap</th>
+        </tr>
+        <tr>
+            <th *ngFor="let day of mealData[0].normal" colspan="6" class="text-center border-x-1">
+                {{ day.date }}
+            </th>
+        </tr>
+        <tr>
+            <ng-container *ngFor="let day of mealData[0].normal">
+                <th colspan="2" class="mealcol text-center text-sm border-x-1">Reggeli</th>
+                <th colspan="2" class="mealcol text-center text-sm border-x-1">Ebéd</th>
+                <th colspan="2" class="mealcol text-center text-sm border-x-1">Vacsora</th>
+            </ng-container>
+        </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body">
+        <tr>
+            <td></td>
+            
+            <!-- Total meals -->
+            <ng-container *ngFor="let day of mealData[0].normal">
+                <td colspan="2" class="text-center border-x-1">{{ getTotalMeals(day, 'breakfast') }}</td>
+                <td colspan="2" class="text-center border-x-1">{{ getTotalMeals(day, 'lunch') }}</td>
+                <td colspan="2" class="text-center border-x-1">{{ getTotalMeals(day, 'dinner') }}</td>
+            </ng-container>
+        </tr>
+
+        <ng-container *ngFor="let dietType of getDietTypes()">
+            <tr>
+                <td class="font-medium">{{ getTranslatedDiet(dietType) }}</td>
+                
+                <!-- Breakfast, lunch, dinner for each day -->
+                <ng-container *ngFor="let day of mealData[0][dietType]">
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day.breakfast.child }} <!-- Child breakfast -->
+                    </td>
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day.breakfast.adult }} <!-- Adult breakfast -->
+                    </td>
+                    
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day.lunch.child }} <!-- Child lunch -->
+                    </td>
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day.lunch.adult }} <!-- Adult lunch -->
+                    </td>
+                    
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day.dinner.child }} <!-- Child dinner -->
+                    </td>
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day.dinner.adult }} <!-- Adult dinner -->
+                    </td>
+                </ng-container>
+            </tr>
+        </ng-container>
+    </ng-template>
+</p-table>
+
+<p-table *ngIf="mealData" [value]="mealData" responsiveLayout="scroll">
+    <ng-template pTemplate="header">
+        <tr>
+            <th rowspan="3">Étrend</th>
+            <th colspan="6" class="text-center text-lg border-x-1">Hétfő</th>
+            <th colspan="6" class="text-center text-lg border-x-1">Kedd</th>
+            <th colspan="6" class="text-center text-lg border-x-1">Szerda</th>
+            <th colspan="6" class="text-center text-lg border-x-1">Csütörtök</th>
+            <th colspan="6" class="text-center text-lg border-x-1">Péntek</th>
+            <th colspan="6" class="text-center text-lg border-x-1">Szombat</th>
+            <th colspan="6" class="text-center text-lg border-x-1">Vasárnap</th>
+        </tr>
+        <tr>
+            <th *ngFor="let day of mealData[0].normal" colspan="6" class="text-center border-x-1">
+                {{ day.date }}
+            </th>
+        </tr>
+        <tr>
+            <ng-container *ngFor="let day of mealData[0].normal">
+                <th colspan="2" class="mealcol text-center text-sm border-x-1">Reggeli</th>
+                <th colspan="2" class="mealcol text-center text-sm border-x-1">Ebéd</th>
+                <th colspan="2" class="mealcol text-center text-sm border-x-1">Vacsora</th>
+            </ng-container>
+        </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body">
+        <tr>
+            <td></td>
+            
+            <!-- Total meals -->
+            <ng-container *ngFor="let day of mealData[0].normal">
+                <td colspan="2" class="text-center border-x-1">{{ getTotalMeals(day, 'breakfast') }}</td>
+                <td colspan="2" class="text-center border-x-1">{{ getTotalMeals(day, 'lunch') }}</td>
+                <td colspan="2" class="text-center border-x-1">{{ getTotalMeals(day, 'dinner') }}</td>
+            </ng-container>
+        </tr>
+
+        <ng-container *ngFor="let dietType of getDietTypes()">
+            <tr>
+                <td class="font-medium">{{ getTranslatedDiet(dietType) }}</td>
+                
+                <!-- Breakfast, lunch, dinner for each day -->
+                <ng-container *ngFor="let day of mealData[0][dietType]">
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day.breakfast.child }} <!-- Child breakfast -->
+                    </td>
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day.breakfast.adult }} <!-- Adult breakfast -->
+                    </td>
+                    
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day.lunch.child }} <!-- Child lunch -->
+                    </td>
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day.lunch.adult }} <!-- Adult lunch -->
+                    </td>
+                    
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day.dinner.child }} <!-- Child dinner -->
+                    </td>
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day.dinner.adult }} <!-- Adult dinner -->
+                    </td>
+                </ng-container>
+            </tr>
+        </ng-container>
+    </ng-template>
+</p-table>
