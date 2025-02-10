@@ -1,6 +1,9 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { MessageService } from 'primeng/api';
+import { Observable } from 'rxjs';
 import { Table } from 'primeng/table';
 import { Room } from '../../api/room';
+import { ApiResponse } from '../../api/ApiResponse';
 import { RoomService } from '../../service/room.service';
 import { ConferenceService } from '../../service/conference.service';
 import * as moment from 'moment';
@@ -9,14 +12,15 @@ moment.locale('hu')
 @Component({
     selector: 'app-room-conference-binder',
     templateUrl: './room-conference-binder.component.html',
+    providers: [MessageService]
 })
 export class RoomConferenceBinderComponent {
     @Input() visible: boolean = false;
-    @Output() close = new EventEmitter<void>();
+    @Output() close = new EventEmitter<void>()
     @Output() assign = new EventEmitter<{
-        conferenceId: number;
-        roomIds: number[];
-    }>();
+        conferenceId: number
+        roomIds: number[]
+    }>()
 
     apiURL: string;                              // API URL depending on whether we are working on test or production
     loading: boolean = true;                     // Loading overlay trigger value
@@ -38,34 +42,38 @@ export class RoomConferenceBinderComponent {
     selectedRooms: number[] = [];
     canBindRoomToConference: boolean = true;
 
+    private roomObs$: Observable<any> | undefined
+
     constructor(
         private roomService: RoomService,
         private conferenceService: ConferenceService
     ) {}
 
     ngOnInit() {
-        this.loadConferences();
+        // Rooms
+        this.roomObs$ = this.roomService.roomObs
+        this.roomObs$.subscribe((data: ApiResponse) => {
+            this.loading = false
+            if (data) {
+                this.tableData = data.rows || []
+                this.totalRecords = data.totalItems || 0
+                this.page = data.currentPage || 0
+            }
+        })
     }
 
-    loadConferences() {
-        this.conferenceService.conferenceObs.subscribe((response) => {
-            if (response && response.rows) {
-                this.conferences = response.rows;
-            }
-        });
-    }
+    
 
     loadAvailableRooms() {
         if (!this.selectedConference) return;
-        this.roomService
-            .getAvailableRooms(this.selectedConference.id)
-            .subscribe((rooms) => {
-                this.rooms = rooms;
-            });
+        // this.roomService
+        //     .getAvailableRooms(this.selectedConference.id)
+        //     .subscribe((rooms) => {
+        //         this.rooms = rooms;
+        //     });
     }
 
     showDialog() {
-        this.loadConferences();
         this.loadAvailableRooms();
         this.canBindRoomToConference = true;
         this.visible = true;

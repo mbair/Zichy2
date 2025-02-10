@@ -13,15 +13,27 @@
 <p-dialog header="Szoba konferenciához rendelés" 
           [modal]="true" 
           [(visible)]="visible" 
-          [style]="{ width: '50rem' }">
+          [style]="{ width: '78rem' }">
 
-    <div class="flex w-full">
+    <div class="flex w-full mb-2">
+        <!-- Conference selector -->
         <app-conference-selector
             [(ngModel)]="selectedConference"
             (change)="setSelectedConference($event)" 
             [showClear]="true"
+            [style]="{'minWidth':'49rem'}"
             placeholder="Válasszon konferenciát...">
         </app-conference-selector>
+
+        <!-- Save button -->
+        <button pButton 
+                pRipple 
+                label="Mentés" 
+                icon="pi pi-check" 
+                class="p-button ml-2" 
+                (click)="showDialog()"
+                [disabled]="!selectedRooms || !selectedRooms.length || !selectedConference">
+        </button>
     </div>
 
     <div class="flex w-full">
@@ -43,24 +55,12 @@
                      (onLazyLoad)="onLazyLoad($event)"
                      [lazy]="true">
 
-                <ng-template pTemplate="caption">
-                    <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                        <h5 class="m-0">Szobák</h5>
-                        <span class="block mt-2 md:mt-0 p-input-icon-left">
-                            <i class="pi pi-search"></i>
-                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés..."  class="w-full sm:w-auto"/>
-                        </span>
-                    </div>
-                </ng-template>
                 <ng-template pTemplate="header">
                     <tr>
                         <th></th>
                         <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
                         <th pSortableColumn="extraBed">Pótágy <p-sortIcon field="extraBed"></p-sortIcon></th>
                         <th pSortableColumn="comment">Komment <p-sortIcon field="comment"></p-sortIcon></th>
-                        <th pSortableColumn="guests">Vendégek <p-sortIcon field="guests"></p-sortIcon></th>
-                        <th pSortableColumn="occupancy">Telítettség <p-sortIcon field="occupancy"></p-sortIcon></th>
-                        <th></th>
                     </tr>
                     <tr>
                         <th styleClass="w-3rem">
@@ -98,14 +98,6 @@
                                    placeholder="Keresés..."
                                    style="width:7rem"/>
                         </th>
-                        <th>
-                            <input pInputText
-                                   type="text"
-                                   (input)="onFilter($event, 'guests')"
-                                   placeholder="Keresés..."
-                                   style="width:10rem"/>
-                        </th>
-                        <th></th>
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-room>
@@ -149,23 +141,11 @@
                             <span class="p-column-title">Komment</span>
                             {{room.comment}}
                         </td>
-                        <td>
-                            <span class="p-column-title">Vendégek</span>
-                        </td>
-                        <td>
-                            <span class="p-column-title">Telítettség</span>
-                            
-                        </td>
-                        <td>
-                            <div class="flex">
-                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2"></button>
-                            </div>
-                        </td>
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="emptymessage">
                     <tr>
-                        <td [attr.colspan]="6" class="text-center">Nincs találat...</td>
+                        <td [attr.colspan]="4" class="text-center">Nincs találat...</td>
                     </tr>
                 </ng-template>
             </p-table>

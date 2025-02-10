@@ -1,0 +1,146 @@
+<!-- Date picker for week selection -->
+<div class="grid">
+    <div class="col-12 pt-0">
+        <p-calendar 
+            [(ngModel)]="selectedDate"
+            [showIcon]="true"
+            (onSelect)="onDateSelect($event)"
+            appendTo="body"
+            pTooltip="A kiválasztott dátum hetének étrendje" 
+            tooltipPosition="right"/>
+    </div>
+</div>
+
+<!-- First week of Kitchen calendar -->
+<p-table *ngIf="firstWeek" [value]="[firstWeek]" [tableStyle]="{ 'padding-bottom': '1rem' }" responsiveLayout="scroll">
+    <ng-template pTemplate="header">
+        <tr>
+            <th rowspan="3">Étrend</th>
+            <th *ngFor="let day of firstWeek?.['normál'] ?? []" colspan="6" class="text-center border-x-1 capitalize" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) }">
+                {{ getDayName(day?.date) }}
+            </th>
+        </tr>
+        <tr>
+            <th *ngFor="let day of firstWeek?.['normál'] ?? []" colspan="6" class="text-center border-x-1" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) }">
+                {{ day?.date | date: 'yyyy.MM.dd.' }}
+            </th>
+        </tr>
+        <tr>
+            <ng-container *ngFor="let day of firstWeek['normál']">
+                <th colspan="2" class="mealcol text-center text-sm border-x-1" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) }">Reggeli</th>
+                <th colspan="2" class="mealcol text-center text-sm border-x-1" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) }">Ebéd</th>
+                <th colspan="2" class="mealcol text-center text-sm border-x-1" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) }">Vacsora</th>
+            </ng-container>
+        </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body">
+        <tr>
+            <td></td>
+            
+            <!-- Total meals -->
+            <ng-container *ngFor="let day of firstWeek['normál']">
+                <td colspan="2" class="text-center border-x-1" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) }">{{ getTotalMeals(day, 'breakfast') }}</td>
+                <td colspan="2" class="text-center border-x-1" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) }">{{ getTotalMeals(day, 'lunch') }}</td>
+                <td colspan="2" class="text-center border-x-1" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) }">{{ getTotalMeals(day, 'dinner') }}</td>
+            </ng-container>
+        </tr>
+
+        <ng-container *ngFor="let dietType of getDietTypes()">
+            <tr>
+                <td class="font-medium">{{ dietType }}</td>
+                
+                <!-- Breakfast, lunch, dinner for each day -->
+                <ng-container *ngFor="let day of firstWeek[dietType]">
+                    <td *ngIf="day" class="text-center border-x-1" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) }">
+                        {{ day?.breakfast?.child || 0 }}
+                    </td>
+                    <td *ngIf="day" class="text-center border-x-1" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) }">
+                        {{ day?.breakfast?.adult || 0 }}
+                    </td>
+                    
+                    <td *ngIf="day" class="text-center border-x-1" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) }">
+                        {{ day?.lunch?.child || 0 }}
+                    </td>
+                    <td *ngIf="day" class="text-center border-x-1" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) }">
+                        {{ day?.lunch?.adult || 0 }}
+                    </td>
+                    
+                    <td *ngIf="day" class="text-center border-x-1" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) }">
+                        {{ day?.dinner?.child || 0 }}
+                    </td>
+                    <td *ngIf="day" class="text-center border-x-1" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) }">
+                        {{ day?.dinner?.adult || 0 }}
+                    </td>
+                </ng-container>
+            </tr>
+        </ng-container>
+    </ng-template>
+</p-table>
+
+<!-- Second week of Kitchen calendar -->
+<p-table *ngIf="secondWeek" [value]="[secondWeek]" responsiveLayout="scroll">
+    <ng-template pTemplate="header">
+        <tr>
+            <th rowspan="3">Étrend</th>
+            <th *ngFor="let day of secondWeek?.['normál'] ?? []" colspan="6" class="text-center border-x-1 capitalize">
+                {{ getDayName(day?.date) }}
+            </th>
+        </tr>
+        <tr>
+            <th *ngFor="let day of secondWeek?.['normál'] ?? []" colspan="6" class="text-center border-x-1">
+                {{ day?.date | date: 'yyyy.MM.dd.' }}
+            </th>
+        </tr>
+        <tr>
+            <ng-container *ngFor="let day of secondWeek['normál']">
+                <th colspan="2" class="mealcol text-center text-sm border-x-1">Reggeli</th>
+                <th colspan="2" class="mealcol text-center text-sm border-x-1">Ebéd</th>
+                <th colspan="2" class="mealcol text-center text-sm border-x-1">Vacsora</th>
+            </ng-container>
+        </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body">
+        <tr>
+            <td></td>
+            
+            <!-- Total meals -->
+            <ng-container *ngFor="let day of secondWeek['normál']">
+                <td colspan="2" class="text-center border-x-1">{{ getTotalMeals(day, 'breakfast') }}</td>
+                <td colspan="2" class="text-center border-x-1">{{ getTotalMeals(day, 'lunch') }}</td>
+                <td colspan="2" class="text-center border-x-1">{{ getTotalMeals(day, 'dinner') }}</td>
+            </ng-container>
+        </tr>
+
+        <ng-container *ngFor="let dietType of getDietTypes()">
+            <tr>
+                <td class="font-medium">{{ dietType }}</td>
+                
+                <!-- Breakfast, lunch, dinner for each day -->
+                <ng-container *ngFor="let day of secondWeek[dietType]">
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day?.breakfast?.child || 0 }}
+                    </td>
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day?.breakfast?.adult || 0 }}
+                    </td>
+                    
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day?.lunch?.child || 0 }}
+                    </td>
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day?.lunch?.adult || 0 }}
+                    </td>
+                    
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day?.dinner?.child || 0 }}
+                    </td>
+                    <td *ngIf="day" class="text-center border-x-1">
+                        {{ day?.dinner?.adult || 0 }}
+                    </td>
+                </ng-container>
+            </tr>
+        </ng-container>
+    </ng-template>
+</p-table>

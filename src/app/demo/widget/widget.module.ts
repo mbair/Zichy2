@@ -6,6 +6,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import { FileUploadModule } from 'primeng/fileupload';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
+import { DropdownModule } from 'primeng/dropdown';
+import { InputTextModule } from 'primeng/inputtext';
 import { ReactiveFileUploadComponent } from './reactive-file-upload/reactive-file-upload.component';
 import { RoomConferenceBinderComponent } from './room-conference-binder/room-conference-binder.component';
 import { SelectorsModule } from "../selectors/selectors.module";
@@ -23,7 +25,9 @@ import { SelectorsModule } from "../selectors/selectors.module";
         FileUploadModule,
         DialogModule,
         SelectorsModule,
-        TableModule
+        TableModule,
+        DropdownModule,
+        InputTextModule,
     ],
     exports: [
         ReactiveFileUploadComponent,

@@ -19,6 +19,7 @@ export class ConferenceSelectorComponent {
     @Input() showClear: boolean
     @Input() placeholder: string
     @Input() selectFirstOption: boolean
+    @Input() style: { [key: string]: string }
     @Output() change = new EventEmitter<changeEvent>()
 
     conferences: any[] = []               // Available conferences
