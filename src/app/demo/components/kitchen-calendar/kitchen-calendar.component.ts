@@ -1,11 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MessageService } from 'primeng/api';
 import { KitchenCalendarService } from '../../service/kitchen-calendar.service';
 import { ResponsiveService } from '../../service/responsive.service';
-import { ApiResponse } from '../../api/ApiResponse';
 import * as moment from 'moment';
 moment.locale('hu')
 
@@ -29,8 +27,11 @@ interface KitchenCalendarData {
 
 export class KitchenCalendarComponent implements OnInit {
 
-    loading: boolean = true              // Loading overlay trigger value
-    mealData: any[] = []                 // Data set displayed in a table
+    loading: boolean                     // Loading overlay trigger value
+    selectedDate: string                 // Selected date
+    mealData: any = []                   // Data set displayed in a table
+    firstWeek: any = []                  // First week data
+    secondWeek: any = []                 // Second week data
     dietTypes: string[] = []             // Diet types
     isMobile: boolean = false            // Mobile screen detection
 
@@ -40,27 +41,30 @@ export class KitchenCalendarComponent implements OnInit {
     constructor(
         private kitchenCalendarService: KitchenCalendarService,
         private messageService: MessageService,
-        private translateService: TranslateService,
         private responsiveService: ResponsiveService) {
-
-        this.dietTypes = [
-            'normal', 
-            'vegetarian', 
-            'gluten-lactose-milkfree', 
-            'glutenfree', 
-            'milkfree', 
-            'laktosefree'
-        ]
     }
 
     ngOnInit() {
+        // Set the selected date to today
+        this.selectedDate = moment().format('YYYY.MM.DD')
+
         // Kitchen calendar data
         this.kitchenCalendarObs$ = this.kitchenCalendarService.kitchenCalendarObs
         this.kitchenCalendarObs$.subscribe((data: any) => {
             this.loading = false
             if (data) {
-                console.log('Kitchen calendar data:', data)
-                this.mealData = data || []
+                const firstWeek = Object.fromEntries(
+                    Object.entries(data).map(([key, value]) => [key, (value as any[]).slice(0, 7)])
+                )
+
+                const secondWeek = Object.fromEntries(
+                    Object.entries(data).map(([key, value]) => [key, (value as any[]).slice(7, 14)])
+                )
+
+                this.mealData = data
+                this.firstWeek = firstWeek
+                this.secondWeek = secondWeek
+                this.dietTypes = this.getDietTypes()
             }
         })
 
@@ -81,14 +85,25 @@ export class KitchenCalendarComponent implements OnInit {
      * (e.g. 'normal', 'vegetarian') 
      */
     getDietTypes() {
-        return Object.keys(this.mealData[0])
+        return Object.keys(this.mealData)
     }
 
     /**
-     * Translate diet type
+     * Get the day name from a date string
+     * @param dateString 
+     * @returns 
      */
-    getTranslatedDiet(dietKey: string) {
-        return this.translateService.instant(`DIETS.${dietKey.toUpperCase()}`)
+    getDayName(dateString: string): string {
+        return moment(dateString).format('dddd')
+    }
+
+    /**
+     * Check if the given date is today
+     * @param date date string
+     * @returns 
+     */
+    isToday(date: string): boolean {
+        return moment(date).isSame(moment(), 'day');
     }
 
     /**
@@ -98,8 +113,8 @@ export class KitchenCalendarComponent implements OnInit {
      */
     getTotalMeals(day: any, mealType: 'breakfast' | 'lunch' | 'dinner') {
         let total = 0;
-        this.getDietTypes().forEach(dietType => {
-            const dietData = this.mealData[0][dietType].find((d: KitchenCalendarData) => d.date === day.date)
+        this.dietTypes.forEach(dietType => {
+            const dietData = (this.mealData as any)[dietType].find((d: KitchenCalendarData) => d.date === day.date)
             if (dietData) {
                 total += dietData[mealType].total
             }
@@ -113,8 +128,16 @@ export class KitchenCalendarComponent implements OnInit {
      */
     doQuery() {
         this.loading = true
-        const today = new Date().toISOString().split('T')[0]
-        return this.kitchenCalendarService.get(today)
+        return this.kitchenCalendarService.get(this.selectedDate)
+    }
+
+    /**
+     * Load kitchen calendar data for the selected date
+     * @param event date object
+     */
+    onDateSelect(event: any) {
+        this.selectedDate = moment(event).format('YYYY.MM.DD')
+        this.doQuery()
     }
 
     /**

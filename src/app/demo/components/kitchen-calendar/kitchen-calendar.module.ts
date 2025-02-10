@@ -23,6 +23,7 @@ import { AvatarGroupModule } from 'primeng/avatargroup';
 import { SliderModule } from 'primeng/slider';
 import { CardModule } from 'primeng/card';
 import { DataViewModule  } from 'primeng/dataview';
+import { CalendarModule } from 'primeng/calendar';
 import { TranslateModule } from '@ngx-translate/core';
 import { SelectorsModule } from '../../selectors/selectors.module';
 import { KitchenCalendarService } from '../../service/kitchen-calendar.service';
@@ -54,6 +55,7 @@ import { KitchenCalendarService } from '../../service/kitchen-calendar.service';
         AvatarModule,
         AvatarGroupModule,
         SliderModule,
+        CalendarModule,
         TranslateModule,
     ],
     declarations: [KitchenCalendarComponent],
