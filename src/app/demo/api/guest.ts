@@ -33,4 +33,13 @@ export interface Guest {
     rfidColor?: string | null;
     prepaid?: boolean;
     climate?: boolean;
+    is_test?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+    userid?: string;
+    rfid_id?: string;
+    diet_id?: string;
+    room_id?: string;
+    answers?: string;
+    dietDetails?: string;
 }

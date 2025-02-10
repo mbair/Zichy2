@@ -873,6 +873,20 @@ export class GuestComponent implements OnInit {
                 data.push(...fallbackData)
             }
 
+            // Remove unnecessary columns
+            data.forEach(row => {
+                delete row.is_test
+                delete row.createdAt
+                delete row.updatedAt
+                delete row.userid
+                delete row.rfid_id
+                delete row.diet_id
+                delete row.room_id
+                delete row.conferenceid
+                delete row.answers
+                delete row.dietDetails
+            })
+
             const worksheet = xlsx.utils.json_to_sheet(data)
             const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
             const excelBuffer: any = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
