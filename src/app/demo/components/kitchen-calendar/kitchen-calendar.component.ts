@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, interval, Subscription, startWith } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MessageService } from 'primeng/api';
 import { KitchenCalendarService } from '../../service/kitchen-calendar.service';
@@ -34,10 +34,11 @@ export class KitchenCalendarComponent implements OnInit {
     secondWeek: any = []                 // Second week data
     dietTypes: string[] = []             // Diet types
     isMobile: boolean = false            // Mobile screen detection
+    subscription: Subscription           // Subscription for the interval
 
     private kitchenCalendarObs$: Observable<any> | undefined
     private serviceMessageObs$: Observable<any> | undefined
-
+    
     constructor(
         private kitchenCalendarService: KitchenCalendarService,
         private messageService: MessageService,
@@ -68,7 +69,9 @@ export class KitchenCalendarComponent implements OnInit {
             }
         })
 
-        this.doQuery()
+        // Request kitchen calendar data every 60 second
+        const source = interval(60000).pipe(startWith(0)) // Start with 0 to trigger the first request
+        this.subscription = source.subscribe(val => this.doQuery())
 
         // Monitor the changes of the window size
         this.responsiveService.isMobile$.subscribe((isMobile) => {
