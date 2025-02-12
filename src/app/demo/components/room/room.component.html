@@ -320,6 +320,25 @@
                         Kötelező kitölteni
                     </div>
                 </div>
+
+
+                <!-- climate -->
+                <div class="field mb-4 col-6">
+                    <label for="climate" class="font-medium text-900">Klimatizált?</label>
+                    <div class="flex flex-wrap gap-3 my-3">
+                        <div class="flex align-items-center">
+                            <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes"></p-radioButton>
+                            <label for="climate-yes" class="ml-2">Igen</label>
+                        </div>
+                        <div class="flex align-items-center">
+                            <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no"></p-radioButton>
+                            <label for="climate-no" class="ml-2">Nem</label>
+                        </div>
+                    </div>
+                    <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
+                        Kérjük válassza ki, hogy kér-e babaágyat!
+                    </div>
+                </div>
             </form>
 
             <ng-template pTemplate="footer">

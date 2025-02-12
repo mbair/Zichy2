@@ -100,9 +100,7 @@ export class GuestComponent implements OnInit {
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
     private guestObs$: Observable<any> | undefined;
-    private conferenceObs$: Observable<any> | undefined;
     private genderObs$: Observable<any> | undefined;
-    private dietObs$: Observable<any> | undefined;
     private messageObs$: Observable<any> | undefined;
 
     constructor(private http: HttpClient,
@@ -112,11 +110,9 @@ export class GuestComponent implements OnInit {
         private conferenceService: ConferenceService,
         private genderService: GenderService,
         private dietService: DietService,
-        private mealService: MealService,
         private countryService: CountryService,
         private messageService: MessageService,
         private logService: LogService,
-        private colorService: ColorService,
         private cdRef: ChangeDetectorRef,
         private fb: FormBuilder) {
 
@@ -218,13 +214,6 @@ export class GuestComponent implements OnInit {
         this.dietService.getDietsForSelector().subscribe({
             next: (data) => {
                 this.diets = data
-
-                // TODO: Remove when backend gives diet color
-                this.tableData.forEach((guest: Guest) => {
-                    if (guest.diet && this.diets.length > 0) {
-                        guest.dietColor = this.diets.find(d => d.name == guest.diet).color
-                    }
-                })
             }
         })
 

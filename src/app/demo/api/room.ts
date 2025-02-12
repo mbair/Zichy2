@@ -7,5 +7,6 @@ export interface Room {
     bathroom?: string;
     building?: string;
     bedtype?: string;
+    color?: string;
     comment?: string;
 }
