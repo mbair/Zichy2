@@ -23,6 +23,7 @@
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
                         <h5 class="m-0">Logok</h5>
 
+                        <!-- TODO: Create an individual selector from this -->
                         <p-dropdown
                                 inputId="statusfilter"
                                 [options]="statuses"
@@ -79,6 +80,7 @@
                             </p-calendar>
                         </th>
                         <th>
+                            <!-- TODO: Create an individual selector from this -->
                             <p-dropdown
                                 inputId="module_filter"
                                 [options]="modules"
@@ -102,6 +104,7 @@
                             </p-dropdown>
                         </th>
                         <th>
+                            <!-- TODO: Create an individual selector from this -->
                             <p-dropdown
                                 inputId="action_type_filter"
                                 [options]="action_types"
@@ -171,6 +174,9 @@
                                 <i *ngIf="logs.action_type.toLowerCase() == 'already received food'" class="pi pi-times-circle"></i>
                                 <i *ngIf="logs.action_type.toLowerCase() == 'unknown device'" class="pi pi-question-circle"></i>
                                 <i *ngIf="logs.action_type.toLowerCase() == 'import'" class="pi pi-file-import"></i>
+                                <i *ngIf="logs.action_type.toLowerCase() == 'login success'" class="pi pi-sign-in"></i>
+                                <i *ngIf="logs.action_type.toLowerCase() == 'login failed'" class="pi pi-sign-in"></i>
+                                <i *ngIf="logs.action_type.toLowerCase() == 'logout'" class="pi pi-sign-out"></i>
                                 {{ logs.action_type }}
                             </span>
                         </td>

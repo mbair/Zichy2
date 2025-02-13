@@ -104,6 +104,9 @@ export class LogsComponent implements OnInit {
             'already received food',
             'unknown device',
             'import',
+            'login success',
+            'login failed',
+            'logout',
         ]
 
         // HTTP statuses for selector

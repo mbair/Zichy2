@@ -50,14 +50,14 @@ export class RoomService {
 
         const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
 
-        this.getSzobak().then(szobak => {
-            console.log('szobak', szobak);
-            let response = { rows: szobak, total: szobak.length };
-            this.data$.next(response);
-        }).catch(error => {
-            console.error('Error fetching szobak:', error);
-        })
-        return 
+        // this.getSzobak().then(szobak => {
+        //     console.log('szobak', szobak);
+        //     let response = { rows: szobak, total: szobak.length };
+        //     this.data$.next(response);
+        // }).catch(error => {
+        //     console.error('Error fetching szobak:', error);
+        // })
+        // return 
 
         this.apiService.get<ApiResponse>(`room/get/${url}`)
             .subscribe({

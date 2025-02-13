@@ -75,6 +75,7 @@ export class RoomComponent implements OnInit {
             building: ['', Validators.required],
             floor: ['', Validators.required],
             bedType: ['', Validators.required],
+            climate: ['', Validators.required],
             comment: ['', []],
             extraCapacity: ['', []],
         })
@@ -107,6 +108,11 @@ export class RoomComponent implements OnInit {
         this.roomObs$.subscribe((data: ApiResponse) => {
             this.loading = false
             if (data) {
+
+                data.rows?.forEach((room: Room) => {
+                    room.color = 'orange'
+                })
+
                 this.tableData = data.rows || []
                 this.totalRecords = data.totalItems || 0
                 this.page = data.currentPage || 0
@@ -140,6 +146,7 @@ export class RoomComponent implements OnInit {
     get building() { return this.roomForm.get('building') }
     get floor() { return this.roomForm.get('floor') }
     get bedType() { return this.roomForm.get('bedType') }
+    get climate() { return this.roomForm.get('climate') }
     get comment() { return this.roomForm.get('comment') }
     get extraCapacity() { return this.roomForm.get('extraCapacity') }
 

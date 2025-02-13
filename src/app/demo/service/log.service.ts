@@ -98,7 +98,7 @@ export class LogService {
                             // OK
                             if (row.status == 200) {
                                 let response_data = JSON.parse(row.response_data),
-                                message = response_data.message
+                                message = response_data?.message
 
                                 if (message) {
                                     let original_data = JSON.parse(row.original_data)
@@ -310,6 +310,9 @@ export class LogService {
             'already received food',
             'unknown device',
             'import',
+            'login success',
+            'login failed',
+            'logout'
         ]
 
         let expandable = !system_action_types.includes(row.action_type?.toLowerCase())
