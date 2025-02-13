@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/demo/service/auth.service';
 import { MessageService } from 'primeng/api';
+import { LogService } from 'src/app/demo/service/log.service';
 
 @Component({
     templateUrl: './login.component.html',
@@ -17,6 +18,7 @@ export class LoginComponent {
         private fb: FormBuilder,
         private authService: AuthService,
         private messageService: MessageService,
+        private logService: LogService,
         private router: Router) {
 
         this.loginForm = this.fb.group({
@@ -43,6 +45,13 @@ export class LoginComponent {
                             detail: "",
                         })
 
+                        // Logging
+                        this.logService.create({
+                            action_type: "login success",
+                            table_name: "users",
+                            original_data: `${val.email} logged in`,
+                        })
+
                         this.router.navigate([''])
                     },
                     error: (err) => {
@@ -54,6 +63,13 @@ export class LoginComponent {
                             severity: "error",
                             summary: "",
                             detail: "Hibás a megadott email, vagy jelszó!",
+                        })
+
+                        // Logging
+                        this.logService.create({
+                            action_type: "login failed",
+                            table_name: "users",
+                            original_data: `${val.email} login failed`,
                         })
                     }
                 })

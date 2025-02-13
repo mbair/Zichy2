@@ -206,6 +206,21 @@
         background: var(--teal-200);
         color: var(--teal-800);
     }
+
+    &.login.success {
+        background: var(--teal-200);
+        color: var(--teal-800);
+    }
+
+    &.login.failed {
+        background: var(--red-200);
+        color: var(--red-800);
+    }
+
+    &.logout {
+        background: var(--teal-200);
+        color: var(--teal-800);
+    }
 }
 
 /* HTTP Statuses */
