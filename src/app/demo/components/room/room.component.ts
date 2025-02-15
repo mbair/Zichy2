@@ -70,14 +70,14 @@ export class RoomComponent implements OnInit {
             roomNum: ['', Validators.required],
             roomCode: ['', Validators.required],
             beds: ['', Validators.required],
-            extraBed: ['', Validators.required],
+            spareBeds: ['', Validators.required],
             bathroom: ['', Validators.required],
             building: ['', Validators.required],
             floor: ['', Validators.required],
             bedType: ['', Validators.required],
             climate: ['', Validators.required],
             comment: ['', []],
-            extraCapacity: ['', []],
+            extraBeds: ['', []],
         })
 
         this.roomCodes = [
@@ -141,14 +141,14 @@ export class RoomComponent implements OnInit {
     get roomNum() { return this.roomForm.get('roomNum') }
     get roomCode() { return this.roomForm.get('roomCode') }
     get beds() { return this.roomForm.get('beds') }
-    get extraBed() { return this.roomForm.get('extraBed') }
+    get spareBeds() { return this.roomForm.get('spareBeds') }
     get bathroom() { return this.roomForm.get('bathroom') }
     get building() { return this.roomForm.get('building') }
     get floor() { return this.roomForm.get('floor') }
     get bedType() { return this.roomForm.get('bedType') }
     get climate() { return this.roomForm.get('climate') }
     get comment() { return this.roomForm.get('comment') }
-    get extraCapacity() { return this.roomForm.get('extraCapacity') }
+    get extraBeds() { return this.roomForm.get('extraBeds') }
 
     /**
      * Load filtered data into the Table
@@ -174,7 +174,7 @@ export class RoomComponent implements OnInit {
      * @param field
      */
     onFilter(event: any, field: string) {
-        const noWaitFields: string[] = ['conferenceName', 'extraBed']
+        const noWaitFields: string[] = ['conferenceName', 'spareBeds']
         let filterValue = ''
 
         // Calendar date as String

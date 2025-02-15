@@ -1,7 +1,7 @@
 <!-- ReactiveForms -->
 <p-dropdown *ngIf="getFormControl() as control; else useNgModel"
             [formControl]="control"
-            [options]="extrabeds"
+            [options]="sparebeds"
             optionLabel="label"
             optionValue="value"
             (onChange)="handleOnChange($event)"
@@ -10,12 +10,12 @@
             [showClear]="showClear"
             appendTo="body">
     <ng-template pTemplate="item" let-option>
-        <span [ngClass]="'extrabed-badge ' + option?.value">
+        <span [ngClass]="'sparebed-badge ' + option?.value">
             {{ option.label }}
         </span>
     </ng-template>
     <ng-template pTemplate="selectedItem" let-selectedItem>
-        <span [ngClass]="'extrabed-badge ' + selectedItem?.value">
+        <span [ngClass]="'sparebed-badge ' + selectedItem?.value">
             {{ selectedItem?.label }}
         </span>
     </ng-template>
@@ -23,8 +23,8 @@
 
 <!-- ngModel -->
 <ng-template #useNgModel>
-    <p-dropdown [(ngModel)]="selectedExtrabed"
-                [options]="extrabeds"
+    <p-dropdown [(ngModel)]="selectedSparebed"
+                [options]="sparebeds"
                 optionLabel="label"
                 optionValue="value"
                 (onChange)="handleOnChange($event)"
@@ -33,12 +33,12 @@
                 [showClear]="showClear"
                 appendTo="body">
         <ng-template pTemplate="item" let-option>
-            <span [ngClass]="'extrabed-badge ' + option?.value">
+            <span [ngClass]="'sparebed-badge ' + option?.value">
                 {{ option.label }}
             </span>
         </ng-template>
         <ng-template pTemplate="selectedItem" let-selectedItem>
-            <span [ngClass]="'extrabed-badge ' + selectedItem?.value">
+            <span [ngClass]="'sparebed-badge ' + selectedItem?.value">
                 {{ selectedItem?.label }}
             </span>
         </ng-template>

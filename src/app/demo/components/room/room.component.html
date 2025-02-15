@@ -43,7 +43,7 @@
                     <tr>
                         <th></th>
                         <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
-                        <th pSortableColumn="extraBed">Pótágy <p-sortIcon field="extraBed"></p-sortIcon></th>
+                        <th pSortableColumn="spareBeds">Pótágy <p-sortIcon field="spareBeds"></p-sortIcon></th>
                         <th pSortableColumn="comment">Komment <p-sortIcon field="comment"></p-sortIcon></th>
                         <th pSortableColumn="guests">Vendégek <p-sortIcon field="guests"></p-sortIcon></th>
                         <th pSortableColumn="occupancy">Telítettség <p-sortIcon field="occupancy"></p-sortIcon></th>
@@ -78,10 +78,10 @@
                            </app-bathroom-selector> -->
                         </th>
                         <th>
-                            <app-extrabed-selector
-                                    (change)="onFilter($event, 'extraBed')"
+                            <app-sparebed-selector
+                                    (change)="onFilter($event, 'spareBeds')"
                                     [showClear]="true">
-                            </app-extrabed-selector>
+                            </app-sparebed-selector>
                         </th>
                         <th>
                             <input pInputText
@@ -163,8 +163,8 @@
                         </td>
                         <td>
                             <span class="p-column-title">Pótágy</span>
-                            <span class="extrabed-badge {{ room.extraBed?.value }}">
-                                {{ room.extraBed?.label }}
+                            <span class="spareBeds-badge {{ room.spareBeds?.value }}">
+                                {{ room.spareBeds?.label }}
                             </span>
                         </td>
                         <td>
@@ -267,12 +267,11 @@
                     </div>
                 </div>
 
-                <!-- TODO: change to spareBed -->
-                <!-- extraBed -->
+                <!-- spareBeds -->
                 <div class="field mb-4 col-6">
-                    <label for="extraBed" class="font-medium text-900">Pótágy</label>
-                    <app-extrabed-selector [parentForm]="roomForm" controlName="extraBed"></app-extrabed-selector>
-                    <div *ngIf="extraBed?.dirty && extraBed?.errors?.['required']" class="block p-error">
+                    <label for="spareBeds" class="font-medium text-900">Pótágy</label>
+                    <app-sparebed-selector [parentForm]="roomForm" controlName="spareBeds"></app-sparebed-selector>
+                    <div *ngIf="spareBeds?.dirty && spareBeds?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>
@@ -313,11 +312,11 @@
                     </div>
                 </div>
 
-                <!-- extraCapacity -->
+                <!-- extraBeds -->
                 <div class="field mb-4 col-6">
-                    <label for="extraCapacity" class="font-medium text-900">Extra férőhely</label>
-                    <input id="extraCapacity" type="text" pInputText formControlName="extraCapacity">
-                    <div *ngIf="extraCapacity?.dirty && extraCapacity?.errors?.['required']" class="block p-error">
+                    <label for="extraBeds" class="font-medium text-900">Extra férőhely</label>
+                    <input id="extraBeds" type="text" pInputText formControlName="extraBeds">
+                    <div *ngIf="extraBeds?.dirty && extraBeds?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>

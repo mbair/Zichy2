@@ -17,7 +17,7 @@ import { UserSelectorComponent } from './user-selector/user-selector.component';
 import { RoleSelectorComponent } from './role-selector/role-selector.component';
 import { ColorSelectorComponent } from './color-selector/color-selector.component';
 import { EnabledSelectorComponent } from './enabled-selector/enabled-selector.component';
-import { ExtrabedSelectorComponent } from './extrabed-selector/extrabed-selector.component';
+import { SparebedSelectorComponent } from './sparebed-selector/sparebed-selector.component';
 import { BuildingSelectorComponent } from './building-selector/building-selector.component';
 import { BedtypeSelectorComponent } from './bedtype-selector/bedtype-selector.component';
 import { BathroomSelectorComponent } from './bathroom-selector/bathroom-selector.component';
@@ -37,7 +37,7 @@ import { FloorSelectorComponent } from './floor-selector/floor-selector.componen
         ColorSelectorComponent,
         EnabledSelectorComponent,
         ConferenceSelectorComponent,
-        ExtrabedSelectorComponent,
+        SparebedSelectorComponent,
         BuildingSelectorComponent,
         BedtypeSelectorComponent,
         BathroomSelectorComponent,
@@ -64,7 +64,7 @@ import { FloorSelectorComponent } from './floor-selector/floor-selector.componen
         ColorSelectorComponent,
         EnabledSelectorComponent,
         ConferenceSelectorComponent,
-        ExtrabedSelectorComponent,
+        SparebedSelectorComponent,
         BuildingSelectorComponent,
         BedtypeSelectorComponent,
         BathroomSelectorComponent,
