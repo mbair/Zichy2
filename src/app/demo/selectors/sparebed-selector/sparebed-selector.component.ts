@@ -60,10 +60,10 @@ export class SparebedSelectorComponent {
      */
     setSparebeds() {
         this.sparebeds = [
-            { label: this.translate.instant('sparebeds.M'), value: 'M' },     // matrac fér be
-            { label: this.translate.instant('sparebeds.MM'), value: 'MM' },   // 2 db matrac fér
-            { label: this.translate.instant('sparebeds.MGY'), value: 'MGY' }, // matrac és gyerekágy fér be
-            { label: this.translate.instant('sparebeds.GY'), value: 'GY' },   // gyerekágy fér be, A matrac helyett befér gyerekágy de fordítva nem
+            { label: this.translate.instant('SPAREBEDS.M'), value: 'M' },     // matrac fér be
+            { label: this.translate.instant('SPAREBEDS.MM'), value: 'MM' },   // 2 db matrac fér
+            { label: this.translate.instant('SPAREBEDS.MGY'), value: 'MGY' }, // matrac és gyerekágy fér be
+            { label: this.translate.instant('SPAREBEDS.GY'), value: 'GY' },   // gyerekágy fér be, A matrac helyett befér gyerekágy de fordítva nem
         ]
     }
 

@@ -126,7 +126,7 @@
                                     <div class="block min-w-max border-left-1 px-2 border-{{room.color}}-300 text-{{room.color}}-800" pTooltip="Szoba kód: {{ room.roomCode }}" tooltipPosition="top">
                                         <div class="flex flex-column align-items-left justify-content-center">
                                             <span class="font-semibold uppercase">
-                                                {{ room.building }} <span class="font-normal text-sm uppercase">({{ room.floor }})</span>
+                                                {{ 'BUILDINGS.' + room.building.toUpperCase() | translate }} <span class="font-normal text-sm uppercase">({{ room.floor }})</span>
                                                 <span *ngIf="room.climate" class="pl-1">❄️</span>
                                             </span>
                                             <span class="font-small text-xs uppercase">
@@ -251,7 +251,7 @@
 
                 <!-- beds -->
                 <div class="field mb-4 col-6">
-                    <label for="beds" class="font-medium text-900">Férőhelyek száma</label>
+                    <label for="beds" class="font-medium text-900">Ágyak száma</label>
                     <input id="beds" type="text" pInputText formControlName="beds">
                     <div *ngIf="beds?.dirty && beds?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
@@ -261,7 +261,7 @@
                 <!-- bedType -->
                 <div class="field mb-4 col-6">
                     <label for="bedType" class="font-medium text-900">Ágytípus</label>
-                    <app-bedtype-selector [parentForm]="roomForm" controlName="bedType"></app-bedtype-selector>
+                    <app-bedtype-selector [parentForm]="roomForm" controlName="bedType" [showClear]="true"></app-bedtype-selector>
                     <div *ngIf="bedType?.dirty && bedType?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
@@ -270,7 +270,7 @@
                 <!-- spareBeds -->
                 <div class="field mb-4 col-6">
                     <label for="spareBeds" class="font-medium text-900">Pótágy</label>
-                    <app-sparebed-selector [parentForm]="roomForm" controlName="spareBeds"></app-sparebed-selector>
+                    <app-sparebed-selector [parentForm]="roomForm" controlName="spareBeds" [showClear]="true"></app-sparebed-selector>
                     <div *ngIf="spareBeds?.dirty && spareBeds?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
@@ -279,7 +279,7 @@
                 <!-- bathroom -->
                 <div class="field mb-4 col-6">
                     <label for="bathroom" class="font-medium text-900">Fürdőszoba</label>
-                    <app-bathroom-selector [parentForm]="roomForm" controlName="bathroom"></app-bathroom-selector>
+                    <app-bathroom-selector [parentForm]="roomForm" controlName="bathroom" [showClear]="true"></app-bathroom-selector>
                     <div *ngIf="bathroom?.dirty && bathroom?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
@@ -288,7 +288,7 @@
                 <!-- building -->
                 <div class="field mb-4 col-6">
                     <label for="building" class="font-medium text-900">Épület</label>
-                    <app-building-selector [parentForm]="roomForm" controlName="building"></app-building-selector>
+                    <app-building-selector [parentForm]="roomForm" controlName="building" [showClear]="true"></app-building-selector>
                     <div *ngIf="building?.dirty && building?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
@@ -297,7 +297,7 @@
                 <!-- floor -->
                 <div class="field mb-4 col-6">
                     <label for="floor" class="font-medium text-900">Emelet</label>
-                    <app-floor-selector [parentForm]="roomForm" controlName="floor"></app-floor-selector>
+                    <app-floor-selector [parentForm]="roomForm" controlName="floor" [showClear]="true"></app-floor-selector>
                     <div *ngIf="floor?.dirty && floor?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>

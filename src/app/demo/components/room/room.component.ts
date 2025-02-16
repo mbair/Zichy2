@@ -31,7 +31,7 @@ export class RoomComponent implements OnInit {
     rowsPerPage: number = 20                     // Default rows per page
     totalRecords: number = 0                     // Total number of rows in the table
     page: number = 0                             // Current page
-    sortField: string = ''                       // Current sort field
+    sortField: string = 'roomNum'                // Current sort field
     sortOrder: number = 1                        // Current sort order
     globalFilter: string = ''                    // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
@@ -52,6 +52,21 @@ export class RoomComponent implements OnInit {
     bedTypes: any[] = []                         // Bed type options
     occupancyFilter: any
 
+    private defaultRoomFormValues = {
+        id: null,
+        roomNum: '',
+        roomCode: '',
+        beds: '',
+        spareBeds: '',
+        bathroom: '',
+        building: '',
+        floor: '',
+        bedType: '',
+        climate: 0,
+        comment: '',
+        extraBeds: 0
+    };
+
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
     private roomObs$: Observable<any> | undefined
@@ -66,18 +81,18 @@ export class RoomComponent implements OnInit {
 
         // Room form fields and validators
         this.roomForm = this.fb.group({
-            id: [''],
-            roomNum: ['', Validators.required],
-            roomCode: ['', Validators.required],
-            beds: ['', Validators.required],
-            spareBeds: ['', Validators.required],
-            bathroom: ['', Validators.required],
-            building: ['', Validators.required],
-            floor: ['', Validators.required],
-            bedType: ['', Validators.required],
-            climate: ['', Validators.required],
-            comment: ['', []],
-            extraBeds: ['', []],
+            id: [this.defaultRoomFormValues.id],
+            roomNum: [this.defaultRoomFormValues.roomNum, Validators.required],
+            roomCode: [this.defaultRoomFormValues.roomCode, Validators.required],
+            beds: [this.defaultRoomFormValues.beds, Validators.required],
+            spareBeds: [this.defaultRoomFormValues.spareBeds],
+            bathroom: [this.defaultRoomFormValues.bathroom, Validators.required],
+            building: [this.defaultRoomFormValues.building, Validators.required],
+            floor: [this.defaultRoomFormValues.floor, Validators.required],
+            bedType: [this.defaultRoomFormValues.bedType, Validators.required],
+            climate: [this.defaultRoomFormValues.climate, Validators.required],
+            comment: [this.defaultRoomFormValues.comment],
+            extraBeds: [this.defaultRoomFormValues.extraBeds]
         })
 
         this.roomCodes = [
@@ -221,8 +236,8 @@ export class RoomComponent implements OnInit {
     onLazyLoad(event: any) {
         this.page = event.first! / event.rows!
         this.rowsPerPage = event.rows ?? this.rowsPerPage
-        this.sortField = event.sortField ?? ''
-        this.sortOrder = event.sortOrder ?? 1
+        // this.sortField = event.sortField ?? this.sortField
+        // this.sortOrder = event.sortOrder ?? this.sortOrder
         this.globalFilter = event.globalFilter ?? ''
         this.doQuery()
     }
@@ -240,7 +255,7 @@ export class RoomComponent implements OnInit {
      * Create new Room
      */
     create() {
-        this.roomForm.reset()
+        this.roomForm.reset(this.defaultRoomFormValues)
         this.sidebar = true
     }
 
@@ -249,7 +264,7 @@ export class RoomComponent implements OnInit {
      * @param room
      */
     edit(room: Room) {
-        this.roomForm.reset()
+        this.roomForm.reset(this.defaultRoomFormValues)
         this.roomForm.patchValue(room)
         this.originalFormValues = this.roomForm.value
         this.sidebar = true
