@@ -45,7 +45,6 @@ export class RoomComponent implements OnInit {
     canCreate: boolean = false                   // User has permission to create new room
     canEdit: boolean = false                     // User has permission to update room
     canDelete: boolean = false                   // User has permission to delete room
-    colors: any = {}                             // PrimeNG colors
     isMobile: boolean = false                    // Mobile screen detection
     roomCodes: any[] = []                        // Room code options
     matraces: any[] = []                         // Matrace options

@@ -115,51 +115,27 @@
                         <td>
                             <span class="p-column-title">Szoba szám</span>
 
-                            <div class="bg-{{room.color}}-200 border-round-xl w-min">
+                            <div class="building-badge {{room.building}} border-round-xl w-min p-0">
                                 <div class="flex align-items-center justify-content-center py-1 px-1">
                                     <div class="flex align-items-center justify-content-center gap-2 px-2">
-                                        <i class="pi pi-key text-{{room.color}}-800 vertical-align-middle"></i>
-                                        <span class="text-2xl text-{{room.color}}-800 font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ room.roomNum }}" tooltipPosition="top">
+                                        <i class="pi pi-key vertical-align-middle"></i>
+                                        <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ room.roomNum }}" tooltipPosition="top">
                                             {{ room.roomNum }}
                                         </span>
                                     </div>
-                                    <div class="block min-w-max border-left-1 px-2 border-{{room.color}}-300 text-{{room.color}}-800" pTooltip="Szoba kód: {{ room.roomCode }}" tooltipPosition="top">
+                                    <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ room.roomCode }}" tooltipPosition="top">
                                         <div class="flex flex-column align-items-left justify-content-center">
-                                            <span class="font-semibold uppercase">
+                                            <span class="text-base font-semibold uppercase">
                                                 {{ 'BUILDINGS.' + room.building.toUpperCase() | translate }} <span class="font-normal text-sm uppercase">({{ room.floor }})</span>
                                                 <span *ngIf="room.climate" class="pl-1">❄️</span>
                                             </span>
-                                            <span class="font-small text-xs uppercase">
+                                            <span class="font-light text-xs uppercase">
                                                 {{ room.beds }} SZEMÉLYES ({{ room.bedType }}, {{ room.bathroom }})
                                             </span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- <div class="my-2">
-                            </div>
-
-                            <div class="bg-indigo-200 border-round-xl w-min">
-                                <div class="flex align-items-center justify-content-center py-1 px-1">
-                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
-                                        <i class="pi pi-key text-indigo-800 vertical-align-middle"></i>
-                                        <span class="text-2xl text-indigo-800 font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám" tooltipPosition="top">
-                                            {{ room.roomNum }}
-                                        </span>
-                                    </div>
-                                    <div class="flex align-items-center justify-content-center border-left-1 border-right-1 px-2 border-indigo-300">
-                                        <span class="font-small text-indigo-800 white-space-nowrap" pTooltip="{{room.building}}" tooltipPosition="top">
-                                            {{ room.roomCode }}
-                                        </span>
-                                    </div>
-                                    <div class="flex align-items-center justify-content-center px-2">
-                                        <span class="font-small text-indigo-800 white-space-nowrap" pTooltip="{{room.bedType}}" tooltipPosition="top">
-                                            {{ room.beds }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div> -->
                         </td>
                         <td>
                             <span class="p-column-title">Pótágy</span>
