@@ -365,14 +365,24 @@
         color: var(--yellow-800);
     }
 
-    &.familyroom {
+    &.cornerhouse {
+        background: var(--purple-200);
+        color: var(--purple-800);
+    }
+
+    &.logoshouse {
         background: var(--orange-200);
         color: var(--orange-800);
     }
 
-    &.cornerhouse {
-        background: var(--bluegray-200);
-        color: var(--bluegray-800);
+    &.gatehouse {
+        background: var(--blue-200);
+        color: var(--blue-800);
+    }
+
+    &.caretakerhouse {
+        background: var(--cyan-200);
+        color: var(--cyan-800);
     }
 
     &.huntinglodge {
@@ -463,11 +473,6 @@
     &.bluegray {
         background: var(--bluegray-200);
         color: var(--bluegray-800);
-    }
-
-    &.purple {
-        background: var(--purple-200);
-        color: var(--purple-800);
     }
 
     &.purple {

@@ -107,7 +107,7 @@ const routes: Routes = [
                 path: 'kitchen-calendar', 
                 data: { 
                     breadcrumb: 'Konyhanaptár',
-                    requiredRoles: ['Super Admin']
+                    requiredRoles: ['Super Admin', 'Nagy Admin', 'Kis Admin']
                 }, 
                 loadChildren: () => import('./demo/components/kitchen-calendar/kitchen-calendar.module').then(m => m.KitchenCalendarModule), 
                 canActivate: [AuthGuard] 

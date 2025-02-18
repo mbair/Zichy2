@@ -113,8 +113,10 @@
     "BUILDINGS": {
         "CASTLE": "Castle accommodation",
         "MARANATHA": "Maranatha Pension House",
-        "FAMILYROOM": "Family room",
         "CORNERHOUSE": "Corner house",
+        "LOGOSHOUSE": "Logos house",
+        "GATEHOUSE": "Gate house",
+        "CARETAKERHOUSE": "Caretaker house",
         "HUNTINGLODGE": "Hounting lodge"
     },
     "BEDTYPES": {

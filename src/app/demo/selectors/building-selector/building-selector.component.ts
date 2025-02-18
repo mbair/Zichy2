@@ -67,8 +67,10 @@ export class BuildingSelectorComponent {
         this.buildings = [
             { label: this.translate.instant('BUILDINGS.CASTLE'), value: 'castle' },
             { label: this.translate.instant('BUILDINGS.MARANATHA'), value: 'maranatha' },
-            { label: this.translate.instant('BUILDINGS.FAMILYROOM'), value: 'familyroom' },
             { label: this.translate.instant('BUILDINGS.CORNERHOUSE'), value: 'cornerhouse' },
+            { label: this.translate.instant('BUILDINGS.LOGOSHOUSE'), value: 'logoshouse' },
+            { label: this.translate.instant('BUILDINGS.GATEHOUSE'), value: 'gatehouse' },
+            { label: this.translate.instant('BUILDINGS.CARETAKERHOUSE'), value: 'caretakerhouse' },
             { label: this.translate.instant('BUILDINGS.HUNTINGLODGE'), value: 'huntinglodge' },
         ]
     }

@@ -113,8 +113,10 @@
     "BUILDINGS": {
         "CASTLE": "Kastély szállás",
         "MARANATHA": "Maranatha Panzióház",
-        "FAMILYROOM": "Családi szoba",
         "CORNERHOUSE": "Sarokház",
+        "LOGOSHOUSE": "Logos ház",
+        "GATEHOUSE": "Kapu ház",
+        "CARETAKERHOUSE": "Gondnoki ház",
         "HUNTINGLODGE": "Vadászház"
     },
     "BEDTYPES": {
