@@ -1,7 +1,25 @@
-tr, th, td {
+tr,
+th,
+td {
     padding: 7px !important;
 }
 
 .mealcol {
     min-width: 65px;
+}
+
+@keyframes pulse {
+    0% {
+        background-color: rgba(255, 255, 0, 0.5);
+    }
+    50% {
+        background-color: rgba(255, 255, 0, 0.2);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.animate-pulse {
+    animation: pulse 1.5s ease-in-out;
 }
