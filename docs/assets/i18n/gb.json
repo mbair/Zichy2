@@ -104,7 +104,7 @@
         "SZEP-CARD": "SZEP card",    
         "CASH": "Cash"
     },
-    "EXTRABEDS": {
+    "SPAREBEDS": {
         "M": "mattress",
         "MM": "2 mattresses",
         "MGY": "mattress + children's bed",

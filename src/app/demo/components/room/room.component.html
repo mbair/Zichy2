@@ -43,7 +43,7 @@
                     <tr>
                         <th></th>
                         <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
-                        <th pSortableColumn="extraBed">Pótágy <p-sortIcon field="extraBed"></p-sortIcon></th>
+                        <th pSortableColumn="spareBeds">Pótágy <p-sortIcon field="spareBeds"></p-sortIcon></th>
                         <th pSortableColumn="comment">Komment <p-sortIcon field="comment"></p-sortIcon></th>
                         <th pSortableColumn="guests">Vendégek <p-sortIcon field="guests"></p-sortIcon></th>
                         <th pSortableColumn="occupancy">Telítettség <p-sortIcon field="occupancy"></p-sortIcon></th>
@@ -78,10 +78,10 @@
                            </app-bathroom-selector> -->
                         </th>
                         <th>
-                            <app-extrabed-selector
-                                    (change)="onFilter($event, 'extraBed')"
+                            <app-sparebed-selector
+                                    (change)="onFilter($event, 'spareBeds')"
                                     [showClear]="true">
-                            </app-extrabed-selector>
+                            </app-sparebed-selector>
                         </th>
                         <th>
                             <input pInputText
@@ -115,56 +115,32 @@
                         <td>
                             <span class="p-column-title">Szoba szám</span>
 
-                            <div class="bg-{{room.color}}-200 border-round-xl w-min">
+                            <div class="building-badge {{room.building}} border-round-xl w-min p-0">
                                 <div class="flex align-items-center justify-content-center py-1 px-1">
                                     <div class="flex align-items-center justify-content-center gap-2 px-2">
-                                        <i class="pi pi-key text-{{room.color}}-800 vertical-align-middle"></i>
-                                        <span class="text-2xl text-{{room.color}}-800 font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ room.roomNum }}" tooltipPosition="top">
+                                        <i class="pi pi-key vertical-align-middle"></i>
+                                        <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ room.roomNum }}" tooltipPosition="top">
                                             {{ room.roomNum }}
                                         </span>
                                     </div>
-                                    <div class="block min-w-max border-left-1 px-2 border-{{room.color}}-300 text-{{room.color}}-800" pTooltip="Szoba kód: {{ room.roomCode }}" tooltipPosition="top">
+                                    <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ room.roomCode }}" tooltipPosition="top">
                                         <div class="flex flex-column align-items-left justify-content-center">
-                                            <span class="font-semibold uppercase">
-                                                {{ room.building }} <span class="font-normal text-sm uppercase">({{ room.floor }})</span>
+                                            <span class="text-base font-semibold uppercase">
+                                                {{ 'BUILDINGS.' + room.building.toUpperCase() | translate }} <span class="font-normal text-sm uppercase">({{ room.floor }})</span>
                                                 <span *ngIf="room.climate" class="pl-1">❄️</span>
                                             </span>
-                                            <span class="font-small text-xs uppercase">
+                                            <span class="font-light text-xs uppercase">
                                                 {{ room.beds }} SZEMÉLYES ({{ room.bedType }}, {{ room.bathroom }})
                                             </span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- <div class="my-2">
-                            </div>
-
-                            <div class="bg-indigo-200 border-round-xl w-min">
-                                <div class="flex align-items-center justify-content-center py-1 px-1">
-                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
-                                        <i class="pi pi-key text-indigo-800 vertical-align-middle"></i>
-                                        <span class="text-2xl text-indigo-800 font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám" tooltipPosition="top">
-                                            {{ room.roomNum }}
-                                        </span>
-                                    </div>
-                                    <div class="flex align-items-center justify-content-center border-left-1 border-right-1 px-2 border-indigo-300">
-                                        <span class="font-small text-indigo-800 white-space-nowrap" pTooltip="{{room.building}}" tooltipPosition="top">
-                                            {{ room.roomCode }}
-                                        </span>
-                                    </div>
-                                    <div class="flex align-items-center justify-content-center px-2">
-                                        <span class="font-small text-indigo-800 white-space-nowrap" pTooltip="{{room.bedType}}" tooltipPosition="top">
-                                            {{ room.beds }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div> -->
                         </td>
                         <td>
                             <span class="p-column-title">Pótágy</span>
-                            <span class="extrabed-badge {{ room.extraBed?.value }}">
-                                {{ room.extraBed?.label }}
+                            <span class="spareBeds-badge {{ room.spareBeds?.value }}">
+                                {{ room.spareBeds?.label }}
                             </span>
                         </td>
                         <td>
@@ -251,7 +227,7 @@
 
                 <!-- beds -->
                 <div class="field mb-4 col-6">
-                    <label for="beds" class="font-medium text-900">Férőhelyek száma</label>
+                    <label for="beds" class="font-medium text-900">Ágyak száma</label>
                     <input id="beds" type="text" pInputText formControlName="beds">
                     <div *ngIf="beds?.dirty && beds?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
@@ -261,17 +237,17 @@
                 <!-- bedType -->
                 <div class="field mb-4 col-6">
                     <label for="bedType" class="font-medium text-900">Ágytípus</label>
-                    <app-bedtype-selector [parentForm]="roomForm" controlName="bedType"></app-bedtype-selector>
+                    <app-bedtype-selector [parentForm]="roomForm" controlName="bedType" [showClear]="true"></app-bedtype-selector>
                     <div *ngIf="bedType?.dirty && bedType?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>
 
-                <!-- extraBed -->
+                <!-- spareBeds -->
                 <div class="field mb-4 col-6">
-                    <label for="extraBed" class="font-medium text-900">Pótágy</label>
-                    <app-extrabed-selector [parentForm]="roomForm" controlName="extraBed"></app-extrabed-selector>
-                    <div *ngIf="extraBed?.dirty && extraBed?.errors?.['required']" class="block p-error">
+                    <label for="spareBeds" class="font-medium text-900">Pótágy</label>
+                    <app-sparebed-selector [parentForm]="roomForm" controlName="spareBeds" [showClear]="true"></app-sparebed-selector>
+                    <div *ngIf="spareBeds?.dirty && spareBeds?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>
@@ -279,7 +255,7 @@
                 <!-- bathroom -->
                 <div class="field mb-4 col-6">
                     <label for="bathroom" class="font-medium text-900">Fürdőszoba</label>
-                    <app-bathroom-selector [parentForm]="roomForm" controlName="bathroom"></app-bathroom-selector>
+                    <app-bathroom-selector [parentForm]="roomForm" controlName="bathroom" [showClear]="true"></app-bathroom-selector>
                     <div *ngIf="bathroom?.dirty && bathroom?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
@@ -288,7 +264,7 @@
                 <!-- building -->
                 <div class="field mb-4 col-6">
                     <label for="building" class="font-medium text-900">Épület</label>
-                    <app-building-selector [parentForm]="roomForm" controlName="building"></app-building-selector>
+                    <app-building-selector [parentForm]="roomForm" controlName="building" [showClear]="true"></app-building-selector>
                     <div *ngIf="building?.dirty && building?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
@@ -297,7 +273,7 @@
                 <!-- floor -->
                 <div class="field mb-4 col-6">
                     <label for="floor" class="font-medium text-900">Emelet</label>
-                    <app-floor-selector [parentForm]="roomForm" controlName="floor"></app-floor-selector>
+                    <app-floor-selector [parentForm]="roomForm" controlName="floor" [showClear]="true"></app-floor-selector>
                     <div *ngIf="floor?.dirty && floor?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
@@ -312,15 +288,14 @@
                     </div>
                 </div>
 
-                <!-- extraCapacity -->
+                <!-- extraBeds -->
                 <div class="field mb-4 col-6">
-                    <label for="extraCapacity" class="font-medium text-900">Extra férőhely</label>
-                    <input id="extraCapacity" type="text" pInputText formControlName="extraCapacity">
-                    <div *ngIf="extraCapacity?.dirty && extraCapacity?.errors?.['required']" class="block p-error">
+                    <label for="extraBeds" class="font-medium text-900">Extra férőhely</label>
+                    <input id="extraBeds" type="text" pInputText formControlName="extraBeds">
+                    <div *ngIf="extraBeds?.dirty && extraBeds?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>
-
 
                 <!-- climate -->
                 <div class="field mb-4 col-6">

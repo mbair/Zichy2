@@ -50,26 +50,9 @@ export class RoomService {
 
         const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
 
-        // this.getSzobak().then(szobak => {
-        //     console.log('szobak', szobak);
-        //     let response = { rows: szobak, total: szobak.length };
-        //     this.data$.next(response);
-        // }).catch(error => {
-        //     console.error('Error fetching szobak:', error);
-        // })
-        // return 
-
         this.apiService.get<ApiResponse>(`room/get/${url}`)
             .subscribe({
                 next: (response: ApiResponse) => {
-
-                    // Room name need convert to lowercase
-                    if (response && response.rows) {
-                        response.rows.map((room: any) => {
-                            room.name = room.name?.toLowerCase()
-                        })
-                    }
-                    
                     this.data$.next(response)
                 },
                 error: (error: any) => {
@@ -128,7 +111,7 @@ export class RoomService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres szoba rögzítés',
-                        detail: `${room.roomNum} rögzítve`,
+                        detail: `${room.roomNum} számú szoba rögzítve`,
                     })
                 },
                 error: (error: any) => {
@@ -148,7 +131,7 @@ export class RoomService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres szoba módosítás',
-                        detail: `${modifiedRoom.roomNum} módosítva`,
+                        detail: `${modifiedRoom.roomNum} számú szoba módosítva`,
                     })
                 },
                 error: (error: any) => {
@@ -168,7 +151,7 @@ export class RoomService {
                     this.message$.next({
                         severity: 'success',
                         summary: 'Sikeres szoba törlés',
-                        detail: `${room.roomNum} törölve`,
+                        detail: `${room.roomNum} számú szoba törölve`,
                     })
                 },
                 error: (error: any) => {

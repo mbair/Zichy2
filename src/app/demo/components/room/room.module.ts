@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RoomRoutingModule } from './room-routing.module';
 import { RoomComponent } from './room.component';
+import { TranslateModule } from '@ngx-translate/core';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
@@ -51,6 +52,7 @@ import { RoomService } from '../../service/room.service';
         AvatarGroupModule,
         SliderModule,
         RadioButtonModule,
+        TranslateModule
     ],
     declarations: [RoomComponent],
     providers: [RoomService]
