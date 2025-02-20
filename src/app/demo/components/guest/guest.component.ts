@@ -872,7 +872,7 @@ export class GuestComponent implements OnInit {
                 delete row.diet_id
                 delete row.room_id
                 delete row.conferenceid
-                delete row.answers
+                // delete row.answers
                 delete row.dietDetails
             })
 
