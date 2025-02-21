@@ -845,8 +845,16 @@ export class GuestComponent implements OnInit {
         import("xlsx").then(xlsx => {
             // Use only selected rows for export
             const data = this.selected.map(row => {
-                const { id, ...rest } = row // Remove the 'id' column
-                return rest
+                const { id, answers, ...rest } = row // Remove the 'id' column
+                
+                return {
+                    ...rest,
+                    answers: (Array.isArray(answers) ? answers : []).map((answer: any) =>
+                        answer.translations.map((t:any) =>
+                            `${t.hu.trim().endsWith('?') ? t.hu : t.hu + '?'} ${t.answers}`
+                        ).join(' | ') // Ha több fordítás van, akkor " | " jellel összefűzzük őket
+                    ).join(' || ') // Ha több válasz van, akkor " || " jellel összefűzzük őket
+                }
             })
             
             if (data.length === 0) {
@@ -855,8 +863,16 @@ export class GuestComponent implements OnInit {
                 
                 // If the table has a filter applied, use the filtered data
                 const fallbackData = (this.table.filteredValue || this.tableData).map(row => {
-                    const { id, ...rest } = row
-                    return rest
+                    const { id, answers, ...rest } = row
+                    
+                    return {
+                        ...rest,
+                        answers: answers?.map((answer:any) =>
+                            answer.translations.map((t:any) =>
+                                `${t.hu.trim().endsWith('?') ? t.hu : t.hu + '?'} ${t.answers}`
+                            ).join(' | ')
+                        ).join(' || ')
+                    };
                 })
 
                 data.push(...fallbackData)
@@ -872,7 +888,7 @@ export class GuestComponent implements OnInit {
                 delete row.diet_id
                 delete row.room_id
                 delete row.conferenceid
-                delete row.answers
+                // delete row.answers
                 delete row.dietDetails
             })
 
