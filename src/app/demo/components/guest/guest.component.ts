@@ -194,7 +194,7 @@ export class GuestComponent implements OnInit {
 
                 // Filter out test users on production
                 if (!isDevMode()) {
-                    this.tableData = data.rows?.filter((guest: any) => guest.is_test == false) || []
+                    this.tableData = data.rows?.filter((guest: any) => guest.is_test !== true) || []
                 }
 
                 // Define tagged users number
