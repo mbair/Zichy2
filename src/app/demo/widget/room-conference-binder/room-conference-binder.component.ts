@@ -66,11 +66,11 @@ export class RoomConferenceBinderComponent {
 
     loadAvailableRooms() {
         if (!this.selectedConference) return;
-        // this.roomService
-        //     .getAvailableRooms(this.selectedConference.id)
-        //     .subscribe((rooms) => {
-        //         this.rooms = rooms;
-        //     });
+        this.roomService
+            .getAvailableRooms(this.selectedConference.id)
+            .subscribe((rooms) => {
+                this.tableData = rooms;
+            });
     }
 
     showDialog() {

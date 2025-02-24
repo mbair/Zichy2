@@ -9,11 +9,22 @@
         [disabled]="!canBindRoomToConference">
 </button>
 
-<!-- Dialog -->
-<p-dialog header="Szoba konferenciához rendelés" 
-          [modal]="true" 
-          [(visible)]="visible" 
-          [style]="{ width: '78rem' }">
+<p-sidebar 
+    id="sidebar" 
+    [(visible)]="visible" 
+    position="right" 
+    styleClass="p-sidebar-md"
+    [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
+    [fullScreen]="true"
+    [showCloseIcon]="true"
+    [blockScroll]="true">
+
+    <!-- Sidebar header -->
+    <ng-template pTemplate="header">
+        <span class="font-semibold text-xl">
+            Szoba konferenciához rendelés
+        </span>
+    </ng-template>
 
     <div class="flex w-full mb-2">
         <!-- Conference selector -->
@@ -21,7 +32,7 @@
             [(ngModel)]="selectedConference"
             (change)="setSelectedConference($event)" 
             [showClear]="true"
-            [style]="{'minWidth':'49rem'}"
+            [style]="{'minWidth':'40rem'}"
             placeholder="Válasszon konferenciát...">
         </app-conference-selector>
 
@@ -150,4 +161,4 @@
                 </ng-template>
             </p-table>
     </div>
-</p-dialog>
+</p-sidebar>
