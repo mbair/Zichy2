@@ -5,6 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { FileUploadModule } from 'primeng/fileupload';
 import { DialogModule } from 'primeng/dialog';
+import { SidebarModule } from 'primeng/sidebar';
 import { TableModule } from 'primeng/table';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
@@ -24,6 +25,7 @@ import { SelectorsModule } from "../selectors/selectors.module";
         TranslateModule,
         FileUploadModule,
         DialogModule,
+        SidebarModule,
         SelectorsModule,
         TableModule,
         DropdownModule,

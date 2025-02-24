@@ -135,7 +135,7 @@ export class GuestComponent implements OnInit {
             birthDate: ['', Validators.required],
             rfid: ['', []],
             rfidColor: ['', []],
-            enabled: ['', []],
+            enabled: [true, []],
             conferenceName: ['', Validators.required],
             diet: ['', Validators.required],
             lastRfidUsage: ['', []],
