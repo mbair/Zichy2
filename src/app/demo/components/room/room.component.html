@@ -126,11 +126,11 @@
                                     <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ room.roomCode }}" tooltipPosition="top">
                                         <div class="flex flex-column align-items-left justify-content-center">
                                             <span class="text-base font-semibold uppercase">
-                                                {{ 'BUILDINGS.' + room.building.toUpperCase() | translate }} <span class="font-normal text-sm uppercase">({{ room.floor }})</span>
+                                                {{ 'BUILDINGS.' + room.building.toUpperCase() | translate }} <span *ngIf="room.floor" class="font-normal text-sm uppercase">({{ room.floor }})</span>
                                                 <span *ngIf="room.climate" class="pl-1">❄️</span>
                                             </span>
                                             <span class="font-light text-xs uppercase">
-                                                {{ room.beds }} SZEMÉLYES ({{ room.bedType }}, {{ room.bathroom }})
+                                                {{ room.beds }} SZEMÉLYES ({{ room.bedType }}<span *ngIf="room.bathroom">, {{ room.bathroom }}</span>)
                                             </span>
                                         </div>
                                     </div>
@@ -139,8 +139,8 @@
                         </td>
                         <td>
                             <span class="p-column-title">Pótágy</span>
-                            <span class="spareBeds-badge {{ room.spareBeds?.value }}">
-                                {{ room.spareBeds?.label }}
+                            <span *ngIf="room.spareBeds" class="sparebed-badge {{ room.spareBeds }}">
+                                {{ 'SPAREBEDS.' + room.spareBeds?.toUpperCase() | translate }}
                             </span>
                         </td>
                         <td>
