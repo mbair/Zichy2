@@ -7,18 +7,6 @@ import { ApiService } from './api.service';
 @Injectable({
     providedIn: 'root',
 })
-// export class SzobaService {
-
-//     constructor(private http: HttpClient) { }
-
-//     getSzobak() {
-//         return this.http.get<any>('assets/demo/data/szobak.json')
-//             .toPromise()
-//             .then(res => res.data as Szoba[])
-//             .then(data => data);
-//     }
-
-// }
 
 export class ActivityService {
     private activities: any[] = [
