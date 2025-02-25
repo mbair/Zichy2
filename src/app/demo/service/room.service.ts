@@ -3,6 +3,7 @@ import { BehaviorSubject, map, Observable, of } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { Room } from '../api/room';
+import { Conference } from '../api/conference';
 import { HttpClient } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -193,7 +194,7 @@ export class RoomService {
             return of(this.cache)
         }
 
-        this.get(0, 999, { sortField: 'id', sortOrder: 1 }, '')
+        this.get(0, 999, { sortField: 'roomNum', sortOrder: 1 }, '')
         return this.data$.asObservable().pipe(
             map((data: any) => {
                 // Store rooms in cache
@@ -210,14 +211,8 @@ export class RoomService {
      * @param conferenceId The ID of the conference
      * @returns Observable of available rooms
      */
-    public getAvailableRooms(conferenceId: number): Observable<Room[]> {
-        return this.http.get<Room[]>(`${this.apiURL}/room/available/${conferenceId}`);
-    }
-
-    getSzobak(): Promise<Room[]> {
-        return this.http.get<any>('assets/demo/data/szobak.json')
-            .toPromise()
-            .then(res => res as any[])
+    public getAvailableRooms(conferenceIds: Conference[]): Observable<Room[]> {
+        return this.http.get<Room[]>(`${this.apiURL}/room/available/${conferenceIds}`);
     }
 
     // TODO: NOT USED
