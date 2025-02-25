@@ -8,7 +8,9 @@ import { DialogModule } from 'primeng/dialog';
 import { SidebarModule } from 'primeng/sidebar';
 import { TableModule } from 'primeng/table';
 import { DropdownModule } from 'primeng/dropdown';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { InputTextModule } from 'primeng/inputtext';
+import { TooltipModule } from 'primeng/tooltip';
 import { ReactiveFileUploadComponent } from './reactive-file-upload/reactive-file-upload.component';
 import { RoomConferenceBinderComponent } from './room-conference-binder/room-conference-binder.component';
 import { SelectorsModule } from "../selectors/selectors.module";
@@ -29,7 +31,9 @@ import { SelectorsModule } from "../selectors/selectors.module";
         SelectorsModule,
         TableModule,
         DropdownModule,
+        MultiSelectModule,
         InputTextModule,
+        TooltipModule,
     ],
     exports: [
         ReactiveFileUploadComponent,

@@ -46,10 +46,7 @@ export class RoomComponent implements OnInit {
     canEdit: boolean = false                     // User has permission to update room
     canDelete: boolean = false                   // User has permission to delete room
     isMobile: boolean = false                    // Mobile screen detection
-    roomCodes: any[] = []                        // Room code options
-    matraces: any[] = []                         // Matrace options
-    bedTypes: any[] = []                         // Bed type options
-    occupancyFilter: any
+    occupancyFilter: any                         // TODO: Not used yet   
 
     private defaultRoomFormValues = {
         id: null,
@@ -85,28 +82,14 @@ export class RoomComponent implements OnInit {
             roomCode: [this.defaultRoomFormValues.roomCode, Validators.required],
             beds: [this.defaultRoomFormValues.beds, Validators.required],
             spareBeds: [this.defaultRoomFormValues.spareBeds],
-            bathroom: [this.defaultRoomFormValues.bathroom, Validators.required],
+            bathroom: [this.defaultRoomFormValues.bathroom],
             building: [this.defaultRoomFormValues.building, Validators.required],
-            floor: [this.defaultRoomFormValues.floor, Validators.required],
-            bedType: [this.defaultRoomFormValues.bedType, Validators.required],
-            climate: [this.defaultRoomFormValues.climate, Validators.required],
+            floor: [this.defaultRoomFormValues.floor],
+            bedType: [this.defaultRoomFormValues.bedType],
+            climate: [this.defaultRoomFormValues.climate],
             comment: [this.defaultRoomFormValues.comment],
             extraBeds: [this.defaultRoomFormValues.extraBeds]
         })
-
-        this.roomCodes = [
-            { value: 'A', label: 'Apartman' },            // Apartman
-            { value: 'MD', label: 'Maranatha Double', },  // Maranatha Double (Maranatha kétágyas)
-            { value: 'MB', label: 'Maranatha Bunkbed' },  // Maranatha Bunkbed (Maranatha négyágyas emeleteságyas)
-            { value: 'MQ', label: 'Maranatha Queenbed' }, // Maranatha Queenbed (franciaágyas)
-            { value: 'KB', label: 'Kastély Bunked' },     // Kastély Bunked (Kastélyban emeleteságyas)
-        ]
-
-        this.bedTypes = [
-            { label: 'kétágyas', value: 'kétágyas' },
-            { label: 'emeletes ágy', value: 'emeletes ágy' },
-            { label: 'franciaágy', value: 'franciaágy' }
-        ]
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
     }
@@ -122,11 +105,6 @@ export class RoomComponent implements OnInit {
         this.roomObs$.subscribe((data: ApiResponse) => {
             this.loading = false
             if (data) {
-
-                data.rows?.forEach((room: Room) => {
-                    room.color = 'orange'
-                })
-
                 this.tableData = data.rows || []
                 this.totalRecords = data.totalItems || 0
                 this.page = data.currentPage || 0

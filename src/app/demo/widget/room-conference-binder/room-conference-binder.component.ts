@@ -3,10 +3,12 @@ import { MessageService } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { Table } from 'primeng/table';
 import { Room } from '../../api/room';
+import { Conference } from '../../api/conference';
 import { ApiResponse } from '../../api/ApiResponse';
 import { RoomService } from '../../service/room.service';
 import { ConferenceService } from '../../service/conference.service';
 import * as moment from 'moment';
+
 moment.locale('hu')
 
 @Component({
@@ -15,34 +17,36 @@ moment.locale('hu')
     providers: [MessageService]
 })
 export class RoomConferenceBinderComponent {
-    @Input() visible: boolean = false;
+    @Input() visible: boolean = true // TODO: Set to false
     @Output() close = new EventEmitter<void>()
     @Output() assign = new EventEmitter<{
-        conferenceId: number
-        roomIds: number[]
+        selectedConferences: Conference[]
+        selectedRooms: number[]
     }>()
 
-    apiURL: string;                              // API URL depending on whether we are working on test or production
-    loading: boolean = true;                     // Loading overlay trigger value
+    apiURL: string                               // API URL depending on whether we are working on test or production
+    loading: boolean = true                      // Loading overlay trigger value
+    loadingConferences: boolean = true           // Loading overlay trigger value
     tableItem: Room = {}                         // One guest object
-    tableData: Room[] = [];                      // Data set displayed in a table
+    tableData: Room[] = []                       // Data set displayed in a table
     rowsPerPageOptions = [20, 50, 100, 9999]     // Possible rows per page
     rowsPerPage: number = 20                     // Default rows per page
     totalRecords: number = 0                     // Total number of rows in the table
-    page: number = 0;                            // Current page
-    sortField: string = '';                      // Current sort field
-    sortOrder: number = 1;                       // Current sort order
-    globalFilter: string = '';                   // Global filter
+    page: number = 0                             // Current page
+    sortField: string = ''                       // Current sort field
+    sortOrder: number = 1                        // Current sort order
+    globalFilter: string = ''                    // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
     debounce: { [key: string]: any } = {}        // Search delay in filter field
-    conferences: any[] = [];
-    rooms: any[] = [];
+    conferences: any[] = [] 
+    rooms: any[] = [] 
     selected: Room[] = []                        // Table items chosen by user
-    selectedConference: any;
+    selectedConferences: Conference[] = [] 
     selectedRooms: number[] = [];
     canBindRoomToConference: boolean = true;
 
     private roomObs$: Observable<any> | undefined
+    private conferenceObs$: Observable<any> | undefined
 
     constructor(
         private roomService: RoomService,
@@ -50,6 +54,15 @@ export class RoomConferenceBinderComponent {
     ) {}
 
     ngOnInit() {
+        // Conferences
+        this.conferenceObs$ = this.conferenceService.conferenceObs
+        this.conferenceObs$.subscribe((data: ApiResponse) => {
+            this.loading = false
+            if (data) {
+                this.conferences = data.rows || []
+            }
+        })
+
         // Rooms
         this.roomObs$ = this.roomService.roomObs
         this.roomObs$.subscribe((data: ApiResponse) => {
@@ -62,12 +75,10 @@ export class RoomConferenceBinderComponent {
         })
     }
 
-    
-
     loadAvailableRooms() {
-        if (!this.selectedConference) return;
+        if (!this.selectedConferences) return;
         this.roomService
-            .getAvailableRooms(this.selectedConference.id)
+            .getAvailableRooms(this.selectedConferences)
             .subscribe((rooms) => {
                 this.tableData = rooms;
             });
@@ -80,10 +91,10 @@ export class RoomConferenceBinderComponent {
     }
 
     setSelectedConference(event: any) {
-        this.selectedConference = event.value ? event.value : null
-        this.filterValues['conferenceName'] = this.selectedConference?.name || ''
-        this.tableData = []
-        this.doQuery()
+        // this.selectedConference = event.value ? event.value : null
+        // this.filterValues['conferenceName'] = this.selectedConference?.name || ''
+        // this.tableData = []
+        // this.doQuery()
     }
 
     onConferenceChange() {
@@ -115,7 +126,7 @@ export class RoomConferenceBinderComponent {
      * @param field
      */
     onFilter(event: any, field: string) {
-        const noWaitFields = ['beginDate', 'endDate', 'firstMeal', 'lastMeal']
+        const noWaitFields = ['roomNum', 'building', 'bedType', 'spareBeds']
         let filterValue = ''
 
         // Calendar date as String
@@ -179,9 +190,9 @@ export class RoomConferenceBinderComponent {
 
     onAssign() {
         this.assign.emit({
-            conferenceId: this.selectedConference.id,
-            roomIds: this.selectedRooms,
+            selectedConferences: this.selectedConferences,
+            selectedRooms: this.selectedRooms,
         });
-        this.close.emit();
+        this.close.emit()
     }
 }
