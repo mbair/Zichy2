@@ -1,22 +1,10 @@
 <!-- Dialog trigger button-->
-<button pButton 
-        pRipple 
-        label="Szoba konferenciához rendelés" 
-        icon="pi pi-list-check" 
-        class="p-button mr-2"
-        severity="help"
-        (click)="showDialog()"
-        [disabled]="!canBindRoomToConference">
+<button pButton pRipple label="Szoba konferenciához rendelés" icon="pi pi-list-check" class="p-button mr-2"
+    severity="help" (click)="showDialog()" [disabled]="!canBindRoomToConference">
 </button>
 
-<p-sidebar 
-    id="sidebar" 
-    [(visible)]="visible" 
-    position="right" 
-    styleClass="p-sidebar-md"
-    [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
-    [fullScreen]="true"
-    [showCloseIcon]="true"
+<p-sidebar id="sidebar" [(visible)]="visible" position="right" styleClass="p-sidebar-md"
+    [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" [fullScreen]="true" [showCloseIcon]="true"
     [blockScroll]="true">
 
     <!-- Sidebar header -->
@@ -27,138 +15,136 @@
     </ng-template>
 
     <div class="flex w-full mb-2">
-        <!-- Conference selector -->
-        <app-conference-selector
-            [(ngModel)]="selectedConference"
-            (change)="setSelectedConference($event)" 
+
+        <!-- Conference multi selector -->
+        <p-multiSelect 
+            [options]="conferences" 
+            [(ngModel)]="selectedConferences" 
             [showClear]="true"
-            [style]="{'minWidth':'40rem'}"
-            placeholder="Válasszon konferenciát...">
-        </app-conference-selector>
+            [style]="{'minWidth':'50rem'}"
+            [selectionLimit]="1"
+            display="chip" 
+            placeholder="Válasszon konferenciát, amihez szobát rendelne..."
+            optionLabel="name">
+        </p-multiSelect>
 
         <!-- Save button -->
-        <button pButton 
-                pRipple 
-                label="Mentés" 
-                icon="pi pi-check" 
-                class="p-button ml-2" 
-                (click)="showDialog()"
-                [disabled]="!selectedRooms || !selectedRooms.length || !selectedConference">
+        <button pButton pRipple label="Összerendelés" icon="pi pi-check" class="p-button ml-2" (click)="showDialog()"
+            [disabled]="!selectedRooms || !selectedRooms.length || !selectedConferences">
         </button>
     </div>
 
     <div class="flex w-full">
-        <p-table #dt
-                     dataKey="id"
-                     [value]="tableData"
-                     responsiveLayout="scroll"
-                     [rows]="rowsPerPage"
-                     [totalRecords]="totalRecords"
-                     [globalFilterFields]="['roomNum']"
-                     [paginator]="true"
-                     [rowsPerPageOptions]="rowsPerPageOptions"
-                     [showCurrentPageReport]="true"
-                     currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
-                     [(selection)]="selected"
-                     selectionMode="multiple"
-                     [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
-                     [rowHover]="true"
-                     (onLazyLoad)="onLazyLoad($event)"
-                     [lazy]="true">
+        <p-table 
+            #dt 
+            dataKey="id" 
+            [value]="tableData" 
+            responsiveLayout="scroll" 
+            [rows]="rowsPerPage"
+            [totalRecords]="totalRecords" 
+            [globalFilterFields]="['roomNum']" 
+            [paginator]="true"
+            [rowsPerPageOptions]="rowsPerPageOptions" 
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="{first} - {last} szoba a(z) {totalRecords}-ból megjelenítése"
+            [(selection)]="selected" 
+            selectionMode="multiple" 
+            [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
+            [rowHover]="true" (onLazyLoad)="onLazyLoad($event)" [lazy]="true">
 
-                <ng-template pTemplate="header">
-                    <tr>
-                        <th></th>
-                        <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
-                        <th pSortableColumn="extraBed">Pótágy <p-sortIcon field="extraBed"></p-sortIcon></th>
-                        <th pSortableColumn="comment">Komment <p-sortIcon field="comment"></p-sortIcon></th>
-                    </tr>
-                    <tr>
-                        <th styleClass="w-3rem">
-                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-                        </th>
-                        <th>
-                            <input pInputText
-                                   type="text"
-                                   class="mr-2"
-                                   (input)="onFilter($event, 'roomNum')"
-                                   placeholder="Szobaszám..."
-                                   style="width:8rem"/>
-                           <app-building-selector
-                                   class="mr-2"
-                                   (change)="onFilter($event, 'building')"
-                                   [showClear]="true"
-                                   placeholder="Épület...">
-                           </app-building-selector>
-                           <app-bedtype-selector
-                                   (change)="onFilter($event, 'bedType')"
-                                   [showClear]="true"
-                                   placeholder="Ágytipus...">
-                           </app-bedtype-selector>
-                        </th>
-                        <th>
-                            <app-sparebed-selector
-                                    (change)="onFilter($event, 'spareBeds')"
-                                    [showClear]="true">
-                            </app-sparebed-selector>
-                        </th>
-                        <th>
-                            <input pInputText
-                                   type="text"
-                                   (input)="onFilter($event, 'comment')"
-                                   placeholder="Keresés..."
-                                   style="width:7rem"/>
-                        </th>
-                    </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-room>
-                    <tr>
-                        <td>
-                            <p-tableCheckbox [value]="room"></p-tableCheckbox>
-                        </td>
-                        <td>
-                            <span class="p-column-title">Szoba szám</span>
+            <ng-template pTemplate="header">
+                <tr>
+                    <th></th>
+                    <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
+                    <th pSortableColumn="spareBed">Pótágy <p-sortIcon field="spareBed"></p-sortIcon></th>
+                    <th pSortableColumn="conferences">Konferenciák <p-sortIcon field="conferences"></p-sortIcon></th>
+                </tr>
+                <tr>
+                    <th styleClass="w-3rem">
+                        <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                    </th>
+                    <th>
+                        <input 
+                            pInputText 
+                            type="text" 
+                            class="mr-2" 
+                            (input)="onFilter($event, 'roomNum')"
+                            placeholder="Szobaszám..." 
+                            style="width:8rem" />
+                        <app-building-selector 
+                            class="mr-2" 
+                            (change)="onFilter($event, 'building')" 
+                            [showClear]="true"
+                            placeholder="Épület...">
+                        </app-building-selector>
+                        <app-bedtype-selector 
+                            (change)="onFilter($event, 'bedType')" 
+                            [showClear]="true"
+                            placeholder="Ágytipus...">
+                        </app-bedtype-selector>
+                    </th>
+                    <th>
+                        <app-sparebed-selector 
+                            (change)="onFilter($event, 'spareBeds')" 
+                            [showClear]="true">
+                        </app-sparebed-selector>
+                    </th>
+                    <th>
+                        <input 
+                            pInputText type="text" 
+                            (input)="onFilter($event, 'comment')" 
+                            placeholder="Keresés..."
+                            style="width:40rem" />
+                    </th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-room>
+                <tr>
+                    <td>
+                        <p-tableCheckbox [value]="room"></p-tableCheckbox>
+                    </td>
+                    <td>
+                        <span class="p-column-title">Szoba szám</span>
 
-                            <div class="bg-{{room.color}}-200 border-round-xl w-min">
-                                <div class="flex align-items-center justify-content-center py-1 px-1">
-                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
-                                        <i class="pi pi-key text-{{room.color}}-800 vertical-align-middle"></i>
-                                        <span class="text-2xl text-{{room.color}}-800 font-semibold white-space-nowrap vertical-align-middle">
-                                            {{ room.roomNum }}
+                        <div class="building-badge {{room.building}} border-round-xl w-min p-0">
+                            <div class="flex align-items-center justify-content-center py-1 px-1">
+                                <div class="flex align-items-center justify-content-center gap-2 px-2">
+                                    <i class="pi pi-key vertical-align-middle"></i>
+                                    <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ room.roomNum }}" tooltipPosition="top">
+                                        {{ room.roomNum }}
+                                    </span>
+                                </div>
+                                <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ room.roomCode }}" tooltipPosition="top">
+                                    <div class="flex flex-column align-items-left justify-content-center">
+                                        <span class="text-base font-semibold uppercase">
+                                            {{ 'BUILDINGS.' + room.building.toUpperCase() | translate }} <span *ngIf="room.floor" class="font-normal text-sm uppercase">({{ room.floor }})</span>
+                                            <span *ngIf="room.climate" class="pl-1">❄️</span>
                                         </span>
-                                    </div>
-                                    <div class="block min-w-max border-left-1 px-2 border-{{room.color}}-300 text-{{room.color}}-800">
-                                        <div class="flex flex-column align-items-left justify-content-center">
-                                            <span class="font-semibold uppercase">
-                                                {{ room.building }} <span class="font-normal text-sm uppercase">({{ room.floor }})</span>
-                                                <span *ngIf="room.climate" class="pl-1">❄️</span>
-                                            </span>
-                                            <span class="font-small text-xs uppercase">
-                                                {{ room.beds }} SZEMÉLYES ({{ room.bedType }}, {{ room.bathroom }})
-                                            </span>
-                                        </div>
+                                        <span class="font-light text-xs uppercase">
+                                            {{ room.beds }} SZEMÉLYES ({{ room.bedType }}<span *ngIf="room.bathroom">, {{ room.bathroom }}</span>)
+                                        </span>
                                     </div>
                                 </div>
                             </div>
-
-                        </td>
-                        <td>
-                            <span class="p-column-title">Pótágy</span>
-                            <span class="extrabed-badge {{ room.extraBed?.value }}">
-                                {{ room.extraBed?.label }}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="p-column-title">Komment</span>
-                            {{room.comment}}
-                        </td>
-                    </tr>
-                </ng-template>
-                <ng-template pTemplate="emptymessage">
-                    <tr>
-                        <td [attr.colspan]="4" class="text-center">Nincs találat...</td>
-                    </tr>
-                </ng-template>
-            </p-table>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="p-column-title">Pótágy</span>
+                        <span *ngIf="room.spareBeds" class="sparebed-badge {{ room.spareBeds }}">
+                            {{ 'SPAREBEDS.' + room.spareBeds?.toUpperCase() | translate }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="p-column-title">Konferenciák</span>
+                        {{room.conferences}}
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td [attr.colspan]="4" class="text-center">Nincs találat...</td>
+                </tr>
+            </ng-template>
+        </p-table>
     </div>
 </p-sidebar>
