@@ -561,26 +561,22 @@ export class GuestComponent implements OnInit {
         // Check if RFID is according to the diet
         this.tagService.getByRFID(this.scannedCode).subscribe({
             next: (data) => {
+                
                 if (data.rows && data.rows.length > 0) {
-                    let tag = data.rows[0]
-                    let dietColor = this.diets.find(d => d.name == tag.diet).color
-                    dietColor = dietColor.split('-')[0]
-                    if (dietColor == 'gray') {
-                        dietColor = 'black'
-                    }
-                    if (dietColor == 'teal') {
-                        dietColor = 'green'
-                    }
+
+                    // Check if tag color is the same as the guest diet color
+                    let tagColor = data.rows[0].color
+                    let guestDietColor = this.diets.find(d => d.name == this.guest.diet).color
 
                     // Wrong color
-                    if (dietColor !== tag.color) {
+                    if (guestDietColor !== tagColor) {
                         this.messages = [
                             { severity: 'error', summary: '', detail: 'Nem megfelelő a karszalag színe!' },
                         ]
                         this.identifierElement.nativeElement.focus()
                         return
 
-                        // Right color
+                    // Right color
                     } else {
 
                         // Check if somebody has the same RFID number
