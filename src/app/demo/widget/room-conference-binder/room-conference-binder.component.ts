@@ -38,10 +38,10 @@ export class RoomConferenceBinderComponent {
     globalFilter: string = ''                    // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
     debounce: { [key: string]: any } = {}        // Search delay in filter field
-    conferences: any[] = [] 
-    rooms: any[] = [] 
+    conferences: any[] = []
+    rooms: any[] = []
     selected: Room[] = []                        // Table items chosen by user
-    selectedConferences: Conference[] = [] 
+    selectedConferences: Conference[] = []
     selectedRooms: number[] = [];
     canBindRoomToConference: boolean = true;
 
@@ -51,7 +51,7 @@ export class RoomConferenceBinderComponent {
     constructor(
         private roomService: RoomService,
         private conferenceService: ConferenceService
-    ) {}
+    ) { }
 
     ngOnInit() {
         // Conferences
@@ -74,6 +74,11 @@ export class RoomConferenceBinderComponent {
             }
         })
     }
+
+    // getConferenceNames(room: any): string[] {
+    //     return room?.conferences ? room.conferences.map((c: any) => c.name) : [];
+    // }
+
 
     loadAvailableRooms() {
         if (!this.selectedConferences) return;
@@ -150,7 +155,7 @@ export class RoomConferenceBinderComponent {
             if (this.filterValues[field] === filterValue) {
                 this.doQuery()
             }
-        // otherwise wait for the debounce time
+            // otherwise wait for the debounce time
         } else {
             if (this.debounce[field]) {
                 clearTimeout(this.debounce[field])
@@ -189,10 +194,33 @@ export class RoomConferenceBinderComponent {
     }
 
     onAssign() {
-        this.assign.emit({
-            selectedConferences: this.selectedConferences,
-            selectedRooms: this.selectedRooms,
-        });
-        this.close.emit()
+
+        const conferenceId = Number(this.selectedConferences[0].id)
+        const roomIds = this.selectedRooms.map((r: any) => Number(r.id))
+
+        this.conferenceService.assignRooms(conferenceId, roomIds)
+
+        // this.assign.emit({
+        //     selectedConferences: this.selectedConferences,
+        //     selectedRooms: this.selectedRooms,
+        // });
+        // this.close.emit()
     }
+
+    // onRemove(conference: Conference) {
+    //     console.log('onConferenceRemove', conference)
+    //     return false
+    // }
+
+    onRemove(event: any, conference: any) {
+        console.log('onConferenceRemove', conference)
+        // Példa: Egy megerősítő dialógus megjelenítése
+        const shouldRemove = confirm(`Biztosan eltávolítod a következő konferenciát: ${conference.name}?`);
+
+        if (!shouldRemove) {
+          // ❌ Ha a felhasználó mégsem akarja törölni, NEM módosítjuk a tömböt
+          return;
+        }
+      }
+      
 }

@@ -29,7 +29,7 @@
         </p-multiSelect>
 
         <!-- Save button -->
-        <button pButton pRipple label="Összerendelés" icon="pi pi-check" class="p-button ml-2" (click)="showDialog()"
+        <button pButton pRipple label="Összerendelés" icon="pi pi-check" class="p-button ml-2" (click)="onAssign()"
             [disabled]="!selectedRooms || !selectedRooms.length || !selectedConferences">
         </button>
     </div>
@@ -47,7 +47,7 @@
             [rowsPerPageOptions]="rowsPerPageOptions" 
             [showCurrentPageReport]="true"
             currentPageReportTemplate="{first} - {last} szoba a(z) {totalRecords}-ból megjelenítése"
-            [(selection)]="selected" 
+            [(selection)]="selectedRooms" 
             selectionMode="multiple" 
             [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
             [rowHover]="true" (onLazyLoad)="onLazyLoad($event)" [lazy]="true">
@@ -136,7 +136,15 @@
                     </td>
                     <td>
                         <span class="p-column-title">Konferenciák</span>
-                        {{room.conferences}}
+                        <div *ngFor="let conference of room.conferences">
+                            <p-chip 
+                                styleClass="m-1" 
+                                [label]="conference.name" 
+                                icon="pi pi-calendar" 
+                                [removable]="true" 
+                                (onRemove)="onRemove($event, conference)">
+                            </p-chip>
+                        </div>
                     </td>
                 </tr>
             </ng-template>

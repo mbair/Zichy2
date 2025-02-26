@@ -247,4 +247,24 @@ export class ConferenceService {
             catchError(() => of(false)) // Hibakezelés: ha hiba történik, érvénytelen a slug
         )
     }
-}
+
+    /**
+     * Get conference questions
+     * @param conferenceId
+     */
+    public assignRooms(conferenceId: number, roomIds: number[]): void {
+        this.apiService.post(`conferencesroom/addroom/${conferenceId}`, { roomIds })
+            .subscribe({
+                next: (response: any) => {
+                    this.message$.next({
+                        severity: 'success',
+                        summary: 'Sikeres szoba hozzárendelés',
+                        detail: `Szobák hozzárendelve`,
+                    })
+                },
+                error: (error: any) => {
+                    this.message$.next(error)
+                }
+            })
+    }
+}   
