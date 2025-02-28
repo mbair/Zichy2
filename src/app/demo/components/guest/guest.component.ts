@@ -138,6 +138,7 @@ export class GuestComponent implements OnInit {
             enabled: [true, []],
             conferenceName: ['', Validators.required],
             diet: ['', Validators.required],
+            diet_id: ['', []],
             lastRfidUsage: ['', []],
             is_test: ['', []],
             email: ['', []],
@@ -273,6 +274,14 @@ export class GuestComponent implements OnInit {
             this.getEarliestLastMeal()
             this.getLatestLastMeal()
             this.cdRef.detectChanges()
+        })
+
+        this.guestForm.get('diet')?.valueChanges.subscribe(() => {
+            const selectedDietName = this.guestForm.get('diet')?.value
+            const selectedDietId = this.diets.find(diet => diet.name === selectedDietName).id
+            console.log('Diet changed', selectedDietName)
+            console.log('DietId', selectedDietId)
+            this.guestForm.patchValue({ diet_id: selectedDietId })
         })
     }
 
@@ -567,6 +576,14 @@ export class GuestComponent implements OnInit {
                     // Check if tag color is the same as the guest diet color
                     let tagColor = data.rows[0].color
                     let guestDietColor = this.diets.find(d => d.name == this.guest.diet).color
+
+                    if (tagColor == 'gray') {
+                        tagColor = 'black'
+                    }
+
+                    if (tagColor === 'green') {
+                        tagColor = 'teal'
+                    }
 
                     // Wrong color
                     if (guestDietColor !== tagColor) {
