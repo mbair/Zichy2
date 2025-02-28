@@ -30,7 +30,7 @@ export class KitchenCalendarService {
      * Get kitchen calendar
      */
     public get(date: string): void {
-        this.apiService.get<any>(`kitcehncalendar/${date}`)
+        this.apiService.get<any>(`kitchencalendar/${date}`)
             .subscribe({
                 next: (response: any) => {
                     this.data$.next(response)
