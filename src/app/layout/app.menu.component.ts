@@ -72,19 +72,8 @@ export class AppMenuComponent implements OnInit {
                         {
                             label: 'Konyhanaptár',
                             icon: 'pi pi-fw pi-calendar',
-                            routerLink: ['/kitchen-calendar'],
-                            requiredRoles: ['Super Admin', 'Nagy Admin', 'Kis Admin']
-                        },
-                        // {
-                        //     label: 'Ételpult',
-                        //     icon: 'pi pi-fw pi-tablet',
-                        //     routerLink: ['/food-counter']
-                        // },
-                        // {
-                        //     label: 'Menük',
-                        //     icon: 'pi pi-fw pi-circle',
-                        //     // routerLink: ['/pages/menuk']
-                        // },
+                            routerLink: ['/kitchen-calendar']
+                        }
                     ]
                 },
                 {
