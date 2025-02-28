@@ -102,15 +102,6 @@ const routes: Routes = [
                 }, 
                 loadChildren: () => import('./demo/components/diet/diet.module').then(m => m.DietModule), 
                 canActivate: [AuthGuard] 
-            },
-            { 
-                path: 'kitchen-calendar', 
-                data: { 
-                    breadcrumb: 'Konyhanaptár',
-                    requiredRoles: ['Super Admin', 'Nagy Admin', 'Kis Admin']
-                }, 
-                loadChildren: () => import('./demo/components/kitchen-calendar/kitchen-calendar.module').then(m => m.KitchenCalendarModule), 
-                canActivate: [AuthGuard] 
             }
         ]
     },
@@ -119,6 +110,7 @@ const routes: Routes = [
     { path: 'auth', data: { breadcrumb: 'Auth' }, loadChildren: () => import('./demo/components/auth/auth.module').then(m => m.AuthModule) },
     { path: 'conference-form/:formUrl', loadChildren: () => import('./demo/components/conference-form/conference-form.module').then(m => m.ConferenceFormModule) },
     { path: 'food-counter', loadChildren: () => import('./demo/components/food-counter/food-counter.module').then(m => m.FoodCounterModule) },
+    { path: 'kitchen-calendar', loadChildren: () => import('./demo/components/kitchen-calendar/kitchen-calendar.module').then(m => m.KitchenCalendarModule) },
 
     { path: 'landing', loadChildren: () => import('./demo/components/landing/landing.module').then(m => m.LandingModule) },
     { path: 'notfound', loadChildren: () => import('./demo/components/notfound/notfound.module').then(m => m.NotfoundModule) },
