@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, isDevMode } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { Table } from 'primeng/table';
@@ -17,7 +17,7 @@ moment.locale('hu')
     providers: [MessageService]
 })
 export class RoomConferenceBinderComponent {
-    @Input() visible: boolean = true // TODO: Set to false
+    @Input() visible: boolean = isDevMode() ? true : false // TODO: Set to false
     @Output() close = new EventEmitter<void>()
     @Output() assign = new EventEmitter<{
         selectedConferences: Conference[]
