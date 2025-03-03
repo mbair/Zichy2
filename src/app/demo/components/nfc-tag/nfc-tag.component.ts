@@ -158,8 +158,6 @@ export class NFCTagComponent implements OnInit {
             } else {
                 this.filterValues[field] = ''
             }
-
-            
         }
 
         this.filterValues[field] = filterValue

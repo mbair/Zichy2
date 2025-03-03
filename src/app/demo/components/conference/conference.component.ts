@@ -130,6 +130,9 @@ export class ConferenceComponent implements OnInit {
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
         this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => this.isOrganizer = isOrganizer)
         this.loggedInUserId = this.userService.getLoggedInUserId()
+        
+        // Default filter values
+        this.filterValues['enabled'] = '1'
 
         // Conferences
         this.conferenceObs$ = this.conferenceService.conferenceObs;
@@ -216,14 +219,17 @@ export class ConferenceComponent implements OnInit {
      * @param field
      */
     onFilter(event: any, field: string) {
-        const noWaitFields = ['beginDate', 'endDate', 'firstMeal', 'lastMeal']
+        const noWaitFields = ['beginDate', 'endDate', 'firstMeal', 'lastMeal', 'enabled']
         let filterValue = ''
 
+        // For enabled field convert true to "1" and false to "0"
+        if (field === 'enabled') {
+            filterValue = event.checked ? '1' : '0'
+        }
         // Calendar date as String
-        if (event instanceof Date) {
-            const date = moment(event);
-            const formattedDate = date.format('YYYY.MM.DD')
-            filterValue = formattedDate
+        else if (event instanceof Date) {
+            const date = moment(event)
+            filterValue = date.format('YYYY.MM.DD')
         } else {
             if (event && (event.value || event.target?.value)) {
                 filterValue = event.value || event.target?.value
