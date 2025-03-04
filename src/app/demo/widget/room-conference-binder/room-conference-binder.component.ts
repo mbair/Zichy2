@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output, isDevMode } from '@angular/core
 import { MessageService } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { Table } from 'primeng/table';
+import { DropdownChangeEvent } from 'primeng/dropdown';
 import { Room } from '../../api/room';
 import { Conference } from '../../api/conference';
 import { ApiResponse } from '../../api/ApiResponse';
@@ -45,6 +46,10 @@ export class RoomConferenceBinderComponent {
     selectedRooms: number[] = [];
     canBindRoomToConference: boolean = true;
 
+    selectFirstOption: boolean
+    selectedConference: any = {}
+
+
     private roomObs$: Observable<any> | undefined
     private conferenceObs$: Observable<any> | undefined
 
@@ -55,13 +60,7 @@ export class RoomConferenceBinderComponent {
 
     ngOnInit() {
         // Conferences
-        this.conferenceObs$ = this.conferenceService.conferenceObs
-        this.conferenceObs$.subscribe((data: ApiResponse) => {
-            this.loading = false
-            if (data) {
-                this.conferences = data.rows || []
-            }
-        })
+        this.setConferences()
 
         // Rooms
         this.roomObs$ = this.roomService.roomObs
@@ -75,10 +74,22 @@ export class RoomConferenceBinderComponent {
         })
     }
 
-    // getConferenceNames(room: any): string[] {
-    //     return room?.conferences ? room.conferences.map((c: any) => c.name) : [];
-    // }
-
+    setConferences() {
+        this.conferenceService.getConferencesForSelector().subscribe((conferences: any) => {
+            this.conferences = conferences
+            if (this.selectFirstOption && this.conferences.length > 0) {
+                this.selectedConference = this.conferences[0] // First conference
+                // this.getFormControl()?.setValue(this.selectedConference?.name || null)
+        
+                const event: DropdownChangeEvent = {
+                    originalEvent: {} as Event,
+                    value: this.selectedConference?.name || null
+                }
+        
+                this.onConferenceChange()
+            }
+        })
+    }
 
     loadAvailableRooms() {
         if (!this.selectedConferences) return;

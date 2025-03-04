@@ -3,7 +3,6 @@ import { BehaviorSubject, catchError, map, Observable, of } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { Conference } from '../api/conference';
-import { Question } from '../api/question';
 
 @Injectable({
     providedIn: 'root',
@@ -49,6 +48,14 @@ export class ConferenceService {
             queryParams = queryParams 
                 ? `${queryParams}&${organizerFilter}` 
                 : organizerFilter
+        }
+
+        // By default, only enabled=1 conferences are requested,
+        // unless the queryParams specifically contains the "enabled" filter.
+        if (!queryParams.includes('enabled=')) {
+            queryParams = queryParams 
+                ? `${queryParams}&enabled=1` 
+                : 'enabled=1';
         }
         
         let pageSort: string = '';
