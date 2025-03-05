@@ -497,7 +497,7 @@
                 <!-- roomNum -->
                 <div class="field mb-4 col-12 lg:col-4">
                     <label for="roomNum" class="font-medium text-900">Szoba</label>
-                    <input id="roomNum" type="text" pInputText formControlName="roomNum" readonly>
+                    <input id="roomNum" type="text" pInputText formControlName="roomNum" [readonly]="isOrganizer">
                 </div>
 
                 <!-- dateOfArrival -->
