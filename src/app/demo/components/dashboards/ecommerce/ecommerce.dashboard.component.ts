@@ -312,7 +312,7 @@ export class EcommerceDashboardComponent implements OnInit {
         // this.conferenceService.getBySearchQuery(`name=${conferenceName}`)
         this.guestService.getByConferenceName(conferenceName).subscribe((guests: any) => {
             this.conferenceGuests = guests.rows || []
-            this.prepaidPercentage = Math.round((this.prepaid / this.registrations) * 100)
+            this.prepaidPercentage = Math.round((this.prepaid / this.registrations) * 100) || 0
         })
     }
 
