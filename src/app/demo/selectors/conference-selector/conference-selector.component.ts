@@ -1,11 +1,14 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { DropdownChangeEvent } from 'primeng/dropdown';
 import { TranslateService } from '@ngx-translate/core';
+import { MultiSelect } from 'primeng/multiselect'
 import { ConferenceService } from '../../service/conference.service';
+import { Conference } from '../../api/conference';
+import { isEqual } from 'lodash'
 
 export interface changeEvent {
-    value: string;
+    value: Conference[];
     field: string;
 }
 
@@ -14,16 +17,20 @@ export interface changeEvent {
     templateUrl: './conference-selector.component.html'
 })
 export class ConferenceSelectorComponent {
+    @ViewChild('conferenceSelector') conferenceSelectorRef: MultiSelect
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
     @Input() placeholder: string
+    @Input() selectionLimit: number
     @Input() selectFirstOption: boolean
     @Input() style: { [key: string]: string }
     @Output() change = new EventEmitter<changeEvent>()
 
-    conferences: any[] = []               // Available conferences
-    selectedConference: any = {}          // Selected conference
+    loading: boolean = true                          // Loading overlay trigger value
+    conferences: Conference[] = []                   // Available conferences
+    selectedConferences: Conference[] = []           // Selected conferences
+    previousSelectedConferences: Conference[] = []   // Previously selected conferences
 
     constructor(private translate: TranslateService, 
                 private conferenceService: ConferenceService) {}
@@ -64,43 +71,73 @@ export class ConferenceSelectorComponent {
      * Translates the conference labels to the current language and maps them to their respective values.
      */
     setConferences() {
-        this.conferenceService.getConferencesForSelector().subscribe((conferences: any) => {
+        this.loading = true
+        this.conferenceService.getConferencesForSelector().subscribe((conferences: Conference[]) => {
             this.conferences = conferences
+    
             if (this.selectFirstOption && this.conferences.length > 0) {
-                this.selectedConference = this.conferences[0] // First conference
-                this.getFormControl()?.setValue(this.selectedConference?.name || null)
-        
+                // If there is a selectionLimit, we take the first N elements, otherwise all
+                const limit = this.selectionLimit ?? this.conferences.length
+                this.selectedConferences = this.conferences.slice(0, limit)
+    
+                // Set the value of the form control to the selected conference name
+                this.getFormControl()?.setValue(this.selectedConferences.map(c => c.name) || null)
+    
                 const event: DropdownChangeEvent = {
                     originalEvent: {} as Event,
-                    value: this.selectedConference?.name || null
+                    value: this.selectedConferences.map(c => c.name) || null
                 }
-        
+    
                 this.handleOnChange(event)
             }
         })
     }
     
-
     /**
      * Handles the change event of the conference selector and emits the selected conference object
      * with the changed field name.
      * @param event the change event of the conference selector
      */
     handleOnChange(event: DropdownChangeEvent) {
-        const selectedConference = this.conferences.find(c => c.name === event.value) || null
-        this.change.emit({ value: selectedConference, field: this.controlName })
-    }
+        this.selectedConferences = event.value
+        this.getFormControl()?.setValue(this.selectedConferences)
 
+        // Hide the dropdown if the selection limit is reached and the dropdown is open
+        if (this.selectionLimit === this.selectedConferences.length) {
+            setTimeout(() => this.conferenceSelectorRef?.hide(), 0)
+        }
+
+        // If seleted conferences are different from the previous ones, emit the change event
+        if (!isEqual(this.selectedConferences, this.previousSelectedConferences)) {
+            this.change.emit({ value: this.selectedConferences, field: this.controlName })
+            this.previousSelectedConferences = [...this.selectedConferences]
+        }
+    }    
+
+    /**
+     * Handles the hide event of the conference selector and emits the selected conference object
+     * with the changed field name.
+     * @param event the hide event of the conference selector
+     * @returns {void}
+     * @emits {changeEvent} the selected conference object with the changed field name
+     */
+    onPanelHide() {
+        if (!isEqual(this.selectedConferences, this.previousSelectedConferences)) {
+            this.change.emit({ value: this.selectedConferences, field: this.controlName })
+            this.previousSelectedConferences = [...this.selectedConferences]
+        }
+    }
+    
     /**
      * Handles the clear event of the conference selector and emits a new value with the
      * changed field name.
      * @param event the clear event of the conference selector
      */
     handleOnClear() {
-        this.selectedConference = null
-        this.getFormControl()?.setValue(null)
+        this.selectedConferences = []
+        this.getFormControl()?.setValue([])
     
-        // Meghívjuk a handleOnChange metódust, mintha egy "null" értéket választottak volna
-        this.handleOnChange({ value: null, originalEvent: {} as Event })
+        // Emit the change event with an empty array
+        this.handleOnChange({ value: [], originalEvent: new Event('clear') })
     }
 }

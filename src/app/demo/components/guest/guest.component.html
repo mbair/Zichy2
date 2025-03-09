@@ -28,6 +28,8 @@
                             <app-conference-selector
                                 (change)="setSelectedConference($event)" 
                                 [showClear]="true"
+                                [selectionLimit]="3"
+                                [style]="{'minWidth': '35rem'}"
                                 placeholder="Válasszon konferenciát...">
                             </app-conference-selector>
                         </span>
