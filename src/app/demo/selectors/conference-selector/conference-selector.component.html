@@ -1,62 +1,28 @@
-<!-- ReactiveForms -->
-<p-multiSelect *ngIf="getFormControl() as control; else useNgModel"
-        #conferenceSelector
-        class="multiselect-custom-virtual-scroll"
-        [formControl]="control" 
-        [options]="conferences"
-        optionLabel="name"
-        optionValue="name"
-        (onChange)="handleOnChange($event)"
-        (onClear)="handleOnClear()"
-        (onPanelHide)="onPanelHide()"
-        [style]="{'minWidth':'50rem'}"
-        [selectionLimit]="1"
-        [virtualScroll]="true"
-        [virtualScrollItemSize]="43"
-        [placeholder]="placeholder"
-        emptyMessage="{{ 'Nincs találat...' | translate }}"
-        [showClear]="showClear"
-        [style]="style"
-        scrollHeight="400px"
-        appendTo="body"
-        display="chip">
-
-        <ng-template pTemplate="item" let-option>
-            {{ option.name }}
-        </ng-template>
-        <ng-template pTemplate="selectedItem" let-selectedItem>
-            {{ selectedItem?.name }}
-        </ng-template>
+<p-multiSelect
+    #conferenceSelector
+    class="multiselect-custom-virtual-scroll"
+    [options]="conferences"
+    [(ngModel)]="selectedConferences"
+    (onChange)="onSelectionChange($event)"
+    (onClear)="onSelectionClear()"
+    [disabled]="disabled"
+    optionLabel="name"
+    [selectionLimit]="selectionLimit"
+    [placeholder]="placeholder"
+    emptyMessage="{{ 'Nincs találat...' | translate }}"
+    [virtualScroll]="true"
+    [virtualScrollItemSize]="43"
+    [showClear]="showClear"
+    [style]="style"
+    scrollHeight="400px"
+    appendTo="body"
+    display="chip">
+  
+  <ng-template pTemplate="item" let-option>
+    {{ option.name }}
+  </ng-template>
+  
+  <ng-template pTemplate="selectedItem" let-selectedItem>
+    {{ selectedItem.name }}
+  </ng-template>
 </p-multiSelect>
-
-<!-- ngModel -->
-<ng-template #useNgModel>
-    <p-multiSelect 
-        #conferenceSelector
-        class="multiselect-custom-virtual-scroll"
-        [(ngModel)]="selectedConferences" 
-        [options]="conferences"
-        optionLabel="name"
-        optionValue="name"
-        (onChange)="handleOnChange($event)"
-        (onClear)="handleOnClear()"
-        (onPanelHide)="onPanelHide()"
-        [selectionLimit]="selectionLimit"
-        [virtualScroll]="true"
-        [virtualScrollItemSize]="43"
-        [placeholder]="placeholder"
-        emptyMessage="{{ 'Nincs találat...' | translate }}"
-        [showClear]="showClear"
-        [style]="style"
-        scrollHeight="400px"
-        appendTo="body"
-        display="chip">
-
-        <ng-template pTemplate="item" let-option>
-            {{ option.name }}
-        </ng-template>
-        <ng-template pTemplate="selectedItem" let-selectedItem>
-            {{ selectedItem?.name }}
-        </ng-template>
-    </p-multiSelect>
-</ng-template>

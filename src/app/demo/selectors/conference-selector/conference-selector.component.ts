@@ -1,143 +1,151 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
-import { DropdownChangeEvent } from 'primeng/dropdown';
-import { TranslateService } from '@ngx-translate/core';
-import { MultiSelect } from 'primeng/multiselect'
-import { ConferenceService } from '../../service/conference.service';
+import { Component, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { MultiSelect } from 'primeng/multiselect';
 import { Conference } from '../../api/conference';
-import { isEqual } from 'lodash'
-
-export interface changeEvent {
-    value: Conference[];
-    field: string;
-}
+import { ConferenceService } from '../../service/conference.service';
 
 @Component({
     selector: 'app-conference-selector',
-    templateUrl: './conference-selector.component.html'
+    templateUrl: './conference-selector.component.html',
+    providers: [{
+        provide: NG_VALUE_ACCESSOR,
+        useExisting: forwardRef(() => ConferenceSelectorComponent),
+        multi: true
+    }]
 })
-export class ConferenceSelectorComponent {
+export class ConferenceSelectorComponent implements OnInit, ControlValueAccessor {
+
     @ViewChild('conferenceSelector') conferenceSelectorRef: MultiSelect
-    @Input() parentForm: FormGroup
-    @Input() controlName: string
-    @Input() showClear: boolean
-    @Input() placeholder: string
-    @Input() selectionLimit: number
-    @Input() selectFirstOption: boolean
-    @Input() style: { [key: string]: string }
-    @Output() change = new EventEmitter<changeEvent>()
 
-    loading: boolean = true                          // Loading overlay trigger value
-    conferences: Conference[] = []                   // Available conferences
-    selectedConferences: Conference[] = []           // Selected conferences
-    previousSelectedConferences: Conference[] = []   // Previously selected conferences
+    @Input() selectionLimit?: number                // Maximum number of selectable conferences (optional)
+    @Input() selectFirstOption: boolean = false     // Whether to automatically select the first available option
+    @Input() placeholder: string                    // Placeholder text for the dropdown
+    @Input() showClear: boolean = true              // Whether to show the clear button
+    @Input() style: { [key: string]: string } = {}  // Custom style for the dropdown
 
-    constructor(private translate: TranslateService, 
-                private conferenceService: ConferenceService) {}
+    loading: boolean = true                          // Loading state indicator
+    disabled: boolean = false                        // Whether the selector is disabled
+    conferences: Conference[] = []                   // List of available conference options
+    selectedConferences: Conference[] = []           // List of currently selected conferences
+
+    constructor(private conferenceService: ConferenceService) { }
 
     /**
-     * Lifecycle hook: called when the component is initialized.
-     * Subscribes to language change events and sets the conferences
-     * for the selector when the language changes.
+     * Lifecycle hook: Called when the component is initialized.
+     * Fetches the list of conferences and selects the first option if required.
      */
-    ngOnInit() {
-        this.translate.onLangChange.subscribe(() => {
-            this.setConferences()
+    ngOnInit(): void {
+        this.conferenceService.getConferencesForSelector().subscribe(confs => {
+            this.conferences = confs
+            this.handleSelectFirstOption()
         })
     }
 
     /**
-     * Lifecycle hook: called when any data-bound property of a directive changes.
-     * Updates the available conference options when input properties change.
-     * @param changes An object of key-value pairs for the changed properties.
+     * Selects the first available conference if the `selectFirstOption` flag is enabled.
+     * This ensures that the component has an initial selection when loaded.
      */
-    ngOnChanges(changes: SimpleChanges) {
-        this.setConferences()
-    }
-
-    /**
-     * Returns the FormControl object for the conference selector.
-     * @returns {FormControl} the FormControl object
-     */
-    getFormControl(): FormControl | null {
-        if (!this.parentForm || !this.controlName) {
-            return null
+    private handleSelectFirstOption(): void {
+        if (this.selectFirstOption && (!this.selectedConferences || this.selectedConferences.length === 0)) {
+            const limit = this.selectionLimit ?? 1
+            this.selectedConferences = this.conferences.slice(0, limit)
+            this.onChange(this.selectedConferences) // Notify the parent component about the selection
         }
-        return this.parentForm.get(this.controlName) as FormControl
     }
 
     /**
-     * Sets the available conference options for the conference selector component.
-     * Translates the conference labels to the current language and maps them to their respective values.
+     * Sets the disabled state of the component.
+     * Used by Angular forms to enable/disable the input dynamically.
+     * 
+     * @param isDisabled - Boolean indicating whether the component should be disabled.
      */
-    setConferences() {
-        this.loading = true
-        this.conferenceService.getConferencesForSelector().subscribe((conferences: Conference[]) => {
-            this.conferences = conferences
-    
-            if (this.selectFirstOption && this.conferences.length > 0) {
-                // If there is a selectionLimit, we take the first N elements, otherwise all
-                const limit = this.selectionLimit ?? this.conferences.length
-                this.selectedConferences = this.conferences.slice(0, limit)
-    
-                // Set the value of the form control to the selected conference name
-                this.getFormControl()?.setValue(this.selectedConferences.map(c => c.name) || null)
-    
-                const event: DropdownChangeEvent = {
-                    originalEvent: {} as Event,
-                    value: this.selectedConferences.map(c => c.name) || null
-                }
-    
-                this.handleOnChange(event)
-            }
-        })
+    setDisabledState?(isDisabled: boolean): void {
+        this.disabled = isDisabled
     }
-    
+
     /**
-     * Handles the change event of the conference selector and emits the selected conference object
-     * with the changed field name.
-     * @param event the change event of the conference selector
+     * Synchronizes the selected conferences with the available options.
+     * Ensures that the selected values remain valid if the list of conferences updates.
      */
-    handleOnChange(event: DropdownChangeEvent) {
+    private syncSelectedConferences(): void {
+        this.selectedConferences = this.conferences.filter(conf =>
+            this.selectedConferences.some(sel => sel.id === conf.id)
+        )
+        this.onChange(this.selectedConferences)
+    }
+
+    /**
+     * Handles the event when the selection changes.
+     * Updates the selected conferences and notifies the parent component.
+     * 
+     * @param event - The selection change event containing the selected values.
+     */
+    onSelectionChange(event: any): void {
         this.selectedConferences = event.value
-        this.getFormControl()?.setValue(this.selectedConferences)
+        this.onChange(this.selectedConferences)
+        this.onTouched()
 
-        // Hide the dropdown if the selection limit is reached and the dropdown is open
-        if (this.selectionLimit === this.selectedConferences.length) {
-            setTimeout(() => this.conferenceSelectorRef?.hide(), 0)
-        }
-
-        // If seleted conferences are different from the previous ones, emit the change event
-        if (!isEqual(this.selectedConferences, this.previousSelectedConferences)) {
-            this.change.emit({ value: this.selectedConferences, field: this.controlName })
-            this.previousSelectedConferences = [...this.selectedConferences]
-        }
-    }    
-
-    /**
-     * Handles the hide event of the conference selector and emits the selected conference object
-     * with the changed field name.
-     * @param event the hide event of the conference selector
-     * @returns {void}
-     * @emits {changeEvent} the selected conference object with the changed field name
-     */
-    onPanelHide() {
-        if (!isEqual(this.selectedConferences, this.previousSelectedConferences)) {
-            this.change.emit({ value: this.selectedConferences, field: this.controlName })
-            this.previousSelectedConferences = [...this.selectedConferences]
+        if (this.selectionLimit == this.selectedConferences.length) {
+            setTimeout(() => this.conferenceSelectorRef.hide(), 0)
         }
     }
-    
+
     /**
-     * Handles the clear event of the conference selector and emits a new value with the
-     * changed field name.
-     * @param event the clear event of the conference selector
+     * Handles the clear selection event.
+     * Resets the selected conferences and notifies the parent component.
      */
-    handleOnClear() {
+    onSelectionClear(): void {
         this.selectedConferences = []
-        this.getFormControl()?.setValue([])
-    
-        // Emit the change event with an empty array
-        this.handleOnChange({ value: [], originalEvent: new Event('clear') })
+        this.onChange(this.selectedConferences)
+        this.onTouched()
     }
+
+    // ===========================
+    // ControlValueAccessor Methods
+    // ===========================
+
+    /**
+     * Writes the value from the parent form into the component.
+     * Used when the form initializes or updates externally.
+     * 
+     * @param value - The selected conferences coming from the form.
+     */
+    writeValue(value: Conference[]): void {
+        this.selectedConferences = value || []
+        if (this.conferences.length > 0) {
+            this.syncSelectedConferences()
+        }
+    }
+
+    /**
+     * Registers a callback function that is called when the value changes.
+     * This is part of the ControlValueAccessor implementation.
+     * 
+     * @param fn - The callback function to be triggered on value change.
+     */
+    registerOnChange(fn: any): void {
+        this.onChange = fn
+    }
+
+    /**
+     * Registers a callback function that is called when the input is touched.
+     * This is part of the ControlValueAccessor implementation.
+     * 
+     * @param fn - The callback function to be triggered on input touch.
+     */
+    registerOnTouched(fn: any): void {
+        this.onTouched = fn
+    }
+    
+    /**
+     * Callback function to handle value changes from the parent form.
+     * Initially set as an empty function, but will be assigned dynamically.
+     */
+    onChange = (_: any) => { }
+    
+    /**
+     * Callback function to handle when the input is touched.
+     * Initially set as an empty function, but will be assigned dynamically.
+     */
+    onTouched = () => { }
 }

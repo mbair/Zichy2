@@ -42,6 +42,7 @@ export class EcommerceDashboardComponent implements OnInit {
     rfidPercentage: number = 85;
     prepaidPercentage: number = 0;
     selectedConference: Conference;
+    selectedConferences: Conference[] = [];
     conferenceData: any;
     conferenceGuests: Guest[] = [];
     taskList: any[] = [];
@@ -306,14 +307,19 @@ export class EcommerceDashboardComponent implements OnInit {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
 
-    onConferenceChange(event: any) {
-        this.selectedConference = event.value
-        const conferenceName = event.value?.name
-        // this.conferenceService.getBySearchQuery(`name=${conferenceName}`)
-        this.guestService.getByConferenceName(conferenceName).subscribe((guests: any) => {
-            this.conferenceGuests = guests.rows || []
-            this.prepaidPercentage = Math.round((this.prepaid / this.registrations) * 100) || 0
-        })
+    onConferenceChange(selectedConfs: Conference[]): void {
+        console.log('Selected conference:', selectedConfs);
+            this.selectedConference = selectedConfs[0];
+            const conferenceName = this.selectedConference?.name;
+
+        if (conferenceName) { // Ensure conferenceName is defined
+            this.guestService.getByConferenceName(conferenceName).subscribe((guests: any) => {
+                this.conferenceGuests = guests.rows || [];
+                this.prepaidPercentage = Math.round((this.prepaid / this.registrations) * 100) || 0
+            })
+        } else {
+            console.error('Conference name is undefined');
+        }
     }
 
     // Don't delete this, its needed from a performance point of view,

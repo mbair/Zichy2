@@ -1,3 +1,5 @@
+import { Conference } from "./conference";
+
 export interface Guest {
     id?: string;
     firstName?: string;
@@ -42,4 +44,5 @@ export interface Guest {
     room_id?: string;
     answers?: string;
     dietDetails?: string;
+    conference?: Conference[]
 }

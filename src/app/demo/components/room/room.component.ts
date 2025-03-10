@@ -8,8 +8,10 @@ import { RoomService } from '../../service/room.service';
 import { UserService } from '../../service/user.service';
 import { ResponsiveService } from '../../service/responsive.service';
 import { ApiResponse } from '../../api/ApiResponse';
+import { Conference } from '../../api/conference';
 import { Room } from '../../api/room';
 import * as moment from 'moment';
+
 moment.locale('hu')
 
 @Component({
@@ -46,7 +48,8 @@ export class RoomComponent implements OnInit {
     canEdit: boolean = false                     // User has permission to update room
     canDelete: boolean = false                   // User has permission to delete room
     isMobile: boolean = false                    // Mobile screen detection
-    occupancyFilter: any                         // TODO: Not used yet   
+    occupancyFilter: any                         // TODO: Not used yet  
+    selectedConferences: Conference[] = []       // Selected conferences
 
     private defaultRoomFormValues = {
         id: null,

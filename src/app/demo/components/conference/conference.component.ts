@@ -98,7 +98,7 @@ export class ConferenceComponent implements OnInit {
             registrationEndDate: ['', Validators.required],
             guestEditEndDate: ['', Validators.required],
             organizer_user_id: [''],
-            enabled: ['', []],
+            enabled: ['1', []],
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
