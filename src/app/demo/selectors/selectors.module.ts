@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ChipModule } from 'primeng/chip';
 import { DropdownModule } from 'primeng/dropdown';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { TranslateModule } from '@ngx-translate/core';
 import { ConferenceSelectorComponent } from './conference-selector/conference-selector.component';
 import { CountrySelectorComponent } from './country-selector/country-selector.component';
@@ -49,6 +50,7 @@ import { FloorSelectorComponent } from './floor-selector/floor-selector.componen
         ReactiveFormsModule,
         ChipModule,
         DropdownModule,
+        MultiSelectModule,
         TranslateModule,
     ],
     exports: [

@@ -1,44 +1,28 @@
-<!-- ReactiveForms -->
-<p-dropdown *ngIf="getFormControl() as control; else useNgModel"
-            [formControl]="control"
-            [options]="conferences"
-            optionLabel="name"
-            optionValue="name"
-            (onChange)="handleOnChange($event)"
-            (onClear)="handleOnClear()"
-            [placeholder]="placeholder"
-            emptyMessage="{{ 'Nincs találat...' | translate }}"
-            [showClear]="showClear"
-            [style]="style"
-            appendTo="body">
-
-    <ng-template pTemplate="item" let-option>
-        {{ option.name | translate }}
-    </ng-template>
-    <ng-template pTemplate="selectedItem" let-selectedItem>
-        {{ selectedItem?.name | translate  }}
-    </ng-template>
-</p-dropdown>
-
-<!-- ngModel -->
-<ng-template #useNgModel>
-    <p-dropdown [(ngModel)]="selectedConference"
-                [options]="conferences"
-                optionLabel="name"
-                optionValue="name"
-                (onChange)="handleOnChange($event)"
-                (onClear)="handleOnClear()"
-                [placeholder]="placeholder"
-                emptyMessage="{{ 'Nincs találat...' | translate }}"
-                [showClear]="showClear"
-                [style]="style"
-                appendTo="body">
-
-        <ng-template pTemplate="item" let-option>
-            {{ option.name | translate  }}
-        </ng-template>
-        <ng-template pTemplate="selectedItem" let-selectedItem>
-            {{ selectedItem?.name | translate  }}
-        </ng-template>
-    </p-dropdown>
-</ng-template>
+<p-multiSelect
+    #conferenceSelector
+    class="multiselect-custom-virtual-scroll"
+    [options]="conferences"
+    [(ngModel)]="selectedConferences"
+    (onChange)="onSelectionChange($event)"
+    (onClear)="onSelectionClear()"
+    [disabled]="disabled"
+    optionLabel="name"
+    [selectionLimit]="selectionLimit"
+    [placeholder]="placeholder"
+    emptyMessage="{{ 'Nincs találat...' | translate }}"
+    [virtualScroll]="true"
+    [virtualScrollItemSize]="43"
+    [showClear]="showClear"
+    [style]="style"
+    scrollHeight="400px"
+    appendTo="body"
+    display="chip">
+  
+  <ng-template pTemplate="item" let-option>
+    {{ option.name }}
+  </ng-template>
+  
+  <ng-template pTemplate="selectedItem" let-selectedItem>
+    {{ selectedItem.name }}
+  </ng-template>
+</p-multiSelect>

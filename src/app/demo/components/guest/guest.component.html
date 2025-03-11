@@ -26,9 +26,13 @@
                         <h5 class="m-0">Vendégek</h5>
                         <span class="block mt-2 md:mt-0">
                             <app-conference-selector
-                                (change)="setSelectedConference($event)" 
+                                [(ngModel)]="selectedConferences"
                                 [showClear]="true"
-                                placeholder="Válasszon konferenciát...">
+                                [selectionLimit]="3"
+                                [selectFirstOption]="isOrganizer"
+                                [style]="{'minWidth': '35rem'}"
+                                placeholder="Válasszon konferenciát..."
+                                (ngModelChange)="onConferenceSelectionChange($event)">
                             </app-conference-selector>
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left w-full sm:w-auto">
@@ -480,16 +484,16 @@
                     </div>
                 </div>
 
-                <!-- conferenceName -->
+                <!-- conference -->
                 <div class="field mb-4 col-8">
-                    <label for="conferenceName" class="font-medium text-900">Konferencia</label>
+                    <label for="conference" class="font-medium text-900">Konferencia</label>
                     <app-conference-selector
-                        [parentForm]="guestForm" 
-                        controlName="conferenceName"
+                        formControlName="conference"
+                        [selectionLimit]="1"
                         [showClear]="true"
                         placeholder="Válasszon konferenciát...">
                     </app-conference-selector>
-                    <div *ngIf="conferenceName?.dirty && conferenceName?.errors?.['required']" class="block p-error">
+                    <div *ngIf="conference?.dirty && conference?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>
@@ -497,7 +501,7 @@
                 <!-- roomNum -->
                 <div class="field mb-4 col-12 lg:col-4">
                     <label for="roomNum" class="font-medium text-900">Szoba</label>
-                    <input id="roomNum" type="text" pInputText formControlName="roomNum" readonly>
+                    <input id="roomNum" type="text" pInputText formControlName="roomNum" [readonly]="isOrganizer">
                 </div>
 
                 <!-- dateOfArrival -->

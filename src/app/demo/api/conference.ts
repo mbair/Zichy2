@@ -1,15 +1,22 @@
+import { Room } from "./room";
+
 export interface Conference {
     id?: string;
     name?: string;
     beginDate?: string | null;
     endDate?: string | null;
     enabled?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+    userid?: string | null;
+    rooms?: Room[];
 
     // New fields
     firstMeal?: string;
     lastMeal?: string;
     contractorName?: string;
     contractorAddress?: string;
+    contractorAdress?: string;
     contractorTaxNumber?: string;
     contactName?: string;
     contactEmail?: string;
@@ -31,4 +38,6 @@ export interface Conference {
     rating?: number;
     attendees?: number;
     canBeBooked?: boolean;
+
+    
 }

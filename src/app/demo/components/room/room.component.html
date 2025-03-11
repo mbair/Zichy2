@@ -24,9 +24,12 @@
                         <h5 class="m-0">Szobák</h5>
                         <span class="block mt-2 md:mt-0">
                             <app-conference-selector
-                                (change)="onFilter($event, 'conferenceName')" 
+                                [(ngModel)]="selectedConferences"
+                                [selectionLimit]="1"
                                 [showClear]="true"
-                                placeholder="Válasszon konferenciát...">
+                                [style]="{'minWidth': '35rem'}"
+                                placeholder="Válasszon konferenciát..."
+                                (ngModelChange)="onFilter($event, 'conferenceName')">
                             </app-conference-selector>
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">

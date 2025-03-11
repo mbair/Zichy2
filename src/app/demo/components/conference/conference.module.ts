@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ConferenceComponent } from './conference.component';
 import { ConferenceRoutingModule } from './conference-routing.module';
 
@@ -36,6 +36,7 @@ import { WidgetModule } from '../../widget/widget.module';
 		ConferenceRoutingModule,
 		TableModule,
         FileUploadModule,
+        FormsModule,
         ReactiveFormsModule,
         ButtonModule,
         RippleModule,

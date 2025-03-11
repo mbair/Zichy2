@@ -1,5 +1,5 @@
 import { Component, OnInit, HostListener, isDevMode, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MenuItem, Message, MessageService } from 'primeng/api';
@@ -25,6 +25,9 @@ import * as FileSaver from 'file-saver';
 import * as moment from 'moment';
 moment.locale('hu')
 
+import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
+
+
 @Component({
     selector: 'guest-component',
     templateUrl: './guest.component.html',
@@ -36,6 +39,7 @@ moment.locale('hu')
 @AutoUnsubscribe()
 
 export class GuestComponent implements OnInit {
+    @ViewChild(ConferenceSelectorComponent) conferenceSelector!: ConferenceSelectorComponent;
     @ViewChild('identifier') identifierElement: ElementRef;
     @ViewChild('dt') table!: Table;
 
@@ -66,12 +70,12 @@ export class GuestComponent implements OnInit {
     canAssign: boolean = false                   // User has permission to assign Tag to guest
     canImport: boolean = false                   // User has permission to import Excel
     isMobile: boolean = false                    // Mobile screen detection
-    messages: Message[] = [];                    // A message used for notifications and displaying errors
-    successfulMessage: Message[] = [];           // Message displayed on success
-    tag: Tag = {};                               // NFC tag
+    messages: Message[] = []                     // A message used for notifications and displaying errors
+    successfulMessage: Message[] = []            // Message displayed on success
+    tag: Tag = {}                                // NFC tag
     tagDialog: boolean = false;                  // Tag assignment popup
     conferences: any[] = [];                     // Optional conferences
-    selectedConference: any;                     // Conference chosen by user
+    selectedConferences: Conference[] = []       // Conference chosen by user
     guest: Guest = {};                           // One guest object
     guestDialog: boolean = false;                // Guests maintenance popup
     cols: any[] = [];                            // Table columns
@@ -136,7 +140,9 @@ export class GuestComponent implements OnInit {
             rfid: ['', []],
             rfidColor: ['', []],
             enabled: [true, []],
-            conferenceName: ['', Validators.required],
+            conference: new FormControl([]),
+            conferenceName: ['', []],
+            conferenceid: ['', []],
             diet: ['', Validators.required],
             diet_id: ['', []],
             lastRfidUsage: ['', []],
@@ -278,9 +284,7 @@ export class GuestComponent implements OnInit {
 
         this.guestForm.get('diet')?.valueChanges.subscribe(() => {
             const selectedDietName = this.guestForm.get('diet')?.value
-            const selectedDietId = this.diets.find(diet => diet.name === selectedDietName).id
-            console.log('Diet changed', selectedDietName)
-            console.log('DietId', selectedDietId)
+            const selectedDietId = this.diets.find(diet => diet.name === selectedDietName)?.id || null
             this.guestForm.patchValue({ diet_id: selectedDietId })
         })
     }
@@ -303,7 +307,7 @@ export class GuestComponent implements OnInit {
     get birthDate() { return this.guestForm.get('birthDate') }
     get rfidColor() { return this.guestForm.get('rfidColor') }
     get enabled() { return this.guestForm.get('enabled') }
-    get conferenceName() { return this.guestForm.get('conferenceName') }
+    get conference() { return this.guestForm.get('conference') }
     get diet() { return this.guestForm.get('diet') }
     get lastRfidUsage() { return this.guestForm.get('lastRfidUsage') }
     get is_test() { return this.guestForm.get('is_test') }
@@ -323,8 +327,8 @@ export class GuestComponent implements OnInit {
      */
     doQuery() {
         // Organizer need select conference
-        if (this.isOrganizer && !this.selectedConference) return
-        
+        if (this.isOrganizer && !this.selectedConferences.length) return
+
         this.loading = true
 
         const filters = Object.keys(this.filterValues)
@@ -341,7 +345,7 @@ export class GuestComponent implements OnInit {
     onFilter(event: any, field: string) {
 
         // Organizer need select conference
-        if (this.isOrganizer && !this.selectedConference) return
+        if (this.isOrganizer && !this.selectedConferences) return
 
         const noWaitFields = ['diet', 'lastRfidUsage', 'dateOfArrival', 'dateOfDeparture', 'prepaid']
         let filterValue = ''
@@ -433,26 +437,28 @@ export class GuestComponent implements OnInit {
      */
     edit(guest: Guest) {
         this.guestForm.reset()
-        this.guestForm.patchValue(guest)
         this.originalFormValues = this.guestForm.value
         this.sidebar = true
         
         // Get guest conference details
         if (guest.conferenceid) {
-            this.conferenceService.getById(guest.conferenceid).subscribe(conference => {
-
-                this.guestConference = conference
-                
-                // Set arrival and departure date limitations
-                this.beginDate = conference.beginDate ? new Date(conference.beginDate) : undefined
-                this.endDate = conference.endDate ? new Date(conference.endDate) : undefined
-
-                this.getEarliestFirstMeal()
-                this.getLatestFirstMeal()
-                this.getEarliestLastMeal()
-                this.getLatestLastMeal()
-                this.cdRef.detectChanges()
+            const selectedConf = this.conferenceSelector.conferences.find(conf => conf.id === guest.conferenceid)
+            guest.conference = selectedConf ? [selectedConf] : []
+            
+            // Because side bar is not visible yet, we need to wait a bit
+            setTimeout(() => {
+                this.guestForm.patchValue(guest)
             })
+    
+            // Set arrival and departure date limitations
+            this.beginDate = selectedConf?.beginDate ? new Date(selectedConf.beginDate) : undefined
+            this.endDate = selectedConf?.endDate ? new Date(selectedConf.endDate) : undefined
+
+            this.getEarliestFirstMeal()
+            this.getLatestFirstMeal()
+            this.getEarliestLastMeal()
+            this.getLatestLastMeal()
+            this.cdRef.detectChanges()
         }
     }
 
@@ -835,15 +841,22 @@ export class GuestComponent implements OnInit {
         }
     }
 
-    setSelectedConference(event: any) {
-        this.selectedConference = event.value ? event.value : null
-        this.filterValues['conferenceName'] = this.selectedConference?.name || ''
-
-        // Organizer can edit guests if the current date is less than the guestEditEndDate of the conference
-        if (this.isOrganizer && this.selectedConference && this.selectedConference.guestEditEndDate) {
-            this.canEdit = new Date() < new Date(this.selectedConference.guestEditEndDate)
+    /**
+     * Handle the selection of conferences in the conference selector.
+     * Updates the selected conferences and the table data.
+     * @param selectedConferences 
+     */
+    onConferenceSelectionChange(selectedConferences: Conference[]): void {
+        this.selectedConferences = selectedConferences || []
+        this.filterValues['conferenceName'] = this.selectedConferences.map(conf => conf.name).join(', ') || ''
+    
+        // Check if the user can edit the selected conferences
+        if (this.isOrganizer && this.selectedConferences.length > 0) {
+            this.canEdit = this.selectedConferences.some(conf => 
+                conf.guestEditEndDate && moment().isSameOrBefore(moment(conf.guestEditEndDate), 'day')
+            )
         }
-
+    
         this.tableData = []
         this.doQuery()
     }
@@ -856,43 +869,90 @@ export class GuestComponent implements OnInit {
      */
     exportExcel() {
         import("xlsx").then(xlsx => {
-            // Use only selected rows for export
-            const data = this.selected.map(row => {
-                const { id, answers, ...rest } = row // Remove the 'id' column
-                
+            let data = this.selected.map(row => {
+                // Remove id column and keep the rest columns
+                const { id, answers, ...rest } = row
+                const qnaColumns: { [key: string]: any } = {}
+                let qaIndex = 1
+    
+                if (Array.isArray(answers)) {
+                    answers.forEach(answer => {
+                        if (Array.isArray(answer.translations)) {
+                            answer.translations.forEach((translation: any) => {
+                                // Add question mark at the end of the question
+                                const question = translation.hu.trim().endsWith('?')
+                                    ? translation.hu
+                                    : translation.hu + '?';
+                                // The "answers" cell contains the answer
+                                const answerText = translation.answers
+                                qnaColumns[`question_${qaIndex}`] = question
+                                qnaColumns[`answer_${qaIndex}`] = answerText
+                                qaIndex++
+                            })
+                        }
+                    })
+                }
+    
                 return {
                     ...rest,
-                    answers: (Array.isArray(answers) ? answers : []).map((answer: any) =>
-                        answer.translations.map((t:any) =>
-                            `${t.hu.trim().endsWith('?') ? t.hu : t.hu + '?'} ${t.answers}`
-                        ).join(' | ') // Ha több fordítás van, akkor " | " jellel összefűzzük őket
-                    ).join(' || ') // Ha több válasz van, akkor " || " jellel összefűzzük őket
-                }
+                    ...qnaColumns
+                } as { [key: string]: any }
             })
-            
+    
+            // If the selected array is empty, we work from the filtered or full dataset as a fallback
             if (data.length === 0) {
-                // Fallback: If no rows are selected, use filtered or full table data
                 console.warn("No rows selected for export. Exporting filtered or full data.")
-                
-                // If the table has a filter applied, use the filtered data
-                const fallbackData = (this.table.filteredValue || this.tableData).map(row => {
+                data = (this.table.filteredValue || this.tableData).map(row => {
                     const { id, answers, ...rest } = row
-                    
+                    const qnaColumns: { [key: string]: any } = {}
+                    let qaIndex = 1
+                    if (Array.isArray(answers)) {
+                        answers.forEach(answer => {
+                            if (Array.isArray(answer.translations)) {
+                                answer.translations.forEach((translation: any) => {
+                                    const question = translation.hu.trim().endsWith('?')
+                                        ? translation.hu
+                                        : translation.hu + '?'
+                                    const answerText = translation.answers
+                                    qnaColumns[`question_${qaIndex}`] = question
+                                    qnaColumns[`answer_${qaIndex}`] = answerText
+                                    qaIndex++
+                                })
+                            }
+                        })
+                    }
                     return {
                         ...rest,
-                        answers: answers?.map((answer:any) =>
-                            answer.translations.map((t:any) =>
-                                `${t.hu.trim().endsWith('?') ? t.hu : t.hu + '?'} ${t.answers}`
-                            ).join(' | ')
-                        ).join(' || ')
-                    };
+                        ...qnaColumns
+                    } as { [key: string]: any }
                 })
-
-                data.push(...fallbackData)
             }
-
-            // Remove unnecessary columns
+    
+            // Find the maximum number of question/answer pairs in all rows
+            let maxQA = 0
             data.forEach(row => {
+                const qaCount = Object.keys(row).filter(key => key.startsWith('question_')).length
+                if (qaCount > maxQA) {
+                    maxQA = qaCount
+                }
+            })
+    
+            // For each row, we fill in the missing question/answer columns with an empty string so that the columns are identical in each row
+            data = data.map(row => {
+                const r = row as { [key: string]: any }
+                for (let i = 1; i <= maxQA; i++) {
+                    if (!r.hasOwnProperty(`question_${i}`)) {
+                        r[`question_${i}`] = ''
+                    }
+                    if (!r.hasOwnProperty(`answer_${i}`)) {
+                        r[`answer_${i}`] = ''
+                    }
+                }
+                return r
+            })
+    
+            // Delete unnecessary columns
+            data.forEach((row: Guest) => {
                 delete row.is_test
                 delete row.userid
                 delete row.rfid_id
@@ -901,13 +961,14 @@ export class GuestComponent implements OnInit {
                 delete row.conferenceid
                 delete row.dietDetails
             })
-
+    
+            // Creating an Excel worksheet and file
             const worksheet = xlsx.utils.json_to_sheet(data)
             const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
-            const excelBuffer: any = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
+            const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
             this.saveAsExcelFile(excelBuffer, "guests")
         })
-    }
+    }    
 
     /**
      * Saves the provided buffer as an Excel file with the specified file name.
