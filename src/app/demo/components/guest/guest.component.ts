@@ -25,7 +25,6 @@ import * as FileSaver from 'file-saver';
 import * as moment from 'moment';
 moment.locale('hu')
 
-// guest.component.ts tetejére
 import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
 
 
@@ -870,43 +869,90 @@ export class GuestComponent implements OnInit {
      */
     exportExcel() {
         import("xlsx").then(xlsx => {
-            // Use only selected rows for export
-            const data = this.selected.map(row => {
-                const { id, answers, ...rest } = row // Remove the 'id' column
-                
+            let data = this.selected.map(row => {
+                // Remove id column and keep the rest columns
+                const { id, answers, ...rest } = row
+                const qnaColumns: { [key: string]: any } = {}
+                let qaIndex = 1
+    
+                if (Array.isArray(answers)) {
+                    answers.forEach(answer => {
+                        if (Array.isArray(answer.translations)) {
+                            answer.translations.forEach((translation: any) => {
+                                // Add question mark at the end of the question
+                                const question = translation.hu.trim().endsWith('?')
+                                    ? translation.hu
+                                    : translation.hu + '?';
+                                // The "answers" cell contains the answer
+                                const answerText = translation.answers
+                                qnaColumns[`question_${qaIndex}`] = question
+                                qnaColumns[`answer_${qaIndex}`] = answerText
+                                qaIndex++
+                            })
+                        }
+                    })
+                }
+    
                 return {
                     ...rest,
-                    answers: (Array.isArray(answers) ? answers : []).map((answer: any) =>
-                        answer.translations.map((t:any) =>
-                            `${t.hu.trim().endsWith('?') ? t.hu : t.hu + '?'} ${t.answers}`
-                        ).join(' | ') // Ha több fordítás van, akkor " | " jellel összefűzzük őket
-                    ).join(' || ') // Ha több válasz van, akkor " || " jellel összefűzzük őket
-                }
+                    ...qnaColumns
+                } as { [key: string]: any }
             })
-            
+    
+            // If the selected array is empty, we work from the filtered or full dataset as a fallback
             if (data.length === 0) {
-                // Fallback: If no rows are selected, use filtered or full table data
                 console.warn("No rows selected for export. Exporting filtered or full data.")
-                
-                // If the table has a filter applied, use the filtered data
-                const fallbackData = (this.table.filteredValue || this.tableData).map(row => {
+                data = (this.table.filteredValue || this.tableData).map(row => {
                     const { id, answers, ...rest } = row
-                    
+                    const qnaColumns: { [key: string]: any } = {}
+                    let qaIndex = 1
+                    if (Array.isArray(answers)) {
+                        answers.forEach(answer => {
+                            if (Array.isArray(answer.translations)) {
+                                answer.translations.forEach((translation: any) => {
+                                    const question = translation.hu.trim().endsWith('?')
+                                        ? translation.hu
+                                        : translation.hu + '?'
+                                    const answerText = translation.answers
+                                    qnaColumns[`question_${qaIndex}`] = question
+                                    qnaColumns[`answer_${qaIndex}`] = answerText
+                                    qaIndex++
+                                })
+                            }
+                        })
+                    }
                     return {
                         ...rest,
-                        answers: answers?.map((answer:any) =>
-                            answer.translations.map((t:any) =>
-                                `${t.hu.trim().endsWith('?') ? t.hu : t.hu + '?'} ${t.answers}`
-                            ).join(' | ')
-                        ).join(' || ')
-                    };
+                        ...qnaColumns
+                    } as { [key: string]: any }
                 })
-
-                data.push(...fallbackData)
             }
-
-            // Remove unnecessary columns
+    
+            // Find the maximum number of question/answer pairs in all rows
+            let maxQA = 0
             data.forEach(row => {
+                const qaCount = Object.keys(row).filter(key => key.startsWith('question_')).length
+                if (qaCount > maxQA) {
+                    maxQA = qaCount
+                }
+            })
+    
+            // For each row, we fill in the missing question/answer columns with an empty string so that the columns are identical in each row
+            data = data.map(row => {
+                const r = row as { [key: string]: any }
+                for (let i = 1; i <= maxQA; i++) {
+                    if (!r.hasOwnProperty(`question_${i}`)) {
+                        r[`question_${i}`] = ''
+                    }
+                    if (!r.hasOwnProperty(`answer_${i}`)) {
+                        r[`answer_${i}`] = ''
+                    }
+                }
+                return r
+            })
+    
+            // Delete unnecessary columns
+            data.forEach((row: Guest) => {
                 delete row.is_test
                 delete row.userid
                 delete row.rfid_id
@@ -915,13 +961,14 @@ export class GuestComponent implements OnInit {
                 delete row.conferenceid
                 delete row.dietDetails
             })
-
+    
+            // Creating an Excel worksheet and file
             const worksheet = xlsx.utils.json_to_sheet(data)
             const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
-            const excelBuffer: any = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
+            const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
             this.saveAsExcelFile(excelBuffer, "guests")
         })
-    }
+    }    
 
     /**
      * Saves the provided buffer as an Excel file with the specified file name.
