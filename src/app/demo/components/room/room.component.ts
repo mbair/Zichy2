@@ -11,7 +11,6 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Room } from '../../api/room';
 import * as moment from 'moment';
-
 moment.locale('hu')
 
 @Component({
@@ -62,6 +61,7 @@ export class RoomComponent implements OnInit {
         floor: '',
         bedType: '',
         climate: 0,
+        familyRoom: 0,
         comment: '',
         extraBeds: 0
     };
@@ -90,6 +90,7 @@ export class RoomComponent implements OnInit {
             floor: [this.defaultRoomFormValues.floor],
             bedType: [this.defaultRoomFormValues.bedType],
             climate: [this.defaultRoomFormValues.climate],
+            familyRoom: [this.defaultRoomFormValues.familyRoom],
             comment: [this.defaultRoomFormValues.comment],
             extraBeds: [this.defaultRoomFormValues.extraBeds]
         })
@@ -142,6 +143,7 @@ export class RoomComponent implements OnInit {
     get floor() { return this.roomForm.get('floor') }
     get bedType() { return this.roomForm.get('bedType') }
     get climate() { return this.roomForm.get('climate') }
+    get familyRoom() { return this.roomForm.get('familyRoom') }
     get comment() { return this.roomForm.get('comment') }
     get extraBeds() { return this.roomForm.get('extraBeds') }
 
