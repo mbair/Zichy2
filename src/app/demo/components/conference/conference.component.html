@@ -112,19 +112,24 @@
                             </app-meal-selector>
                         </th>
                         <th>
-                            <p-inputSwitch 
-                                id="enabled"
-                                [ngModel]="filterValues['enabled'] === '1'"
-                                (onChange)="onFilter($event, 'enabled')"/>
+                            <div class="flex align-items-center vertical-align-middle">
+                                <p-inputSwitch 
+                                    id="enabled"
+                                    [ngModel]="filterValues['enabled'] === '1'"
+                                    (onChange)="onFilter($event, 'enabled')"
+                                    [styleClass]="'vertical-align-middle'"
+                                    [style]="{'lineHeight': '30.5px'}"
+                                />
+                                <span class="pl-2 font-normal vertical-align-middle">
+                                    {{ filterValues['enabled'] === '1' ? 'Igen' : 'Nem' }}
+                                </span>
+                            </div>
                         </th>
                     </tr>
                 </ng-template>
 
                 <ng-template pTemplate="body" let-conference let-expanded="expanded">
                     <tr>
-                        <!-- <td>
-                            <p-tableCheckbox [value]="conference"></p-tableCheckbox>
-                        </td> -->
                         <td class="pr-0">
                             <p-button type="button"
                                       styleClass="p-button-rounded p-button-text"
@@ -446,7 +451,17 @@
                 <div class="field mb-4 col-12 lg:col-6">
                     <label for="enabled" class="font-medium text-900">Engedélyezve</label>
                     <div class="block">
-                        <p-inputSwitch id="enabled" formControlName="enabled"/>
+                        <div class="flex align-items-center vertical-align-middle" style="min-height: 44px">
+                            <p-inputSwitch 
+                                id="enabled"
+                                formControlName="enabled"
+                                [styleClass]="'vertical-align-middle'"
+                                [style]="{'lineHeight': '44px'}"
+                            />
+                            <span class="pl-2 font-normal vertical-align-middle">
+                                {{ enabled?.value ? 'Igen' : 'Nem' }}
+                            </span>
+                        </div>
                     </div>
                     <div *ngIf="enabled?.dirty && enabled?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni

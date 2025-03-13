@@ -50,7 +50,7 @@ export class RoomComponent implements OnInit {
     occupancyFilter: any                         // TODO: Not used yet  
     selectedConferences: Conference[] = []       // Selected conferences
 
-    private defaultRoomFormValues = {
+    private initialFormValues = {
         id: null,
         roomNum: '',
         roomCode: '',
@@ -64,7 +64,7 @@ export class RoomComponent implements OnInit {
         familyRoom: 0,
         comment: '',
         extraBeds: 0
-    };
+    }
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -80,19 +80,19 @@ export class RoomComponent implements OnInit {
 
         // Room form fields and validators
         this.roomForm = this.fb.group({
-            id: [this.defaultRoomFormValues.id],
-            roomNum: [this.defaultRoomFormValues.roomNum, Validators.required],
-            roomCode: [this.defaultRoomFormValues.roomCode, Validators.required],
-            beds: [this.defaultRoomFormValues.beds, Validators.required],
-            spareBeds: [this.defaultRoomFormValues.spareBeds],
-            bathroom: [this.defaultRoomFormValues.bathroom],
-            building: [this.defaultRoomFormValues.building, Validators.required],
-            floor: [this.defaultRoomFormValues.floor],
-            bedType: [this.defaultRoomFormValues.bedType],
-            climate: [this.defaultRoomFormValues.climate],
-            familyRoom: [this.defaultRoomFormValues.familyRoom],
-            comment: [this.defaultRoomFormValues.comment],
-            extraBeds: [this.defaultRoomFormValues.extraBeds]
+            id: [this.initialFormValues.id],
+            roomNum: [this.initialFormValues.roomNum, Validators.required],
+            roomCode: [this.initialFormValues.roomCode, Validators.required],
+            beds: [this.initialFormValues.beds, Validators.required],
+            spareBeds: [this.initialFormValues.spareBeds],
+            bathroom: [this.initialFormValues.bathroom],
+            building: [this.initialFormValues.building, Validators.required],
+            floor: [this.initialFormValues.floor],
+            bedType: [this.initialFormValues.bedType],
+            climate: [this.initialFormValues.climate],
+            familyRoom: [this.initialFormValues.familyRoom],
+            comment: [this.initialFormValues.comment],
+            extraBeds: [this.initialFormValues.extraBeds]
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -237,7 +237,7 @@ export class RoomComponent implements OnInit {
      * Create new Room
      */
     create() {
-        this.roomForm.reset(this.defaultRoomFormValues)
+        this.roomForm.reset(this.initialFormValues)
         this.sidebar = true
     }
 
@@ -246,7 +246,7 @@ export class RoomComponent implements OnInit {
      * @param room
      */
     edit(room: Room) {
-        this.roomForm.reset(this.defaultRoomFormValues)
+        this.roomForm.reset(this.initialFormValues)
         this.roomForm.patchValue(room)
         this.originalFormValues = this.roomForm.value
         this.sidebar = true
