@@ -13,5 +13,6 @@ export interface Room {
     bedtype?: string;
     comment?: string;
     climate?: boolean;
+    familyRoom?: boolean;
     enabled?: boolean;
 }

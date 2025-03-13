@@ -314,7 +314,25 @@
                         </div>
                     </div>
                     <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
-                        Kérjük válassza ki, hogy kér-e babaágyat!
+                        Kérjük válassza ki, hogy klimatizált e a szoba!
+                    </div>
+                </div>
+
+                <!-- familyRoom -->
+                <div class="field mb-4 col-6">
+                    <label for="familyRoom" class="font-medium text-900">Családi szoba?</label>
+                    <div class="flex flex-wrap gap-3 my-3">
+                        <div class="flex align-items-center">
+                            <p-radioButton name="familyRoom" value="1" formControlName="familyRoom" inputId="familyRoom-yes"></p-radioButton>
+                            <label for="familyRoom-yes" class="ml-2">Igen</label>
+                        </div>
+                        <div class="flex align-items-center">
+                            <p-radioButton name="familyRoom" value="0" formControlName="familyRoom" inputId="familyRoom-no"></p-radioButton>
+                            <label for="familyRoom-no" class="ml-2">Nem</label>
+                        </div>
+                    </div>
+                    <div *ngIf="familyRoom?.dirty && familyRoom?.errors?.['required']" class="p-error">
+                        Kérjük válassza ki, hogy a szoba családi szoba e!
                     </div>
                 </div>
             </form>

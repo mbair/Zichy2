@@ -1,5 +1,5 @@
 import { Component, isDevMode, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
@@ -63,11 +63,33 @@ export class ConferenceComponent implements OnInit {
     loggedInUserId: number                       // Logged in user id
     isMobile: boolean = false                    // Mobile screen detection
 
+    private initialFormValues = {
+        id: null,
+        name: '',
+        beginDate: '',
+        endDate: '',
+        firstMeal: '',
+        lastMeal: '',
+        contractorName: '',
+        contractorAdress: '',
+        contractorTaxNumber: '',
+        contactName: '',
+        contactEmail: '',
+        contactPhone: '',
+        formUrl: '',
+        registrationEndDate: '',
+        guestEditEndDate: '',
+        organizer_user_id: '',
+        enabled: true,
+    }
+
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
     private conferenceObs$: Observable<any> | undefined
     private serviceMessageObs$: Observable<any> | undefined
     private questionMessageObs$: Observable<any> | undefined
+
+    
 
     constructor(
         public userService: UserService,
@@ -82,23 +104,23 @@ export class ConferenceComponent implements OnInit {
 
         // Conference form fields and validators
         this.conferenceForm = this.formBuilder.group({
-            id: [''],
-            name: ['', Validators.required],
-            beginDate: ['', Validators.required],
-            endDate: ['', Validators.required],
-            firstMeal: ['', Validators.required],
-            lastMeal: ['', Validators.required],
-            contractorName: ['', Validators.required],
-            contractorAdress: ['', Validators.required],
-            contractorTaxNumber: ['', [Validators.required]],
-            contactName: ['', Validators.required],
-            contactEmail: ['', [Validators.required, emailDomainValidator()]],
-            contactPhone: ['', Validators.required],
-            formUrl: ['', Validators.required],
-            registrationEndDate: ['', Validators.required],
-            guestEditEndDate: ['', Validators.required],
-            organizer_user_id: [''],
-            enabled: ['1', []],
+            id: [this.initialFormValues.id],
+            name: [this.initialFormValues.name, Validators.required],
+            beginDate: [this.initialFormValues.beginDate, Validators.required],
+            endDate: [this.initialFormValues.endDate, Validators.required],
+            firstMeal: [this.initialFormValues.firstMeal, Validators.required],
+            lastMeal: [this.initialFormValues.lastMeal, Validators.required],
+            contractorName: [this.initialFormValues.contractorName, Validators.required],
+            contractorAdress: [this.initialFormValues.contractorAdress, Validators.required],
+            contractorTaxNumber: [this.initialFormValues.contractorTaxNumber, [Validators.required]],
+            contactName: [this.initialFormValues.contactName, Validators.required],
+            contactEmail: [this.initialFormValues.contactEmail, [Validators.required, emailDomainValidator()]],
+            contactPhone: [this.initialFormValues.contactPhone, Validators.required],
+            formUrl: [this.initialFormValues.formUrl, Validators.required],
+            registrationEndDate: [this.initialFormValues.registrationEndDate, Validators.required],
+            guestEditEndDate: [this.initialFormValues.guestEditEndDate, Validators.required],
+            organizer_user_id: [this.initialFormValues.organizer_user_id],
+            enabled: [this.initialFormValues.enabled],
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -399,7 +421,7 @@ export class ConferenceComponent implements OnInit {
      * Create new Conference
      */
     create() {
-        this.conferenceForm.reset()
+        this.conferenceForm.reset(this.initialFormValues)
         this.sidebar = true
     }
 
@@ -408,7 +430,7 @@ export class ConferenceComponent implements OnInit {
      * @param conference
      */
     edit(conference: Conference) {
-        this.conferenceForm.reset()
+        this.conferenceForm.reset(this.initialFormValues)
         this.conferenceForm.patchValue(conference)
         this.originalFormValues = this.conferenceForm.value
         this.sidebar = true
