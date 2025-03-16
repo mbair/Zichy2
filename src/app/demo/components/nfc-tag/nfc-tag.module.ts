@@ -25,7 +25,6 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { CalendarModule } from 'primeng/calendar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { SidebarModule } from 'primeng/sidebar';
-import { InputSwitchModule } from 'primeng/inputswitch';
 import { SelectorsModule } from '../../selectors/selectors.module';
 
 @NgModule({
@@ -56,7 +55,6 @@ import { SelectorsModule } from '../../selectors/selectors.module';
         CalendarModule,
         SkeletonModule,
         SidebarModule,
-        InputSwitchModule,
         SelectorsModule,
     ],
     declarations: [NFCTagComponent],

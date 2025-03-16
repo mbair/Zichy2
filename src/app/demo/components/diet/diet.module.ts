@@ -15,7 +15,6 @@ import { MessagesModule } from 'primeng/messages';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { SidebarModule } from 'primeng/sidebar';
-import { InputSwitchModule } from 'primeng/inputswitch';
 import { SelectorsModule } from '../../selectors/selectors.module';
 import { DietService } from '../../service/diet.service';
 
@@ -38,7 +37,6 @@ import { DietService } from '../../service/diet.service';
         BlockUIModule,
         SidebarModule,
         SelectorsModule,
-        InputSwitchModule,
     ],
     declarations: [DietComponent],
     providers: [DietService]
