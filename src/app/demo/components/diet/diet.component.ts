@@ -47,6 +47,13 @@ export class DietComponent implements OnInit {
     colors: any = {}                             // PrimeNG colors
     isMobile: boolean = false                    // Mobile screen detection
 
+    private initialFormValues = {
+        id: null,
+        name: '',
+        color: '',
+        enabled: true,
+    }
+
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
     private dietObs$: Observable<any> | undefined
@@ -61,10 +68,10 @@ export class DietComponent implements OnInit {
 
         // Diet form fields and validators
         this.dietForm = this.fb.group({
-            id: [''],
-            name: ['', Validators.required],
-            color: ['', Validators.required],
-            enabled: ['', []],
+            id: [this.initialFormValues.id],
+            name: [this.initialFormValues.name, Validators.required],
+            color: [this.initialFormValues.color, Validators.required],
+            enabled: [this.initialFormValues.enabled],
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -76,6 +83,9 @@ export class DietComponent implements OnInit {
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canEdit => this.canEdit = canEdit)
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
 
+        // Default filter values
+        this.filterValues['enabled'] = '1'
+        
         // Diets
         this.dietObs$ = this.dietService.dietObs
         this.dietObs$.subscribe((data: ApiResponse) => {
@@ -137,8 +147,12 @@ export class DietComponent implements OnInit {
         const noWaitFields: string[] = ['color', 'enabled']
         let filterValue = ''
 
+        // For enabled field convert true to "1" and false to "0"
+        if (field === 'enabled') {
+            filterValue = event
+        }
         // Calendar date as String
-        if (event instanceof Date) {
+        else if (event instanceof Date) {
             const date = moment(event)
             const formattedDate = date.format('YYYY.MM.DD')
             filterValue = formattedDate
@@ -200,7 +214,7 @@ export class DietComponent implements OnInit {
      * Create new Diet
      */
     create() {
-        this.dietForm.reset()
+        this.dietForm.reset(this.initialFormValues)
         this.sidebar = true
     }
 
@@ -209,7 +223,7 @@ export class DietComponent implements OnInit {
      * @param diet
      */
     edit(diet: Diet) {
-        this.dietForm.reset()
+        this.dietForm.reset(this.initialFormValues)
         this.dietForm.patchValue(diet)
         this.originalFormValues = this.dietForm.value
         this.sidebar = true

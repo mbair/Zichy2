@@ -246,7 +246,6 @@ export class ConferenceComponent implements OnInit {
 
         // For enabled field convert true to "1" and false to "0"
         if (field === 'enabled') {
-            console.log('event', event)
             filterValue = event
         }
         // Calendar date as String

@@ -58,10 +58,15 @@
                             </app-color-selector>
                         </th>
                         <th>
-                            <app-enabled-selector 
-                                (change)="onFilter($event, 'enabled')" 
-                                [showClear]="true">
-                            </app-enabled-selector>
+                            <app-yes-no-selector 
+                                [ngModel]="filterValues['enabled']"
+                                (ngModelChange)="onFilter($event, 'enabled')"
+                                [yesText]="'Igen'"
+                                [noText]="'Nem'"
+                                [minHeight]="'30.5px'"
+                                [lineHeight]="'30.5px'"
+                                styleClass="vertical-align-middle">
+                            </app-yes-no-selector>
                         </th>
                         <th></th>
                     </tr>
@@ -153,9 +158,14 @@
                 <!-- Enabled -->
                 <div class="field mb-4 col-12">
                     <label for="enabled" class="font-medium text-900">Engedélyezve</label>
-                    <div class="block">
-                        <p-inputSwitch id="enabled" formControlName="enabled" />
-                    </div>
+                    <app-yes-no-selector 
+                        formControlName="enabled"
+                        [yesText]="'Igen'"
+                        [noText]="'Nem'"
+                        [minHeight]="'44px'"
+                        [lineHeight]="'44px'"
+                        styleClass="vertical-align-middle">
+                    </app-yes-no-selector>
                     <div *ngIf="enabled?.dirty && enabled?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
