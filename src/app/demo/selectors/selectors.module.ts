@@ -5,6 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ChipModule } from 'primeng/chip';
 import { DropdownModule } from 'primeng/dropdown';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { InputSwitchModule } from 'primeng/inputswitch';
 import { TranslateModule } from '@ngx-translate/core';
 import { ConferenceSelectorComponent } from './conference-selector/conference-selector.component';
 import { CountrySelectorComponent } from './country-selector/country-selector.component';
@@ -23,6 +24,7 @@ import { BuildingSelectorComponent } from './building-selector/building-selector
 import { BedtypeSelectorComponent } from './bedtype-selector/bedtype-selector.component';
 import { BathroomSelectorComponent } from './bathroom-selector/bathroom-selector.component';
 import { FloorSelectorComponent } from './floor-selector/floor-selector.component';
+import { YesNoSelectorComponent } from './yes-no-selector/yes-no-selector.component';
 
 @NgModule({
     declarations: [
@@ -43,6 +45,7 @@ import { FloorSelectorComponent } from './floor-selector/floor-selector.componen
         BedtypeSelectorComponent,
         BathroomSelectorComponent,
         FloorSelectorComponent,
+        YesNoSelectorComponent,
     ],
     imports: [
         CommonModule,
@@ -51,6 +54,7 @@ import { FloorSelectorComponent } from './floor-selector/floor-selector.componen
         ChipModule,
         DropdownModule,
         MultiSelectModule,
+        InputSwitchModule,
         TranslateModule,
     ],
     exports: [
@@ -71,6 +75,7 @@ import { FloorSelectorComponent } from './floor-selector/floor-selector.componen
         BedtypeSelectorComponent,
         BathroomSelectorComponent,
         FloorSelectorComponent,
-    ],
+        YesNoSelectorComponent,
+    ]
 })
 export class SelectorsModule {}

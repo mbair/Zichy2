@@ -1,0 +1,12 @@
+<div class="flex align-items-center vertical-align-middle" [ngStyle]="{'min-height': minHeight}">
+    <p-inputSwitch 
+        [(ngModel)]="value"
+        (ngModelChange)="onValueChange($event)"
+        [styleClass]="styleClass"
+        [style]="{'lineHeight': lineHeight}">
+    </p-inputSwitch>
+    <span class="pl-2 font-normal vertical-align-middle">
+        {{ value ? yesText : noText }}
+    </span>
+  </div>
+  

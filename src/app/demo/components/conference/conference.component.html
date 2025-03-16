@@ -112,18 +112,15 @@
                             </app-meal-selector>
                         </th>
                         <th>
-                            <div class="flex align-items-center vertical-align-middle">
-                                <p-inputSwitch 
-                                    id="enabled"
-                                    [ngModel]="filterValues['enabled'] === '1'"
-                                    (onChange)="onFilter($event, 'enabled')"
-                                    [styleClass]="'vertical-align-middle'"
-                                    [style]="{'lineHeight': '30.5px'}"
-                                />
-                                <span class="pl-2 font-normal vertical-align-middle">
-                                    {{ filterValues['enabled'] === '1' ? 'Igen' : 'Nem' }}
-                                </span>
-                            </div>
+                            <app-yes-no-selector 
+                                [ngModel]="filterValues['enabled']"
+                                (ngModelChange)="onFilter($event, 'enabled')"
+                                [yesText]="'Igen'"
+                                [noText]="'Nem'"
+                                [minHeight]="'30.5px'"
+                                [lineHeight]="'30.5px'"
+                                styleClass="vertical-align-middle">
+                            </app-yes-no-selector>
                         </th>
                     </tr>
                 </ng-template>
@@ -450,19 +447,14 @@
                 <!-- Enabled -->
                 <div class="field mb-4 col-12 lg:col-6">
                     <label for="enabled" class="font-medium text-900">Engedélyezve</label>
-                    <div class="block">
-                        <div class="flex align-items-center vertical-align-middle" style="min-height: 44px">
-                            <p-inputSwitch 
-                                id="enabled"
-                                formControlName="enabled"
-                                [styleClass]="'vertical-align-middle'"
-                                [style]="{'lineHeight': '44px'}"
-                            />
-                            <span class="pl-2 font-normal vertical-align-middle">
-                                {{ enabled?.value ? 'Igen' : 'Nem' }}
-                            </span>
-                        </div>
-                    </div>
+                    <app-yes-no-selector 
+                        formControlName="enabled"
+                        [yesText]="'Igen'"
+                        [noText]="'Nem'"
+                        [minHeight]="'44px'"
+                        [lineHeight]="'44px'"
+                        styleClass="vertical-align-middle">
+                    </app-yes-no-selector>
                     <div *ngIf="enabled?.dirty && enabled?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
