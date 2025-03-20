@@ -33,7 +33,7 @@
 
         <!-- Save button -->
         <button pButton pRipple label="Összerendelés" icon="pi pi-check" class="p-button ml-2" (click)="onAssign()"
-            [disabled]="!selectedRooms || !selectedRooms.length || !selectedConferences">
+            [disabled]="!selectedRooms || !selectedRooms.length || !selectedConferences || !selectedConferences.length">
         </button>
     </div>
 
@@ -145,7 +145,7 @@
                                 [label]="conference.name" 
                                 icon="pi pi-calendar" 
                                 [removable]="true" 
-                                (onRemove)="onRemove($event, conference)">
+                                (onRemove)="onRemove(conference, room)">
                             </p-chip>
                         </div>
                     </td>
