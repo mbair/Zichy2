@@ -51,6 +51,13 @@ export class NFCTagComponent implements OnInit {
     colors: any = {}                             // PrimeNG colors
     isMobile: boolean = false                    // Mobile screen detection
 
+    private initialFormValues = {
+        id: null,
+        rfid: '',
+        color: '',
+        enabled: true,
+    }
+
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
     private tagObs$: Observable<any> | undefined
@@ -63,12 +70,12 @@ export class NFCTagComponent implements OnInit {
         private responsiveService: ResponsiveService,
         private fb: FormBuilder) { 
 
-            // Diet form fields and validators
+        // Diet form fields and validators
         this.tagForm = this.fb.group({
-            id: [''],
-            rfid: ['', Validators.required],
-            color: ['', Validators.required],
-            enabled: [true, []],
+            id: [this.initialFormValues.id],
+            rfid: [this.initialFormValues.rfid, Validators.required],
+            color: [this.initialFormValues.color, Validators.required],
+            enabled: [this.initialFormValues.enabled],
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -79,6 +86,9 @@ export class NFCTagComponent implements OnInit {
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canCreate => this.canCreate = canCreate)
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canEdit => this.canEdit = canEdit)
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
+
+        // Default filter values
+        this.filterValues['enabled'] = '1'
 
         // Diets
         this.tagObs$ = this.tagService.tagObs
@@ -141,8 +151,12 @@ export class NFCTagComponent implements OnInit {
         const noWaitFields: string[] = ['color', 'enabled']
         let filterValue = ''
 
+        // For enabled field convert true to "1" and false to "0"
+        if (field === 'enabled') {
+            filterValue = event
+        }
         // Calendar date as String
-        if (event instanceof Date) {
+        else if (event instanceof Date) {
             const date = moment(event)
             const formattedDate = date.format('YYYY.MM.DD')
             filterValue = formattedDate
@@ -209,7 +223,7 @@ export class NFCTagComponent implements OnInit {
      * Create new Tag
      */
     create() {
-        this.tagForm.reset()
+        this.tagForm.reset(this.initialFormValues)
         this.sidebar = true
     }
 
@@ -218,7 +232,7 @@ export class NFCTagComponent implements OnInit {
      * @param tag
      */
     edit(tag: Tag) {
-        this.tagForm.reset()
+        this.tagForm.reset(this.initialFormValues)
         this.tagForm.patchValue(tag)
         this.originalFormValues = this.tagForm.value
         this.sidebar = true

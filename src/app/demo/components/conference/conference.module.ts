@@ -26,7 +26,6 @@ import { TooltipModule } from 'primeng/tooltip';
 import { CheckboxModule } from 'primeng/checkbox';
 import { CalendarModule } from 'primeng/calendar';
 import { SkeletonModule } from 'primeng/skeleton';
-import { InputSwitchModule } from 'primeng/inputswitch';
 import { SelectorsModule } from '../../selectors/selectors.module';
 import { WidgetModule } from '../../widget/widget.module';
 
@@ -58,7 +57,6 @@ import { WidgetModule } from '../../widget/widget.module';
         CheckboxModule,
         CalendarModule,
         SkeletonModule,
-        InputSwitchModule,
         SelectorsModule,
         WidgetModule,
 	],

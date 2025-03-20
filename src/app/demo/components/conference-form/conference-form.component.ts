@@ -71,6 +71,10 @@ export class ConferenceFormComponent implements OnInit {
         // Set default theme
         this.changeTheme('orange')
 
+        // Set default language (fallback)
+        this.translate.setDefaultLang('hu')
+        this.translate.use('hu')
+
         // Set min and max birth dates
         this.birthDateMin = new Date()
         this.birthDateMin.setFullYear(this.birthDateMin.getFullYear() - 130)

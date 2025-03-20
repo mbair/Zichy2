@@ -42,6 +42,21 @@ export class LogsComponent implements OnInit {
     modules: any[] = []                            // Possible modules
     statuses: any[] = []                           // Possible HTTP statuses
     logForm: FormGroup;                            // Form for log creation and modification
+    originalFormValues: any                        // The original values ​​of the form
+
+    private initialFormValues = {
+        id: null,
+        action_type: '',
+        fullname: '',
+        table_name: '',
+        original_data: '',
+        new_data: '',
+        response_data: '',
+        user_fullname: '',
+        user_email: '',
+        status: '',
+        userid: null,
+    }
 
     private logObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
@@ -54,17 +69,17 @@ export class LogsComponent implements OnInit {
     ngOnInit() {
         // User form
         this.logForm = this.fb.group({
-            id: [''],
-            action_type: [''],
-            fullname: ['', Validators.required],
-            table_name: ['', [Validators.required]],
-            original_data: ['', [Validators.required]],
-            new_data: ['', [Validators.required]],
-            response_data: ['', [Validators.required]],
-            user_fullname: ['', [Validators.required]],
-            user_email: ['', [Validators.required]],
-            status: ['', [Validators.required]],
-            userid: ['', [Validators.required]],
+            id: [this.initialFormValues.id],
+            action_type: [this.initialFormValues.action_type],
+            fullname: [this.initialFormValues.fullname, Validators.required],
+            table_name: [this.initialFormValues.table_name, [Validators.required]],
+            original_data: [this.initialFormValues.original_data, [Validators.required]],
+            new_data: [this.initialFormValues.new_data, [Validators.required]],
+            response_data: [this.initialFormValues.response_data, [Validators.required]],
+            user_fullname: [this.initialFormValues.user_fullname, [Validators.required]],
+            user_email: [this.initialFormValues.user_email, [Validators.required]],
+            status: [this.initialFormValues.status, [Validators.required]],
+            userid: [this.initialFormValues.userid, [Validators.required]],
         })
 
         // Logs
@@ -233,7 +248,7 @@ export class LogsComponent implements OnInit {
      * Create new Log
      */
     create() {
-        this.logForm.reset()
+        this.logForm.reset(this.initialFormValues)
         this.dialog = true
     }
 
@@ -242,7 +257,9 @@ export class LogsComponent implements OnInit {
      * @param user
      */
     edit(log: Log) {
+        this.logForm.reset(this.initialFormValues)
         this.logForm.patchValue(log)
+        this.originalFormValues = this.logForm.value
         this.dialog = true
     }
 
@@ -286,8 +303,7 @@ export class LogsComponent implements OnInit {
      * Cancel saving the form
      */
     cancel() {
-        this.logForm.reset()
-        this.dialog = false
+        this.logForm.reset(this.originalFormValues)
     }
 
     /**

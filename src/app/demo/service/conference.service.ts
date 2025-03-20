@@ -256,16 +256,17 @@ export class ConferenceService {
     }
 
     /**
-     * Get conference questions
-     * @param conferenceId
+     * Assign Rooms to Conference
+     * @param conferenceId 
+     * @param roomIds 
      */
-    public assignRooms(conferenceId: number, roomIds: number[]): void {
+    public assignRoomsToConference(conferenceId: number, roomIds: number[]): void {
         this.apiService.post(`conferencesroom/addroom/${conferenceId}`, { roomIds })
             .subscribe({
                 next: (response: any) => {
                     this.message$.next({
                         severity: 'success',
-                        summary: 'Sikeres szoba hozzárendelés',
+                        summary: 'Sikeres szoba-konferencia összerendelés',
                         detail: `Szobák hozzárendelve`,
                     })
                 },
@@ -273,5 +274,26 @@ export class ConferenceService {
                     this.message$.next(error)
                 }
             })
+    }
+
+    /**
+     * Remove room assignment
+     * @param conferenceId 
+     * @param roomIds 
+     */
+    public removeRoomsFromConference(conferenceId: number, roomIds: number[]): void {
+        this.apiService.post(`conferencesroom/removeroom/${conferenceId}`, { roomIds })
+        .subscribe({
+            next: (response: any) => {
+                this.message$.next({
+                    severity: 'success',
+                    summary: 'Összerendelés törölve',
+                    detail: `Szoba-konferencia összerendelés törölve`,
+                })
+            },
+            error: (error: any) => {
+                this.message$.next(error)
+            }
+        })
     }
 }   

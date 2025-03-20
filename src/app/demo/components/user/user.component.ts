@@ -48,6 +48,16 @@ export class UserComponent implements OnInit {
     canDelete: boolean = false                   // User has permission to delete user
     isMobile: boolean = false                    // Mobile screen detection
 
+    private initialFormValues = {
+        id: null,
+        username: '',
+        fullname: '',
+        user_rolesid: '',
+        email: '',
+        phone: '',
+        password: '',
+    }
+    
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
     private userObs$: Observable<any> | undefined
@@ -62,13 +72,13 @@ export class UserComponent implements OnInit {
 
         // User form fields and validators
         this.userForm = this.fb.group({
-            id: [''],
-            username: [''],
-            fullname: ['', Validators.required],
-            user_rolesid: ['', [Validators.required]],
-            email: ['', [Validators.required, emailDomainValidator()]],
-            phone: ['', [Validators.required]],
-            password: ['', [Validators.required]],
+            id: [this.initialFormValues.id],
+            username: [this.initialFormValues.username],
+            fullname: [this.initialFormValues.fullname, Validators.required],
+            user_rolesid: [this.initialFormValues.user_rolesid, [Validators.required]],
+            email: [this.initialFormValues.email, [Validators.required, emailDomainValidator()]],
+            phone: [this.initialFormValues.phone, [Validators.required]],
+            password: [this.initialFormValues.password, [Validators.required]],
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -221,7 +231,7 @@ export class UserComponent implements OnInit {
      * Create new User
      */
     create() {
-        this.userForm.reset()
+        this.userForm.reset(this.initialFormValues)
         this.sidebar = true
     }
 
@@ -230,7 +240,7 @@ export class UserComponent implements OnInit {
      * @param user
      */
     edit(user: User) {
-        this.userForm.reset()
+        this.userForm.reset(this.initialFormValues)
         this.userForm.patchValue(user)
         this.originalFormValues = this.userForm.value
         this.sidebar = true

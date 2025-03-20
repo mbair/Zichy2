@@ -9,7 +9,6 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { RoomService } from '../../service/room.service';
 import { ConferenceService } from '../../service/conference.service';
 import * as moment from 'moment';
-
 moment.locale('hu')
 
 @Component({
@@ -80,12 +79,12 @@ export class RoomConferenceBinderComponent {
             if (this.selectFirstOption && this.conferences.length > 0) {
                 this.selectedConference = this.conferences[0] // First conference
                 // this.getFormControl()?.setValue(this.selectedConference?.name || null)
-        
+
                 const event: DropdownChangeEvent = {
                     originalEvent: {} as Event,
                     value: this.selectedConference?.name || null
                 }
-        
+
                 this.onConferenceChange()
             }
         })
@@ -96,8 +95,8 @@ export class RoomConferenceBinderComponent {
         this.roomService
             .getAvailableRooms(this.selectedConferences)
             .subscribe((rooms) => {
-                this.tableData = rooms;
-            });
+                this.tableData = rooms
+            })
     }
 
     showDialog() {
@@ -209,7 +208,7 @@ export class RoomConferenceBinderComponent {
         const conferenceId = Number(this.selectedConferences[0].id)
         const roomIds = this.selectedRooms.map((r: any) => Number(r.id))
 
-        this.conferenceService.assignRooms(conferenceId, roomIds)
+        this.conferenceService.assignRoomsToConference(conferenceId, roomIds)
 
         // this.assign.emit({
         //     selectedConferences: this.selectedConferences,
@@ -218,20 +217,8 @@ export class RoomConferenceBinderComponent {
         // this.close.emit()
     }
 
-    // onRemove(conference: Conference) {
-    //     console.log('onConferenceRemove', conference)
-    //     return false
-    // }
+    onRemove(conference: any, room: any) {
+        this.conferenceService.removeRoomsFromConference(conference.id, [room.id])
+    }
 
-    onRemove(event: any, conference: any) {
-        console.log('onConferenceRemove', conference)
-        // Példa: Egy megerősítő dialógus megjelenítése
-        const shouldRemove = confirm(`Biztosan eltávolítod a következő konferenciát: ${conference.name}?`);
-
-        if (!shouldRemove) {
-          // ❌ Ha a felhasználó mégsem akarja törölni, NEM módosítjuk a tömböt
-          return;
-        }
-      }
-      
 }

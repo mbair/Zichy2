@@ -100,6 +100,43 @@ export class GuestComponent implements OnInit {
     latestLastMeal: string | undefined           // Latest last meal
     prepaidOptions: any[] = []                   // Possible prepaid options
 
+    private initialFormValues = {
+        id: null,
+        firstName: '',
+        lastName: '',
+        gender: '',
+        nationality: 'HU',
+        country: 'Hungary',
+        zipCode: '',
+        roomNum: '',
+        dateOfArrival: '',
+        firstMeal: '',
+        dateOfDeparture: '',
+        lastMeal: '',
+        szepCard: '',
+        accommodationExtra: '',
+        birthDate: '',
+        rfid: '',
+        rfidColor: '',
+        conference: [],
+        conferenceName: '',
+        conferenceid: '',
+        diet: '',
+        diet_id: '',
+        lastRfidUsage: '',
+        is_test: '',
+        email: '',
+        telephone: '',
+        roomType: '',
+        payment: '',
+        babyBed: '',
+        prepaid: '',
+        roomMate: '',
+        idCard: [null],
+        climate: '',
+        enabled: true,
+    }
+
     public selectedFile: File;
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -122,40 +159,40 @@ export class GuestComponent implements OnInit {
 
         // Guest form fields and validators
         this.guestForm = this.fb.group({
-            id: [''],
-            firstName: ['', Validators.required],
-            lastName: ['', Validators.required],
-            gender: ['', Validators.required],
-            nationality: ['', Validators.required],
-            country: ['', Validators.required],
-            zipCode: ['', Validators.required],
-            roomNum: [''],
-            dateOfArrival: ['', Validators.required],
-            firstMeal: ['', Validators.required],
-            dateOfDeparture: ['', Validators.required],
-            lastMeal: ['', Validators.required],
-            szepCard: ['', []],
-            accommodationExtra: ['', []],
-            birthDate: ['', Validators.required],
-            rfid: ['', []],
-            rfidColor: ['', []],
-            enabled: [true, []],
-            conference: new FormControl([]),
-            conferenceName: ['', []],
-            conferenceid: ['', []],
-            diet: ['', Validators.required],
-            diet_id: ['', []],
-            lastRfidUsage: ['', []],
-            is_test: ['', []],
-            email: ['', []],
-            telephone: ['', []],
-            roomType: ['', []],
-            payment: ['', []],
-            babyBed: ['', []],
-            prepaid: ['', []],
-            roomMate: ['', []],
-            idCard: [null],
-            climate: ['', []]
+            id: [this.initialFormValues.id],
+            firstName: [this.initialFormValues.firstName, Validators.required],
+            lastName: [this.initialFormValues.lastName, Validators.required],
+            gender: [this.initialFormValues.gender, Validators.required],
+            nationality: [this.initialFormValues.nationality, Validators.required],
+            country: [this.initialFormValues.country, Validators.required],
+            zipCode: [this.initialFormValues.zipCode, Validators.required],
+            roomNum: [this.initialFormValues.roomNum],
+            dateOfArrival: [this.initialFormValues.dateOfArrival, Validators.required],
+            firstMeal: [this.initialFormValues.firstMeal, Validators.required],
+            dateOfDeparture: [this.initialFormValues.dateOfDeparture, Validators.required],
+            lastMeal: [this.initialFormValues.lastMeal, Validators.required],
+            szepCard: [this.initialFormValues.szepCard],
+            accommodationExtra: [this.initialFormValues.accommodationExtra],
+            birthDate: [this.initialFormValues.birthDate, Validators.required],
+            rfid: [this.initialFormValues.rfid],
+            rfidColor: [this.initialFormValues.rfidColor],
+            enabled: [this.initialFormValues.enabled],
+            conference: new FormControl(this.initialFormValues.conference),
+            conferenceName: [this.initialFormValues.conferenceName],
+            conferenceid: [this.initialFormValues.conferenceid],
+            diet: [this.initialFormValues.diet, Validators.required],
+            diet_id: [this.initialFormValues.diet_id],
+            lastRfidUsage: [this.initialFormValues.lastRfidUsage],
+            is_test: [this.initialFormValues.is_test],
+            email: [this.initialFormValues.email],
+            telephone: [this.initialFormValues.telephone],
+            roomType: [this.initialFormValues.roomType],
+            payment: [this.initialFormValues.payment],
+            babyBed: [this.initialFormValues.babyBed],
+            prepaid: [this.initialFormValues.prepaid],
+            roomMate: [this.initialFormValues.roomMate],
+            idCard: [this.initialFormValues.idCard],
+            climate: [this.initialFormValues.climate]
         }, {
             validators: dateRangeValidator('dateOfArrival', 'dateOfDeparture')
         })
@@ -427,7 +464,7 @@ export class GuestComponent implements OnInit {
      * Create new Guest
      */
     create() {
-        this.guestForm.reset()
+        this.guestForm.reset(this.initialFormValues)
         this.sidebar = true
     }
 
@@ -436,8 +473,7 @@ export class GuestComponent implements OnInit {
      * @param guest
      */
     edit(guest: Guest) {
-        this.guestForm.reset()
-        this.originalFormValues = this.guestForm.value
+        this.guestForm.reset(this.initialFormValues)
         this.sidebar = true
         
         // Get guest conference details
@@ -448,6 +484,7 @@ export class GuestComponent implements OnInit {
             // Because side bar is not visible yet, we need to wait a bit
             setTimeout(() => {
                 this.guestForm.patchValue(guest)
+                this.originalFormValues = this.guestForm.value
             })
     
             // Set arrival and departure date limitations

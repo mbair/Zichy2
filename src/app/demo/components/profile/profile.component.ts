@@ -21,10 +21,21 @@ import { User } from '../../api/user';
 
 export class ProfileComponent implements OnInit {
 
-    loading: boolean = true;                     // Loading overlay trigger value
-    roles: Role[] = []                           // Possible roles
-    userForm: FormGroup;                         // Form for User whose profile we are currently editing
-    originalFormValues: any;                     // The original values ​​of the form
+    loading: boolean = true             // Loading overlay trigger value
+    roles: Role[] = []                  // Possible roles
+    userForm: FormGroup                 // Form for User whose profile we are currently editing
+    originalFormValues: any             // The original values ​​of the form
+
+    private initialFormValues = {
+        id: null,
+        username: '',
+        fullname: '',
+        user_rolesid: '',
+        email: '',
+        phone: '',
+        password: '',
+        password_again: '',
+    }
 
     private userObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
@@ -41,14 +52,14 @@ export class ProfileComponent implements OnInit {
 
         // User form
         this.userForm = this.fb.group({
-            id: [''],
-            username: [''],
-            fullname: ['', Validators.required],
-            user_rolesid: [{ value: '', disabled: true }, Validators.required],
-            email: ['', [Validators.required, emailDomainValidator()]],
-            phone: ['', [Validators.required]],
-            password: [''],
-            password_again: [''],
+            id: [this.initialFormValues.id],
+            username: [this.initialFormValues.username],
+            fullname: [this.initialFormValues.fullname, Validators.required],
+            user_rolesid: [{ value: this.initialFormValues.user_rolesid, disabled: true }, Validators.required],
+            email: [this.initialFormValues.id, [Validators.required, emailDomainValidator()]],
+            phone: [this.initialFormValues.id, [Validators.required]],
+            password: [this.initialFormValues.id],
+            password_again: [this.initialFormValues.id],
         }, { validators: passwordMatchValidator() })
 
         // Enabling/Disabling userrole dropdown by actual user role
