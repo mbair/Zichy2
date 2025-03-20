@@ -38,8 +38,7 @@ export class LanguageSelectorComponent {
         
         // Set browser language as default language
         const browserLang = this.translate.getBrowserLang()
-        /** Use EN lang az GB */
-        let defaultLang = browserLang?.match(/en|hu/) ? browserLang : 'gb'
+        let defaultLang = browserLang && browserLang.startsWith('hu') ? 'hu' : 'gb'
         this.translate.setDefaultLang(defaultLang)
         this.translate.use(defaultLang)
         this.currentLanguage = this.translate.currentLang
