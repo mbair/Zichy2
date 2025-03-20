@@ -27,7 +27,9 @@ export function HttpLoaderFactory(http: HttpClient) {
                 provide: TranslateLoader,
                 useFactory: HttpLoaderFactory,
                 deps: [HttpClient]
-            }
+            },
+            defaultLanguage: 'hu',
+            useDefaultLang: true
         })
     ],
     providers: [
