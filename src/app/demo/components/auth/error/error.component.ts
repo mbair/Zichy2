@@ -16,7 +16,7 @@ export class ErrorComponent {
         this.translate.addLangs(['gb', 'hu'])
         const browserLang = this.translate.getBrowserLang()
         /** Use EN lang az GB */
-        let defaultLang = browserLang?.match(/en|hu/) ? browserLang : 'gb'
+        let defaultLang = browserLang && browserLang.startsWith('hu') ? 'hu' : 'gb'
         this.translate.setDefaultLang(defaultLang)
         this.translate.use(defaultLang)
 
