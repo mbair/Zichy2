@@ -153,6 +153,7 @@ export class RoomComponent implements OnInit {
      */
     doQuery() {
         this.loading = true
+        this.filterValues['conferences'] = this.selectedConferences.map(conference => conference.id).join(',')
 
         const filters = Object.keys(this.filterValues)
             .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')

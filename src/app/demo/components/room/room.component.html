@@ -25,11 +25,10 @@
                         <span class="block mt-2 md:mt-0">
                             <app-conference-selector
                                 [(ngModel)]="selectedConferences"
-                                [selectionLimit]="1"
                                 [showClear]="true"
                                 [style]="{'minWidth': '35rem'}"
                                 placeholder="Válasszon konferenciát..."
-                                (ngModelChange)="onFilter($event, 'conferenceName')">
+                                (ngModelChange)="doQuery()">
                             </app-conference-selector>
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
