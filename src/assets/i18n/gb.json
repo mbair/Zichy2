@@ -29,7 +29,7 @@
     "A távozás dátumának későbbinek kell lennie, mint az érkezési dátum": "The date of departure should be earlier than the date of arrival",
     "Utolsó étkezés": "Last Meal",
     "Szállástípus": "Accommodation Type",
-    "A preferenciákat igyekszük figyelembe venni, de mivel korlátozott mennyiségben van szállás és klímával felszerelt szoba, ezért nem tudjuk megigyérni, hogy biztosan a megjelölt szállástípusra osztunk be": "We try to take your preferences into account, but since there is a limited amount of accommodation and air-conditioned rooms, we cannot promise that we will definitely allocate you to the indicated accommodation type",
+    "Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szállástípusra osztunk be": "We will try to take your choice into account, as there are a limited number of room types and air-conditioned rooms available, we cannot guarantee that we will allocate you to the type of accommodation you have indicated",
     "Kivel laknál egy szobában": "Roommate Preference",
     "Kérjük a regisztrációkor megadott nevet tüntesse itt fel": "Please enter the name entered during registration here",
     "Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában": "You can specify the roommate by separating the names with a comma",
