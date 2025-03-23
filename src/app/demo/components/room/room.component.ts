@@ -172,7 +172,7 @@ export class RoomComponent implements OnInit {
      * @param field
      */
     onFilter(event: any, field: string) {
-        const noWaitFields: string[] = ['conferenceName', 'spareBeds']
+        const noWaitFields: string[] = ['conferenceName','building','bedType','spareBeds']
         let filterValue = ''
 
         // Calendar date as String

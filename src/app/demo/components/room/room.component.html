@@ -47,8 +47,9 @@
                         <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
                         <th pSortableColumn="spareBeds">Pótágy <p-sortIcon field="spareBeds"></p-sortIcon></th>
                         <th pSortableColumn="comment">Komment <p-sortIcon field="comment"></p-sortIcon></th>
-                        <th pSortableColumn="guests">Vendégek <p-sortIcon field="guests"></p-sortIcon></th>
-                        <th pSortableColumn="occupancy">Telítettség <p-sortIcon field="occupancy"></p-sortIcon></th>
+                        <th *ngIf="!selectedConferences.length">Konferenciák</th>
+                        <th pSortableColumn="guests" *ngIf="selectedConferences.length">Vendégek <p-sortIcon field="guests"></p-sortIcon></th>
+                        <th pSortableColumn="occupancy" *ngIf="selectedConferences.length">Telítettség <p-sortIcon field="occupancy"></p-sortIcon></th>
                         <th></th>
                     </tr>
                     <tr>
@@ -92,14 +93,16 @@
                                    placeholder="Keresés..."
                                    style="width:7rem"/>
                         </th>
-                        <th>
+                        <th *ngIf="!selectedConferences.length">
+                        </th>
+                        <th *ngIf="selectedConferences.length">
                             <input pInputText
                                    type="text"
                                    (input)="onFilter($event, 'guests')"
                                    placeholder="Keresés..."
                                    style="width:10rem"/>
                         </th>
-                        <th>
+                        <th *ngIf="selectedConferences.length">
                             <p-slider 
                                 [(ngModel)]="occupancyFilter"
                                 (input)="onFilter($event, 'occupancy')" 
@@ -149,7 +152,17 @@
                             <span class="p-column-title">Komment</span>
                             {{room.comment}}
                         </td>
-                        <td>
+                        <td *ngIf="!selectedConferences.length">
+                            <span class="p-column-title">Konferenciák</span>
+                            <div *ngFor="let conference of room.conferences">
+                                <p-chip 
+                                    styleClass="m-1" 
+                                    [label]="conference.name" 
+                                    icon="pi pi-calendar">
+                                </p-chip>
+                            </div>
+                        </td>
+                        <td *ngIf="selectedConferences.length">
                             <span class="p-column-title">Vendégek</span>
                             <p-avatarGroup >
                                 <p-avatar *ngFor="let guest of room.guests" 
@@ -161,7 +174,7 @@
                                 </p-avatar>
                             </p-avatarGroup>
                         </td>
-                        <td>
+                        <td *ngIf="selectedConferences.length">
                             <span class="p-column-title">Telítettség</span>
                             <p-progressBar 
                                 [value]="(room.guests?.length / room.beds) * 100" 
