@@ -118,12 +118,12 @@ export class GuestComponent implements OnInit {
         rfid: '',
         rfidColor: '',
         conference: [],
-        conferenceName: '',
-        conferenceid: '',
+        conferenceName: null, // TODO: redundant
+        conferenceid: null, // TODO: redundant
         diet: '',
-        diet_id: '',
-        lastRfidUsage: '',
-        is_test: '',
+        diet_id: null,
+        lastRfidUsage: null,
+        is_test: null,
         email: '',
         telephone: '',
         roomType: '',
