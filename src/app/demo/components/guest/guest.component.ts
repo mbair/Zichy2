@@ -113,7 +113,6 @@ export class GuestComponent implements OnInit {
         firstMeal: '',
         dateOfDeparture: '',
         lastMeal: '',
-        szepCard: '',
         accommodationExtra: '',
         birthDate: '',
         rfid: '',
@@ -140,9 +139,9 @@ export class GuestComponent implements OnInit {
     public selectedFile: File;
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
-    private guestObs$: Observable<any> | undefined;
-    private genderObs$: Observable<any> | undefined;
-    private messageObs$: Observable<any> | undefined;
+    private guestObs$: Observable<any> | undefined
+    private genderObs$: Observable<any> | undefined
+    private messageObs$: Observable<any> | undefined
 
     constructor(private http: HttpClient,
         private guestService: GuestService,
@@ -171,7 +170,6 @@ export class GuestComponent implements OnInit {
             firstMeal: [this.initialFormValues.firstMeal, Validators.required],
             dateOfDeparture: [this.initialFormValues.dateOfDeparture, Validators.required],
             lastMeal: [this.initialFormValues.lastMeal, Validators.required],
-            szepCard: [this.initialFormValues.szepCard],
             accommodationExtra: [this.initialFormValues.accommodationExtra],
             birthDate: [this.initialFormValues.birthDate, Validators.required],
             rfid: [this.initialFormValues.rfid],
@@ -339,7 +337,6 @@ export class GuestComponent implements OnInit {
     get firstMeal() { return this.guestForm.get('firstMeal') }
     get dateOfDeparture() { return this.guestForm.get('dateOfDeparture') }
     get lastMeal() { return this.guestForm.get('lastMeal') }
-    get szepCard() { return this.guestForm.get('szepCard') }
     get accommodationExtra() { return this.guestForm.get('accommodationExtra') }
     get birthDate() { return this.guestForm.get('birthDate') }
     get rfidColor() { return this.guestForm.get('rfidColor') }
