@@ -187,7 +187,7 @@ export class ConferenceFormComponent implements OnInit {
                 const roomTypeWithClimate = [
                     'Maranatha Panzióház 2 ágyas szoba (külön fürdős)',
                     'Maranatha Panzióház franciaágyas szoba (külön fürdős)',
-                    'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)',
+                    // 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)',
                     'Családi szoba (közös konyhával, fürdővel és nappalival)',
                 ]
 

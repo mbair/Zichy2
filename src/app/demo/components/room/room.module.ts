@@ -23,6 +23,7 @@ import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
 import { SliderModule } from 'primeng/slider';
 import { RadioButtonModule } from 'primeng/radiobutton';
+import { ChipModule } from 'primeng/chip';
 import { SelectorsModule } from '../../selectors/selectors.module';
 import { RoomService } from '../../service/room.service';
 
@@ -52,7 +53,8 @@ import { RoomService } from '../../service/room.service';
         AvatarGroupModule,
         SliderModule,
         RadioButtonModule,
-        TranslateModule
+        TranslateModule,
+        ChipModule
     ],
     declarations: [RoomComponent],
     providers: [RoomService]

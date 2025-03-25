@@ -13,7 +13,6 @@ export interface Guest {
     firstMeal?: string;
     dateOfDeparture?: string;
     lastMeal?: string;
-    szepCard?: boolean;
     accommodationExtra?: string;
     birthDate?: string;
     rfid?: string | null;
