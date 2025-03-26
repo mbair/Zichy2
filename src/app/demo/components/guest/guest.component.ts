@@ -322,6 +322,16 @@ export class GuestComponent implements OnInit {
             const selectedDietId = this.diets.find(diet => diet.name === selectedDietName)?.id || null
             this.guestForm.patchValue({ diet_id: selectedDietId })
         })
+
+        // TODO: Remove redundant conference Id + Name
+        this.guestForm.get('conference')?.valueChanges.subscribe((conference) => {
+            if (conference.length > 0) {
+                const selectedConferenceId = conference[0].id
+                const selectedConferenceName = conference[0].name
+                this.guestForm.patchValue({ conferenceid: selectedConferenceId })
+                this.guestForm.patchValue({ conferenceName: selectedConferenceName })
+            }
+        })
     }
 
     // Getters for form validation
