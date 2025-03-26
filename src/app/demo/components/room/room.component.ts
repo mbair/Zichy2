@@ -49,6 +49,7 @@ export class RoomComponent implements OnInit {
     isMobile: boolean = false                    // Mobile screen detection
     occupancyFilter: any                         // TODO: Not used yet  
     selectedConferences: Conference[] = []       // Selected conferences
+    numberOfBeds: number = 0                     // Number of beds
 
     private initialFormValues = {
         id: null,
@@ -108,10 +109,13 @@ export class RoomComponent implements OnInit {
         this.roomObs$ = this.roomService.roomObs
         this.roomObs$.subscribe((data: ApiResponse) => {
             this.loading = false
+            this.numberOfBeds = 0
             if (data) {
                 this.tableData = data.rows || []
                 this.totalRecords = data.totalItems || 0
                 this.page = data.currentPage || 0
+
+                this.numberOfBeds = data.rows?.map(room => room.beds).reduce((a, b) => a + b, 0)
             }
         })
 
