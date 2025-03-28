@@ -28,7 +28,7 @@ export class RoomComponent implements OnInit {
     loading: boolean = true                      // Loading overlay trigger value
     tableItem: Room = {}                         // One room object
     tableData: Room[] = []                       // Data set displayed in a table
-    rowsPerPageOptions = [20, 50, 100]           // Possible rows per page
+    rowsPerPageOptions = [20, 50, 100, 200]      // Possible rows per page
     rowsPerPage: number = 20                     // Default rows per page
     totalRecords: number = 0                     // Total number of rows in the table
     page: number = 0                             // Current page
@@ -109,13 +109,11 @@ export class RoomComponent implements OnInit {
         this.roomObs$ = this.roomService.roomObs
         this.roomObs$.subscribe((data: ApiResponse) => {
             this.loading = false
-            this.numberOfBeds = 0
             if (data) {
                 this.tableData = data.rows || []
                 this.totalRecords = data.totalItems || 0
                 this.page = data.currentPage || 0
-
-                this.numberOfBeds = data.rows?.map(room => room.beds).reduce((a, b) => a + b, 0)
+                this.numberOfBeds = data.numberOfBeds || 0
             }
         })
 

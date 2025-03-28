@@ -5,4 +5,5 @@ export interface ApiResponse {
     totalPages?: number,
     rfidCount?: number,
     count: number,
+    numberOfBeds?: number;
 }
