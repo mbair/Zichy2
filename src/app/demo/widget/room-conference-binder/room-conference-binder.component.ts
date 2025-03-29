@@ -92,6 +92,7 @@ export class RoomConferenceBinderComponent {
 
     loadAvailableRooms() {
         if (!this.selectedConferences) return;
+        console.log('selectedConferences', this.selectedConferences)
         this.roomService
             .getAvailableRooms(this.selectedConferences)
             .subscribe((rooms) => {
@@ -209,6 +210,9 @@ export class RoomConferenceBinderComponent {
         const roomIds = this.selectedRooms.map((r: any) => Number(r.id))
 
         this.conferenceService.assignRoomsToConference(conferenceId, roomIds)
+        this.selectedRooms = []
+        this.loadAvailableRooms()
+        this.doQuery()
 
         // this.assign.emit({
         //     selectedConferences: this.selectedConferences,
