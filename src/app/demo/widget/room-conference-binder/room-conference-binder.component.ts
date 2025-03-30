@@ -46,7 +46,6 @@ export class RoomConferenceBinderComponent {
     canBindRoomToConference: boolean = true;
 
     selectFirstOption: boolean
-    selectedConference: any = {}
 
 
     private roomObs$: Observable<any> | undefined
@@ -77,45 +76,26 @@ export class RoomConferenceBinderComponent {
         this.conferenceService.getConferencesForSelector().subscribe((conferences: any) => {
             this.conferences = conferences
             if (this.selectFirstOption && this.conferences.length > 0) {
-                this.selectedConference = this.conferences[0] // First conference
+                this.selectedConferences = this.conferences[0] // First conference
                 // this.getFormControl()?.setValue(this.selectedConference?.name || null)
-
-                const event: DropdownChangeEvent = {
-                    originalEvent: {} as Event,
-                    value: this.selectedConference?.name || null
-                }
-
-                this.onConferenceChange()
             }
         })
     }
 
-    loadAvailableRooms() {
-        if (!this.selectedConferences) return;
-        console.log('selectedConferences', this.selectedConferences)
-        this.roomService
-            .getAvailableRooms(this.selectedConferences)
-            .subscribe((rooms) => {
-                this.tableData = rooms
-            })
-    }
+    // loadAvailableRooms() {
+    //     if (!this.selectedConferences) return;
+    //     console.log('selectedConferences', this.selectedConferences)
+    //     this.roomService
+    //         .getAvailableRooms(this.selectedConferences)
+    //         .subscribe((rooms) => {
+    //             this.tableData = rooms
+    //         })
+    // }
 
     showDialog() {
-        this.loadAvailableRooms();
+        // this.loadAvailableRooms();
         this.canBindRoomToConference = true;
         this.visible = true;
-    }
-
-    setSelectedConference(event: any) {
-        // this.selectedConference = event.value ? event.value : null
-        // this.filterValues['conferenceName'] = this.selectedConference?.name || ''
-        // this.tableData = []
-        // this.doQuery()
-    }
-
-    onConferenceChange() {
-        this.selectedRooms = [];
-        this.loadAvailableRooms();
     }
 
     /**
@@ -211,14 +191,20 @@ export class RoomConferenceBinderComponent {
 
         this.conferenceService.assignRoomsToConference(conferenceId, roomIds)
         this.selectedRooms = []
-        this.loadAvailableRooms()
-        this.doQuery()
+        this.selectedConferences = []
+        // this.loadAvailableRooms()
 
-        // this.assign.emit({
-        //     selectedConferences: this.selectedConferences,
-        //     selectedRooms: this.selectedRooms,
-        // });
-        // this.close.emit()
+        setTimeout(() => {
+            this.doQuery()
+        }, 100)
+}
+
+onUnassign() {
+    const conferenceId = Number(this.selectedConferences[0].id)
+    const roomIds = this.selectedRooms.map((r: any) => Number(r.id))
+    
+    this
+        this.doQuery()
     }
 
     onRemove(conference: any, room: any) {
