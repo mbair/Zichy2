@@ -181,7 +181,9 @@
                                 <p-chip 
                                     styleClass="m-1" 
                                     [label]="conference.name" 
-                                    icon="pi pi-calendar">
+                                    icon="pi pi-calendar"
+                                    [removable]="true" 
+                                    (onRemove)="onConferenceRemove(conference, room)">
                                 </p-chip>
                             </div>
                         </td>

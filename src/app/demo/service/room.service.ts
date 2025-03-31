@@ -211,9 +211,9 @@ export class RoomService {
      * @param conferenceId The ID of the conference
      * @returns Observable of available rooms
      */
-    public getAvailableRooms(conferenceIds: Conference[]): Observable<Room[]> {
-        return this.http.get<Room[]>(`${this.apiURL}/room/available/${conferenceIds}`);
-    }
+    // public getAvailableRooms(conferenceIds: Conference[]): Observable<Room[]> {
+    //     return this.http.get<Room[]>(`${this.apiURL}/room/available/${conferenceIds}`);
+    // }
 
     // TODO: NOT USED
     getRoomTypeByCode(code: string, beds: number) {
