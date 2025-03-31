@@ -2,7 +2,6 @@ import { Component, EventEmitter, Input, Output, isDevMode } from '@angular/core
 import { MessageService } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { Table } from 'primeng/table';
-import { DropdownChangeEvent } from 'primeng/dropdown';
 import { Room } from '../../api/room';
 import { Conference } from '../../api/conference';
 import { ApiResponse } from '../../api/ApiResponse';
@@ -197,18 +196,9 @@ export class RoomConferenceBinderComponent {
         setTimeout(() => {
             this.doQuery()
         }, 100)
-}
-
-onUnassign() {
-    const conferenceId = Number(this.selectedConferences[0].id)
-    const roomIds = this.selectedRooms.map((r: any) => Number(r.id))
-    
-    this
-        this.doQuery()
     }
 
     onRemove(conference: any, room: any) {
         this.conferenceService.removeRoomsFromConference(conference.id, [room.id])
     }
-
 }

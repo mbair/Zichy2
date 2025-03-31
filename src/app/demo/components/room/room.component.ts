@@ -7,6 +7,7 @@ import { Table } from 'primeng/table';
 import { RoomService } from '../../service/room.service';
 import { UserService } from '../../service/user.service';
 import { ResponsiveService } from '../../service/responsive.service';
+import { ConferenceService } from '../../service/conference.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Room } from '../../api/room';
@@ -71,10 +72,12 @@ export class RoomComponent implements OnInit {
     private formChanges$: Subject<void> = new Subject()
     private roomObs$: Observable<any> | undefined
     private serviceMessageObs$: Observable<any> | undefined
+    private conferenceMessageObs$: Observable<any> | undefined
 
     constructor(
         private roomService: RoomService,
         private userService: UserService,
+        private conferenceService: ConferenceService,
         private messageService: MessageService,
         private responsiveService: ResponsiveService,
         private fb: FormBuilder) {
@@ -131,7 +134,9 @@ export class RoomComponent implements OnInit {
 
         // Message
         this.serviceMessageObs$ = this.roomService.messageObs
+        this.conferenceMessageObs$ = this.conferenceService.messageObs
         this.serviceMessageObs$.subscribe(message => this.handleMessage(message))
+        this.conferenceMessageObs$.subscribe(message => this.handleMessage(message))
     }
 
     // Getters for form validation
@@ -328,6 +333,10 @@ export class RoomComponent implements OnInit {
             // Query for data changes
             this.doQuery()
         }
+    }
+
+    onConferenceRemove(conference: any, room: any) {
+        this.conferenceService.removeRoomsFromConference(conference.id, [room.id])
     }
 
     // Don't delete this, its needed from a performance point of view,
