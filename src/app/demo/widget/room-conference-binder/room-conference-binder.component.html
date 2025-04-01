@@ -1,11 +1,22 @@
 <!-- Dialog trigger button-->
-<button pButton pRipple label="Szoba konferenciához rendelés" icon="pi pi-list-check" class="p-button mr-2"
-    severity="help" (click)="showDialog()" [disabled]="!canBindRoomToConference">
+<button pButton 
+        pRipple 
+        label="Szoba konferenciához rendelés" 
+        icon="pi pi-list-check" 
+        class="p-button mr-2"
+        severity="help" 
+        (click)="showDialog()" 
+        [disabled]="!canBindRoomToConference">
 </button>
 
-<p-sidebar id="sidebar" [(visible)]="visible" position="right" styleClass="p-sidebar-md"
-    [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" [fullScreen]="true" [showCloseIcon]="true"
-    [blockScroll]="true">
+<p-sidebar id="sidebar" 
+           [(visible)]="visible" 
+           position="right" 
+           styleClass="p-sidebar-md"
+           [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
+           [fullScreen]="true" 
+           [showCloseIcon]="true"
+           [blockScroll]="true">
 
     <!-- Sidebar header -->
     <ng-template pTemplate="header">

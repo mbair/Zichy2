@@ -6,6 +6,7 @@ import { Room } from '../../api/room';
 import { Conference } from '../../api/conference';
 import { ApiResponse } from '../../api/ApiResponse';
 import { RoomService } from '../../service/room.service';
+import { UserService } from '../../service/user.service';
 import { ConferenceService } from '../../service/conference.service';
 import * as moment from 'moment';
 moment.locale('hu')
@@ -42,8 +43,7 @@ export class RoomConferenceBinderComponent {
     selected: Room[] = []                        // Table items chosen by user
     selectedConferences: Conference[] = []
     selectedRooms: number[] = [];
-    canBindRoomToConference: boolean = true;
-
+    canBindRoomToConference: boolean = true      // User has permission to bind Room to Conference
     selectFirstOption: boolean
 
 
@@ -52,10 +52,14 @@ export class RoomConferenceBinderComponent {
 
     constructor(
         private roomService: RoomService,
-        private conferenceService: ConferenceService
+        private conferenceService: ConferenceService,
+        private userService: UserService
     ) { }
 
     ngOnInit() {
+        // Permissions
+        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canBindRoomToConference => this.canBindRoomToConference = canBindRoomToConference)
+        
         // Conferences
         this.setConferences()
 
