@@ -24,7 +24,7 @@ export class AppMenuComponent implements OnInit {
                     label: '',
                     items: [
                         {
-                            label: 'Dashboard',
+                            label: 'Vezérlőpult',
                             icon: 'pi pi-fw pi-home',
                             routerLink: ['/']
                         }
@@ -34,25 +34,25 @@ export class AppMenuComponent implements OnInit {
                     label: 'Hotel',
                     items: this.getFilteredItems([
                         {
-                            label: 'Conference',
+                            label: 'Konferencia',
                             icon: 'pi pi-fw pi-calendar',
                             routerLink: ['/conference'],
                             requiredRoles: [],
                         },
                         {
-                            label: 'Guest',
+                            label: 'Vendég',
                             icon: 'pi pi-fw pi-user',
                             routerLink: ['/guest'],
                             requiredRoles: []
                         },
                         {
-                            label: 'Room',
+                            label: 'Szoba',
                             icon: 'pi pi-fw pi-building',
                             routerLink: ['/room'],
                             requiredRoles: ['Super Admin', 'Nagy Admin']
                         },
                         {
-                            label: 'NFC Tag',
+                            label: 'NFC címke',
                             icon: 'pi pi-fw pi-tags',
                             routerLink: ['/nfc-tag'],
                             requiredRoles: ['Super Admin', 'Nagy Admin']
@@ -60,16 +60,16 @@ export class AppMenuComponent implements OnInit {
                     ])
                 },
                 {
-                    label: 'Restaurant',
+                    label: 'Étterem',
                     items: this.getFilteredItems([
                         {
-                            label: 'Diet',
+                            label: 'Étrend',
                             icon: 'pi pi-fw pi-pencil',
                             routerLink: ['/diet'],
                             requiredRoles: ['Super Admin', 'Nagy Admin']
                         },
                         {
-                            label: 'Kitchen Calendar',
+                            label: 'Konyhanaptár',
                             icon: 'pi pi-fw pi-calendar',
                             routerLink: ['/kitchen-calendar'],
                             requiredRoles: ['Super Admin', 'Nagy Admin', 'Kis Admin']
@@ -77,16 +77,16 @@ export class AppMenuComponent implements OnInit {
                     ])
                 },
                 {
-                    label: 'System',
+                    label: 'Rendszer',
                     items: this.getFilteredItems([
                         {
-                            label: 'User',
+                            label: 'Felhasználó',
                             icon: 'pi pi-fw pi-users',
                             routerLink: ['/user'],
                             requiredRoles: ['Super Admin', 'Nagy Admin']
                         },
                         {
-                            label: 'Logs',
+                            label: 'Napló',
                             icon: 'pi pi-fw pi-list',
                             routerLink: ['/logs'],
                             requiredRoles: ['Super Admin', 'Nagy Admin']
@@ -105,33 +105,33 @@ export class AppMenuComponent implements OnInit {
                         label: '',
                         items: [
                             {
-                                label: 'Food Counter',
+                                label: 'Ételpult',
                                 icon: 'pi pi-fw pi-tablet',
                                 routerLink: ['/food-counter']
                             }
                         ]
                     },
                     {
-                        label: 'Finance',
+                        label: 'Pénzügyek',
                         icon: 'pi pi-fw pi-money',
                         items: [
                             {
-                                label: 'Prices',
+                                label: 'Árak',
                                 icon: 'pi pi-fw pi-dollar',
                                 routerLink: ['/auth/login']
                             },
                             {
-                                label: 'Settlement Sheet',
+                                label: 'Elszámolólap',
                                 icon: 'pi pi-fw pi-money-bill',
                                 routerLink: ['/auth/error']
                             },
                             {
-                                label: 'Reservations',
+                                label: 'Foglalók',
                                 icon: 'pi pi-fw pi-dollar',
                                 routerLink: ['/auth/access']
                             },
                             {
-                                label: 'Final Bills',
+                                label: 'Végszámlák',
                                 icon: 'pi pi-fw pi-money-bill',
                                 routerLink: ['/auth/access']
                             }
