@@ -89,7 +89,7 @@ const routes: Routes = [
                 path: 'room', 
                 data: { 
                     breadcrumb: 'Szoba',
-                    requiredRoles: ['Super Admin', 'Nagy Admin']
+                    requiredRoles: []
                 }, 
                 loadChildren: () => import('./demo/components/room/room.module').then(m => m.RoomModule), 
                 canActivate: [AuthGuard] 

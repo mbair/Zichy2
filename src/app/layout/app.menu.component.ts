@@ -49,7 +49,7 @@ export class AppMenuComponent implements OnInit {
                             label: 'Szoba',
                             icon: 'pi pi-fw pi-building',
                             routerLink: ['/room'],
-                            requiredRoles: ['Super Admin', 'Nagy Admin']
+                            requiredRoles: []
                         },
                         {
                             label: 'NFC címke',

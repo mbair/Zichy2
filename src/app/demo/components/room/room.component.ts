@@ -48,6 +48,7 @@ export class RoomComponent implements OnInit {
     canEdit: boolean = false                     // User has permission to update room
     canDelete: boolean = false                   // User has permission to delete room
     isMobile: boolean = false                    // Mobile screen detection
+    isOrganizer: boolean = false                 // User has organizer role
     occupancyFilter: any                         // TODO: Not used yet  
     selectedConferences: Conference[] = []       // Selected conferences
     numberOfBeds: number = 0                     // Number of beds
@@ -107,6 +108,7 @@ export class RoomComponent implements OnInit {
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canCreate => this.canCreate = canCreate)
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canEdit => this.canEdit = canEdit)
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
+        this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => this.isOrganizer = isOrganizer)
 
         // Rooms
         this.roomObs$ = this.roomService.roomObs

@@ -182,7 +182,7 @@
                                     styleClass="m-1" 
                                     [label]="conference.name" 
                                     icon="pi pi-calendar"
-                                    [removable]="true" 
+                                    [removable]="!isOrganizer" 
                                     (onRemove)="onConferenceRemove(conference, room)">
                                 </p-chip>
                             </div>
