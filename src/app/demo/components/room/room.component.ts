@@ -161,6 +161,9 @@ export class RoomComponent implements OnInit {
      * @returns
      */
     doQuery() {
+        // Organizer need select conference
+        if (this.isOrganizer && !this.selectedConferences.length) return
+
         this.loading = true
         this.filterValues['conferences'] = this.selectedConferences.map(conference => conference.id).join(',')
 
@@ -181,6 +184,9 @@ export class RoomComponent implements OnInit {
      * @param field
      */
     onFilter(event: any, field: string) {
+        // Organizer need select conference
+        if (this.isOrganizer && !this.selectedConferences) return
+
         const noWaitFields: string[] = ['conferenceName','building','bedType','spareBeds']
         let filterValue = ''
 
