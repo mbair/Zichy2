@@ -45,6 +45,8 @@ export class RoomConferenceBinderComponent {
     selectedRooms: number[] = [];
     canBindRoomToConference: boolean = true      // User has permission to bind Room to Conference
     selectFirstOption: boolean
+    numberOfBeds: number = 0                     // Number of beds
+    numberOfGuests: number = 0                   // Number of guests
 
 
     private roomObs$: Observable<any> | undefined
@@ -102,7 +104,7 @@ export class RoomConferenceBinderComponent {
     }
 
     /**
-     * Load filtered data into the Table
+     * Load filtered room data into the Table
      * @returns
      */
     doQuery() {
@@ -185,6 +187,26 @@ export class RoomConferenceBinderComponent {
      */
     onGlobalFilter(table: Table, event: Event) {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains')
+    }
+
+    onConferenceSelection(selectedConferences: Conference[]) {
+        // Reset calculations when no Conference is selected
+        if (selectedConferences.length == 0) {
+            this.numberOfGuests = 0
+            this.numberOfBeds = 0
+        }
+
+        // Calculate guests
+        selectedConferences.forEach((conference: Conference) => {
+            this.numberOfGuests += conference.guestsNumber || 0
+        })
+        
+        // Calculate beds
+        selectedConferences.forEach((conference: Conference) => {
+            conference?.rooms?.forEach((room: Room) => {
+                this.numberOfBeds += room.beds || 0
+            })
+        })
     }
 
     onAssign() {
