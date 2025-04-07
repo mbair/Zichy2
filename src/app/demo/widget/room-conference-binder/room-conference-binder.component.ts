@@ -62,7 +62,7 @@ export class RoomConferenceBinderComponent {
     ngOnInit() {
         // Permissions
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canBindRoomToConference => this.canBindRoomToConference = canBindRoomToConference)
-        
+
         // Conferences
         this.setConferences()
 
@@ -127,52 +127,38 @@ export class RoomConferenceBinderComponent {
      * @param event
      * @param field
      */
-    onFilter(event: any, field: string) {
-        const noWaitFields = ['roomNum', 'building', 'bedType', 'spareBeds', 'conferences']
+    onFilter(event: any, field: string): void {
+        const noWaitFields = ['building', 'bedType', 'spareBeds', 'conferences']
         let filterValue = ''
 
-        // Conference field is filtering by Conference Id
-        if (field === 'conferences') {
-            let conferenceIds = event.map((conference: any) => conference.id).join(',')
-            filterValue = conferenceIds
-        }
-        
-        // Room field is filtering by Room Id
-        if (field === 'roomNum') {
-            filterValue = event[0]?.id.toString() || ''
-        }
-
-        // Calendar date as String
-        if (event instanceof Date) {
-            const date = moment(event);
-            const formattedDate = date.format('YYYY.MM.DD')
-            filterValue = formattedDate
+        // Extract filterValue based on event type and field
+        if (Array.isArray(event)) {
+            filterValue = event.map((item: any) => item.id).join(',')
+        } else if (event instanceof Date) {
+            filterValue = moment(event).format('YYYY.MM.DD')
+        } else if (event.value == null) {
+            filterValue = ''
+        } else if (event?.value !== undefined) {
+            filterValue = event.value.toString()
+        } else if (event?.target?.value !== undefined) {
+            filterValue = event.target.value.toString()
         } else {
-            if (event && (event.value || event.target?.value)) {
-                filterValue = event.value || event.target?.value
-                filterValue = filterValue.toString()
-            } else {
-                this.filterValues[field] = ''
-            }
+            this.filterValues[field] = ''
+            return
         }
 
         this.filterValues[field] = filterValue
 
-        // If the field is a dropdown, run doQuery immediately
+        // Handle immediate query or debounced query
         if (noWaitFields.includes(field)) {
-            if (this.filterValues[field] === filterValue) {
-                this.doQuery()
-            }
-            // otherwise wait for the debounce time
+            this.doQuery()
         } else {
             if (this.debounce[field]) {
                 clearTimeout(this.debounce[field])
             }
 
             this.debounce[field] = setTimeout(() => {
-                if (this.filterValues[field] === filterValue) {
-                    this.doQuery()
-                }
+                this.doQuery()
             }, 500)
         }
     }
@@ -212,7 +198,7 @@ export class RoomConferenceBinderComponent {
         selectedConferences.forEach((conference: Conference) => {
             this.numberOfGuests += conference.guestsNumber || 0
         })
-        
+
         // Calculate beds
         selectedConferences.forEach((conference: Conference) => {
             conference?.rooms?.forEach((room: Room) => {
