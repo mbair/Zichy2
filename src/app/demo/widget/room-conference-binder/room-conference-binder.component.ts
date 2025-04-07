@@ -48,6 +48,8 @@ export class RoomConferenceBinderComponent {
     selectFirstOption: boolean
     numberOfBeds: number = 0                     // Number of beds
     numberOfGuests: number = 0                   // Number of guests
+    numberOfFilteredBeds: number = 0             // Number of filtered beds
+    numberOfFilteredGuests: number = 0           // Number of filtered guests
 
 
     private roomObs$: Observable<any> | undefined
@@ -188,23 +190,15 @@ export class RoomConferenceBinderComponent {
     }
 
     onConferenceSelection(selectedConferences: Conference[]) {
-        // Reset calculations when no Conference is selected
-        if (selectedConferences.length == 0) {
-            this.numberOfGuests = 0
-            this.numberOfBeds = 0
-        }
+        const calculations = this.calculateConferenceGuestsAndBeds(selectedConferences)
+        this.numberOfGuests = calculations.guests
+        this.numberOfBeds = calculations.beds
+    }
 
-        // Calculate guests
-        selectedConferences.forEach((conference: Conference) => {
-            this.numberOfGuests += conference.guestsNumber || 0
-        })
-
-        // Calculate beds
-        selectedConferences.forEach((conference: Conference) => {
-            conference?.rooms?.forEach((room: Room) => {
-                this.numberOfBeds += room.beds || 0
-            })
-        })
+    onConferenceFilterSelection(selectedConferences: Conference[]) {
+        const calculations = this.calculateConferenceGuestsAndBeds(selectedConferences)
+        this.numberOfFilteredGuests = calculations.guests
+        this.numberOfFilteredBeds = calculations.beds
     }
 
     onAssign() {
@@ -214,7 +208,6 @@ export class RoomConferenceBinderComponent {
         this.conferenceService.assignRoomsToConference(conferenceId, roomIds)
         this.selectedRooms = []
         this.selectedConferences = []
-        // this.loadAvailableRooms()
 
         setTimeout(() => {
             this.doQuery()
@@ -223,5 +216,30 @@ export class RoomConferenceBinderComponent {
 
     onRemove(conference: any, room: any) {
         this.conferenceService.removeRoomsFromConference(conference.id, [room.id])
+    }
+
+    /**
+     * Calculate Conference Guests and Beds
+     * @param selectedConferences 
+     * @returns 
+     */
+    private calculateConferenceGuestsAndBeds(selectedConferences: Conference[]): { guests: number, beds: number } {
+        // If no cenference are selected we return with 0
+        if (selectedConferences.length === 0) {
+            return { guests: 0, beds: 0 }
+        }
+
+        // Calculate Guests number
+        const guests = selectedConferences.reduce((total, conference) =>
+            total + (conference.guestsNumber || 0), 0)
+
+        // Calculate Beds number
+        const beds = selectedConferences.reduce((total, conference) => {
+            const conferenceBeds = conference?.rooms?.reduce((roomTotal, room) =>
+                roomTotal + (room.beds || 0), 0) || 0
+            return total + conferenceBeds
+        }, 0)
+
+        return { guests, beds }
     }
 }
