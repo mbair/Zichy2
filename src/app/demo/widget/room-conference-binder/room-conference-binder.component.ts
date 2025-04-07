@@ -42,6 +42,7 @@ export class RoomConferenceBinderComponent {
     rooms: any[] = []
     selected: Room[] = []                        // Table items chosen by user
     selectedConferences: Conference[] = []
+    selectedFilterConferences: Conference[] = []
     selectedRooms: number[] = [];
     canBindRoomToConference: boolean = true      // User has permission to bind Room to Conference
     selectFirstOption: boolean
@@ -127,8 +128,19 @@ export class RoomConferenceBinderComponent {
      * @param field
      */
     onFilter(event: any, field: string) {
-        const noWaitFields = ['roomNum', 'building', 'bedType', 'spareBeds']
+        const noWaitFields = ['roomNum', 'building', 'bedType', 'spareBeds', 'conferences']
         let filterValue = ''
+
+        // Conference field is filtering by Conference Id
+        if (field === 'conferences') {
+            let conferenceIds = event.map((conference: any) => conference.id).join(',')
+            filterValue = conferenceIds
+        }
+        
+        // Room field is filtering by Room Id
+        if (field === 'roomNum') {
+            filterValue = event[0]?.id.toString() || ''
+        }
 
         // Calendar date as String
         if (event instanceof Date) {

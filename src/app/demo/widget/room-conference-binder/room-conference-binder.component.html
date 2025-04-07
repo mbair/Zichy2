@@ -109,7 +109,7 @@
                     <th></th>
                     <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
                     <th pSortableColumn="spareBed">Pótágy <p-sortIcon field="spareBed"></p-sortIcon></th>
-                    <th pSortableColumn="conferences">Konferenciák <p-sortIcon field="conferences"></p-sortIcon></th>
+                    <th pSortableColumn="conferences">Konferenciák</th>
                 </tr>
                 <tr>
                     <th styleClass="w-3rem">
@@ -142,11 +142,13 @@
                         </app-sparebed-selector>
                     </th>
                     <th>
-                        <input 
-                            pInputText type="text" 
-                            (input)="onFilter($event, 'comment')" 
-                            placeholder="Keresés..."
-                            style="width:40rem" />
+                        <app-conference-selector
+                            [(ngModel)]="selectedFilterConferences"
+                            placeholder="Konferencia..."
+                            [showClear]="true"
+                            [style]="{'minWidth': '40rem', 'maxWidth' : '60rem'}"
+                            (ngModelChange)="onFilter($event, 'conferences')">
+                        </app-conference-selector>
                     </th>
                 </tr>
             </ng-template>
