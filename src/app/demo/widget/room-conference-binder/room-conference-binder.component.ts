@@ -208,7 +208,6 @@ export class RoomConferenceBinderComponent {
     }
 
     onAssign() {
-
         const conferenceId = Number(this.selectedConferences[0].id)
         const roomIds = this.selectedRooms.map((r: any) => Number(r.id))
 
