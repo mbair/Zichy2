@@ -42,9 +42,14 @@ export class RoomConferenceBinderComponent {
     rooms: any[] = []
     selected: Room[] = []                        // Table items chosen by user
     selectedConferences: Conference[] = []
+    selectedFilterConferences: Conference[] = []
     selectedRooms: number[] = [];
     canBindRoomToConference: boolean = true      // User has permission to bind Room to Conference
     selectFirstOption: boolean
+    numberOfBeds: number = 0                     // Number of beds
+    numberOfGuests: number = 0                   // Number of guests
+    numberOfFilteredBeds: number = 0             // Number of filtered beds
+    numberOfFilteredGuests: number = 0           // Number of filtered guests
 
 
     private roomObs$: Observable<any> | undefined
@@ -59,7 +64,7 @@ export class RoomConferenceBinderComponent {
     ngOnInit() {
         // Permissions
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canBindRoomToConference => this.canBindRoomToConference = canBindRoomToConference)
-        
+
         // Conferences
         this.setConferences()
 
@@ -102,7 +107,7 @@ export class RoomConferenceBinderComponent {
     }
 
     /**
-     * Load filtered data into the Table
+     * Load filtered room data into the Table
      * @returns
      */
     doQuery() {
@@ -124,41 +129,38 @@ export class RoomConferenceBinderComponent {
      * @param event
      * @param field
      */
-    onFilter(event: any, field: string) {
-        const noWaitFields = ['roomNum', 'building', 'bedType', 'spareBeds']
+    onFilter(event: any, field: string): void {
+        const noWaitFields = ['building', 'bedType', 'spareBeds', 'conferences']
         let filterValue = ''
 
-        // Calendar date as String
-        if (event instanceof Date) {
-            const date = moment(event);
-            const formattedDate = date.format('YYYY.MM.DD')
-            filterValue = formattedDate
+        // Extract filterValue based on event type and field
+        if (Array.isArray(event)) {
+            filterValue = event.map((item: any) => item.id).join(',')
+        } else if (event instanceof Date) {
+            filterValue = moment(event).format('YYYY.MM.DD')
+        } else if (event.value == null) {
+            filterValue = ''
+        } else if (event?.value !== undefined) {
+            filterValue = event.value.toString()
+        } else if (event?.target?.value !== undefined) {
+            filterValue = event.target.value.toString()
         } else {
-            if (event && (event.value || event.target?.value)) {
-                filterValue = event.value || event.target?.value
-                filterValue = filterValue.toString()
-            } else {
-                this.filterValues[field] = ''
-            }
+            this.filterValues[field] = ''
+            return
         }
 
         this.filterValues[field] = filterValue
 
-        // If the field is a dropdown, run doQuery immediately
+        // Handle immediate query or debounced query
         if (noWaitFields.includes(field)) {
-            if (this.filterValues[field] === filterValue) {
-                this.doQuery()
-            }
-            // otherwise wait for the debounce time
+            this.doQuery()
         } else {
             if (this.debounce[field]) {
                 clearTimeout(this.debounce[field])
             }
 
             this.debounce[field] = setTimeout(() => {
-                if (this.filterValues[field] === filterValue) {
-                    this.doQuery()
-                }
+                this.doQuery()
             }, 500)
         }
     }
@@ -187,15 +189,25 @@ export class RoomConferenceBinderComponent {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains')
     }
 
-    onAssign() {
+    onConferenceSelection(selectedConferences: Conference[]) {
+        const calculations = this.calculateConferenceGuestsAndBeds(selectedConferences)
+        this.numberOfGuests = calculations.guests
+        this.numberOfBeds = calculations.beds
+    }
 
+    onConferenceFilterSelection(selectedConferences: Conference[]) {
+        const calculations = this.calculateConferenceGuestsAndBeds(selectedConferences)
+        this.numberOfFilteredGuests = calculations.guests
+        this.numberOfFilteredBeds = calculations.beds
+    }
+
+    onAssign() {
         const conferenceId = Number(this.selectedConferences[0].id)
         const roomIds = this.selectedRooms.map((r: any) => Number(r.id))
 
         this.conferenceService.assignRoomsToConference(conferenceId, roomIds)
         this.selectedRooms = []
         this.selectedConferences = []
-        // this.loadAvailableRooms()
 
         setTimeout(() => {
             this.doQuery()
@@ -204,5 +216,30 @@ export class RoomConferenceBinderComponent {
 
     onRemove(conference: any, room: any) {
         this.conferenceService.removeRoomsFromConference(conference.id, [room.id])
+    }
+
+    /**
+     * Calculate Conference Guests and Beds
+     * @param selectedConferences 
+     * @returns 
+     */
+    private calculateConferenceGuestsAndBeds(selectedConferences: Conference[]): { guests: number, beds: number } {
+        // If no cenference are selected we return with 0
+        if (selectedConferences.length === 0) {
+            return { guests: 0, beds: 0 }
+        }
+
+        // Calculate Guests number
+        const guests = selectedConferences.reduce((total, conference) =>
+            total + (conference.guestsNumber || 0), 0)
+
+        // Calculate Beds number
+        const beds = selectedConferences.reduce((total, conference) => {
+            const conferenceBeds = conference?.rooms?.reduce((roomTotal, room) =>
+                roomTotal + (room.beds || 0), 0) || 0
+            return total + conferenceBeds
+        }, 0)
+
+        return { guests, beds }
     }
 }

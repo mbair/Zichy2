@@ -387,7 +387,6 @@ export class GuestComponent implements OnInit {
     }
 
     onFilter(event: any, field: string) {
-
         // Organizer need select conference
         if (this.isOrganizer && !this.selectedConferences) return
 
