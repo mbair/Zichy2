@@ -133,20 +133,24 @@ export class RoomConferenceBinderComponent {
         const noWaitFields = ['building', 'bedType', 'spareBeds', 'conferences']
         let filterValue = ''
 
-        // Extract filterValue based on event type and field
-        if (Array.isArray(event)) {
+        console.log('event', event)
+
+        // For enabled field convert true to "1" and false to "0"
+        if (field === 'conferences') {
             filterValue = event.map((item: any) => item.id).join(',')
-        } else if (event instanceof Date) {
-            filterValue = moment(event).format('YYYY.MM.DD')
-        } else if (event.value == null) {
-            filterValue = ''
-        } else if (event?.value !== undefined) {
-            filterValue = event.value.toString()
-        } else if (event?.target?.value !== undefined) {
-            filterValue = event.target.value.toString()
+        }
+
+        // Calendar date as String
+        else if (event instanceof Date) {
+            const date = moment(event)
+            filterValue = date.format('YYYY.MM.DD')
         } else {
-            this.filterValues[field] = ''
-            return
+            if (event && (event.value || event.target?.value)) {
+                filterValue = event.value || event.target?.value
+                filterValue = filterValue.toString()
+            } else {
+                this.filterValues[field] = ''
+            }
         }
 
         this.filterValues[field] = filterValue
