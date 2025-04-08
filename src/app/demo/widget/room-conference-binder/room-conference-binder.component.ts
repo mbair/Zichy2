@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, isDevMode } from '@angular/core';
+import { Component } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { Table } from 'primeng/table';
@@ -17,13 +17,7 @@ moment.locale('hu')
     providers: [MessageService]
 })
 export class RoomConferenceBinderComponent {
-    @Input() visible: boolean = isDevMode() ? true : false // TODO: Set to false
-    @Output() close = new EventEmitter<void>()
-    @Output() assign = new EventEmitter<{
-        selectedConferences: Conference[]
-        selectedRooms: number[]
-    }>()
-
+    visible: boolean = true                     // Visibility of the component
     apiURL: string                               // API URL depending on whether we are working on test or production
     loading: boolean = true                      // Loading overlay trigger value
     loadingConferences: boolean = true           // Loading overlay trigger value
@@ -43,7 +37,7 @@ export class RoomConferenceBinderComponent {
     selected: Room[] = []                        // Table items chosen by user
     selectedConferences: Conference[] = []
     selectedFilterConferences: Conference[] = []
-    selectedRooms: number[] = [];
+    selectedRooms: number[] = []
     canBindRoomToConference: boolean = true      // User has permission to bind Room to Conference
     selectFirstOption: boolean
     numberOfBeds: number = 0                     // Number of beds
@@ -90,20 +84,8 @@ export class RoomConferenceBinderComponent {
         })
     }
 
-    // loadAvailableRooms() {
-    //     if (!this.selectedConferences) return;
-    //     console.log('selectedConferences', this.selectedConferences)
-    //     this.roomService
-    //         .getAvailableRooms(this.selectedConferences)
-    //         .subscribe((rooms) => {
-    //             this.tableData = rooms
-    //         })
-    // }
-
     showDialog() {
-        // this.loadAvailableRooms();
-        this.canBindRoomToConference = true;
-        this.visible = true;
+        this.visible = true
     }
 
     /**
@@ -112,6 +94,10 @@ export class RoomConferenceBinderComponent {
      */
     doQuery() {
         this.loading = true
+
+        if (this.selectedConferences) {
+            this.filterValues['notAssignedConferences'] = this.selectedConferences.map((item: any) => item.id).join(',')
+        }
 
         const filters = Object.keys(this.filterValues)
             .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
@@ -132,8 +118,6 @@ export class RoomConferenceBinderComponent {
     onFilter(event: any, field: string): void {
         const noWaitFields = ['building', 'bedType', 'spareBeds', 'conferences']
         let filterValue = ''
-
-        console.log('event', event)
 
         // For enabled field convert true to "1" and false to "0"
         if (field === 'conferences') {
@@ -197,6 +181,7 @@ export class RoomConferenceBinderComponent {
         const calculations = this.calculateConferenceGuestsAndBeds(selectedConferences)
         this.numberOfGuests = calculations.guests
         this.numberOfBeds = calculations.beds
+        this.doQuery()
     }
 
     onConferenceFilterSelection(selectedConferences: Conference[]) {
@@ -229,7 +214,7 @@ export class RoomConferenceBinderComponent {
      */
     private calculateConferenceGuestsAndBeds(selectedConferences: Conference[]): { guests: number, beds: number } {
         // If no cenference are selected we return with 0
-        if (selectedConferences.length === 0) {
+        if (!selectedConferences || selectedConferences.length === 0) {
             return { guests: 0, beds: 0 }
         }
 
@@ -246,4 +231,9 @@ export class RoomConferenceBinderComponent {
 
         return { guests, beds }
     }
+
+    isOptionDisabled(option: any): boolean {
+        // Például: ha az option.value 2, akkor legyen disabled
+        return option.value === 2;
+      }
 }
