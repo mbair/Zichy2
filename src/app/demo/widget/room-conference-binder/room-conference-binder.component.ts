@@ -229,7 +229,7 @@ export class RoomConferenceBinderComponent {
      */
     private calculateConferenceGuestsAndBeds(selectedConferences: Conference[]): { guests: number, beds: number } {
         // If no cenference are selected we return with 0
-        if (selectedConferences.length === 0) {
+        if (!selectedConferences || selectedConferences.length === 0) {
             return { guests: 0, beds: 0 }
         }
 
