@@ -17,7 +17,7 @@ moment.locale('hu')
     providers: [MessageService]
 })
 export class RoomConferenceBinderComponent {
-    visible: boolean = true                     // Visibility of the component
+    visible: boolean = false                     // Visibility of the component
     apiURL: string                               // API URL depending on whether we are working on test or production
     loading: boolean = true                      // Loading overlay trigger value
     loadingConferences: boolean = true           // Loading overlay trigger value
