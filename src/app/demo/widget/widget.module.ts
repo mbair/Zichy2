@@ -12,6 +12,9 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip';
 import { ChipModule } from 'primeng/chip';
+import { BlockUIModule } from 'primeng/blockui';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ToastModule } from 'primeng/toast';
 import { ReactiveFileUploadComponent } from './reactive-file-upload/reactive-file-upload.component';
 import { RoomConferenceBinderComponent } from './room-conference-binder/room-conference-binder.component';
 import { SelectorsModule } from "../selectors/selectors.module";
@@ -36,6 +39,9 @@ import { SelectorsModule } from "../selectors/selectors.module";
         InputTextModule,
         TooltipModule,
         ChipModule,
+        BlockUIModule,
+        ProgressSpinnerModule,
+        ToastModule,
     ],
     exports: [
         ReactiveFileUploadComponent,

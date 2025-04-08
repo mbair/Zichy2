@@ -173,6 +173,7 @@
                     <th>
                         <app-conference-selector
                             [(ngModel)]="selectedFilterConferences"
+                            [disabledOptions]="selectedConferences"
                             placeholder="Konferencia..."
                             [showClear]="true"
                             [style]="{'minWidth': '40rem', 'maxWidth' : '60rem'}"
@@ -239,3 +240,10 @@
         </p-table>
     </div>
 </p-sidebar>
+
+<!-- Loading Overlay -->
+<p-blockUI [autoZIndex]="true" [blocked]="loading">
+    <p-progressSpinner></p-progressSpinner>
+</p-blockUI>
+
+<p-toast></p-toast>

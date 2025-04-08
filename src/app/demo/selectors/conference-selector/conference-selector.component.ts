@@ -1,8 +1,9 @@
-import { Component, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, forwardRef, Input, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MultiSelect } from 'primeng/multiselect';
 import { Conference } from '../../api/conference';
 import { ConferenceService } from '../../service/conference.service';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-conference-selector',
@@ -22,12 +23,16 @@ export class ConferenceSelectorComponent implements OnInit, ControlValueAccessor
     @Input() placeholder: string                    // Placeholder text for the dropdown
     @Input() showClear: boolean = true              // Whether to show the clear button
     @Input() style: { [key: string]: string } = {}  // Custom style for the dropdown
+    @Input() disabledOptions: Conference[] = []     // List of disabled conference IDs
 
     loading: boolean = true                          // Loading state indicator
     disabled: boolean = false                        // Whether the selector is disabled
     conferences: Conference[] = []                   // List of available conference options
+    originalConferences: Conference[] = []           // Original list of conference options
     selectedConferences: Conference[] = []           // List of currently selected conferences
 
+    private subscriptions: Subscription = new Subscription()
+    
     constructor(private conferenceService: ConferenceService) { }
 
     /**
@@ -35,10 +40,33 @@ export class ConferenceSelectorComponent implements OnInit, ControlValueAccessor
      * Fetches the list of conferences and selects the first option if required.
      */
     ngOnInit(): void {
-        this.conferenceService.getConferencesForSelector().subscribe(confs => {
-            this.conferences = confs
+        const sub = this.conferenceService.getConferencesForSelector().subscribe(conferences => {
+            this.originalConferences = conferences
+            this.updateDisabledFlags()
             this.handleSelectFirstOption()
+            this.loading = false
         })
+        this.subscriptions.add(sub)
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['disabledOptions'] && this.originalConferences.length > 0) {
+            this.updateDisabledFlags()
+        }
+    }
+
+    ngOnDestroy(): void {
+        this.subscriptions.unsubscribe()
+    }
+
+    /**
+     * Update the conferences list by assigning the disabled field to each option
+     */
+    updateDisabledFlags(): void {
+        this.conferences = this.originalConferences.map((conference: Conference) => ({
+            ...conference,
+            disabled: this.disabledOptions.some(disabledConf => disabledConf.id === conference.id)
+        }))
     }
 
     /**
@@ -136,13 +164,13 @@ export class ConferenceSelectorComponent implements OnInit, ControlValueAccessor
     registerOnTouched(fn: any): void {
         this.onTouched = fn
     }
-    
+
     /**
      * Callback function to handle value changes from the parent form.
      * Initially set as an empty function, but will be assigned dynamically.
      */
     onChange = (_: any) => { }
-    
+
     /**
      * Callback function to handle when the input is touched.
      * Initially set as an empty function, but will be assigned dynamically.

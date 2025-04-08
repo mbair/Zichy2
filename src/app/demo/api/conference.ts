@@ -1,7 +1,7 @@
 import { Room } from "./room";
 
 export interface Conference {
-    id?: string;
+    id?: number;
     name?: string;
     beginDate?: string | null;
     endDate?: string | null;
