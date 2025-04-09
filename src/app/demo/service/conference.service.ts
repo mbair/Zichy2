@@ -215,7 +215,7 @@ export class ConferenceService {
 
         let queryParams = ''
 
-        this.get(0, 999, { sortField: 'id', sortOrder: 1 }, queryParams)
+        this.get(0, 999, { sortField: 'beginDate', sortOrder: 1 }, queryParams)
         return this.data$.asObservable().pipe(
             map((data: any) => {
                 // Store conferences in cache
