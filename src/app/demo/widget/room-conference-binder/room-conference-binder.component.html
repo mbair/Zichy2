@@ -9,237 +9,240 @@
         [disabled]="!canBindRoomToConference">
 </button>
 
-<p-sidebar id="sidebar" 
-           [(visible)]="visible" 
-           position="right" 
-           styleClass="p-sidebar-md"
-           [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
-           [fullScreen]="true" 
-           [showCloseIcon]="true"
-           [blockScroll]="true">
+<!-- Performance tuning: Load only Sidebar related things if it is visible -->
+<ng-container *ngIf="visible">
+    <p-sidebar id="sidebar" 
+            [(visible)]="visible" 
+            position="right" 
+            styleClass="p-sidebar-md"
+            [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
+            [fullScreen]="true" 
+            [showCloseIcon]="true"
+            [blockScroll]="true">
 
-    <!-- Sidebar header -->
-    <ng-template pTemplate="header">
-        <span class="font-semibold text-xl">
-            Szoba konferenciához rendelés
-        </span>
-    </ng-template>
+        <!-- Sidebar header -->
+        <ng-template pTemplate="header">
+            <span class="font-semibold text-xl">
+                Szoba konferenciához rendelés
+            </span>
+        </ng-template>
 
-    <div class="flex w-full mb-2">
+        <div class="flex w-full mb-2">
 
-        <!-- Conference multi selector -->
-        <p-multiSelect 
-            [options]="conferences" 
-            [(ngModel)]="selectedConferences" 
-            (ngModelChange)="onConferenceSelection($event)"
-            [showClear]="true"
-            [style]="{'minWidth':'50rem'}"
-            [selectionLimit]="1"
-            [virtualScroll]="true"
-            [virtualScrollItemSize]="43"
-            class="multiselect-custom-virtual-scroll"
-            display="chip" 
-            placeholder="Válasszon konferenciát, amihez szobát rendelne..."
-            optionLabel="name">
-        </p-multiSelect>
+            <!-- Conference multi selector -->
+            <p-multiSelect 
+                [options]="conferences" 
+                [(ngModel)]="selectedConferences" 
+                (ngModelChange)="onConferenceSelection($event)"
+                [showClear]="true"
+                [style]="{'minWidth':'50rem'}"
+                [selectionLimit]="1"
+                [virtualScroll]="true"
+                [virtualScrollItemSize]="43"
+                class="multiselect-custom-virtual-scroll"
+                display="chip" 
+                placeholder="Válasszon konferenciát, amihez szobát rendelne..."
+                optionLabel="name">
+            </p-multiSelect>
 
-        <span class="block ml-2 mt-2 md:mt-0 p-input-icon-left">
-            <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Vendégek száma: {{ numberOfGuests }}" tooltipPosition="top">
-                <div class="flex align-items-center justify-content-center py-1 px-1">
-                    <div class="flex align-items-center justify-content-center gap-2 px-2">
-                        <i class="pi pi-users" style="font-size: 1.5rem"></i>
-                        <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left">
-                            {{ numberOfGuests }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </span>
-
-        <span class="block ml-2 mt-2 md:mt-0 p-input-icon-left">
-            <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Ágyak száma: {{ numberOfBeds }}" tooltipPosition="top">
-                <div class="flex align-items-center justify-content-center py-1 px-1">
-                    <div class="flex align-items-center justify-content-center gap-2 px-2">
-                        <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
-                            <g id="SVGRepo_bgCarrier" stroke-width="0"/>
-                            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
-                            <g id="SVGRepo_iconCarrier">
-                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> 
-                                    <g id="ic_fluent_bed_24_filled" fill="#334155" fill-rule="nonzero"> 
-                                        <path d="M19.25,11 C20.7125318,11 21.9084043,12.1417046 21.9949812,13.5824777 L22,13.75 L22,20.25 C22,20.6642136 21.6642136,21 21.25,21 C20.8703042,21 20.556509,20.7178461 20.5068466,20.3517706 L20.5,20.25 L20.5,18 L3.5,18 L3.5,20.25 C3.5,20.6296958 3.21784612,20.943491 2.85177056,20.9931534 L2.75,21 C2.37030423,21 2.05650904,20.7178461 2.00684662,20.3517706 L2,20.25 L2,13.75 C2,12.2874682 3.1417046,11.0915957 4.58247767,11.0050188 L4.75,11 L19.25,11 Z M6.75,4 L17.25,4 C18.7125318,4 19.9084043,5.1417046 19.9949812,6.58247767 L20,6.75 L20,10 L17,10 L16.9932723,9.88337887 C16.9399506,9.42429701 16.575703,9.06004937 16.1166211,9.00672773 L16,9 L14,9 C13.4871642,9 13.0644928,9.38604019 13.0067277,9.88337887 L13,10 L11,10 L10.9932723,9.88337887 C10.9399506,9.42429701 10.575703,9.06004937 10.1166211,9.00672773 L10,9 L8,9 C7.48716416,9 7.06449284,9.38604019 7.00672773,9.88337887 L7,10 L4,10 L4,6.75 C4,5.28746816 5.1417046,4.09159572 6.58247767,4.00501879 L6.75,4 Z"> 
-                                        </path> 
-                                    </g> 
-                                </g> 
-                            </g>
-                        </svg>
-                        <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left">
-                            {{ numberOfBeds }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </span>
-
-        <!-- Save button -->
-        <button pButton pRipple label="Összerendelés" icon="pi pi-check" class="p-button ml-2" (click)="onAssign()"
-            [disabled]="!selectedRooms || !selectedRooms.length || !selectedConferences || !selectedConferences.length">
-        </button>
-    </div>
-
-    <div class="flex w-full">
-        <p-table 
-            #dt 
-            dataKey="id" 
-            [value]="tableData" 
-            responsiveLayout="scroll" 
-            [rows]="rowsPerPage"
-            [totalRecords]="totalRecords" 
-            [globalFilterFields]="['roomNum']" 
-            [paginator]="true"
-            [rowsPerPageOptions]="rowsPerPageOptions" 
-            [showCurrentPageReport]="true"
-            currentPageReportTemplate="{first} - {last} szoba a(z) {totalRecords}-ból megjelenítése"
-            [(selection)]="selectedRooms" 
-            selectionMode="multiple" 
-            [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
-            [rowHover]="true" (onLazyLoad)="onLazyLoad($event)" [lazy]="true">
-
-            <ng-template pTemplate="header">
-                <tr>
-                    <th></th>
-                    <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
-                    <th pSortableColumn="spareBeds">Pótágy <p-sortIcon field="spareBeds"></p-sortIcon></th>
-                    <th>
-                        <span class="vertical-align-middle mr-4">
-                            Konferenciák
-                        </span>
-                        <span class="vertical-align-middle">
+            <span class="block ml-2 mt-2 md:mt-0 p-input-icon-left">
+                <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Vendégek száma: {{ numberOfGuests }}" tooltipPosition="top">
+                    <div class="flex align-items-center justify-content-center py-1 px-1">
+                        <div class="flex align-items-center justify-content-center gap-2 px-2">
                             <i class="pi pi-users" style="font-size: 1.5rem"></i>
-                        </span>
-                        <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left">
-                            {{ numberOfFilteredGuests }}
-                        </span>
-                        <span class="ml-2 mt-2 md:mt-0 p-input-icon-left">
-                            <span class="vertical-align-middle">
-                                <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
-                                    <g id="SVGRepo_bgCarrier" stroke-width="0"/>
-                                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <g id="SVGRepo_iconCarrier">
-                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> 
-                                            <g id="ic_fluent_bed_24_filled" fill="#334155" fill-rule="nonzero"> 
-                                                <path d="M19.25,11 C20.7125318,11 21.9084043,12.1417046 21.9949812,13.5824777 L22,13.75 L22,20.25 C22,20.6642136 21.6642136,21 21.25,21 C20.8703042,21 20.556509,20.7178461 20.5068466,20.3517706 L20.5,20.25 L20.5,18 L3.5,18 L3.5,20.25 C3.5,20.6296958 3.21784612,20.943491 2.85177056,20.9931534 L2.75,21 C2.37030423,21 2.05650904,20.7178461 2.00684662,20.3517706 L2,20.25 L2,13.75 C2,12.2874682 3.1417046,11.0915957 4.58247767,11.0050188 L4.75,11 L19.25,11 Z M6.75,4 L17.25,4 C18.7125318,4 19.9084043,5.1417046 19.9949812,6.58247767 L20,6.75 L20,10 L17,10 L16.9932723,9.88337887 C16.9399506,9.42429701 16.575703,9.06004937 16.1166211,9.00672773 L16,9 L14,9 C13.4871642,9 13.0644928,9.38604019 13.0067277,9.88337887 L13,10 L11,10 L10.9932723,9.88337887 C10.9399506,9.42429701 10.575703,9.06004937 10.1166211,9.00672773 L10,9 L8,9 C7.48716416,9 7.06449284,9.38604019 7.00672773,9.88337887 L7,10 L4,10 L4,6.75 C4,5.28746816 5.1417046,4.09159572 6.58247767,4.00501879 L6.75,4 Z"> 
-                                                </path> 
-                                            </g> 
+                            <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left">
+                                {{ numberOfGuests }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </span>
+
+            <span class="block ml-2 mt-2 md:mt-0 p-input-icon-left">
+                <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Ágyak száma: {{ numberOfBeds }}" tooltipPosition="top">
+                    <div class="flex align-items-center justify-content-center py-1 px-1">
+                        <div class="flex align-items-center justify-content-center gap-2 px-2">
+                            <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
+                                <g id="SVGRepo_bgCarrier" stroke-width="0"/>
+                                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
+                                <g id="SVGRepo_iconCarrier">
+                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> 
+                                        <g id="ic_fluent_bed_24_filled" fill="#334155" fill-rule="nonzero"> 
+                                            <path d="M19.25,11 C20.7125318,11 21.9084043,12.1417046 21.9949812,13.5824777 L22,13.75 L22,20.25 C22,20.6642136 21.6642136,21 21.25,21 C20.8703042,21 20.556509,20.7178461 20.5068466,20.3517706 L20.5,20.25 L20.5,18 L3.5,18 L3.5,20.25 C3.5,20.6296958 3.21784612,20.943491 2.85177056,20.9931534 L2.75,21 C2.37030423,21 2.05650904,20.7178461 2.00684662,20.3517706 L2,20.25 L2,13.75 C2,12.2874682 3.1417046,11.0915957 4.58247767,11.0050188 L4.75,11 L19.25,11 Z M6.75,4 L17.25,4 C18.7125318,4 19.9084043,5.1417046 19.9949812,6.58247767 L20,6.75 L20,10 L17,10 L16.9932723,9.88337887 C16.9399506,9.42429701 16.575703,9.06004937 16.1166211,9.00672773 L16,9 L14,9 C13.4871642,9 13.0644928,9.38604019 13.0067277,9.88337887 L13,10 L11,10 L10.9932723,9.88337887 C10.9399506,9.42429701 10.575703,9.06004937 10.1166211,9.00672773 L10,9 L8,9 C7.48716416,9 7.06449284,9.38604019 7.00672773,9.88337887 L7,10 L4,10 L4,6.75 C4,5.28746816 5.1417046,4.09159572 6.58247767,4.00501879 L6.75,4 Z"> 
+                                            </path> 
                                         </g> 
-                                    </g>
-                                </svg>
+                                    </g> 
+                                </g>
+                            </svg>
+                            <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left">
+                                {{ numberOfBeds }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </span>
+
+            <!-- Save button -->
+            <button pButton pRipple label="Összerendelés" icon="pi pi-check" class="p-button ml-2" (click)="onAssign()"
+                [disabled]="!selectedRooms || !selectedRooms.length || !selectedConferences || !selectedConferences.length">
+            </button>
+        </div>
+
+        <div class="flex w-full">
+            <p-table 
+                #dt 
+                dataKey="id" 
+                [value]="tableData" 
+                responsiveLayout="scroll" 
+                [rows]="rowsPerPage"
+                [totalRecords]="totalRecords" 
+                [globalFilterFields]="['roomNum']" 
+                [paginator]="true"
+                [rowsPerPageOptions]="rowsPerPageOptions" 
+                [showCurrentPageReport]="true"
+                currentPageReportTemplate="{first} - {last} szoba a(z) {totalRecords}-ból megjelenítése"
+                [(selection)]="selectedRooms" 
+                selectionMode="multiple" 
+                [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
+                [rowHover]="true" (onLazyLoad)="onLazyLoad($event)" [lazy]="true">
+
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th></th>
+                        <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
+                        <th pSortableColumn="spareBeds">Pótágy <p-sortIcon field="spareBeds"></p-sortIcon></th>
+                        <th>
+                            <span class="vertical-align-middle mr-4">
+                                Szobához rendelt konferenciák
+                            </span>
+                            <span class="vertical-align-middle">
+                                <i class="pi pi-users" style="font-size: 1.5rem"></i>
                             </span>
                             <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left">
-                                {{ numberOfFilteredBeds }}
+                                {{ numberOfFilteredGuests }}
                             </span>
-                        </span>
-                    </th>
-                </tr>
-                <tr>
-                    <th styleClass="w-3rem">
-                        <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-                    </th>
-                    <th>
-                        <input 
-                            pInputText 
-                            type="text" 
-                            class="mr-2" 
-                            (input)="onFilter($event, 'roomNum')"
-                            placeholder="Szobaszám..." 
-                            style="width:8rem" />
-                        <app-building-selector 
-                            class="mr-2" 
-                            (change)="onFilter($event, 'building')" 
-                            [showClear]="true"
-                            placeholder="Épület...">
-                        </app-building-selector>
-                        <app-bedtype-selector 
-                            (change)="onFilter($event, 'bedType')" 
-                            [showClear]="true"
-                            placeholder="Ágytipus...">
-                        </app-bedtype-selector>
-                    </th>
-                    <th>
-                        <app-sparebed-selector 
-                            (change)="onFilter($event, 'spareBeds')" 
-                            [showClear]="true">
-                        </app-sparebed-selector>
-                    </th>
-                    <th>
-                        <app-conference-selector
-                            [(ngModel)]="selectedFilterConferences"
-                            [disabledOptions]="selectedConferences"
-                            placeholder="Konferencia..."
-                            [showClear]="true"
-                            [style]="{'minWidth': '40rem', 'maxWidth' : '60rem'}"
-                            (ngModelChange)="onFilter($event, 'conferences'); onConferenceFilterSelection($event)">
-                        </app-conference-selector>
-                    </th>
-                </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-room>
-                <tr>
-                    <td>
-                        <p-tableCheckbox [value]="room"></p-tableCheckbox>
-                    </td>
-                    <td>
-                        <span class="p-column-title">Szoba szám</span>
+                            <span class="ml-2 mt-2 md:mt-0 p-input-icon-left">
+                                <span class="vertical-align-middle">
+                                    <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
+                                        <g id="SVGRepo_bgCarrier" stroke-width="0"/>
+                                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <g id="SVGRepo_iconCarrier">
+                                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> 
+                                                <g id="ic_fluent_bed_24_filled" fill="#334155" fill-rule="nonzero"> 
+                                                    <path d="M19.25,11 C20.7125318,11 21.9084043,12.1417046 21.9949812,13.5824777 L22,13.75 L22,20.25 C22,20.6642136 21.6642136,21 21.25,21 C20.8703042,21 20.556509,20.7178461 20.5068466,20.3517706 L20.5,20.25 L20.5,18 L3.5,18 L3.5,20.25 C3.5,20.6296958 3.21784612,20.943491 2.85177056,20.9931534 L2.75,21 C2.37030423,21 2.05650904,20.7178461 2.00684662,20.3517706 L2,20.25 L2,13.75 C2,12.2874682 3.1417046,11.0915957 4.58247767,11.0050188 L4.75,11 L19.25,11 Z M6.75,4 L17.25,4 C18.7125318,4 19.9084043,5.1417046 19.9949812,6.58247767 L20,6.75 L20,10 L17,10 L16.9932723,9.88337887 C16.9399506,9.42429701 16.575703,9.06004937 16.1166211,9.00672773 L16,9 L14,9 C13.4871642,9 13.0644928,9.38604019 13.0067277,9.88337887 L13,10 L11,10 L10.9932723,9.88337887 C10.9399506,9.42429701 10.575703,9.06004937 10.1166211,9.00672773 L10,9 L8,9 C7.48716416,9 7.06449284,9.38604019 7.00672773,9.88337887 L7,10 L4,10 L4,6.75 C4,5.28746816 5.1417046,4.09159572 6.58247767,4.00501879 L6.75,4 Z"> 
+                                                    </path> 
+                                                </g> 
+                                            </g> 
+                                        </g>
+                                    </svg>
+                                </span>
+                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left">
+                                    {{ numberOfFilteredBeds }}
+                                </span>
+                            </span>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th styleClass="w-3rem">
+                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                        </th>
+                        <th>
+                            <input 
+                                pInputText 
+                                type="text" 
+                                class="mr-2" 
+                                (input)="onFilter($event, 'roomNum')"
+                                placeholder="Szobaszám..." 
+                                style="width:8rem" />
+                            <app-building-selector 
+                                class="mr-2" 
+                                (change)="onFilter($event, 'building')" 
+                                [showClear]="true"
+                                placeholder="Épület...">
+                            </app-building-selector>
+                            <app-bedtype-selector 
+                                (change)="onFilter($event, 'bedType')" 
+                                [showClear]="true"
+                                placeholder="Ágytipus...">
+                            </app-bedtype-selector>
+                        </th>
+                        <th>
+                            <app-sparebed-selector 
+                                (change)="onFilter($event, 'spareBeds')" 
+                                [showClear]="true">
+                            </app-sparebed-selector>
+                        </th>
+                        <th>
+                            <app-conference-selector
+                                [(ngModel)]="selectedFilterConferences"
+                                [disabledOptions]="selectedConferences"
+                                placeholder="Konferencia..."
+                                [showClear]="true"
+                                [style]="{'minWidth': '40rem', 'maxWidth' : '60rem'}"
+                                (ngModelChange)="onFilter($event, 'conferences'); onConferenceFilterSelection($event)">
+                            </app-conference-selector>
+                        </th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-room>
+                    <tr>
+                        <td>
+                            <p-tableCheckbox [value]="room"></p-tableCheckbox>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Szoba szám</span>
 
-                        <div class="building-badge {{room.building}} border-round-xl w-min p-0">
-                            <div class="flex align-items-center justify-content-center py-1 px-1">
-                                <div class="flex align-items-center justify-content-center gap-2 px-2">
-                                    <i class="pi pi-key vertical-align-middle"></i>
-                                    <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ room.roomNum }}" tooltipPosition="top">
-                                        {{ room.roomNum }}
-                                    </span>
-                                </div>
-                                <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ room.roomCode }}" tooltipPosition="top">
-                                    <div class="flex flex-column align-items-left justify-content-center">
-                                        <span class="text-base font-semibold uppercase">
-                                            {{ 'BUILDINGS.' + room.building.toUpperCase() | translate }} <span *ngIf="room.floor" class="font-normal text-sm uppercase">({{ room.floor }})</span>
-                                            <span *ngIf="room.climate" class="pl-1">❄️</span>
+                            <div class="building-badge {{room.building}} border-round-xl w-min p-0">
+                                <div class="flex align-items-center justify-content-center py-1 px-1">
+                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
+                                        <i class="pi pi-key vertical-align-middle"></i>
+                                        <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ room.roomNum }}" tooltipPosition="top">
+                                            {{ room.roomNum }}
                                         </span>
-                                        <span class="font-light text-xs uppercase">
-                                            {{ room.beds }} SZEMÉLYES ({{ room.bedType }}<span *ngIf="room.bathroom">, {{ room.bathroom }}</span>)
-                                        </span>
+                                    </div>
+                                    <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ room.roomCode }}" tooltipPosition="top">
+                                        <div class="flex flex-column align-items-left justify-content-center">
+                                            <span class="text-base font-semibold uppercase">
+                                                {{ 'BUILDINGS.' + room.building.toUpperCase() | translate }} <span *ngIf="room.floor" class="font-normal text-sm uppercase">({{ room.floor }})</span>
+                                                <span *ngIf="room.climate" class="pl-1">❄️</span>
+                                            </span>
+                                            <span class="font-light text-xs uppercase">
+                                                {{ room.beds }} SZEMÉLYES ({{ room.bedType }}<span *ngIf="room.bathroom">, {{ room.bathroom }}</span>)
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="p-column-title">Pótágy</span>
-                        <span *ngIf="room.spareBeds" class="sparebed-badge {{ room.spareBeds }}">
-                            {{ 'SPAREBEDS.' + room.spareBeds?.toUpperCase() | translate }}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="p-column-title">Konferenciák</span>
-                        <div *ngFor="let conference of room.conferences">
-                            <p-chip 
-                                styleClass="m-1" 
-                                [label]="conference.name" 
-                                icon="pi pi-calendar" 
-                                [removable]="true" 
-                                (onRemove)="onRemove(conference, room)">
-                            </p-chip>
-                        </div>
-                    </td>
-                </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-                <tr>
-                    <td [attr.colspan]="4" class="text-center">Nincs találat...</td>
-                </tr>
-            </ng-template>
-        </p-table>
-    </div>
-</p-sidebar>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Pótágy</span>
+                            <span *ngIf="room.spareBeds" class="sparebed-badge {{ room.spareBeds }}">
+                                {{ 'SPAREBEDS.' + room.spareBeds?.toUpperCase() | translate }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Konferenciák</span>
+                            <div *ngFor="let conference of room.conferences">
+                                <p-chip 
+                                    styleClass="m-1" 
+                                    [label]="conference.name" 
+                                    icon="pi pi-calendar" 
+                                    [removable]="true" 
+                                    (onRemove)="onRemove(conference, room)">
+                                </p-chip>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td [attr.colspan]="4" class="text-center">Nincs találat...</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </p-sidebar>
+</ng-container>
 
 <!-- Loading Overlay -->
 <p-blockUI [autoZIndex]="true" [blocked]="loading">
