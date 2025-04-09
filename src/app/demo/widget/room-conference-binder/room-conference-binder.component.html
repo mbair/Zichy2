@@ -29,21 +29,16 @@
 
         <div class="flex w-full mb-2">
 
-            <!-- Conference multi selector -->
-            <p-multiSelect 
-                [options]="conferences" 
-                [(ngModel)]="selectedConferences" 
+            <!-- Conference multi selector for assigning -->
+            <app-conference-selector
+                [(ngModel)]="selectedConferences"
                 (ngModelChange)="onConferenceSelection($event)"
-                [showClear]="true"
-                [style]="{'minWidth':'50rem'}"
+                [disabledOptions]="selectedFilterConferences"
                 [selectionLimit]="1"
-                [virtualScroll]="true"
-                [virtualScrollItemSize]="43"
-                class="multiselect-custom-virtual-scroll"
-                display="chip" 
-                placeholder="Válasszon konferenciát, amihez szobát rendelne..."
-                optionLabel="name">
-            </p-multiSelect>
+                [showClear]="true"
+                [style]="{'minWidth': '50rem'}"
+                placeholder="Válasszon konferenciát, amihez szobát rendelne...">
+            </app-conference-selector>
 
             <span class="block ml-2 mt-2 md:mt-0 p-input-icon-left">
                 <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Vendégek száma: {{ numberOfGuests }}" tooltipPosition="top">
@@ -109,7 +104,7 @@
                 <ng-template pTemplate="header">
                     <tr>
                         <th></th>
-                        <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
+                        <th pSortableColumn="roomNum">Választott konferenciával nem összerendelt szobák <p-sortIcon field="roomNum"></p-sortIcon></th>
                         <th pSortableColumn="spareBeds">Pótágy <p-sortIcon field="spareBeds"></p-sortIcon></th>
                         <th>
                             <span class="vertical-align-middle mr-4">
@@ -173,6 +168,7 @@
                             </app-sparebed-selector>
                         </th>
                         <th>
+                            <!-- Conference multi selector for filtering -->
                             <app-conference-selector
                                 [(ngModel)]="selectedFilterConferences"
                                 [disabledOptions]="selectedConferences"
