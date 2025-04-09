@@ -218,14 +218,19 @@
                         </td>
                         <td>
                             <span class="p-column-title">Konferenciák</span>
-                            <div *ngFor="let conference of room.conferences">
-                                <p-chip 
-                                    styleClass="m-1" 
-                                    [label]="conference.name" 
-                                    icon="pi pi-calendar" 
-                                    [removable]="true" 
-                                    (onRemove)="onRemove(conference, room)">
-                                </p-chip>
+                            <div class="flex flex-column gap-2">
+                                <div *ngFor="let conference of room.conferences" class="flex align-items-left">
+                                    <p-chip 
+                                        [styleClass]="isConferenceOverlapping(conference) ? 'bg-red-100' : ''"
+                                        [label]="conference.name" 
+                                        icon="pi pi-calendar" 
+                                        [removable]="true" 
+                                        (onRemove)="onRemove(conference, room)"
+                                        [pTooltip]="isConferenceOverlapping(conference) ? 'Átfedés van a konferenciával, amihez szobát rendelne' : undefined"
+                                        tooltipStyleClass="min-w-max"
+                                        tooltipPosition="top">
+                                    </p-chip>
+                                </div>
                             </div>
                         </td>
                     </tr>

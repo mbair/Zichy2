@@ -232,8 +232,31 @@ export class RoomConferenceBinderComponent {
         return { guests, beds }
     }
 
-    isOptionDisabled(option: any): boolean {
-        // Például: ha az option.value 2, akkor legyen disabled
-        return option.value === 2;
-      }
+    /**
+     * Check if there is an overlap between the given conference and 
+     * the one for which we would like to assign the room
+     * @param conference 
+     * @returns 
+     */
+    isConferenceOverlapping(conference: Conference): boolean {
+        // Check whether both dates are specified for the current conference
+        if (!conference.beginDate || !conference.endDate) {
+            return false
+        }
+
+        // Check whether both dates are specified for the selected conference
+        return this.selectedConferences.some(selected => {
+            if (!selected.beginDate || !selected.endDate) {
+                return false
+            }
+
+            // Convert string values ​​to Date objects
+            const conferenceBegin = new Date(conference.beginDate!)
+            const conferenceEnd = new Date(conference.endDate!)
+            const selectedBegin = new Date(selected.beginDate!)
+            const selectedEnd = new Date(selected.endDate!)
+
+            return conferenceBegin <= selectedEnd && conferenceEnd >= selectedBegin
+        })
+    }
 }

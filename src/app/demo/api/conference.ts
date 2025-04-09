@@ -39,6 +39,4 @@ export interface Conference {
     rating?: number;
     attendees?: number;
     canBeBooked?: boolean;
-
-    
 }
