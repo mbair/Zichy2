@@ -40,7 +40,7 @@ export class ConferenceComponent implements OnInit {
     rowsPerPage: number = 20                     // Default rows per page
     totalRecords: number = 0                     // Total number of rows in the table
     page: number = 0                             // Current page
-    sortField: string = ''                       // Current sort field
+    sortField: string = 'beginDate'              // Current sort field
     sortOrder: number = 1                        // Current sort order
     globalFilter: string = ''                    // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
