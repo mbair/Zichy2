@@ -11,7 +11,6 @@ import { Conference } from '../api/conference';
 export class ConferenceService {
 
     public apiURL: string
-    private cache: Conference[] = []
     private data$: BehaviorSubject<any>
     private message$: BehaviorSubject<any>
 
@@ -60,8 +59,9 @@ export class ConferenceService {
         
         let pageSort: string = '';
         if (sort !== '') {
-            const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC';
-            pageSort = sort.sortField != "" ? `sort=${sort.sortField}&order=${sortOrder}` : '';
+            const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC'
+            const sortField = sort.sortField && sort.sortField !== "" ? sort.sortField : 'beginDate'
+            pageSort = `sort=${sortField}&order=${sortOrder}`;
         }
 
         const query = pageSort !== '' && queryParams !== '' ? pageSort + "&" + queryParams :
@@ -208,20 +208,13 @@ export class ConferenceService {
      * @returns
      */
     public getConferencesForSelector(): Observable<Conference[]> {
-        // Check if there is already cached data
-        // if (this.cache.length > 0) {
-        //     return of(this.cache)
-        // }
 
         let queryParams = ''
 
         this.get(0, 999, { sortField: 'beginDate', sortOrder: 1 }, queryParams)
         return this.data$.asObservable().pipe(
             map((data: any) => {
-                // Store conferences in cache
                 const conferences = data ? data.rows : []
-                this.cache = conferences
-
                 return conferences
             })
         )
