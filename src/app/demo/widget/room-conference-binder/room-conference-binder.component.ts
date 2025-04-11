@@ -256,7 +256,7 @@ export class RoomConferenceBinderComponent {
             const selectedBegin = new Date(selected.beginDate!)
             const selectedEnd = new Date(selected.endDate!)
 
-            return conferenceBegin <= selectedEnd && conferenceEnd >= selectedBegin
+            return conferenceBegin < selectedEnd && conferenceEnd > selectedBegin
         })
     }
 }
