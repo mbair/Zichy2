@@ -240,7 +240,6 @@ export class ConferenceService {
         // Figyeljük a data$ stream-et, hogy van-e találat
         return this.data$.pipe(
             map((response: any) => {
-                console.log('isSlugValid response', response)
                 // Ellenőrzés: ha van adat és az adatok nem üresek, akkor érvényes a slug
                 return response && response.data && response.rows.length > 0;
             }),
@@ -253,20 +252,8 @@ export class ConferenceService {
      * @param conferenceId 
      * @param roomIds 
      */
-    public assignRoomsToConference(conferenceId: number, roomIds: number[]): void {
-        this.apiService.post(`conferencesroom/addroom/${conferenceId}`, { roomIds })
-            .subscribe({
-                next: (response: any) => {
-                    this.message$.next({
-                        severity: 'success',
-                        summary: 'Sikeres szoba-konferencia összerendelés',
-                        detail: `Szobák hozzárendelve`,
-                    })
-                },
-                error: (error: any) => {
-                    this.message$.next(error)
-                }
-            })
+    public assignRoomsToConference(conferenceId: any, roomIds: number[]): Observable<any> {
+        return this.apiService.post(`conferencesroom/addroom/${conferenceId.id}`, { roomIds });
     }
 
     /**

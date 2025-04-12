@@ -47,20 +47,17 @@ export class RoomConferenceBinderComponent {
 
 
     private roomObs$: Observable<any> | undefined
-    private conferenceObs$: Observable<any> | undefined
 
     constructor(
         private roomService: RoomService,
         private conferenceService: ConferenceService,
-        private userService: UserService
+        private userService: UserService,
+        private messageService: MessageService
     ) { }
 
     ngOnInit() {
         // Permissions
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canBindRoomToConference => this.canBindRoomToConference = canBindRoomToConference)
-
-        // Conferences
-        this.setConferences()
 
         // Rooms
         this.roomObs$ = this.roomService.roomObs
@@ -70,16 +67,6 @@ export class RoomConferenceBinderComponent {
                 this.tableData = data.rows || []
                 this.totalRecords = data.totalItems || 0
                 this.page = data.currentPage || 0
-            }
-        })
-    }
-
-    setConferences() {
-        this.conferenceService.getConferencesForSelector().subscribe((conferences: any) => {
-            this.conferences = conferences
-            if (this.selectFirstOption && this.conferences.length > 0) {
-                this.selectedConferences = this.conferences[0] // First conference
-                // this.getFormControl()?.setValue(this.selectedConference?.name || null)
             }
         })
     }
@@ -190,19 +177,52 @@ export class RoomConferenceBinderComponent {
         this.numberOfFilteredBeds = calculations.beds
     }
 
-    onAssign() {
-        const conferenceId = Number(this.selectedConferences[0].id)
+    /**
+     * Assign Rooms with Conference
+     * @returns 
+     */
+    onAssign(): void {
+        if (!this.selectedConferences || this.selectedConferences.length === 0) {
+            return
+        }
+
+        const conferenceId = this.selectedConferences[0]
+        console.log('selectedRooms', this.selectedRooms)
         const roomIds = this.selectedRooms.map((r: any) => Number(r.id))
+        console.log('selectedRooms', this.selectedRooms)
+        this.conferenceService.assignRoomsToConference(conferenceId, roomIds).subscribe({
+            next: (response: any) => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Sikeres szoba-konferencia összerendelés',
+                    detail: 'Szobák hozzárendelve',
+                })
 
-        this.conferenceService.assignRoomsToConference(conferenceId, roomIds)
-        this.selectedRooms = []
-        this.selectedConferences = []
+                // ReCalculate Beds number
+                let additionalBeds = 0;
+                (this.selectedRooms as Room[]).forEach((room: Room) => {
+                    additionalBeds += room.beds || 0
+                })
 
-        setTimeout(() => {
-            this.doQuery()
-        }, 100)
+                this.numberOfBeds += additionalBeds;
+                this.selectedRooms = []
+                this.doQuery()
+            },
+            error: (error: any) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Sikertelen szoba-konferencia összerendelés',
+                    detail: `Hiba: ${error}`,
+                })
+            }
+        })
     }
 
+    /**
+     * unAssign Rooms from Conference
+     * @param conference 
+     * @param room 
+     */
     onRemove(conference: any, room: any) {
         this.conferenceService.removeRoomsFromConference(conference.id, [room.id])
     }
@@ -256,7 +276,7 @@ export class RoomConferenceBinderComponent {
             const selectedBegin = new Date(selected.beginDate!)
             const selectedEnd = new Date(selected.endDate!)
 
-            return conferenceBegin <= selectedEnd && conferenceEnd >= selectedBegin
+            return conferenceBegin < selectedEnd && conferenceEnd > selectedBegin
         })
     }
 }
