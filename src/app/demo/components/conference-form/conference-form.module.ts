@@ -10,6 +10,7 @@ import { AnimateEnterDirective } from './animateenter.directive';
 import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputMaskModule } from 'primeng/inputmask';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ChipsModule } from 'primeng/chips';
 import { CalendarModule } from 'primeng/calendar';
@@ -33,6 +34,7 @@ import { WidgetModule } from '../../widget/widget.module';
         FormsModule,
         ReactiveFormsModule,
         InputTextModule,
+        InputMaskModule,
         CheckboxModule,
         CalendarModule,
         ChipsModule,

@@ -18,6 +18,7 @@
     "Ország": "Country",
     "Lakóhely - irányítószám": "Residence - Postal Code",
     "Irányítószám": "Postal Code",
+    "A magyar irányítószámnak 4 számjegyből kell állnia": "The Hungarian postal code must consist of 4 digits",
     "Email": "Email",
     "Nem megfelelő email formátum": "Incorrect email format",
     "Telefon": "Phone",

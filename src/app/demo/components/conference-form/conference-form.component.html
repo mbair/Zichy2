@@ -126,9 +126,29 @@
                                         <!-- Lakóhely - irányítószám -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
                                             <label for="zipCode" class="font-medium text-900">{{'Lakóhely - irányítószám' | translate }}</label>
-                                            <input id="zipCode" type="text" pInputText formControlName="zipCode">
-                                            <div *ngIf="zipCode?.dirty && zipCode?.errors?.['required']" class="p-error">
-                                                {{'Irányítószám' | translate }} {{'kötelező' | translate }}
+                                            
+                                            <!-- Hungary esetén -->
+                                            <p-inputMask *ngIf="conferenceForm.get('country')?.value === 'Hungary'"
+                                                         id="zipCode"
+                                                         mask="9999" 
+                                                         formControlName="zipCode"
+                                                         class="w-full" />
+
+                                            <!-- Nem HU esetén -->
+                                            <input *ngIf="conferenceForm.get('country')?.value !== 'Hungary'"
+                                                    id="zipCode"
+                                                    type="text"
+                                                    formControlName="zipCode"
+                                                    pInputText
+                                                    class="w-full" />
+                                            
+                                            <div *ngIf="zipCode?.dirty || zipCode?.touched" class="p-error">
+                                                <div *ngIf="zipCode?.errors?.['required']">
+                                                    {{'Irányítószám' | translate }} {{'kötelező' | translate }}
+                                                </div>
+                                                <div *ngIf="zipCode?.errors?.['invalidZipCode']">
+                                                    {{'A magyar irányítószámnak 4 számjegyből kell állnia' | translate }}
+                                                </div>
                                             </div>
                                         </div>
 
