@@ -8,7 +8,7 @@ import { LogService } from 'src/app/demo/service/log.service';
 import { UserService } from '../../service/user.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Log } from '../../api/log';
-import * as moment from 'moment';
+import * as moment from 'moment-timezone'
 moment.locale('hu')
 
 @Component({
@@ -363,6 +363,15 @@ export class LogsComponent implements OnInit {
      */
     canRowBeExpanded(rowData: any): boolean {
         return rowData.expandable
+    }
+
+    /**
+     * Format UTC date-time to hungarian timezone
+     * @param createdAt 
+     * @returns 
+     */
+    formatUTCToHungarian(createdAt: string): string {
+        return moment.utc(createdAt).tz('Europe/Budapest').format('YYYY.MM.DD HH:mm:ss')
     }
 
     // Don't delete this, its needed from a performance point of view,

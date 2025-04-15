@@ -7,6 +7,7 @@ import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { TranslateService } from '@ngx-translate/core';
 import { emailDomainValidator } from '../../utils/email-validator';
 import { dateRangeValidator } from '../../utils/date-range-validator';
+import { zipCodeValidator } from '../../utils/zipcode-validator';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { Message, MessageService } from 'primeng/api';
 import { ConferenceService } from '../../service/conference.service';
@@ -225,9 +226,9 @@ export class ConferenceFormComponent implements OnInit {
                         const answersArray = this.conferenceForm.get('answers') as FormArray
                         this.conference.questions[0].translations?.forEach((question: any) => {
                             // if (answersArray.length !== this.conference.questions.length) {
-                                if (question['hu'] !== '' || question['en'] !== '') {
-                                    answersArray.push(this.formBuilder.control('', Validators.required))
-                                }
+                            if (question['hu'] !== '' || question['en'] !== '') {
+                                answersArray.push(this.formBuilder.control('', Validators.required))
+                            }
                             // }
                         })
                     }
@@ -331,6 +332,17 @@ export class ConferenceFormComponent implements OnInit {
             this.getEarliestLastMeal()
             this.getLatestLastMeal()
             this.cdRef.detectChanges()
+        })
+
+        // Apply zipCode validator if country is Hungary
+        this.conferenceForm.get('country')!.valueChanges.subscribe(country => {
+            const zipCodeControl = this.conferenceForm.get('zipCode')
+            if (country === 'Hungary') {
+                zipCodeControl!.setValidators([Validators.required, zipCodeValidator()])
+            } else {
+                zipCodeControl!.setValidators([Validators.required])
+            }
+            zipCodeControl!.updateValueAndValidity()
         })
 
         // Set the szepCardMessage
