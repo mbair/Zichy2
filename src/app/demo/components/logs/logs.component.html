@@ -154,7 +154,7 @@
                         </td>
                         <td>
                             <span class="p-column-title">Rögzítve</span>
-                            {{ logs.createdAt | date:'yyyy.MM.dd HH:mm:ss' }}
+                            {{ formatUTCToHungarian(logs.createdAt) }}
                         </td>
                         <td>
                             <span class="p-column-title">Modul</span>
