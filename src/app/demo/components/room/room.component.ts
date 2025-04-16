@@ -118,14 +118,7 @@ export class RoomComponent implements OnInit {
                 this.tableData = data.rows || []
                 this.totalRecords = data.totalItems || 0
                 this.page = data.currentPage || 0
-              
-                // Calculate number of beds
-                this.numberOfBeds = 0
-                this.selectedConferences.forEach(conference => {
-                    conference.rooms?.forEach(room => {
-                        this.numberOfBeds += room.beds || 0
-                    })
-                })
+                this.numberOfBeds = data.numberOfBeds || 0
             }
         })
 
