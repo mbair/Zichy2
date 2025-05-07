@@ -305,6 +305,9 @@
                                             <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki, hogy kér-e klímát' | translate }}!
                                             </div>
+                                            <small id="climate-help">
+                                                {{'Klímával felszerelt szoba felára 1000 Ft/fő/éj' | translate }}.
+                                            </small>
                                         </div>
 
                                         <!-- Kivel laknál egy szobában -->
