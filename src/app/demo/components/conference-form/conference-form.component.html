@@ -342,6 +342,11 @@
                                             <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki a fizetési módot' | translate }}!
                                             </div>
+                                            <small id="payment-help">
+                                                {{'Kérlek, a "Banki átutalás" és "SZÉP kártya" közül válassz' | translate }}!
+                                                {{'Készpénzes fizetést, kérlek, csak a Szervezővel való  egyeztetés után jelölj meg' | translate }}.
+                                                <a href="mailto:programujjeruzsalem@gmail.com">programujjeruzsalem&commat;gmail.com</a>
+                                            </small>
                                         </div>
 
                                         <!-- Figyelmeztetés SZÉP kártyás fizetés esetén -->

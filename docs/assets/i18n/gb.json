@@ -38,6 +38,8 @@
     "Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában": "You can specify the roommate by separating the names with a comma",
     "Fizetési mód": "Payment Method",
     "A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen": "The participation fee can be settled with a SZEP card on site",
+    "Kérlek, a Banki átutalás és SZÉP kártya közül válassz": "Please choose between Bank transfer and SZÉP card",
+    "Készpénzes fizetést, kérlek, csak a Szervezővel való  egyeztetés után jelölj meg": "Cash payment, please, only after consultation with the Organiser",
     "Babaágyat kérsz": "Request Baby Crib",
     "Igen": "Yes",
     "Nem": "No",
