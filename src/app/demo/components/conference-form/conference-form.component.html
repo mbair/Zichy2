@@ -218,6 +218,9 @@
                                             <div *ngIf="diet?.dirty && diet?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, válassza ki az étrendjét' | translate }}!
                                             </div>
+                                            <small *ngIf="diet?.value?.toLowerCase() !== 'normál'" id="diet-help">
+                                                {{'Normáltól eltérő menü rendelésének felára 10 év felettieknek 1300 Ft/fő/éj, 3-10 év közöttiek esetén 800 Ft/fő/éj' | translate }}.
+                                            </small>
                                         </div>
 
                                         <!-- Távozás dátuma -->
