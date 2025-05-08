@@ -30,12 +30,16 @@
     "A távozás dátumának későbbinek kell lennie, mint az érkezési dátum": "The date of departure should be earlier than the date of arrival",
     "Utolsó étkezés": "Last Meal",
     "Szállástípus": "Accommodation Type",
+    "Normáltól eltérő menü rendelésének felára 10 év felettieknek 1300 Ft/fő/éj, 3-10 év közöttiek esetén 800 Ft/fő/éj": "Extra charge for ordering a menu other than the Normal one 1300 HUF/person/night for children over 10 years, 800 HUF/person/night for children between 3-10 years",
     "Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szállástípusra osztunk be": "We will try to take your choice into account, as there are a limited number of room types and air-conditioned rooms available, we cannot guarantee that we will allocate you to the type of accommodation you have indicated",
+    "Klímával felszerelt szoba felára 1000 Ft/fő/éj": "Room with air conditioning 1000 HUF/person/night",
     "Kivel laknál egy szobában": "Roommate Preference",
     "Kérjük a regisztrációkor megadott nevet tüntesse itt fel": "Please enter the name entered during registration here",
     "Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában": "You can specify the roommate by separating the names with a comma",
     "Fizetési mód": "Payment Method",
     "A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen": "The participation fee can be settled with a SZEP card on site",
+    "Kérlek, a Banki átutalás és SZÉP kártya közül válassz": "Please choose between Bank transfer and SZÉP card",
+    "Készpénzes fizetést, kérlek, csak a Szervezővel való  egyeztetés után jelölj meg": "Cash payment, please, only after consultation with the Organiser",
     "Babaágyat kérsz": "Request Baby Crib",
     "Igen": "Yes",
     "Nem": "No",
@@ -152,5 +156,7 @@
     "Képernyő zárolva": "Screen Locked",
     "Kérjük, adja meg jelszavát": "Please enter your password",
     "Felold": "Unlock",
-    "szepCardMessage": "Payment with the SZÉP card can be made on the day of arrival at the conference. After that, arrangements must be made with the conference organizer."
+    "szepCardMessage": "Payment with the SZÉP card can be made on the day of arrival at the conference. After that, arrangements must be made with the conference organizer.",
+    "Kérlek, első étkezésnek a vacsorát jelöld meg": "Please select dinner as your first meal",
+    "Kérlek, utolsó étkezésnek az ebédet jelöld meg": "Please select lunch as your last meal"
 }

@@ -30,12 +30,16 @@
     "A távozás dátumának későbbinek kell lennie, mint az érkezési dátum": "A távozás dátumának későbbinek kell lennie, mint az érkezési dátum",
     "Utolsó étkezés": "Utolsó étkezés",
     "Szállástípus": "Szállástípus",
+    "Normáltól eltérő menü rendelésének felára 10 év felettieknek 1300 Ft/fő/éj, 3-10 év közöttiek esetén 800 Ft/fő/éj": "Normáltól eltérő menü rendelésének felára 10 év felettieknek 1300 Ft/fő/éj, 3-10 év közöttiek esetén 800 Ft/fő/éj",
     "Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szállástípusra osztunk be": "Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szállástípusra osztunk be",
+    "Klímával felszerelt szoba felára 1000 Ft/fő/éj": "Klímával felszerelt szoba felára 1000 Ft/fő/éj",
     "Kivel laknál egy szobában": "Kivel laknál egy szobában",
     "Kérjük a regisztrációkor megadott nevet tüntesse itt fel": "Kérjük a regisztrációkor megadott nevet tüntesse itt fel",
     "Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában": "Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában",
     "Fizetési mód": "Fizetési mód",
     "A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen": "A részvételi díjat lehetőség van SZÉP-kártyával kiegyenlíteni a helyszínen",
+    "Kérlek, a Banki átutalás és SZÉP kártya közül válassz": "Kérlek, a Banki átutalás és SZÉP kártya közül válassz",
+    "Készpénzes fizetést, kérlek, csak a Szervezővel való  egyeztetés után jelölj meg": "Készpénzes fizetést, kérlek, csak a Szervezővel való  egyeztetés után jelölj meg",
     "Babaágyat kérsz": "Babaágyat kérsz",
     "Igen": "Igen",
     "Nem": "Nem",
@@ -152,5 +156,7 @@
     "Képernyő zárolva": "Képernyő zárolva",
     "Kérjük, adja meg jelszavát": "Kérjük, adja meg jelszavát",
     "Felold": "Felold",
-    "szepCardMessage": "A SZÉP kártyával való fizetést a konferenciára való érkezés napján van lehetőség teljesíteni. Ezt követően a konferencia szervezőjével kell rendezni."
+    "szepCardMessage": "A SZÉP kártyával való fizetést a konferenciára való érkezés napján van lehetőség teljesíteni. Ezt követően a konferencia szervezőjével kell rendezni.",
+    "Kérlek, első étkezésnek a vacsorát jelöld meg": "Kérlek, első étkezésnek a vacsorát jelöld meg",
+    "Kérlek, utolsó étkezésnek az ebédet jelöld meg": "Kérlek, utolsó étkezésnek az ebédet jelöld meg"
 }
