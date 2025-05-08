@@ -209,6 +209,9 @@
                                             <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, válassza ki az első étkezését' | translate }}!
                                             </div>
+                                            <small *ngIf="conference?.name === '20250713-20250718 Új Jeruzsálem nyári tábor'" id="diet-help">
+                                                {{'Kérlek, első étkezésnek a vacsorát jelöld meg' | translate }}.
+                                            </small>
                                         </div>
 
                                         <!-- Étrend -->
@@ -257,6 +260,9 @@
                                             <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, válassza ki az utolsó étkezését' | translate }}!
                                             </div>
+                                            <small *ngIf="conference?.name === '20250713-20250718 Új Jeruzsálem nyári tábor'" id="diet-help">
+                                                {{'Kérlek, utolsó étkezésnek az ebédet jelöld meg' | translate }}.
+                                            </small>
                                         </div>
 
                                         <!-- Babaágyat kérsz? -->
