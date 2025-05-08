@@ -218,7 +218,7 @@
                                             <div *ngIf="diet?.dirty && diet?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, válassza ki az étrendjét' | translate }}!
                                             </div>
-                                            <small *ngIf="diet?.value?.toLowerCase() !== 'normál'" id="diet-help">
+                                            <small *ngIf="conference?.name === '20250713-20250718 Új Jeruzsálem nyári tábor' && diet?.value?.toLowerCase() !== 'normál'" id="diet-help">
                                                 {{'Normáltól eltérő menü rendelésének felára 10 év felettieknek 1300 Ft/fő/éj, 3-10 év közöttiek esetén 800 Ft/fő/éj' | translate }}.
                                             </small>
                                         </div>
@@ -308,7 +308,7 @@
                                             <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki, hogy kér-e klímát' | translate }}!
                                             </div>
-                                            <small id="climate-help">
+                                            <small *ngIf="conference?.name === '20250713-20250718 Új Jeruzsálem nyári tábor'" id="climate-help">
                                                 {{'Klímával felszerelt szoba felára 1000 Ft/fő/éj' | translate }}.
                                             </small>
                                         </div>
@@ -342,7 +342,7 @@
                                             <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki a fizetési módot' | translate }}!
                                             </div>
-                                            <small id="payment-help">
+                                            <small *ngIf="conference?.name === '20250713-20250718 Új Jeruzsálem nyári tábor'" id="payment-help">
                                                 {{'Kérlek, a "Banki átutalás" és "SZÉP kártya" közül válassz' | translate }}!
                                                 {{'Készpénzes fizetést, kérlek, csak a Szervezővel való  egyeztetés után jelölj meg' | translate }}.
                                                 <a href="mailto:programujjeruzsalem@gmail.com">programujjeruzsalem&commat;gmail.com</a>
