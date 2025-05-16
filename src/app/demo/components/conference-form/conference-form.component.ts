@@ -17,6 +17,8 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Answer } from '../../api/answer';
 
+// Google Analytics
+declare let gtag: Function;
 
 @Component({
     selector: 'conference-form',
@@ -537,6 +539,17 @@ export class ConferenceFormComponent implements OnInit {
 
         if (this.conferenceForm.valid) {
             this.loading = true
+
+            // Google Analytics event sending
+            try {
+                gtag('event', 'registration_submitted', {
+                    'event_category': 'form',
+                    'event_label': this.conference?.name || 'ismeretlen_konferencia',
+                    'value': 1
+                })
+            } catch (err) {
+                console.warn('GA event küldése sikertelen', err)
+            }
 
             const guestData = { ...this.conferenceForm.value }
             const files = [this.conferenceForm.get('idCard')?.value]
