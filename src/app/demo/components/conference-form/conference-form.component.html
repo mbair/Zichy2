@@ -156,7 +156,8 @@
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
                                             <label for="email" class="font-medium text-900">
                                                 {{'Email' | translate }}
-                                                <i pTooltip="Saját e-mail címedet add meg. (Ha ezt a regisztrációt más nevében töltöd ki, akkor ide az ő e-mail címét írd ide)"                                                    
+                                                <i *ngIf="conference?.name === '20250629-20250704 BPA nyári tábor'"
+                                                    pTooltip="Saját e-mail címedet add meg. (Ha ezt a regisztrációt más nevében töltöd ki, akkor ide az ő e-mail címét írd ide)"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -208,7 +209,8 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="firstMeal" class="font-medium text-900">
                                                 {{'Első étkezés' | translate }}
-                                                <i pTooltip="Vajta étkezést tartalmazó csomagáras szolgáltatást, biztosít. Ez tartalmazza az érkezés napján a
+                                                <i *ngIf="conference?.name === '20250629-20250704 BPA nyári tábor'"
+                                                    pTooltip="Vajta étkezést tartalmazó csomagáras szolgáltatást, biztosít. Ez tartalmazza az érkezés napján a
                                                             vacsorát, távozás napján reggelit, a köztes, teljes napokra pedig reggelit, ebédet és vacsorát. Aki egy
                                                             éjszakára jön annak csak vacsora és reggeli van az árban!
                                                             Plusz ebéd: Az érkezésed és távozásod napjára kérhetsz ebédet, de ez külön díjas. (Megjegyzés:
@@ -276,7 +278,8 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="lastMeal" class="font-medium text-900">
                                                 {{'Utolsó étkezés' | translate }}
-                                                <i pTooltip="Vajta étkezést tartalmazó csomagáras szolgáltatást, biztosít. Ez tartalmazza az érkezés napján a
+                                                <i *ngIf="conference?.name === '20250629-20250704 BPA nyári tábor'"
+                                                    pTooltip="Vajta étkezést tartalmazó csomagáras szolgáltatást, biztosít. Ez tartalmazza az érkezés napján a
                                                             vacsorát, távozás napján reggelit, a köztes, teljes napokra pedig reggelit, ebédet és vacsorát. Aki egy
                                                             éjszakára jön annak csak vacsora és reggeli van az árban!
                                                             Plusz ebéd: Az érkezésed és távozásod napjára kérhetsz ebédet, de ez külön díjas. (Megjegyzés:
@@ -329,7 +332,8 @@
                                         <div class="field mb-4 col-12 lg:col-8">
                                             <label for="roomType" class="font-medium text-900">
                                                 {{'Szállástípus' | translate }}
-                                                <i pTooltip="Akik „Nem kérek szállást”, opciót választották és szeretnének részt venni a tábori programokon látogató jegyet kell váltaniuk."
+                                                <i *ngIf="conference?.name === '20250629-20250704 BPA nyári tábor'"
+                                                    pTooltip="Akik „Nem kérek szállást”, opciót választották és szeretnének részt venni a tábori programokon látogató jegyet kell váltaniuk."
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -392,7 +396,8 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="payment" class="font-medium text-900">
                                                 {{'Fizetési mód' | translate }}
-                                                <i pTooltip="A fizetési mód kiválasztásakor a felület megengedi a készpénzes fizetés bejelölését. A szerződésünk
+                                                <i *ngIf="conference?.name === '20250629-20250704 BPA nyári tábor'"
+                                                    pTooltip="A fizetési mód kiválasztásakor a felület megengedi a készpénzes fizetés bejelölését. A szerződésünk
                                                             azonban, ahogy az eddigi években is megszokott volt, csak az átutalásos vagy SZÉP kártyás fizetést
                                                             teszi lehetővé, ezért kérjük, ebből a kettőből válasszatok.
                                                             A készpénzes fizetést bejelölők regisztrációja ilyen módon érvénytelen lesz."                                                    
