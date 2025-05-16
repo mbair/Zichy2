@@ -154,7 +154,15 @@
 
                                         <!-- Email -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
-                                            <label for="email" class="font-medium text-900">{{'Email' | translate }}</label>
+                                            <label for="email" class="font-medium text-900">
+                                                {{'Email' | translate }}
+                                                <i pTooltip="Saját e-mail címedet add meg. (Ha ezt a regisztrációt más nevében töltöd ki, akkor ide az ő e-mail címét írd ide)"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <input id="email" type="email" pInputText formControlName="email" autocomplete="email">
                                             <div *ngIf="email?.dirty" class="p-error">
                                                 <div *ngIf="email?.errors?.['required']">
@@ -198,7 +206,24 @@
 
                                         <!-- Első étkezés -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="firstMeal" class="font-medium text-900">{{'Első étkezés' | translate }}</label>
+                                            <label for="firstMeal" class="font-medium text-900">
+                                                {{'Első étkezés' | translate }}
+                                                <i pTooltip="Vajta étkezést tartalmazó csomagáras szolgáltatást, biztosít. Ez tartalmazza az érkezés napján a
+                                                            vacsorát, távozás napján reggelit, a köztes, teljes napokra pedig reggelit, ebédet és vacsorát. Aki egy
+                                                            éjszakára jön annak csak vacsora és reggeli van az árban!
+                                                            Plusz ebéd: Az érkezésed és távozásod napjára kérhetsz ebédet, de ez külön díjas. (Megjegyzés:
+                                                            június 29-re nem kérhető ebéd). 
+                                                            Reggelit nem lehet kérni az érkezés napjára!
+                                                            Amennyiben étkezést kérsz a látogató jegy mellé, akkor ki kell fizetned a látogató jegy árát, plusz a
+                                                            külön megrendelt étkezéseket. 
+                                                            „Nem kér étkezést” opciót csak a látogatójegyesek használhatják, illetve aki olyan speciális diétát
+                                                            fogyaszt, amit Vajta nem tud biztosítani, és ezt orvosi igazolással támasztja alá."                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <app-meal-selector 
                                                 [parentForm]="conferenceForm" 
                                                 controlName="firstMeal"
@@ -249,7 +274,24 @@
 
                                         <!-- Utolsó étkezés -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="lastMeal" class="font-medium text-900">{{'Utolsó étkezés' | translate }}</label>
+                                            <label for="lastMeal" class="font-medium text-900">
+                                                {{'Utolsó étkezés' | translate }}
+                                                <i pTooltip="Vajta étkezést tartalmazó csomagáras szolgáltatást, biztosít. Ez tartalmazza az érkezés napján a
+                                                            vacsorát, távozás napján reggelit, a köztes, teljes napokra pedig reggelit, ebédet és vacsorát. Aki egy
+                                                            éjszakára jön annak csak vacsora és reggeli van az árban!
+                                                            Plusz ebéd: Az érkezésed és távozásod napjára kérhetsz ebédet, de ez külön díjas. (Megjegyzés:
+                                                            június 29-re nem kérhető ebéd). 
+                                                            Reggelit nem lehet kérni az érkezés napjára!
+                                                            Amennyiben étkezést kérsz a látogató jegy mellé, akkor ki kell fizetned a látogató jegy árát, plusz a
+                                                            külön megrendelt étkezéseket. 
+                                                            „Nem kér étkezést” opciót csak a látogatójegyesek használhatják, illetve aki olyan speciális diétát
+                                                            fogyaszt, amit Vajta nem tud biztosítani, és ezt orvosi igazolással támasztja alá."                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <app-meal-selector 
                                                 [parentForm]="conferenceForm" 
                                                 controlName="lastMeal" 
@@ -285,7 +327,15 @@
 
                                         <!-- Szállástípus -->
                                         <div class="field mb-4 col-12 lg:col-8">
-                                            <label for="roomType" class="font-medium text-900">{{'Szállástípus' | translate }}</label>
+                                            <label for="roomType" class="font-medium text-900">
+                                                {{'Szállástípus' | translate }}
+                                                <i pTooltip="Akik „Nem kérek szállást”, opciót választották és szeretnének részt venni a tábori programokon látogató jegyet kell váltaniuk."
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <app-roomtype-selector 
                                                 [parentForm]="conferenceForm" 
                                                 controlName="roomType">
@@ -340,7 +390,18 @@
 
                                         <!-- Fizetési mód -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="payment" class="font-medium text-900">{{'Fizetési mód' | translate }}</label>
+                                            <label for="payment" class="font-medium text-900">
+                                                {{'Fizetési mód' | translate }}
+                                                <i pTooltip="A fizetési mód kiválasztásakor a felület megengedi a készpénzes fizetés bejelölését. A szerződésünk
+                                                            azonban, ahogy az eddigi években is megszokott volt, csak az átutalásos vagy SZÉP kártyás fizetést
+                                                            teszi lehetővé, ezért kérjük, ebből a kettőből válasszatok.
+                                                            A készpénzes fizetést bejelölők regisztrációja ilyen módon érvénytelen lesz."                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <app-payment-selector 
                                                 [parentForm]="conferenceForm" 
                                                 controlName="payment">
@@ -378,7 +439,7 @@
                                         </div>
 
                                         <!-- Személyi igazolvány -->
-                                        <div class="field mb-4 col-12 lg:col-12">
+                                        <div *ngIf="showIdCardField" class="field mb-4 col-12 lg:col-12">
                                             <label for="idCard" class="font-medium text-900">
                                                 {{'Személyi igazolvány hátoldala' | translate }}
                                                 <i pTooltip="<img src='/assets/demo/images/eszemelyi-back.jpg' alt='ID Card back' style='max-width: 30vw;'/>"

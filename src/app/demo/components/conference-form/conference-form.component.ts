@@ -44,6 +44,7 @@ export class ConferenceFormComponent implements OnInit {
     registrationEnded: boolean = false           // Registration ended
     darkMode: boolean = false                    // Dark mode
     subscription: Subscription                   // Subscription for dark mode
+    showIdCardField: boolean = false             // IdCard field visibility
     showClimateField: boolean = false            // Climate field visibility
     szepCardMessage: Message[]                   // Message for szep card payment
     idCardTemplateVisible: boolean = false       // ID card template visible
@@ -174,14 +175,27 @@ export class ConferenceFormComponent implements OnInit {
         this.conferenceForm.get('roomType')?.valueChanges.subscribe(value => {
             const roomMateControl = this.conferenceForm.get('roomMate')
             const climateControl = this.conferenceForm.get('climate')
+            const idCardControl = this.conferenceForm.get('idCard')
 
             if (value === 'Nem kérek szállást') {
                 // Clear any previously entered value
+                idCardControl?.reset()
+                idCardControl?.disable()
+
                 roomMateControl?.reset()
                 roomMateControl?.disable()
+
+                this.showIdCardField = false
                 this.showClimateField = false
             } else {
+                // Re-Enabling field validation
+                idCardControl?.enable()
                 roomMateControl?.enable()
+
+                // Set validators for the climate field
+                this.showIdCardField = true
+                idCardControl?.setValidators(Validators.required)
+                idCardControl?.updateValueAndValidity()
 
                 // Climate field visibility handling
                 // TODO: Later, it depends on whether the room type includes this climate
