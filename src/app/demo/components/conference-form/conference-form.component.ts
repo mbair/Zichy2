@@ -409,15 +409,25 @@ export class ConferenceFormComponent implements OnInit {
      * @param i The index of the question to translate.
      * @returns The translated question.
      */
-    getTranslatedQuestion(i: any): string {
+    getTranslatedQuestion(i: number): { question: string; message: string } {
         const lang = this.translate.currentLang == 'gb' ? 'en' : this.translate.currentLang
-        let question = this.conference.questions[0].translations[i][lang]
+        let fullQuestion = this.conference.questions[0].translations[i][lang] || ''
+        let question = fullQuestion
+        let message = ''
 
-        // Add a question mark if the question doesn't already end with one
-        if (question && !question.trim().endsWith('?')) {
+        // Ha van zárójelben szöveg, kivesszük
+        const match = fullQuestion.match(/^(.*?)(\s*\((.*?)\))$/)
+        if (match) {
+            question = match[1].trim()
+            message = match[3].trim()
+        }
+
+        // Hozzáadunk kérdőjelet, ha nincs a végén
+        if (question && !question.endsWith('?')) {
             question += '?'
         }
-        return question
+
+        return { question, message }
     }
 
     /**

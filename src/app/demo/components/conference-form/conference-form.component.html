@@ -210,16 +210,11 @@
                                             <label for="firstMeal" class="font-medium text-900">
                                                 {{'Első étkezés' | translate }}
                                                 <i *ngIf="conference?.name === '20250629-20250704 BPA nyári tábor'"
-                                                    pTooltip="Vajta étkezést tartalmazó csomagáras szolgáltatást, biztosít. Ez tartalmazza az érkezés napján a
-                                                            vacsorát, távozás napján reggelit, a köztes, teljes napokra pedig reggelit, ebédet és vacsorát. Aki egy
-                                                            éjszakára jön annak csak vacsora és reggeli van az árban!
-                                                            Plusz ebéd: Az érkezésed és távozásod napjára kérhetsz ebédet, de ez külön díjas. (Megjegyzés:
-                                                            június 29-re nem kérhető ebéd). 
-                                                            Reggelit nem lehet kérni az érkezés napjára!
-                                                            Amennyiben étkezést kérsz a látogató jegy mellé, akkor ki kell fizetned a látogató jegy árát, plusz a
-                                                            külön megrendelt étkezéseket. 
-                                                            „Nem kér étkezést” opciót csak a látogatójegyesek használhatják, illetve aki olyan speciális diétát
-                                                            fogyaszt, amit Vajta nem tud biztosítani, és ezt orvosi igazolással támasztja alá."                                                    
+                                                    pTooltip="Aki egy éjszakára jön annak csak vacsora és reggeli van az árban!
+                                                                Plusz ebéd: Az érkezésed és távozásod napjára kérhetsz ebédet, de ez külön díjas. (Megjegyzés:
+                                                                június 29-re nem kérhető ebéd). 
+                                                                Reggelit nem lehet kérni az érkezés napjára!
+                                                                „Nem kér étkezést” opciót csak a látogatójegyesek használhatják."                                                    
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -278,22 +273,6 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="lastMeal" class="font-medium text-900">
                                                 {{'Utolsó étkezés' | translate }}
-                                                <i *ngIf="conference?.name === '20250629-20250704 BPA nyári tábor'"
-                                                    pTooltip="Vajta étkezést tartalmazó csomagáras szolgáltatást, biztosít. Ez tartalmazza az érkezés napján a
-                                                            vacsorát, távozás napján reggelit, a köztes, teljes napokra pedig reggelit, ebédet és vacsorát. Aki egy
-                                                            éjszakára jön annak csak vacsora és reggeli van az árban!
-                                                            Plusz ebéd: Az érkezésed és távozásod napjára kérhetsz ebédet, de ez külön díjas. (Megjegyzés:
-                                                            június 29-re nem kérhető ebéd). 
-                                                            Reggelit nem lehet kérni az érkezés napjára!
-                                                            Amennyiben étkezést kérsz a látogató jegy mellé, akkor ki kell fizetned a látogató jegy árát, plusz a
-                                                            külön megrendelt étkezéseket. 
-                                                            „Nem kér étkezést” opciót csak a látogatójegyesek használhatják, illetve aki olyan speciális diétát
-                                                            fogyaszt, amit Vajta nem tud biztosítani, és ezt orvosi igazolással támasztja alá."                                                    
-                                                    [escape]="false"
-                                                    appendTo="body"
-                                                    class="pi pi-info-circle"
-                                                    tooltipPosition="top"
-                                                    tooltipStyleClass="tooltip"></i>
                                             </label>
                                             <app-meal-selector 
                                                 [parentForm]="conferenceForm" 
@@ -333,7 +312,10 @@
                                             <label for="roomType" class="font-medium text-900">
                                                 {{'Szállástípus' | translate }}
                                                 <i *ngIf="conference?.name === '20250629-20250704 BPA nyári tábor'"
-                                                    pTooltip="Akik „Nem kérek szállást”, opciót választották és szeretnének részt venni a tábori programokon látogató jegyet kell váltaniuk."
+                                                    pTooltip="Szállás csak étkezéssel együtt foglalható.
+                                                                Látogató jegyet azoknak kell vásárolni, akik nem kérnek szállást, de szeretnének részt venni a tábori
+                                                                programokon. A látogató jegy önmagában nem tartalmaz semmilyen étkezést! Ők a „Nem kérek
+                                                                szállást” opciót válasszák."
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -429,11 +411,15 @@
                                         <!-- Extra kérdések -->
                                         <div formArrayName="answers" class="field col-12 mb-0">
                                             <div *ngFor="let answer of answers.controls; let i = index">
-                                                <ng-container *ngIf="getTranslatedQuestion(i)">
+                                                <ng-container *ngIf="getTranslatedQuestion(i) as tq">
                                                     <div class="mb-4">
                                                         <label class="font-medium text-900">
-                                                            {{ getTranslatedQuestion(i) }}
+                                                            {{ tq.question }}
                                                         </label>
+                                                        <br />
+                                                        <small *ngIf="tq.message" class="text-muted">
+                                                            {{ tq.message }}
+                                                        </small>
                                                         <input pInputText [formControlName]="i" />
                                                         <div *ngIf="answer?.dirty && answer?.errors?.['required']" class="p-error">
                                                             Kötelező kitölteni
