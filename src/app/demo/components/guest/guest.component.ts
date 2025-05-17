@@ -922,13 +922,17 @@ export class GuestComponent implements OnInit {
                     answers.forEach(answer => {
                         if (Array.isArray(answer.translations)) {
                             answer.translations.forEach((translation: any) => {
+                                const rawQuestion = translation.hu || ''
+                                // Delete the parenthetical comment and the section that follows it
+                                let questionText = rawQuestion.split('(')[0].trim();
+
                                 // Add question mark at the end of the question
-                                const question = translation.hu.trim().endsWith('?')
-                                    ? translation.hu
-                                    : translation.hu + '?';
+                                if (!questionText.endsWith('?')) {
+                                    questionText += '?'
+                                }
                                 // The "answers" cell contains the answer
                                 const answerText = translation.answers
-                                qnaColumns[`question_${qaIndex}`] = question
+                                qnaColumns[`question_${qaIndex}`] = questionText
                                 qnaColumns[`answer_${qaIndex}`] = answerText
                                 qaIndex++
                             })
@@ -953,11 +957,16 @@ export class GuestComponent implements OnInit {
                         answers.forEach(answer => {
                             if (Array.isArray(answer.translations)) {
                                 answer.translations.forEach((translation: any) => {
-                                    const question = translation.hu.trim().endsWith('?')
-                                        ? translation.hu
-                                        : translation.hu + '?'
+                                    const rawQuestion = translation.hu || ''
+                                    // Delete the parenthetical comment and the section that follows it
+                                    let questionText = rawQuestion.split('(')[0].trim();
+
+                                    // Add question mark at the end of the question
+                                    if (!questionText.endsWith('?')) {
+                                        questionText += '?'
+                                    }
                                     const answerText = translation.answers
-                                    qnaColumns[`question_${qaIndex}`] = question
+                                    qnaColumns[`question_${qaIndex}`] = questionText
                                     qnaColumns[`answer_${qaIndex}`] = answerText
                                     qaIndex++
                                 })
