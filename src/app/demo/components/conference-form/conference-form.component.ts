@@ -541,15 +541,17 @@ export class ConferenceFormComponent implements OnInit {
             this.loading = true
 
             // Google Analytics event sending
-            try {
-                gtag('event', 'registration_submitted', {
-                    'event_category': 'form',
-                    'event_label': this.conference?.name || 'ismeretlen_konferencia',
-                    'value': 1
-                })
-            } catch (err) {
-                console.warn('GA event küldése sikertelen', err)
-            }
+            setTimeout(() => {
+                try {
+                    gtag('event', 'registration_submitted', {
+                        'event_category': 'form',
+                        'event_label': this.conference?.name || 'ismeretlen_konferencia',
+                        'value': 1
+                    })
+                } catch (err) {
+                    console.warn('GA event küldése sikertelen', err)
+                }
+            })
 
             const guestData = { ...this.conferenceForm.value }
             const files = [this.conferenceForm.get('idCard')?.value]
