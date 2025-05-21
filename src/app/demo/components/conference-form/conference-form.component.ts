@@ -18,7 +18,7 @@ import { Conference } from '../../api/conference';
 import { Answer } from '../../api/answer';
 
 // Google Analytics
-// declare let gtag: Function;
+declare let gtag: Function;
 
 @Component({
     selector: 'conference-form',
@@ -541,20 +541,21 @@ export class ConferenceFormComponent implements OnInit {
             this.loading = true
 
             // Google Analytics event sending
-            // setTimeout(() => {
-            //     try {
-            //         gtag('event', 'registration_submitted', {
-            //             'event_category': 'form',
-            //             'event_label': this.conference?.name || 'ismeretlen_konferencia',
-            //             'value': 1
-            //         })
-            //     } catch (err) {
-            //         console.warn('GA event küldése sikertelen', err)
-            //     }
-            // })
+            setTimeout(() => {
+                try {
+                    gtag('event', 'registration_submitted', {
+                        'event_category': 'form',
+                        'event_label': this.conference?.name || 'ismeretlen_konferencia',
+                        'value': 1
+                    })
+                } catch (err) {
+                    console.warn('GA event küldése sikertelen', err)
+                }
+            })
 
             const guestData = { ...this.conferenceForm.value }
-            const files = [this.conferenceForm.get('idCard')?.value]
+            const rawIdCard = this.conferenceForm.get('idCard')?.value
+            const files: File[] = rawIdCard ? [rawIdCard] : []
 
             // Convert the 'roomMate' FormArray to a comma-separated string
             if (Array.isArray(guestData.roomMate)) {
