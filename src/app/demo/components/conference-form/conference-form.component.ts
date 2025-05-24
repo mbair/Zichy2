@@ -16,6 +16,7 @@ import { GuestService } from '../../service/guest.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Answer } from '../../api/answer';
+import * as moment from 'moment';
 
 // Google Analytics
 declare let gtag: Function;
@@ -228,8 +229,8 @@ export class ConferenceFormComponent implements OnInit {
             if (data && data.rows) {
                 if (data.rows.length > 0) {
                     this.conference = data.rows[0]
-                    this.beginDate = this.conference.beginDate ? new Date(this.conference.beginDate) : undefined
-                    this.endDate = this.conference.endDate ? new Date(this.conference.endDate) : undefined
+                    this.beginDate = this.conference.beginDate ? moment(this.conference.beginDate, 'YYYY-MM-DD').toDate() : undefined
+                    this.endDate = this.conference.endDate ? moment(this.conference.endDate, 'YYYY-MM-DD').toDate() : undefined
 
                     // Setting conference-related data on the form
                     this.conferenceForm.patchValue({
