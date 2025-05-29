@@ -549,9 +549,9 @@ export class ConferenceFormComponent implements OnInit {
 
             const guestData = { ...this.conferenceForm.value }
             const rawIdCard = this.conferenceForm.get('idCard')?.value
-            const files: File[] = rawIdCard ? [rawIdCard] : []  
+            const files: File[] = rawIdCard ? [rawIdCard] : []
             const lang = this.translate.currentLang === 'gb' ? 'en' : this.translate.currentLang
-            
+
             // Add questions to formdata
             guestData.questions = this.conference?.questions?.[0]?.translations?.map((t: any) => t[lang] || 'Ismeretlen kérdés') || []
 
@@ -630,6 +630,17 @@ export class ConferenceFormComponent implements OnInit {
 
     showIDCardTemplate() {
         this.idCardTemplateVisible = true
+    }
+
+    /**
+     * Keypress monitor
+     * @param event 
+     */
+    onlyAllowNumbers(event: KeyboardEvent) {
+        const allowedKeys = /[0-9+]/
+        if (!allowedKeys.test(event.key)) {
+            event.preventDefault()
+        }
     }
 
     /**
