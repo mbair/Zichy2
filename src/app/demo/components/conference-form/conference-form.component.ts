@@ -40,8 +40,6 @@ export class ConferenceFormComponent implements OnInit {
     endDate: any                                 // Conference end date
     birthDateMin: Date                           // Minimum birth date
     birthDateMax: Date                           // Maximum birth date
-    earliestMeal: string | null = null           // Earliest meal
-    latestMeal: string | null = null             // Latest meal
     conferenceForm: FormGroup                    // Form for guest registration to Conference
     showForm: boolean = true                     // Show or hide form
     registrationEnded: boolean = false           // Registration ended
@@ -440,10 +438,9 @@ export class ConferenceFormComponent implements OnInit {
      */
     getEarliestFirstMeal(): string | undefined {
         const dateOfArrival = this.conferenceForm.get('dateOfArrival')?.value
-        const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
+        const beginDate = this.beginDate
 
-        // If dateOfArrival is on the first day of the conference, the earliest first meal is the first meal of the conference
-        if (dateOfArrival === formattedBeginDate) {
+        if (moment(dateOfArrival).isSame(beginDate, 'day')) {
             return this.conference.firstMeal
         }
         return undefined
@@ -456,14 +453,14 @@ export class ConferenceFormComponent implements OnInit {
      */
     getLatestFirstMeal(): string | undefined {
         const dateOfArrival = this.conferenceForm.get('dateOfArrival')?.value
-        const formattedEndDate = this.endDate?.toISOString().split('T')[0]
+        const endDate = this.endDate
 
-        // If dateOfArrival is on the last day of the conference, the latest first meal is the last meal of the conference
-        if (dateOfArrival === formattedEndDate) {
+        if (moment(dateOfArrival).isSame(endDate, 'day')) {
             return this.conference.lastMeal
         }
         return undefined
     }
+
 
     /**
      * Returns the earliest last meal of the conference, if the date of departure is on the first day of the conference.
@@ -472,10 +469,9 @@ export class ConferenceFormComponent implements OnInit {
      */
     getEarliestLastMeal(): string | undefined {
         const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value
-        const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
+        const beginDate = this.beginDate
 
-        // If dateOfDeparture is on the first day of the conference, the earliest last meal is the first meal of the conference
-        if (dateOfDeparture === formattedBeginDate) {
+        if (moment(dateOfDeparture).isSame(beginDate, 'day')) {
             return this.conference.firstMeal
         }
         return undefined
@@ -488,10 +484,9 @@ export class ConferenceFormComponent implements OnInit {
      */
     getLatestLastMeal(): string | undefined {
         const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value
-        const formattedEndDate = this.endDate?.toISOString().split('T')[0]
+        const endDate = this.endDate
 
-        // If dateOfDeparture is on the last day of the conference, the latest last meal is the last meal of the conference
-        if (dateOfDeparture === formattedEndDate) {
+        if (moment(dateOfDeparture).isSame(endDate, 'day')) {
             return this.conference.lastMeal
         }
         return undefined

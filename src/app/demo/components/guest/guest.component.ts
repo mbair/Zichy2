@@ -9,14 +9,11 @@ import { Table } from 'primeng/table';
 import { dateRangeValidator } from '../../utils/date-range-validator';
 import { GuestService } from '../../service/guest.service';
 import { UserService } from '../../service/user.service';
-import { ConferenceService } from '../../service/conference.service';
 import { GenderService } from '../../service/gender.service';
 import { TagService } from '../../service/tag.service';
 import { DietService } from '../../service/diet.service';
-import { MealService } from '../../service/meal.service';
 import { CountryService } from '../../service/country.service';
 import { LogService } from '../../service/log.service';
-import { ColorService } from '../../service/color.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Guest } from '../../api/guest';
@@ -93,11 +90,7 @@ export class GuestComponent implements OnInit {
     exportButtonItems: MenuItem[]                // Export button items
     isOrganizer: boolean = false                 // User has organizer role
     imageUrl: string | null = null               // idCard image URL
-    guestConference: Conference | undefined      // Guest's conference
-    earliestFirstMeal: string | undefined        // Earliest first meal
-    latestFirstMeal: string | undefined          // Latest first meal
-    earliestLastMeal: string | undefined         // Earliest last meal
-    latestLastMeal: string | undefined           // Latest last meal
+    guestConference: Conference                  // Guest's conference
     prepaidOptions: any[] = []                   // Possible prepaid options
 
     private initialFormValues = {
@@ -147,7 +140,6 @@ export class GuestComponent implements OnInit {
         private guestService: GuestService,
         private userService: UserService,
         private tagService: TagService,
-        private conferenceService: ConferenceService,
         private genderService: GenderService,
         private dietService: DietService,
         private countryService: CountryService,
@@ -823,14 +815,13 @@ export class GuestComponent implements OnInit {
      */
     getEarliestFirstMeal() {
         const dateOfArrival = this.guestForm.get('dateOfArrival')?.value
-        const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
+        const beginDate = this.beginDate
 
         // If dateOfArrival is on the first day of the conference, the earliest first meal is the first meal of the conference
-        if (dateOfArrival === formattedBeginDate) {
-            this.earliestFirstMeal = this.guestConference?.firstMeal
-        } else {
-            this.earliestFirstMeal = undefined
+        if (moment(dateOfArrival).isSame(beginDate, 'day')) {
+            return this.guestConference.firstMeal
         }
+        return undefined
     }
 
     /**
@@ -840,14 +831,13 @@ export class GuestComponent implements OnInit {
      */
     getLatestFirstMeal() {
         const dateOfArrival = this.guestForm.get('dateOfArrival')?.value
-        const formattedEndDate = this.endDate?.toISOString().split('T')[0]
+        const endDate = this.endDate
 
         // If dateOfArrival is on the last day of the conference, the latest first meal is the last meal of the conference
-        if (dateOfArrival === formattedEndDate) {
-            this.latestFirstMeal = this.guestConference?.lastMeal
-        } else {
-            this.latestFirstMeal = undefined
+        if (moment(dateOfArrival).isSame(endDate, 'day')) {
+            return this.guestConference.lastMeal
         }
+        return undefined
     }
 
     /**
@@ -857,14 +847,13 @@ export class GuestComponent implements OnInit {
      */
     getEarliestLastMeal() {
         const dateOfDeparture = this.guestForm.get('dateOfDeparture')?.value
-        const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
+        const beginDate = this.beginDate
 
         // If dateOfDeparture is on the first day of the conference, the earliest last meal is the first meal of the conference
-        if (dateOfDeparture === formattedBeginDate) {
-            this.earliestLastMeal = this.guestConference?.firstMeal
-        } else {
-            this.earliestLastMeal = undefined
+        if (moment(dateOfDeparture).isSame(beginDate, 'day')) {
+            return this.guestConference.firstMeal
         }
+        return undefined
     }
 
     /**
@@ -874,14 +863,13 @@ export class GuestComponent implements OnInit {
      */
     getLatestLastMeal() {
         const dateOfDeparture = this.guestForm.get('dateOfDeparture')?.value
-        const formattedEndDate = this.endDate?.toISOString().split('T')[0]
+        const endDate = this.endDate
 
         // If dateOfDeparture is on the last day of the conference, the latest last meal is the last meal of the conference
-        if (dateOfDeparture === formattedEndDate) {
-            this.latestLastMeal = this.guestConference?.lastMeal
-        } else {
-            this.latestLastMeal = undefined
+        if (moment(dateOfDeparture).isSame(endDate, 'day')) {
+            return this.guestConference.lastMeal
         }
+        return undefined
     }
 
     /**
