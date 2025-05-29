@@ -410,25 +410,23 @@ export class ConferenceFormComponent implements OnInit {
      * @param i The index of the question to translate.
      * @returns The translated question.
      */
-    getTranslatedQuestion(i: number): { question: string; message: string } {
-        const lang = this.translate.currentLang == 'gb' ? 'en' : this.translate.currentLang
-        let fullQuestion = this.conference.questions[0].translations[i][lang] || ''
-        let question = fullQuestion
-        let message = ''
+    getTranslatedQuestion(i: number): { question: string; message?: string } | undefined {
+        const lang = this.translate.currentLang === 'gb' ? 'en' : this.translate.currentLang
+        const qList = this.conference?.questions?.[0]?.translations
+        if (!qList || !qList[i]) return undefined
 
-        // Ha van zárójelben szöveg, kivesszük
-        const match = fullQuestion.match(/^(.*?)(\s*\((.*?)\))$/)
-        if (match) {
-            question = match[1].trim()
-            message = match[3].trim()
+        const full = qList[i][lang] ?? qList[i]['hu']
+        if (!full) return undefined
+
+        // If there is text in brackets, we remove it
+        const match = full.match(/^(.*?)(\s*\((.*?)\))$/)
+        const question = match ? match[1].trim() : full.trim()
+        const message = match ? match[3].trim() : undefined
+
+        return {
+            question: question.endsWith('?') ? question : question + '?',
+            message
         }
-
-        // Hozzáadunk kérdőjelet, ha nincs a végén
-        if (question && !question.endsWith('?')) {
-            question += '?'
-        }
-
-        return { question, message }
     }
 
     /**
