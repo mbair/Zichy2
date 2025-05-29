@@ -531,8 +531,8 @@
                     <app-meal-selector 
                         [parentForm]="guestForm" 
                         controlName="firstMeal"
-                        [earliestMeal]="earliestFirstMeal"
-                        [latestMeal]="latestFirstMeal"  
+                        [earliestMeal]="getEarliestFirstMeal()"
+                        [latestMeal]="getLatestFirstMeal()"  
                         [showNothing]="true">
                     </app-meal-selector>
                     <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
@@ -576,8 +576,8 @@
                     <app-meal-selector 
                         [parentForm]="guestForm" 
                         controlName="lastMeal" 
-                        [earliestMeal]="earliestLastMeal" 
-                        [latestMeal]="latestLastMeal" 
+                        [earliestMeal]="getEarliestLastMeal()" 
+                        [latestMeal]="getLatestLastMeal()" 
                         [showNothing]="true">
                     </app-meal-selector>
                     <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="p-error">

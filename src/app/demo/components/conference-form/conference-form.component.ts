@@ -40,8 +40,6 @@ export class ConferenceFormComponent implements OnInit {
     endDate: any                                 // Conference end date
     birthDateMin: Date                           // Minimum birth date
     birthDateMax: Date                           // Maximum birth date
-    earliestMeal: string | null = null           // Earliest meal
-    latestMeal: string | null = null             // Latest meal
     conferenceForm: FormGroup                    // Form for guest registration to Conference
     showForm: boolean = true                     // Show or hide form
     registrationEnded: boolean = false           // Registration ended
@@ -412,25 +410,23 @@ export class ConferenceFormComponent implements OnInit {
      * @param i The index of the question to translate.
      * @returns The translated question.
      */
-    getTranslatedQuestion(i: number): { question: string; message: string } {
-        const lang = this.translate.currentLang == 'gb' ? 'en' : this.translate.currentLang
-        let fullQuestion = this.conference.questions[0].translations[i][lang] || ''
-        let question = fullQuestion
-        let message = ''
+    getTranslatedQuestion(i: number): { question: string; message?: string } | undefined {
+        const lang = this.translate.currentLang === 'gb' ? 'en' : this.translate.currentLang
+        const qList = this.conference?.questions?.[0]?.translations
+        if (!qList || !qList[i]) return undefined
 
-        // Ha van zárójelben szöveg, kivesszük
-        const match = fullQuestion.match(/^(.*?)(\s*\((.*?)\))$/)
-        if (match) {
-            question = match[1].trim()
-            message = match[3].trim()
+        const full = qList[i][lang] ?? qList[i]['hu']
+        if (!full) return undefined
+
+        // If there is text in brackets, we remove it
+        const match = full.match(/^(.*?)(\s*\((.*?)\))$/)
+        const question = match ? match[1].trim() : full.trim()
+        const message = match ? match[3].trim() : undefined
+
+        return {
+            question: question.endsWith('?') ? question : question + '?',
+            message
         }
-
-        // Hozzáadunk kérdőjelet, ha nincs a végén
-        if (question && !question.endsWith('?')) {
-            question += '?'
-        }
-
-        return { question, message }
     }
 
     /**
@@ -440,10 +436,9 @@ export class ConferenceFormComponent implements OnInit {
      */
     getEarliestFirstMeal(): string | undefined {
         const dateOfArrival = this.conferenceForm.get('dateOfArrival')?.value
-        const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
+        const beginDate = this.beginDate
 
-        // If dateOfArrival is on the first day of the conference, the earliest first meal is the first meal of the conference
-        if (dateOfArrival === formattedBeginDate) {
+        if (moment(dateOfArrival).isSame(beginDate, 'day')) {
             return this.conference.firstMeal
         }
         return undefined
@@ -456,14 +451,14 @@ export class ConferenceFormComponent implements OnInit {
      */
     getLatestFirstMeal(): string | undefined {
         const dateOfArrival = this.conferenceForm.get('dateOfArrival')?.value
-        const formattedEndDate = this.endDate?.toISOString().split('T')[0]
+        const endDate = this.endDate
 
-        // If dateOfArrival is on the last day of the conference, the latest first meal is the last meal of the conference
-        if (dateOfArrival === formattedEndDate) {
+        if (moment(dateOfArrival).isSame(endDate, 'day')) {
             return this.conference.lastMeal
         }
         return undefined
     }
+
 
     /**
      * Returns the earliest last meal of the conference, if the date of departure is on the first day of the conference.
@@ -472,10 +467,9 @@ export class ConferenceFormComponent implements OnInit {
      */
     getEarliestLastMeal(): string | undefined {
         const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value
-        const formattedBeginDate = this.beginDate?.toISOString().split('T')[0]
+        const beginDate = this.beginDate
 
-        // If dateOfDeparture is on the first day of the conference, the earliest last meal is the first meal of the conference
-        if (dateOfDeparture === formattedBeginDate) {
+        if (moment(dateOfDeparture).isSame(beginDate, 'day')) {
             return this.conference.firstMeal
         }
         return undefined
@@ -488,10 +482,9 @@ export class ConferenceFormComponent implements OnInit {
      */
     getLatestLastMeal(): string | undefined {
         const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value
-        const formattedEndDate = this.endDate?.toISOString().split('T')[0]
+        const endDate = this.endDate
 
-        // If dateOfDeparture is on the last day of the conference, the latest last meal is the last meal of the conference
-        if (dateOfDeparture === formattedEndDate) {
+        if (moment(dateOfDeparture).isSame(endDate, 'day')) {
             return this.conference.lastMeal
         }
         return undefined
