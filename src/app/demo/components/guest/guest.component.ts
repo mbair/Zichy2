@@ -819,7 +819,7 @@ export class GuestComponent implements OnInit {
 
         // If dateOfArrival is on the first day of the conference, the earliest first meal is the first meal of the conference
         if (moment(dateOfArrival).isSame(beginDate, 'day')) {
-            return this.guestConference.firstMeal
+            return this.guestConference?.firstMeal
         }
         return undefined
     }
@@ -835,7 +835,7 @@ export class GuestComponent implements OnInit {
 
         // If dateOfArrival is on the last day of the conference, the latest first meal is the last meal of the conference
         if (moment(dateOfArrival).isSame(endDate, 'day')) {
-            return this.guestConference.lastMeal
+            return this.guestConference?.lastMeal
         }
         return undefined
     }
@@ -851,7 +851,7 @@ export class GuestComponent implements OnInit {
 
         // If dateOfDeparture is on the first day of the conference, the earliest last meal is the first meal of the conference
         if (moment(dateOfDeparture).isSame(beginDate, 'day')) {
-            return this.guestConference.firstMeal
+            return this.guestConference?.firstMeal
         }
         return undefined
     }
@@ -867,7 +867,7 @@ export class GuestComponent implements OnInit {
 
         // If dateOfDeparture is on the last day of the conference, the latest last meal is the last meal of the conference
         if (moment(dateOfDeparture).isSame(endDate, 'day')) {
-            return this.guestConference.lastMeal
+            return this.guestConference?.lastMeal
         }
         return undefined
     }
