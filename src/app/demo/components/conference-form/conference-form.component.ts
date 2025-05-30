@@ -177,6 +177,7 @@ export class ConferenceFormComponent implements OnInit {
             const roomMateControl = this.conferenceForm.get('roomMate')
             const climateControl = this.conferenceForm.get('climate')
             const idCardControl = this.conferenceForm.get('idCard')
+            this.updateIdCardVisibility()
 
             if (value === 'Nem kérek szállást') {
                 // Clear any previously entered value
@@ -186,7 +187,6 @@ export class ConferenceFormComponent implements OnInit {
                 roomMateControl?.reset()
                 roomMateControl?.disable()
 
-                this.showIdCardField = false
                 this.showClimateField = false
             } else {
                 // Re-Enabling field validation
@@ -194,7 +194,6 @@ export class ConferenceFormComponent implements OnInit {
                 roomMateControl?.enable()
 
                 // Set validators for the climate field
-                this.showIdCardField = true
                 idCardControl?.setValidators(Validators.required)
                 idCardControl?.updateValueAndValidity()
 
@@ -360,6 +359,11 @@ export class ConferenceFormComponent implements OnInit {
             zipCodeControl!.updateValueAndValidity()
         })
 
+        // Apply idCard validator if guest is older than 14
+        this.conferenceForm.get('birthDate')?.valueChanges.subscribe((birthDate) => {
+            this.updateIdCardVisibility()
+        })
+
         // Set the szepCardMessage
         this.setSzepCardMessage()
 
@@ -439,7 +443,7 @@ export class ConferenceFormComponent implements OnInit {
         const beginDate = this.beginDate
 
         if (moment(dateOfArrival).isSame(beginDate, 'day')) {
-            return this.conference.firstMeal
+            return this.conference?.firstMeal
         }
         return undefined
     }
@@ -454,7 +458,7 @@ export class ConferenceFormComponent implements OnInit {
         const endDate = this.endDate
 
         if (moment(dateOfArrival).isSame(endDate, 'day')) {
-            return this.conference.lastMeal
+            return this.conference?.lastMeal
         }
         return undefined
     }
@@ -470,7 +474,7 @@ export class ConferenceFormComponent implements OnInit {
         const beginDate = this.beginDate
 
         if (moment(dateOfDeparture).isSame(beginDate, 'day')) {
-            return this.conference.firstMeal
+            return this.conference?.firstMeal
         }
         return undefined
     }
@@ -485,7 +489,7 @@ export class ConferenceFormComponent implements OnInit {
         const endDate = this.endDate
 
         if (moment(dateOfDeparture).isSame(endDate, 'day')) {
-            return this.conference.lastMeal
+            return this.conference?.lastMeal
         }
         return undefined
     }
@@ -550,6 +554,10 @@ export class ConferenceFormComponent implements OnInit {
             const guestData = { ...this.conferenceForm.value }
             const rawIdCard = this.conferenceForm.get('idCard')?.value
             const files: File[] = rawIdCard ? [rawIdCard] : []
+            const lang = this.translate.currentLang === 'gb' ? 'en' : this.translate.currentLang
+
+            // Add questions to formdata
+            guestData.questions = this.conference?.questions?.[0]?.translations?.map((t: any) => t[lang] || 'Ismeretlen kérdés') || []
 
             // Convert the 'roomMate' FormArray to a comma-separated string
             if (Array.isArray(guestData.roomMate)) {
@@ -624,8 +632,37 @@ export class ConferenceFormComponent implements OnInit {
         this.getConferenceBySlug()
     }
 
-    showIDCardTemplate() {
-        this.idCardTemplateVisible = true
+    /**
+     * Keypress monitor
+     * @param event 
+     */
+    onlyAllowNumbers(event: KeyboardEvent) {
+        const allowedKeys = /[0-9+]/
+        if (!allowedKeys.test(event.key)) {
+            event.preventDefault()
+        }
+    }
+
+    /**
+     * IdCard visibility checker
+     */
+    updateIdCardVisibility(): void {
+        const birthDate = this.conferenceForm.get('birthDate')?.value
+        const roomType = this.conferenceForm.get('roomType')?.value
+        const idCardControl = this.conferenceForm.get('idCard')
+
+        const age = moment().diff(moment(birthDate, 'YYYY-MM-DD'), 'years')
+        const needsRoom = roomType !== 'Nem kérek szállást'
+
+        // Required if needs room and older than 14
+        if (needsRoom && age >= 14) {
+            this.showIdCardField = true
+            idCardControl?.setValidators([Validators.required])
+        } else {
+            this.showIdCardField = false
+            idCardControl?.clearValidators()
+        }
+        idCardControl?.updateValueAndValidity()
     }
 
     /**

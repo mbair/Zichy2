@@ -178,7 +178,11 @@
                                         <!-- Telefon -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
                                             <label for="telephone" class="font-medium text-900">{{'Telefon' | translate }}</label>
-                                            <input id="telephone" type="text" pInputText formControlName="telephone">
+                                            <input id="telephone"
+                                                   pInputText       
+                                                   formControlName="telephone"
+                                                   (keypress)="onlyAllowNumbers($event)"
+                                                   maxlength="15" />
                                             <div *ngIf="telephone?.dirty && telephone?.errors?.['required']" class="p-error">
                                                 {{'Telefon' | translate }} {{'kötelező' | translate }}
                                             </div>
