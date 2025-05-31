@@ -465,12 +465,15 @@
                                                     href="https://www.zichy-vajta.com/gdpr"
                                                     target="_blank">
                                                     {{'Adatvédelmi irányelveket' | translate }}
-                                                </a> {{'és a' | translate }}
-                                                <a class="cursor-pointer text-primary-700 "
-                                                    href="https://www.zichy-vajta.com/gdpr"
-                                                    target="_blank">
-                                                    {{'Felhasználói feltételeket' | translate }}
-                                                </a>
+                                                </a> 
+                                                <span *ngIf="conference?.acceptanceCriteriaUrl?.length">
+                                                    {{'és a' | translate }}
+                                                    <a class="cursor-pointer text-primary-700 "
+                                                        [href]="conference.acceptanceCriteriaUrl"
+                                                        target="_blank">
+                                                        {{'Felhasználói feltételeket' | translate }}
+                                                    </a>
+                                                </span>
                                             </span>
                                             <div *ngIf="privacy?.dirty && privacy?.errors?.['required']" class="p-error">
                                                 {{'Az adatvédelmi irányelvek és a felhasználói feltételek elfogadása kötelező' | translate }}!

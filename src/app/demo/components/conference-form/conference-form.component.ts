@@ -394,6 +394,7 @@ export class ConferenceFormComponent implements OnInit {
     get climate() { return this.conferenceForm.get('climate') }
     get idCard() { return this.conferenceForm.get('idCard') }
     get privacy() { return this.conferenceForm.get('privacy') }
+    get acceptanceCriteriaUrl() { return this.conferenceForm.get('acceptanceCriteriaUrl') }
 
     // Gets the FormArray of questions
     get answers(): FormArray {
