@@ -81,6 +81,7 @@ export class ConferenceComponent implements OnInit {
         guestEditEndDate: '',
         organizer_user_id: '',
         enabled: true,
+        acceptanceCriteriaUrl: ''
     }
 
     private isFormValid$: Observable<boolean>
@@ -121,6 +122,7 @@ export class ConferenceComponent implements OnInit {
             guestEditEndDate: [this.initialFormValues.guestEditEndDate, Validators.required],
             organizer_user_id: [this.initialFormValues.organizer_user_id],
             enabled: [this.initialFormValues.enabled],
+            acceptanceCriteriaUrl: [this.initialFormValues.acceptanceCriteriaUrl],
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -211,6 +213,7 @@ export class ConferenceComponent implements OnInit {
     get registrationEndDate() { return this.conferenceForm.get('registrationEndDate') }
     get guestEditEndDate() { return this.conferenceForm.get('guestEditEndDate') }
     get enabled() { return this.conferenceForm.get('enabled') }
+    get acceptanceCriteriaUrl() { return this.conferenceForm.get('acceptanceCriteriaUrl') }
 
     // Gets the FormArray of questions
     get questions(): FormArray {
