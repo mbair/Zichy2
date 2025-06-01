@@ -464,19 +464,19 @@
                                                 <a class="cursor-pointer text-primary-700"
                                                     href="https://www.zichy-vajta.com/gdpr"
                                                     target="_blank">
-                                                    {{'Adatvédelmi irányelveket' | translate }}
+                                                    {{'ZVKK Adatvédelmi Nyilatkozatot' | translate }}
                                                 </a> 
                                                 <span *ngIf="conference?.acceptanceCriteriaUrl?.length">
-                                                    {{'és a' | translate }}
+                                                    {{'és az' | translate }}
                                                     <a class="cursor-pointer text-primary-700 "
                                                         [href]="conference.acceptanceCriteriaUrl"
                                                         target="_blank">
-                                                        {{'Felhasználói feltételeket' | translate }}
+                                                        {{'Adatvédelmi/Hozzájárulási Nyilatkozatot' | translate }}
                                                     </a>
                                                 </span>
                                             </span>
                                             <div *ngIf="privacy?.dirty && privacy?.errors?.['required']" class="p-error">
-                                                {{'Az adatvédelmi irányelvek és a felhasználói feltételek elfogadása kötelező' | translate }}!
+                                                {{'Az adatvédelmi nyilatkozat(ok) elfogadása kötelező' | translate }}!
                                             </div>
                                         </div>
 
