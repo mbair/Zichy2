@@ -460,11 +460,11 @@
                     </div>
                 </div>
 
-                <!-- Elfogadási feltételek URL -->
+                <!-- Adatvédelmi nyilatkozat URL -->
                 <div class="field mb-4 col-12">
-                    <label for="acceptanceCriteriaUrl" class="font-medium text-900">Elfogadási feltételek URL</label>
+                    <label for="acceptanceCriteriaUrl" class="font-medium text-900">Adatvédelmi nyilatkozat URL</label>
                     <span class="block mt-2 md:mt-0 p-input-icon-right">
-                        <i class="pi pi-copy cursor-pointer hover:text-blue-500" (click)="copyUrl(acceptanceCriteriaUrl?.value)"></i>
+                        <i class="pi pi-copy cursor-pointer hover:text-blue-500"></i>
                         <input id="acceptanceCriteriaUrl" type="text" pInputText formControlName="acceptanceCriteriaUrl">
                     </span>
                     <div *ngIf="acceptanceCriteriaUrl?.dirty && acceptanceCriteriaUrl?.errors?.['required']" class="block p-error">
