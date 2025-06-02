@@ -1,6 +1,4 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Szoba } from '../api/szoba';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 
