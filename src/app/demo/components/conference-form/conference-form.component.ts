@@ -105,7 +105,7 @@ export class ConferenceFormComponent implements OnInit {
             payment: ['', Validators.required],
             babyBed: ['', Validators.required],
             climate: [0],
-            idCard: [null, Validators.required],
+            idCard: [null],
             privacy: ['', Validators.required],
             answers: this.formBuilder.array([]),
         }, {
@@ -193,9 +193,8 @@ export class ConferenceFormComponent implements OnInit {
                 idCardControl?.enable()
                 roomMateControl?.enable()
 
-                // Set validators for the climate field
-                idCardControl?.setValidators(Validators.required)
-                idCardControl?.updateValueAndValidity()
+                // Set validators for idCard field
+                this.updateIdCardVisibility()
 
                 // Climate field visibility handling
                 // TODO: Later, it depends on whether the room type includes this climate
@@ -659,9 +658,12 @@ export class ConferenceFormComponent implements OnInit {
         if (needsRoom && age >= 14) {
             this.showIdCardField = true
             idCardControl?.setValidators([Validators.required])
+            idCardControl?.enable()
         } else {
             this.showIdCardField = false
             idCardControl?.clearValidators()
+            idCardControl?.setValue(null)
+            idCardControl?.disable()
         }
         idCardControl?.updateValueAndValidity()
     }
