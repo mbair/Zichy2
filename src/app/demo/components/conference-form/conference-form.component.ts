@@ -569,27 +569,56 @@ export class ConferenceFormComponent implements OnInit {
             delete guestData.privacy
 
             this.guestService.create(guestData, files)
+
         } else {
+            // Translations of field names
+            const translatedFieldNames: { [key: string]: string } = {
+                lastName: this.translate.instant('Vezetéknév'),
+                firstName: this.translate.instant('Keresztnév'),
+                gender: this.translate.instant('Neme'),
+                birthDate: this.translate.instant('Születési dátum'),
+                nationality: this.translate.instant('Állampolgárság'),
+                country: this.translate.instant('Ország'),
+                zipCode: this.translate.instant('Irányítószám'),
+                email: this.translate.instant('Email'),
+                telephone: this.translate.instant('Telefon'),
+                dateOfArrival: this.translate.instant('Érkezés dátuma'),
+                firstMeal: this.translate.instant('Első étkezés'),
+                diet: this.translate.instant('Étrend'),
+                dateOfDeparture: this.translate.instant('Távozás dátuma'),
+                lastMeal: this.translate.instant('Utolsó étkezés'),
+                roomType: this.translate.instant('Szállástípus'),
+                roomMate: this.translate.instant('Szobatárs'),
+                payment: this.translate.instant('Fizetési mód'),
+                babyBed: this.translate.instant('Babaágy'),
+                climate: this.translate.instant('Klíma'),
+                idCard: this.translate.instant('Személyi igazolvány'),
+                privacy: this.translate.instant('Adatvédelem'),
+            }
+
             const invalidFields: string[] = []
+
             Object.keys(this.conferenceForm.controls).forEach(key => {
                 const control = this.conferenceForm.get(key)
-                if (control?.invalid) {
-                    invalidFields.push(key)
-                }
 
-                if (control instanceof FormArray) {
+                // Extra questions
+                if (control instanceof FormArray && key === 'answers') {
                     control.controls.forEach((answerControl, idx) => {
                         if (answerControl.invalid) {
-                            invalidFields.push(`${key}[${idx}]`)
+                            const questionText = this.getTranslatedQuestion(idx)?.question || `Kérdés ${idx + 1}`
+                            invalidFields.push(questionText)
                         }
                     })
+                // Normal fields
+                } else if (control?.invalid) {
+                    invalidFields.push(translatedFieldNames[key] || key)
                 }
             })
 
             this.messageService.add({
                 severity: "error",
-                summary: "Hiba!",
-                detail: `Az űrlap nem lett megfelelően kitöltve! A következő mezők nem megfelelőek: ${invalidFields.join(', ')}`,
+                summary: this.translate.instant("Hiba!"),
+                detail: `${this.translate.instant('Az űrlap nem lett megfelelően kitöltve!')} ${this.translate.instant('A következő mezők nem megfelelőek')}: ${invalidFields.join(', ')}`
             })
         }
     }
@@ -628,14 +657,14 @@ export class ConferenceFormComponent implements OnInit {
     newRegistration() {
         this.showForm = true
         this.messageService.clear()
-        
+
         // Reset form state
         this.conferenceForm.reset()
 
         // CLEAR the FormArray of answers
         const answersArray = this.conferenceForm.get('answers') as FormArray
         answersArray.clear()
-        
+
         this.getConferenceBySlug()
     }
 
