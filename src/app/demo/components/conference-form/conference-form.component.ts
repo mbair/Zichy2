@@ -578,9 +578,9 @@ export class ConferenceFormComponent implements OnInit {
                 }
 
                 if (control instanceof FormArray) {
-                    control.controls.forEach(answerControl => {
+                    control.controls.forEach((answerControl, idx) => {
                         if (answerControl.invalid) {
-                            invalidFields.push(`${key}.${answerControl}`)
+                            invalidFields.push(`${key}[${idx}]`)
                         }
                     })
                 }
@@ -627,8 +627,15 @@ export class ConferenceFormComponent implements OnInit {
      */
     newRegistration() {
         this.showForm = true
-        this.conferenceForm.reset()
         this.messageService.clear()
+        
+        // Reset form state
+        this.conferenceForm.reset()
+
+        // CLEAR the FormArray of answers
+        const answersArray = this.conferenceForm.get('answers') as FormArray
+        answersArray.clear()
+        
         this.getConferenceBySlug()
     }
 
