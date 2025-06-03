@@ -235,14 +235,13 @@ export class ConferenceFormComponent implements OnInit {
                     })
 
                     // Fill form with stored questions
+                    const answersArray = this.conferenceForm.get('answers') as FormArray
+                    answersArray.clear() // It is important to always empty it
                     if (this.conference?.questions?.length > 0) {
-                        const answersArray = this.conferenceForm.get('answers') as FormArray
                         this.conference.questions[0].translations?.forEach((question: any) => {
-                            // if (answersArray.length !== this.conference.questions.length) {
-                            if (question['hu'] !== '' || question['en'] !== '') {
+                            if (question['hu']?.trim() || question['en']?.trim()) {
                                 answersArray.push(this.formBuilder.control('', Validators.required))
                             }
-                            // }
                         })
                     }
 
@@ -609,7 +608,7 @@ export class ConferenceFormComponent implements OnInit {
                             invalidFields.push(questionText)
                         }
                     })
-                // Normal fields
+                    // Normal fields
                 } else if (control?.invalid) {
                     invalidFields.push(translatedFieldNames[key] || key)
                 }
@@ -748,5 +747,15 @@ export class ConferenceFormComponent implements OnInit {
 
     // Don't delete this, its needed from a performance point of view,
     ngOnDestroy(): void {
+        this.conferenceForm.reset()
+        const answersArray = this.conferenceForm.get('answers') as FormArray
+        answersArray.clear()
+
+        // Clean up
+        this.formChanges$.complete()
+
+        if (this.isFormValid$ instanceof BehaviorSubject) {
+            this.isFormValid$.complete()
+        }
     }
 }
