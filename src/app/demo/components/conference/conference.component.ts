@@ -554,15 +554,16 @@ export class ConferenceComponent implements OnInit {
     }
 
     /**
-     * Copy the formUrl to the clipboard
-     * @param formUrl
+     * Copy the URL to the clipboard
+     * @param url
      */
-    copyUrl(formUrl: string) {
-        navigator.clipboard.writeText(formUrl)
+    copyUrl(url: string) {
+        if (!url) return
+        navigator.clipboard.writeText(url)
         this.messageService.add({
             severity: 'success',
-            summary: 'Regisztrációs link vágólapra másolva',
-            detail: formUrl
+            summary: 'Link a vágólapra másolva',
+            detail: url
         })
     }
 
