@@ -277,6 +277,9 @@
                                             <div *ngIf="conferenceForm.errors?.['dateRangeInvalid']" class="p-error">
                                                 {{'A távozás dátumának későbbinek kell lennie, mint az érkezési dátum' | translate }}!
                                             </div>
+                                            <small *ngIf="conference?.name === '20250727-20250801 Sarokkő nyári tábor'">
+                                                {{'Ha végig maradsz a táborban (augusztus 1), a távozás megadásánál, az augusztus hónaphoz kell ugrani' | translate }}!
+                                            </small>
                                         </div>
 
                                         <!-- Utolsó étkezés -->
@@ -369,6 +372,9 @@
                                             <small *ngIf="conference?.name === '20250803-20250808 Golgota nyári hetek 1' || conference?.name === '20250803-20250808 Önkéntesek Golgota nyári hetek 1' || conference?.name === '20250810-20250815 Golgota nyári hetek 2' || conference?.name === '20250810-20250815 Önkéntesek Golgota nyári hetek 2'">
                                                 {{'Ennek a felára 1.000 Ft/fő/éjszaka' | translate }}
                                             </small>
+                                            <small *ngIf="conference?.name === '20250727-20250801 Sarokkő nyári tábor'">
+                                                {{'Klíma csak adott szobák esetében lehetséges, garantálni nem tudjuk' | translate }}!
+                                            </small>
                                         </div>
 
                                         <!-- Kivel laknál egy szobában -->
@@ -422,6 +428,9 @@
                                             </small>
                                             <small *ngIf="conference?.name === '20250803-20250808 Golgota nyári hetek 1' || conference?.name === '20250803-20250808 Önkéntesek Golgota nyári hetek 1' || conference?.name === '20250810-20250815 Golgota nyári hetek 2' || conference?.name === '20250810-20250815 Önkéntesek Golgota nyári hetek 2'">
                                                 {{'NE válassz készpénzes fizetést' | translate }}!
+                                            </small>
+                                            <small *ngIf="conference?.name === '20250727-20250801 Sarokkő nyári tábor'">
+                                                {{'A banki átutalás választása technikai okok nem lehetséges, kérjük ezt NE jelöld meg' | translate }}!
                                             </small>
                                         </div>
 
