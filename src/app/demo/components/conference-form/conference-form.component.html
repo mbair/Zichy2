@@ -53,31 +53,63 @@
 
                                         <!-- Vezetéknév -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12">
-                                            <label for="lastName" class="font-medium text-900">{{'Vezetéknév' | translate }}</label>
+                                            <label for="lastName" class="font-medium text-900">
+                                                {{'Vezetéknév' | translate }}
+                                                <i *ngIf="formFieldInfos?.lastName && formFieldInfos.lastName.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('lastName')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <input id="lastName" type="text" pInputText formControlName="lastName">
                                             <div *ngIf="lastName?.dirty && lastName?.errors?.['required']" class="p-error">
                                                 {{'Vezetéknév' | translate }} {{'kötelezos' | translate }}
                                             </div>
+                                            <small *ngIf="formFieldInfos.lastName && !formFieldInfos.lastName.tooltip" id="lastName-info">
+                                                {{ getFormFieldInfo('lastName') }}
+                                            </small>
                                         </div>
 
                                         <!-- Keresztnév -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
-                                            <label for="firstName" class="font-medium text-900">{{'Keresztnév' | translate }}</label>
+                                            <label for="firstName" class="font-medium text-900">
+                                                {{'Keresztnév' | translate }}
+                                                <i *ngIf="formFieldInfos?.firstName && formFieldInfos.firstName.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('firstName')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <input id="firstName" type="text" pInputText formControlName="firstName">
                                             <div *ngIf="firstName?.dirty && firstName?.errors?.['required']" class="p-error">
                                                 {{'Keresztnév' | translate }} {{'kötelező' | translate }}
                                             </div>
+                                            <small *ngIf="formFieldInfos.firstName && !formFieldInfos.firstName.tooltip" id="firstName-info">
+                                                {{ getFormFieldInfo('firstName') }}
+                                            </small>
                                         </div>
 
                                         <!-- Neme -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="gender" class="font-medium text-900">{{'Neme' | translate }}</label>
+                                            <label for="gender" class="font-medium text-900">
+                                                {{'Neme' | translate }}
+                                                <i *ngIf="formFieldInfos?.gender && formFieldInfos.gender.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('gender')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <div class="flex flex-wrap gap-3 my-3">
                                                 <div class="flex align-items-center">
                                                     <p-radioButton name="gender" value="1" formControlName="gender" inputId="gender1"></p-radioButton>
                                                     <label for="gender1" class="ml-2">{{'Férfi' | translate }}</label>
                                                 </div>
-
                                                 <div class="flex align-items-center">
                                                     <p-radioButton name="gender" value="2" formControlName="gender" inputId="gender2"></p-radioButton>
                                                     <label for="gender2" class="ml-2">{{'Nő' | translate }}</label>
@@ -86,11 +118,23 @@
                                             <div *ngIf="gender?.dirty && gender?.errors?.['required']" class="p-error">
                                                 {{'Neme' | translate }} {{'kötelező' | translate }}
                                             </div>
+                                            <small *ngIf="formFieldInfos.gender && !formFieldInfos.gender.tooltip" id="gender-info">
+                                                {{ getFormFieldInfo('gender') }}
+                                            </small>
                                         </div>
 
                                         <!-- Születési dátum -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="birthDate" class="font-medium text-900">{{'Születési dátum' | translate }}</label>
+                                            <label for="birthDate" class="font-medium text-900">
+                                                {{'Születési dátum' | translate }}
+                                                <i *ngIf="formFieldInfos?.birthDate && formFieldInfos.birthDate.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('birthDate')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <p-calendar id="birthDate"
                                                         formControlName="birthDate"
                                                         [defaultDate]="birthDateMax"
@@ -103,29 +147,65 @@
                                             <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
                                                 {{'Születési dátum' | translate }} {{'kötelező' | translate }}
                                             </div>
+                                            <small *ngIf="formFieldInfos.birthDate && !formFieldInfos.birthDate.tooltip" id="birthDate-info">
+                                                {{ getFormFieldInfo('birthDate') }}
+                                            </small>
                                         </div>
 
                                         <!-- Állampolgárság -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="nationality" class="font-medium text-900">{{'Állampolgárság' | translate }}</label>
+                                            <label for="nationality" class="font-medium text-900">
+                                                {{'Állampolgárság' | translate }}
+                                                <i *ngIf="formFieldInfos?.nationality && formFieldInfos.nationality.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('nationality')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <app-nationality-selector [parentForm]="conferenceForm" controlName="nationality"></app-nationality-selector>
                                             <div *ngIf="nationality?.dirty && nationality?.errors?.['required']" class="p-error">
                                                 {{'Állampolgárság' | translate }} {{'kötelező' | translate }}
                                             </div>
+                                            <small *ngIf="formFieldInfos.nationality && !formFieldInfos.nationality.tooltip" id="nationality-info">
+                                                {{ getFormFieldInfo('nationality') }}
+                                            </small>
                                         </div>
 
                                         <!-- Lakóhely - ország -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="country" class="font-medium text-900">{{'Lakóhely - ország' | translate }}</label>
+                                            <label for="country" class="font-medium text-900">
+                                                {{'Lakóhely - ország' | translate }}
+                                                <i *ngIf="formFieldInfos?.country && formFieldInfos.country.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('country')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <app-country-selector [parentForm]="conferenceForm" controlName="country"></app-country-selector>
                                             <div *ngIf="country?.dirty && country?.errors?.['required']" class="p-error">
                                                 {{'Ország' | translate }} {{'kötelező' | translate }}
                                             </div>
+                                            <small *ngIf="formFieldInfos.country && !formFieldInfos.country.tooltip" id="country-info">
+                                                {{ getFormFieldInfo('country') }}
+                                            </small>
                                         </div>
 
                                         <!-- Lakóhely - irányítószám -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
-                                            <label for="zipCode" class="font-medium text-900">{{'Lakóhely - irányítószám' | translate }}</label>
+                                            <label for="zipCode" class="font-medium text-900">
+                                                {{'Lakóhely - irányítószám' | translate }}
+                                                <i *ngIf="formFieldInfos?.zipCode && formFieldInfos.zipCode.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('zipCode')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             
                                             <!-- Hungary esetén -->
                                             <p-inputMask *ngIf="conferenceForm.get('country')?.value === 'Hungary'"
@@ -150,14 +230,17 @@
                                                     {{'A magyar irányítószámnak 4 számjegyből kell állnia' | translate }}
                                                 </div>
                                             </div>
+                                            <small *ngIf="formFieldInfos.zipCode && !formFieldInfos.zipCode.tooltip" id="zipCode-info">
+                                                {{ getFormFieldInfo('zipCode') }}
+                                            </small>
                                         </div>
 
                                         <!-- Email -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
                                             <label for="email" class="font-medium text-900">
                                                 {{'Email' | translate }}
-                                                <i *ngIf="conference?.name === '20250629-20250704 BPA nyári tábor'"
-                                                    pTooltip="Saját e-mail címedet add meg. (Ha ezt a regisztrációt más nevében töltöd ki, akkor ide az ő e-mail címét írd ide)"                                                    
+                                                <i *ngIf="formFieldInfos?.email && formFieldInfos.email.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('email')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -173,11 +256,23 @@
                                                     {{'Nem megfelelő email formátum' | translate }}
                                                 </div>
                                             </div>
+                                            <small *ngIf="formFieldInfos.email && !formFieldInfos.email.tooltip" id="email-info">
+                                                {{ getFormFieldInfo('email') }}
+                                            </small>
                                         </div>
 
                                         <!-- Telefon -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
-                                            <label for="telephone" class="font-medium text-900">{{'Telefon' | translate }}</label>
+                                            <label for="telephone" class="font-medium text-900">
+                                                {{'Telefon' | translate }}
+                                                <i *ngIf="formFieldInfos?.telephone && formFieldInfos.telephone.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('telephone')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <input id="telephone"
                                                    pInputText       
                                                    formControlName="telephone"
@@ -186,11 +281,23 @@
                                             <div *ngIf="telephone?.dirty && telephone?.errors?.['required']" class="p-error">
                                                 {{'Telefon' | translate }} {{'kötelező' | translate }}
                                             </div>
+                                            <small *ngIf="formFieldInfos.telephone && !formFieldInfos.telephone.tooltip" id="telephone-info">
+                                                {{ getFormFieldInfo('telephone') }}
+                                            </small>
                                         </div>
 
                                         <!-- Érkezés dátuma -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="dateOfArrival" class="font-medium text-900">{{'Érkezés dátuma' | translate }}</label>
+                                            <label for="dateOfArrival" class="font-medium text-900">
+                                                {{'Érkezés dátuma' | translate }}
+                                                <i *ngIf="formFieldInfos?.dateOfArrival && formFieldInfos.dateOfArrival.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('dateOfArrival')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <p-calendar id="dateOfArrival"
                                                         formControlName="dateOfArrival"
                                                         [ngClass]="{'ng-invalid': conferenceForm.errors?.['dateRangeInvalid']}"
@@ -207,18 +314,17 @@
                                             <div *ngIf="conferenceForm.errors?.['dateRangeInvalid']" class="p-error">
                                                 {{'Az érkezés dátumának korábbinak kell lennie, mint a távozási dátum' | translate }}!
                                             </div>
+                                            <small *ngIf="formFieldInfos.dateOfArrival && !formFieldInfos.dateOfArrival.tooltip" id="dateOfArrival-info">
+                                                {{ getFormFieldInfo('dateOfArrival') }}
+                                            </small>
                                         </div>
 
                                         <!-- Első étkezés -->
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="firstMeal" class="font-medium text-900">
                                                 {{'Első étkezés' | translate }}
-                                                <i *ngIf="conference?.name === '20250629-20250704 BPA nyári tábor'"
-                                                    pTooltip="Aki egy éjszakára jön annak csak vacsora és reggeli van az árban!
-                                                                Plusz ebéd: Az érkezésed és távozásod napjára kérhetsz ebédet, de ez külön díjas. (Megjegyzés:
-                                                                június 29-re nem kérhető ebéd). 
-                                                                Reggelit nem lehet kérni az érkezés napjára!
-                                                                „Nem kér étkezést” opciót csak a látogatójegyesek használhatják."                                                    
+                                                <i *ngIf="formFieldInfos?.firstMeal && formFieldInfos.firstMeal.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('firstMeal')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -235,32 +341,44 @@
                                             <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, válassza ki az első étkezését' | translate }}!
                                             </div>
-                                            <small *ngIf="conference?.name === '20250713-20250718 Új Jeruzsálem nyári tábor'" id="diet-help">
-                                                {{'Kérlek, első étkezésnek a vacsorát jelöld meg' | translate }}.
-                                            </small>
-                                            <small *ngIf="conference?.name === '20250803-20250808 Golgota nyári hetek 1' || conference?.name === '20250803-20250808 Önkéntesek Golgota nyári hetek 1' || conference?.name === '20250810-20250815 Golgota nyári hetek 2' || conference?.name === '20250810-20250815 Önkéntesek Golgota nyári hetek 2'">
-                                                {{'Vasárnap csak vacsora kérhető' | translate }}.
+                                            <small *ngIf="formFieldInfos.firstMeal && !formFieldInfos.firstMeal.tooltip" id="firstMeal-info">
+                                                {{ getFormFieldInfo('firstMeal') }}
                                             </small>
                                         </div>
 
                                         <!-- Étrend -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="diet" class="font-medium text-900">{{'Étrend' | translate }}</label>
+                                            <label for="diet" class="font-medium text-900">
+                                                {{'Étrend' | translate }}
+                                                <i *ngIf="formFieldInfos?.diet && formFieldInfos.diet.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('diet')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <app-diet-selector [parentForm]="conferenceForm" controlName="diet"></app-diet-selector>
                                             <div *ngIf="diet?.dirty && diet?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, válassza ki az étrendjét' | translate }}!
                                             </div>
-                                            <small *ngIf="conference?.name === '20250713-20250718 Új Jeruzsálem nyári tábor' && diet?.value?.toLowerCase() !== 'normál'" id="diet-help">
-                                                {{'Normáltól eltérő menü rendelésének felára 10 év felettieknek 1300 Ft/fő/éj, 3-10 év közöttiek esetén 800 Ft/fő/éj' | translate }}.
-                                            </small>
-                                            <small *ngIf="conference?.name === '20250803-20250808 Golgota nyári hetek 1' || conference?.name === '20250803-20250808 Önkéntesek Golgota nyári hetek 1' || conference?.name === '20250810-20250815 Golgota nyári hetek 2' || conference?.name === '20250810-20250815 Önkéntesek Golgota nyári hetek 2'">
-                                                {{'A normáltól eltérő étkezésnek felára van' | translate }}.
+                                            <small *ngIf="formFieldInfos.diet && !formFieldInfos.diet.tooltip" id="diet-info">
+                                                {{ getFormFieldInfo('diet') }}
                                             </small>
                                         </div>
 
                                         <!-- Távozás dátuma -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="dateOfDeparture" class="font-medium text-900">{{'Távozás dátuma' | translate }}</label>
+                                            <label for="dateOfDeparture" class="font-medium text-900">
+                                                {{'Távozás dátuma' | translate }}
+                                                <i *ngIf="formFieldInfos?.dateOfDeparture && formFieldInfos.dateOfDeparture.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('dateOfDeparture')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <p-calendar id="dateOfDeparture"
                                                         formControlName="dateOfDeparture"
                                                         [ngClass]="{'ng-invalid': conferenceForm.errors?.['dateRangeInvalid']}"
@@ -277,8 +395,8 @@
                                             <div *ngIf="conferenceForm.errors?.['dateRangeInvalid']" class="p-error">
                                                 {{'A távozás dátumának későbbinek kell lennie, mint az érkezési dátum' | translate }}!
                                             </div>
-                                            <small *ngIf="conference?.name === '20250727-20250801 Sarokkő nyári tábor'">
-                                                {{'Ha végig maradsz a táborban (augusztus 1), a távozás megadásánál, az augusztus hónaphoz kell ugrani' | translate }}!
+                                            <small *ngIf="formFieldInfos.dateOfDeparture && !formFieldInfos.dateOfDeparture.tooltip" id="dateOfDeparture-info">
+                                                {{ getFormFieldInfo('dateOfDeparture') }}
                                             </small>
                                         </div>
 
@@ -286,6 +404,13 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="lastMeal" class="font-medium text-900">
                                                 {{'Utolsó étkezés' | translate }}
+                                                <i *ngIf="formFieldInfos?.lastMeal && formFieldInfos.lastMeal.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('lastMeal')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
                                             </label>
                                             <app-meal-selector 
                                                 [parentForm]="conferenceForm" 
@@ -297,17 +422,23 @@
                                             <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, válassza ki az utolsó étkezését' | translate }}!
                                             </div>
-                                            <small *ngIf="conference?.name === '20250713-20250718 Új Jeruzsálem nyári tábor'" id="diet-help">
-                                                {{'Kérlek, utolsó étkezésnek az ebédet jelöld meg' | translate }}.
-                                            </small>
-                                            <small *ngIf="conference?.name === '20250803-20250808 Golgota nyári hetek 1' || conference?.name === '20250803-20250808 Önkéntesek Golgota nyári hetek 1' || conference?.name === '20250810-20250815 Golgota nyári hetek 2' || conference?.name === '20250810-20250815 Önkéntesek Golgota nyári hetek 2'">
-                                                {{'Pénteken ebéd is kérhető' | translate }}.
+                                            <small *ngIf="formFieldInfos.lastMeal && !formFieldInfos.lastMeal.tooltip" id="lastMeal-info">
+                                                {{ getFormFieldInfo('lastMeal') }}
                                             </small>
                                         </div>
 
                                         <!-- Babaágyat kérsz? -->
                                         <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="babyBed" class="font-medium text-900">{{'Babaágyat kérsz' | translate }}?</label>
+                                            <label for="babyBed" class="font-medium text-900">
+                                                {{'Babaágyat kérsz' | translate }}?
+                                                <i *ngIf="formFieldInfos?.babyBed && formFieldInfos.babyBed.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('babyBed')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <div class="flex flex-wrap gap-3 my-3">
                                                 <div class="flex align-items-center">
                                                     <p-radioButton name="babyBed" value="1" formControlName="babyBed" inputId="baby-bed-yes"></p-radioButton>
@@ -321,17 +452,17 @@
                                             <div *ngIf="babyBed?.dirty && babyBed?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki, hogy kér-e babaágyat' | translate }}!
                                             </div>
+                                            <small *ngIf="formFieldInfos.babyBed && !formFieldInfos.babyBed.tooltip" id="babyBed-info">
+                                                {{ getFormFieldInfo('babyBed') }}
+                                            </small>
                                         </div>
 
                                         <!-- Szállástípus -->
                                         <div class="field mb-4 col-12 lg:col-8">
                                             <label for="roomType" class="font-medium text-900">
                                                 {{'Szállástípus' | translate }}
-                                                <i *ngIf="conference?.name === '20250629-20250704 BPA nyári tábor'"
-                                                    pTooltip="Szállás csak étkezéssel együtt foglalható.
-                                                                Látogató jegyet azoknak kell vásárolni, akik nem kérnek szállást, de szeretnének részt venni a tábori
-                                                                programokon. A látogató jegy önmagában nem tartalmaz semmilyen étkezést! Ők a „Nem kérek
-                                                                szállást” opciót válasszák."
+                                                <i *ngIf="formFieldInfos?.roomType && formFieldInfos.roomType.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('roomType')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -348,11 +479,23 @@
                                             <small id="roomType-help">
                                                 {{'Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szállástípusra osztunk be' | translate }}.
                                             </small>
+                                            <small *ngIf="formFieldInfos.roomType && !formFieldInfos.roomType.tooltip" id="roomType-info">
+                                                {{ getFormFieldInfo('roomType') }}
+                                            </small>
                                         </div>
 
                                         <!-- Klímát kérsz? -->
                                         <div *ngIf="showClimateField" class="field mb-4 col-12 lg:col-4">
-                                            <label for="climate" class="font-medium text-900">{{'Klímát kérsz' | translate }}?</label>
+                                            <label for="climate" class="font-medium text-900">
+                                                {{'Klímát kérsz' | translate }}?
+                                                <i *ngIf="formFieldInfos?.climate && formFieldInfos.climate.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('climate')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <div class="flex flex-wrap gap-3 my-3">
                                                 <div class="flex align-items-center">
                                                     <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes"></p-radioButton>
@@ -366,20 +509,23 @@
                                             <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki, hogy kér-e klímát' | translate }}!
                                             </div>
-                                            <small *ngIf="conference?.name === '20250713-20250718 Új Jeruzsálem nyári tábor'" id="climate-help">
-                                                {{'Klímával felszerelt szoba felára 1000 Ft/fő/éj' | translate }}
-                                            </small>
-                                            <small *ngIf="conference?.name === '20250803-20250808 Golgota nyári hetek 1' || conference?.name === '20250803-20250808 Önkéntesek Golgota nyári hetek 1' || conference?.name === '20250810-20250815 Golgota nyári hetek 2' || conference?.name === '20250810-20250815 Önkéntesek Golgota nyári hetek 2'">
-                                                {{'Ennek a felára 1.000 Ft/fő/éjszaka' | translate }}
-                                            </small>
-                                            <small *ngIf="conference?.name === '20250727-20250801 Sarokkő nyári tábor'">
-                                                {{'Klíma csak adott szobák esetében lehetséges, garantálni nem tudjuk' | translate }}!
+                                            <small *ngIf="formFieldInfos.climate && !formFieldInfos.climate.tooltip" id="climate-info">
+                                                {{ getFormFieldInfo('climate') }}
                                             </small>
                                         </div>
 
                                         <!-- Kivel laknál egy szobában -->
                                         <div class="field mb-4 col-12 lg:col-8" *ngIf="conferenceForm.get('roomType')?.value !== 'Nem kérek szállást'">
-                                            <label for="roomMate" class="font-medium text-900">{{'Kivel laknál egy szobában' | translate }}?</label>
+                                            <label for="roomMate" class="font-medium text-900">
+                                                {{'Kivel laknál egy szobában' | translate }}?
+                                                <i *ngIf="formFieldInfos?.roomMate && formFieldInfos.roomMate.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('roomMate')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
                                             <p-chips formControlName="roomMate" 
                                                     separator="," 
                                                     [showClear]="true"
@@ -394,8 +540,8 @@
                                             <small id="roomMate-help">
                                                 {{'Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában' | translate }}.
                                             </small>
-                                            <small *ngIf="conference?.name === '20250803-20250808 Golgota nyári hetek 1' || conference?.name === '20250803-20250808 Önkéntesek Golgota nyári hetek 1' || conference?.name === '20250810-20250815 Golgota nyári hetek 2' || conference?.name === '20250810-20250815 Önkéntesek Golgota nyári hetek 2'">
-                                                {{'Kérjük ugyanazt az egy családtagot írja be az egész család' | translate }}.
+                                            <small *ngIf="formFieldInfos.roomMate && !formFieldInfos.roomMate.tooltip" id="roomMate-info">
+                                                {{ getFormFieldInfo('roomMate') }}
                                             </small>
                                         </div>
 
@@ -403,11 +549,8 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="payment" class="font-medium text-900">
                                                 {{'Fizetési mód' | translate }}
-                                                <i *ngIf="conference?.name === '20250629-20250704 BPA nyári tábor'"
-                                                    pTooltip="A fizetési mód kiválasztásakor a felület megengedi a készpénzes fizetés bejelölését. A szerződésünk
-                                                            azonban, ahogy az eddigi években is megszokott volt, csak az átutalásos vagy SZÉP kártyás fizetést
-                                                            teszi lehetővé, ezért kérjük, ebből a kettőből válasszatok.
-                                                            A készpénzes fizetést bejelölők regisztrációja ilyen módon érvénytelen lesz."                                                    
+                                                <i *ngIf="formFieldInfos?.payment && formFieldInfos.payment.tooltip"
+                                                    [pTooltip]="getFormFieldInfo('payment')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -421,16 +564,8 @@
                                             <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki a fizetési módot' | translate }}!
                                             </div>
-                                            <small *ngIf="conference?.name === '20250713-20250718 Új Jeruzsálem nyári tábor'" id="payment-help">
-                                                {{'Kérlek, a "Banki átutalás" és "SZÉP kártya" közül válassz' | translate }}!
-                                                {{'Készpénzes fizetést, kérlek, csak a Szervezővel való  egyeztetés után jelölj meg' | translate }}.
-                                                <a href="mailto:programujjeruzsalem@gmail.com">programujjeruzsalem&commat;gmail.com</a>
-                                            </small>
-                                            <small *ngIf="conference?.name === '20250803-20250808 Golgota nyári hetek 1' || conference?.name === '20250803-20250808 Önkéntesek Golgota nyári hetek 1' || conference?.name === '20250810-20250815 Golgota nyári hetek 2' || conference?.name === '20250810-20250815 Önkéntesek Golgota nyári hetek 2'">
-                                                {{'NE válassz készpénzes fizetést' | translate }}!
-                                            </small>
-                                            <small *ngIf="conference?.name === '20250727-20250801 Sarokkő nyári tábor'">
-                                                {{'A banki átutalás választása technikai okok nem lehetséges, kérjük ezt NE jelöld meg' | translate }}!
+                                            <small *ngIf="formFieldInfos.payment && !formFieldInfos.payment.tooltip" id="payment-info">
+                                                {{ getFormFieldInfo('payment') }}
                                             </small>
                                         </div>
 
