@@ -451,8 +451,8 @@ export class GuestComponent implements OnInit {
         if (this.isOrganizer && (!this.selectedConferences || this.selectedConferences.length === 0)) {
             this.messageService.add({
                 severity: 'warn',
-                summary: 'Please select at least one conference!',
-            });
+                summary: 'Kérem válasszon konferenciát!',
+            })
             return
         }
 
