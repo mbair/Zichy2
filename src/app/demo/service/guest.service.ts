@@ -52,7 +52,7 @@ export class GuestService {
                 pageSort === '' && queryParams !== '' ? queryParams : '';
 
         const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
-        
+
         this.apiService.get<ApiResponse>(`guest/get/${url}`)
             .subscribe({
                 next: (response: ApiResponse) => {
@@ -66,24 +66,23 @@ export class GuestService {
 
     /**
      * Get guests by Search
-     * @param globalFilter
-     * @param sort
+     * @param globalFilter 
+     * @param sort 
+     * @param conferenceIds 
      */
-    public getBySearch(globalFilter: string, sort: any): void {
-        let pageSort: string = '';
-        if (sort !== '') {
-            const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC';
-            pageSort = sort.sortField != "" ? `?sort=${sort.sortField}&order=${sortOrder}` : '';
+    public getBySearch(globalFilter: string, sort: any, conferenceIds: number[]): void {
+        let params: any = {}
+        if (sort && sort.sortField) {
+            params['sort'] = sort.sortField
+            params['order'] = sort.sortOrder === 1 ? 'ASC' : 'DESC'
         }
-
-        this.apiService.get<ApiResponse>(`guest/search/${globalFilter}${pageSort}`)
+        if (conferenceIds && conferenceIds.length > 0) {
+            params['conferenceIds'] = conferenceIds.join(',')
+        }
+        this.apiService.get<ApiResponse>(`guest/search/${encodeURIComponent(globalFilter)}`, { params })
             .subscribe({
-                next: (response: ApiResponse) => {
-                    this.data$.next(response)
-                },
-                error: (error: any) => {
-                    this.message$.next(error)
-                }
+                next: (response: ApiResponse) => { this.data$.next(response) },
+                error: (error: any) => { this.message$.next(error) }
             })
     }
 
@@ -151,8 +150,8 @@ export class GuestService {
                 if (!file) return
                 formData.append('idcard', file, file.name)
             }
-        }        
-        
+        }
+
         this.apiService.post(`guest/create/`, formData)
             .subscribe({
                 next: (response: any) => {

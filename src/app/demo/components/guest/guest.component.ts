@@ -372,7 +372,8 @@ export class GuestComponent implements OnInit {
         const queryParams = filters.filter(x => x.length > 0).join('&')
 
         if (this.globalFilter !== '') {
-            return this.guestService.getBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
+            const conferenceIds = this.selectedConferences.map(c => c.id).filter((id): id is number => id !== undefined)
+            return this.guestService.getBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder }, conferenceIds)
         }
 
         return this.guestService.get(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
@@ -402,13 +403,13 @@ export class GuestComponent implements OnInit {
         }
 
         this.filterValues[field] = filterValue
-        
+
         // If the field is a dropdown, run doQuery immediately
         if (noWaitFields.includes(field)) {
             if (this.filterValues[field] === filterValue) {
                 this.doQuery()
             }
-        // otherwise wait for the debounce time
+            // otherwise wait for the debounce time
         } else {
             if (this.debounce[field]) {
                 clearTimeout(this.debounce[field])
@@ -443,7 +444,34 @@ export class GuestComponent implements OnInit {
      * @param event
      */
     onGlobalFilter(table: Table, event: Event) {
-        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+        const searchValue = (event.target as HTMLInputElement).value
+        this.globalFilter = searchValue
+
+        // Require conference selection for organizers
+        if (this.isOrganizer && (!this.selectedConferences || this.selectedConferences.length === 0)) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Please select at least one conference!',
+            });
+            return
+        }
+
+        // If the search box is empty, fall back to the default query
+        if (!searchValue) {
+            this.doQuery()
+            return
+        }
+
+        // Conditions met, perform the search
+        this.loading = true
+        const conferenceIds = this.selectedConferences
+            .map(c => c.id)
+            .filter((id): id is number => id !== undefined);
+        this.guestService.getBySearch(
+            searchValue,
+            { sortField: this.sortField, sortOrder: this.sortOrder },
+            conferenceIds
+        )
     }
 
     /**
@@ -473,18 +501,18 @@ export class GuestComponent implements OnInit {
     edit(guest: Guest) {
         this.guestForm.reset(this.initialFormValues)
         this.sidebar = true
-        
+
         // Get guest conference details
         if (guest.conferenceid) {
             const selectedConf = this.conferenceSelector.conferences.find(conf => conf.id === guest.conferenceid)
             guest.conference = selectedConf ? [selectedConf] : []
-            
+
             // Because side bar is not visible yet, we need to wait a bit
             setTimeout(() => {
                 this.guestForm.patchValue(guest)
                 this.originalFormValues = this.guestForm.value
             })
-    
+
             // Set arrival and departure date limitations
             this.beginDate = selectedConf?.beginDate ? new Date(selectedConf.beginDate) : undefined
             this.endDate = selectedConf?.endDate ? new Date(selectedConf.endDate) : undefined
@@ -535,7 +563,7 @@ export class GuestComponent implements OnInit {
             if (!formValues.id) {
                 this.guestService.create(formValues, [])
 
-            // Update
+                // Update
             } else {
                 this.guestService.update(formValues)
 
@@ -611,7 +639,7 @@ export class GuestComponent implements OnInit {
         // Check if RFID is according to the diet
         this.tagService.getByRFID(this.scannedCode).subscribe({
             next: (data) => {
-                
+
                 if (data.rows && data.rows.length > 0) {
 
                     // Check if tag color is the same as the guest diet color
@@ -634,7 +662,7 @@ export class GuestComponent implements OnInit {
                         this.identifierElement.nativeElement.focus()
                         return
 
-                    // Right color
+                        // Right color
                     } else {
 
                         // Check if somebody has the same RFID number
@@ -880,14 +908,14 @@ export class GuestComponent implements OnInit {
     onConferenceSelectionChange(selectedConferences: Conference[]): void {
         this.selectedConferences = selectedConferences || []
         this.filterValues['conferenceName'] = this.selectedConferences.map(conf => conf.name).join(', ') || ''
-    
+
         // Check if the user can edit the selected conferences
         if (this.isOrganizer && this.selectedConferences.length > 0) {
-            this.canEdit = this.selectedConferences.some(conf => 
+            this.canEdit = this.selectedConferences.some(conf =>
                 conf.guestEditEndDate && moment().isSameOrBefore(moment(conf.guestEditEndDate), 'day')
             )
         }
-    
+
         this.tableData = []
         this.doQuery()
     }
@@ -905,7 +933,7 @@ export class GuestComponent implements OnInit {
                 const { id, answers, ...rest } = row
                 const qnaColumns: { [key: string]: any } = {}
                 let qaIndex = 1
-    
+
                 if (Array.isArray(answers)) {
                     answers.forEach(answer => {
                         if (Array.isArray(answer.translations)) {
@@ -927,13 +955,13 @@ export class GuestComponent implements OnInit {
                         }
                     })
                 }
-    
+
                 return {
                     ...rest,
                     ...qnaColumns
                 } as { [key: string]: any }
             })
-    
+
             // If the selected array is empty, we work from the filtered or full dataset as a fallback
             if (data.length === 0) {
                 console.warn("No rows selected for export. Exporting filtered or full data.")
@@ -967,7 +995,7 @@ export class GuestComponent implements OnInit {
                     } as { [key: string]: any }
                 })
             }
-    
+
             // Find the maximum number of question/answer pairs in all rows
             let maxQA = 0
             data.forEach(row => {
@@ -976,7 +1004,7 @@ export class GuestComponent implements OnInit {
                     maxQA = qaCount
                 }
             })
-    
+
             // For each row, we fill in the missing question/answer columns with an empty string so that the columns are identical in each row
             data = data.map(row => {
                 const r = row as { [key: string]: any }
@@ -990,7 +1018,7 @@ export class GuestComponent implements OnInit {
                 }
                 return r
             })
-    
+
             // Delete unnecessary columns
             data.forEach((row: Guest) => {
                 delete row.is_test
@@ -1001,14 +1029,14 @@ export class GuestComponent implements OnInit {
                 delete row.conferenceid
                 delete row.dietDetails
             })
-    
+
             // Creating an Excel worksheet and file
             const worksheet = xlsx.utils.json_to_sheet(data)
             const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
             const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
             this.saveAsExcelFile(excelBuffer, "guests")
         })
-    }    
+    }
 
     /**
      * Saves the provided buffer as an Excel file with the specified file name.
