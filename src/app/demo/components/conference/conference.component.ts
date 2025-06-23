@@ -47,9 +47,12 @@ export class ConferenceComponent implements OnInit {
     debounce: { [key: string]: any } = {}        // Search delay in filter field
     conferenceForm: FormGroup                    // Form to create/update conference
     questionsForm: FormGroup                     // Form to manage questions of the conference
+    formFieldInfosForm: FormGroup                // Form to manage questions of the conference
     originalFormValues: any                      // The original values ​​of the form
     originalQuestionsFormValues: any             // The original values ​​of the questions form
+    originalFormFieldInfosFormValues: any        // The original values of the form field infos form
     sidebar: boolean = false                     // Table item maintenance sidebar
+    formFieldsInfosSidebar: boolean = false      // Form fields maintenance sidebar
     questionsSidebar: boolean = false            // Questions maintenance sidebar
     deleteDialog: boolean = false                // Popup for deleting table item
     bulkDeleteDialog: boolean = false            // Popup for deleting table items
@@ -143,6 +146,9 @@ export class ConferenceComponent implements OnInit {
             })
         })
 
+        // Form fields infos
+        this.initializeFormFieldInfosForm()
+
         // Questions form fields and validations
         this.initializeQuestionsForm()
     }
@@ -218,6 +224,10 @@ export class ConferenceComponent implements OnInit {
     // Gets the FormArray of questions
     get questions(): FormArray {
         return this.questionsForm.get('questions') as FormArray
+    }
+
+    get formFieldInfosQuestions(): FormArray {
+        return this.formFieldInfosForm.get('questions') as FormArray;
     }
 
     /**
@@ -355,6 +365,43 @@ export class ConferenceComponent implements OnInit {
         }
     }
 
+    initializeFormFieldInfosForm() {
+        const q = this.tableItem.questions;
+        const maxQuestions = 5;
+
+        // Check for questions and translations
+        const existingQuestions = q && q.length && q[0].translations ? q[0].translations : [];
+
+        // Reinitialize the form
+        this.formFieldInfosForm = this.formBuilder.group({
+            conferenceid: [this.tableItem.id],
+            questions: this.formBuilder.array([])
+        });
+
+        // Lokális változó a FormArray-re
+        const questionsArray = this.formFieldInfosForm.get('questions') as FormArray;
+
+        // Feltöltés meglévő kérdésekkel
+        existingQuestions.forEach((question: any) => {
+            questionsArray.push(this.formBuilder.group({
+                hu: [question.hu],
+                en: [question.en]
+            }, { validators: allLanguagesRequiredValidator() }));
+        });
+
+        // Üres kérdések hozzáadása
+        const missingQuestions = maxQuestions - questionsArray.length;
+        for (let i = 0; i < missingQuestions; i++) {
+            questionsArray.push(this.formBuilder.group({
+                hu: [''],
+                en: ['']
+            }, { validators: allLanguagesRequiredValidator() }));
+        }
+
+        // Eredeti értékek eltárolása
+        this.originalFormFieldInfosFormValues = this.formFieldInfosForm.value;
+    }
+
     /**
      * Initializes the questions form, setting default values from the questions array.
      * @remarks
@@ -365,38 +412,42 @@ export class ConferenceComponent implements OnInit {
      * corresponding language.
      */
     initializeQuestionsForm() {
-        const q = this.tableItem.questions
-        const maxQuestions = 5
+        const q = this.tableItem.questions;
+        const maxQuestions = 5;
 
-        // Check for questions and translations
-        const questions = q && q.length && q[0].translations ? q[0].translations : []
+        // Extract existing translations, or use empty array
+        const existingQuestions = q && q.length && q[0].translations ? q[0].translations : [];
 
         // Reinitialize the form, including the questions FormArray
         this.questionsForm = this.formBuilder.group({
             conferenceid: [this.tableItem.id],
             questions: this.formBuilder.array([])
-        })
+        });
+
+        // Use local variable instead of this.questions getter
+        const questionsArray = this.questionsForm.get('questions') as FormArray;
 
         // Fill form with stored questions
-        questions.forEach((question: any) => {
-            this.questions.push(this.formBuilder.group({
+        existingQuestions.forEach((question: any) => {
+            questionsArray.push(this.formBuilder.group({
                 hu: [question.hu],
                 en: [question.en]
-            }, { validators: allLanguagesRequiredValidator() }))
-        })
+            }, { validators: allLanguagesRequiredValidator() }));
+        });
 
-        // If there are less than 5 questions, blank questions will be added
-        const missingQuestions = maxQuestions - this.questions.length
+        // Add empty questions if needed
+        const missingQuestions = maxQuestions - questionsArray.length;
         for (let i = 0; i < missingQuestions; i++) {
-            this.questions.push(this.formBuilder.group({
-                hu: [''],  // Empty HU question
-                en: ['']   // Empty EN question
-            }, { validators: allLanguagesRequiredValidator() }))
+            questionsArray.push(this.formBuilder.group({
+                hu: [''],
+                en: ['']
+            }, { validators: allLanguagesRequiredValidator() }));
         }
 
         // Store original values for comparison
-        this.originalQuestionsFormValues = this.questionsForm.value
+        this.originalQuestionsFormValues = this.questionsForm.value;
     }
+
 
     /**
      * Generates a slugified formUrl based on the name of the conference,
@@ -483,6 +534,38 @@ export class ConferenceComponent implements OnInit {
      */
     cancel() {
         this.conferenceForm.reset(this.originalFormValues)
+    }
+
+    /**
+     * Edit the questions of the Conference
+     * @param conference
+     */
+    editFormFieldInfos(conference: Conference) {
+        this.tableItem = conference
+        this.formFieldInfosForm.reset()
+        this.initializeFormFieldInfosForm()
+        this.formFieldsInfosSidebar = true
+    }
+
+    /**
+     * Saving the form field infos form
+     */
+    saveFormFieldInfos() {
+        this.loading = true
+        const questions = {
+            id: this.tableItem.questions && this.tableItem.questions[0]?.id ? this.tableItem.questions[0].id : null,
+            conferenceid: this.tableItem.id,
+            translations: this.questionsForm.value.questions,
+        }
+        // Question insert
+        if (questions.id == null) {
+            this.questionService.create(questions)
+        }
+        // Question update
+        else {
+            this.questionService.update(questions)
+        }
+        this.questionsSidebar = false
     }
 
     /**
