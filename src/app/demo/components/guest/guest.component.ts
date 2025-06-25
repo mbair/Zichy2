@@ -129,7 +129,8 @@ export class GuestComponent implements OnInit {
         enabled: true,
     }
 
-    public selectedFile: File;
+    public selectedFile: File
+    private globalSearch$ = new Subject<string>()
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
     private guestObs$: Observable<any> | undefined
@@ -324,6 +325,41 @@ export class GuestComponent implements OnInit {
                 this.guestForm.patchValue({ conferenceName: selectedConferenceName })
             }
         })
+
+        // Global search
+        this.globalSearch$.pipe(
+            debounceTime(500),
+            distinctUntilChanged()
+        ).subscribe(searchValue => {
+            this.globalFilter = searchValue
+
+            // Require conference selection for organizers
+            if (this.isOrganizer && (!this.selectedConferences || this.selectedConferences.length === 0)) {
+                this.messageService.add({
+                    severity: 'warn',
+                    summary: 'Kérem válasszon konferenciát!',
+                })
+                return
+            }
+
+            // If the search box is empty, fall back to the default query
+            if (!searchValue) {
+                this.doQuery()
+                return
+            }
+
+            // Conditions met, perform the search
+            this.loading = true
+            const conferenceIds = this.selectedConferences
+                .map(c => c.id)
+                .filter((id): id is number => id !== undefined)
+            
+            this.guestService.getBySearch(
+                searchValue,
+                { sortField: this.sortField, sortOrder: this.sortOrder },
+                conferenceIds
+            )
+        })
     }
 
     // Getters for form validation
@@ -445,33 +481,7 @@ export class GuestComponent implements OnInit {
      */
     onGlobalFilter(table: Table, event: Event) {
         const searchValue = (event.target as HTMLInputElement).value
-        this.globalFilter = searchValue
-
-        // Require conference selection for organizers
-        if (this.isOrganizer && (!this.selectedConferences || this.selectedConferences.length === 0)) {
-            this.messageService.add({
-                severity: 'warn',
-                summary: 'Kérem válasszon konferenciát!',
-            })
-            return
-        }
-
-        // If the search box is empty, fall back to the default query
-        if (!searchValue) {
-            this.doQuery()
-            return
-        }
-
-        // Conditions met, perform the search
-        this.loading = true
-        const conferenceIds = this.selectedConferences
-            .map(c => c.id)
-            .filter((id): id is number => id !== undefined);
-        this.guestService.getBySearch(
-            searchValue,
-            { sortField: this.sortField, sortOrder: this.sortOrder },
-            conferenceIds
-        )
+        this.globalSearch$.next(searchValue)
     }
 
     /**
