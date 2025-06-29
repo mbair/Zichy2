@@ -40,22 +40,23 @@ export class GuestComponent implements OnInit {
     @ViewChild('identifier') identifierElement: ElementRef;
     @ViewChild('dt') table!: Table;
 
-    apiURL: string;                              // API URL depending on whether we are working on test or production
-    loading: boolean = true;                     // Loading overlay trigger value
+    apiURL: string                               // API URL depending on whether we are working on test or production
+    loading: boolean = true                      // Loading overlay trigger value
     tableItem: Guest = {}                        // One guest object
-    tableData: Guest[] = [];                     // Data set displayed in a table
+    tableData: Guest[] = []                      // Data set displayed in a table
     rowsPerPageOptions = [20, 50, 100, 9999]     // Possible rows per page
     rowsPerPage: number = 20                     // Default rows per page
     totalRecords: number = 0                     // Total number of rows in the table
-    page: number = 0;                            // Current page
-    sortField: string = '';                      // Current sort field
-    sortOrder: number = 1;                       // Current sort order
-    globalFilter: string = '';                   // Global filter
+    page: number = 0                             // Current page
+    sortField: string = ''                       // Current sort field
+    sortOrder: number = 1                        // Current sort order
+    globalFilter: string = ''                    // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
-    rfidFilterValue: any;                        // Store for RFID filter value
-    prepaidFilterValue: any;                     // Store for Prepaid filter value
+    rfidFilterValue: any                         // Store for RFID filter value
+    prepaidFilterValue: any                      // Store for Prepaid filter value
     debounce: { [key: string]: any } = {}        // Search delay in filter field
     guestForm: FormGroup                         // Form for guest creation and modification
+    dialogFiltersForm: FormGroup                 // Form for filters
     originalFormValues: any                      // The original values ​​of the form
     sidebar: boolean = false                     // Table item maintenance sidebar
     deleteDialog: boolean = false                // Popup for deleting table item
@@ -70,19 +71,20 @@ export class GuestComponent implements OnInit {
     messages: Message[] = []                     // A message used for notifications and displaying errors
     successfulMessage: Message[] = []            // Message displayed on success
     tag: Tag = {}                                // NFC tag
-    tagDialog: boolean = false;                  // Tag assignment popup
-    conferences: any[] = [];                     // Optional conferences
+    tagDialog: boolean = false                   // Tag assignment popup
+    conferences: any[] = []                      // Optional conferences
     selectedConferences: Conference[] = []       // Conference chosen by user
-    guest: Guest = {};                           // One guest object
-    guestDialog: boolean = false;                // Guests maintenance popup
-    cols: any[] = [];                            // Table columns
-    diets: any[] = [];                           // Possible diets
-    meals: any[] = [];                           // Possible meals
-    genders: any[] = [];                         // Possible genders
-    countries: any[] = [];                       // Possible countries
-    scanTemp: string = '';                       // Temporary storage used during NFC reading
-    scannedCode: string = '';                    // Scanned Tag Id
-    totalTaggedGuests: number = 0;               // Total number of tagged Guests
+    guest: Guest = {}                            // One guest object
+    guestDialog: boolean = false                 // Guests maintenance popup
+    filtersDialog: boolean = false               // Guests table filters popup
+    cols: any[] = []                             // Table columns
+    diets: any[] = []                            // Possible diets
+    meals: any[] = []                            // Possible meals
+    genders: any[] = []                          // Possible genders
+    countries: any[] = []                        // Possible countries
+    scanTemp: string = ''                        // Temporary storage used during NFC reading
+    scannedCode: string = ''                     // Scanned Tag Id
+    totalTaggedGuests: number = 0                // Total number of tagged Guests
     birthDateMin: Date                           // Minimum birth date
     birthDateMax: Date                           // Maximum birth date
     beginDate: any                               // Conference begin date
@@ -186,6 +188,37 @@ export class GuestComponent implements OnInit {
             climate: [this.initialFormValues.climate]
         }, {
             validators: dateRangeValidator('dateOfArrival', 'dateOfDeparture')
+        })
+
+        this.dialogFiltersForm = this.fb.group({
+            firstName: [],
+            lastName: [],
+            gender: [],
+            nationality: [],
+            country: [],
+            zipCode: [],
+            roomNum: [],
+            dateOfArrival: [],
+            firstMeal: [],
+            dateOfDeparture: [],
+            lastMeal: [],
+            accommodationExtra: [],
+            birthDate: [],
+            rfid: [],
+            rfidColor: [],
+            enabled: [],
+            diet: [],
+            diet_id: [],
+            lastRfidUsage: [],
+            is_test: [],
+            email: [],
+            telephone: [],
+            roomType: [],
+            payment: [],
+            babyBed: [],
+            prepaid: [],
+            roomMate: [],
+            climate: []
         })
 
         this.exportButtonItems = [
@@ -554,11 +587,15 @@ export class GuestComponent implements OnInit {
     }
 
     hideDialog() {
-        this.guestDialog = false;
+        this.guestDialog = false
     }
 
     hideTagDialog() {
-        this.tagDialog = false;
+        this.tagDialog = false
+    }
+
+    hideFiltersDialog() {
+        this.filtersDialog = false
     }
 
     /**
@@ -593,6 +630,34 @@ export class GuestComponent implements OnInit {
      */
     cancel() {
         this.guestForm.reset(this.originalFormValues)
+    }
+
+    /**
+     * Clear Dialog Filters Form
+     */
+    clearDialogFilters() {
+        this.dialogFiltersForm.reset()
+
+        // Empty filters
+        this.filterValues['firstName'] = ''
+        this.filterValues['lastName'] = ''
+        this.filterValues['gender'] = ''
+        this.filterValues['birthDate'] = ''
+        this.filterValues['nationality'] = ''
+        this.filterValues['country'] = ''
+        this.filterValues['zipCode'] = ''
+        this.filterValues['email'] = ''
+        this.filterValues['telephone'] = ''
+        this.filterValues['firstMeal'] = ''
+        this.filterValues['lastMeal'] = ''
+        this.filterValues['babyBed'] = ''
+        this.filterValues['roomType'] = ''
+        this.filterValues['payment'] = ''
+        this.filterValues['climate'] = ''
+        this.filterValues['prepaid'] = ''
+        this.filterValues['roomMate'] = ''
+
+        this.doQuery()
     }
 
     findIndexById(id: string | undefined): number {

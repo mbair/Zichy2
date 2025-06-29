@@ -35,10 +35,11 @@
                                 (ngModelChange)="onConferenceSelectionChange($event)">
                             </app-conference-selector>
                         </span>
+                        <!-- Hide global filter pemanently
                         <span class="block mt-2 md:mt-0 p-input-icon-left w-full sm:w-auto">
                             <i class="pi pi-search"></i>
                             <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés bármely vendégadatra..." style="min-width: 300px;" pTooltip="NFC címkét a saját keresőmezőjébe csippantsd"/>
-                        </span>
+                        </span> -->
                         <span class="block mt-2 md:mt-0 flex align-items-center flex-wrap">
                             <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="create()" [disabled]="!canCreate"></button>
                             <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="bulkDeleteDialog = true" [disabled]="!selected || !selected.length || !canDelete"></button>
@@ -160,7 +161,15 @@
                                 [showButtonBar]="true">
                             </p-calendar>
                         </th>
-                        <th></th>
+                        <th>
+                            <button pButton 
+                                    pRipple 
+                                    label="Szűrők" 
+                                    icon="pi pi-filter" 
+                                    class="p-button-default mr-2" 
+                                    (click)="filtersDialog = true">
+                            </button>
+                        </th>
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-guest let-expanded="expanded">
@@ -744,6 +753,255 @@
                 <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="saveTag()"></button>
             </ng-template>
         </p-dialog>
+
+        <!-- Table filters dialog -->
+        <p-sidebar 
+            id="sidebar" 
+            [(visible)]="filtersDialog" 
+            position="right" 
+            styleClass="p-sidebar-lg"
+            [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
+            [fullScreen]="isMobile"
+            [blockScroll]="true">
+            
+            <!-- Sidebar header -->
+            <ng-template pTemplate="header">
+                <span class="font-semibold text-xl">
+                    Szűrés vendégadatra
+                </span>
+            </ng-template>
+
+            <form [formGroup]="dialogFiltersForm" novalidate class="grid formgrid p-fluid">
+                
+                <!-- lastName -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="lastName" class="font-medium text-900">Vezetéknév</label>
+                    <span class="p-input-icon-right">
+                        <input pInputText type="text" formControlName="lastName" (input)="onFilter($event, 'lastName')" placeholder="Keresés..."/>
+                        <i *ngIf="dialogFiltersForm.get('lastName')?.value" 
+                            class="pi pi-times cursor-pointer" 
+                            (click)="dialogFiltersForm.get('lastName')?.setValue(null); onFilter($event, 'lastName')">
+                        </i>
+                    </span>
+                </div>
+
+                <!-- firstName -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="firstName" class="font-medium text-900">Keresztnév</label>
+                    <span class="p-input-icon-right">
+                        <input pInputText type="text" formControlName="firstName" (input)="onFilter($event, 'firstName')" placeholder="Keresés..."/>
+                        <i *ngIf="dialogFiltersForm.get('firstName')?.value" 
+                            class="pi pi-times cursor-pointer" 
+                            (click)="dialogFiltersForm.get('firstName')?.setValue(null); onFilter($event, 'firstName')">
+                        </i>
+                    </span>
+                </div>
+
+                <!-- gender -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="gender" class="font-medium text-900">Neme</label>
+                    <div class="flex flex-wrap gap-3 my-3">
+                        <div class="flex align-items-center">
+                            <p-radioButton name="gender" value="1" formControlName="gender" (onClick)="onFilter($event, 'gender')"></p-radioButton>
+                            <label for="gender1" class="ml-2">Férfi</label>
+                        </div>
+
+                        <div class="flex align-items-center">
+                            <p-radioButton name="gender" value="2" formControlName="gender" (onClick)="onFilter($event, 'gender')"></p-radioButton>
+                            <label for="gender2" class="ml-2">Nő</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- birthDate -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="birthDate" class="font-medium text-900">Születési dátum</label>
+                    <p-calendar
+                        formControlName="birthDate"
+                        (onSelect)="onFilter($event, 'birthDate')"
+                        (onClearClick)="onFilter($event, 'birthDate')"
+                        placeholder="Keresés..."
+                        [showButtonBar]="true"
+                        dateFormat="yy-mm-dd" 
+                        dataType="string"
+                        appendTo="body">
+                    </p-calendar>
+                </div>
+
+                <!-- nationality -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="nationality" class="font-medium text-900">Állampolgárság</label>
+                    <app-nationality-selector
+                        formControlName="nationality"
+                        (change)="onFilter($event, 'nationality')" 
+                        [showClear]="true">
+                    </app-nationality-selector>
+                </div>
+
+                <!-- country -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="country" class="font-medium text-900">Lakóhely - ország</label>
+                    <app-country-selector 
+                        formControlName="country"
+                        (change)="onFilter($event, 'country')" 
+                        [showClear]="true">
+                    </app-country-selector>
+                </div>
+
+                <!-- zipCode -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="zipCode" class="font-medium text-900">Lakóhely - irányítószám</label>
+                    <span class="p-input-icon-right">
+                        <input pInputText type="text" formControlName="zipCode" (input)="onFilter($event, 'zipCode')" placeholder="Keresés..."/>
+                        <i *ngIf="dialogFiltersForm.get('zipCode')?.value" 
+                            class="pi pi-times cursor-pointer" 
+                            (click)="dialogFiltersForm.get('zipCode')?.setValue(null); onFilter($event, 'zipCode')">
+                        </i>
+                    </span>
+                </div>
+
+                <!-- email -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="email" class="font-medium text-900">Email</label>
+                    <span class="p-input-icon-right">
+                        <input pInputText type="text" formControlName="email" (input)="onFilter($event, 'email')" placeholder="Keresés..."/>
+                        <i *ngIf="dialogFiltersForm.get('email')?.value" 
+                            class="pi pi-times cursor-pointer" 
+                            (click)="dialogFiltersForm.get('email')?.setValue(null); onFilter($event, 'email')">
+                        </i>
+                    </span>
+                </div>
+
+                <!-- telephone -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="telephone" class="font-medium text-900">Telefon</label>
+                    <span class="p-input-icon-right">
+                        <input pInputText type="text" formControlName="telephone" (input)="onFilter($event, 'telephone')" placeholder="Keresés..."/>
+                        <i *ngIf="dialogFiltersForm.get('telephone')?.value" 
+                            class="pi pi-times cursor-pointer" 
+                            (click)="dialogFiltersForm.get('telephone')?.setValue(null); onFilter($event, 'telephone')">
+                        </i>
+                    </span>
+                </div>
+
+                <!-- firstMeal -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="firstMeal" class="font-medium text-900">Első étkezés</label>
+                    <app-meal-selector 
+                        formControlName="firstMeal"
+                        (change)="onFilter($event, 'firstMeal')" 
+                        [showNothing]="true"
+                        [showClear]="true">
+                    </app-meal-selector>
+                </div>
+
+                <!-- lastMeal -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="lastMeal" class="font-medium text-900">Utolsó étkezés</label>
+                    <app-meal-selector 
+                        formControlName="lastMeal"
+                        (change)="onFilter($event, 'lastMeal')" 
+                        [showNothing]="true"
+                        [showClear]="true">
+                    </app-meal-selector>
+                </div>
+
+                <!-- babyBed -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="babyBed" class="font-medium text-900">Babaágyat kérsz?</label>
+                    <div class="flex flex-wrap gap-3 my-3">
+                        <div class="flex align-items-center">
+                            <p-radioButton name="babyBed" value="1" formControlName="babyBed" inputId="baby-bed-yes"></p-radioButton>
+                            <label for="baby-bed-yes" class="ml-2">Igen</label>
+                        </div>
+                        <div class="flex align-items-center">
+                            <p-radioButton name="babyBed" value="0" formControlName="babyBed" inputId="baby-bed-no"></p-radioButton>
+                            <label for="baby-bed-no" class="ml-2">Nem</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- roomType -->
+                <div class="field mb-4 col-12 lg:col-8">
+                    <label for="roomType" class="font-medium text-900">Szállástípus</label>
+                    <app-roomtype-selector 
+                        formControlName="roomType"
+                        (change)="onFilter($event, 'roomType')"
+                        [showClear]="true">
+                    </app-roomtype-selector>
+                </div>
+
+                <!-- climate -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="climate" class="font-medium text-900">Klímát kérsz?</label>
+                    <div class="flex flex-wrap gap-3 my-3">
+                        <div class="flex align-items-center">
+                            <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes" (onClick)="onFilter($event, 'climate')"></p-radioButton>
+                            <label for="climate-yes" class="ml-2">Igen</label>
+                        </div>
+                        <div class="flex align-items-center">
+                            <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no" (onClick)="onFilter($event, 'climate')"></p-radioButton>
+                            <label for="climate-no" class="ml-2">Nem</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- payment -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="payment" class="font-medium text-900">Fizetési mód</label>
+                    <app-payment-selector 
+                        formControlName="payment"
+                        (change)="onFilter($event, 'payment')"
+                        [showClear]="true">
+                    </app-payment-selector>
+                </div>
+
+                <!-- roomMate -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="roomMate" class="font-medium text-900">Kivel laknál egy szobában?</label>
+                    <span class="p-input-icon-right">
+                        <input
+                            type="text"
+                            pInputText
+                            placeholder="Keresés..."
+                            formControlName="roomMate"
+                            (input)="onFilter($event, 'roomMate')" 
+                        />
+                        <i *ngIf="dialogFiltersForm.get('roomMate')?.value" 
+                            class="pi pi-times cursor-pointer" 
+                            (click)="dialogFiltersForm.get('roomMate')?.setValue(null); onFilter($event, 'roomMate')">
+                        </i>
+                    </span>
+                </div>
+
+                <!-- prepaid -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="climate" class="font-medium text-900">Előleget fizetett?</label>
+                    <div class="flex flex-wrap gap-3 my-3">
+                        <div class="flex align-items-center">
+                            <p-radioButton name="prepaid" value="1" formControlName="prepaid" inputId="prepaid-yes" (onClick)="onFilter($event, 'prepaid')"></p-radioButton>
+                            <label for="prepaid-yes" class="ml-2">Igen</label>
+                        </div>
+                        <div class="flex align-items-center">
+                            <p-radioButton name="prepaid" value="0" formControlName="prepaid" inputId="prepaid-no" (onClick)="onFilter($event, 'prepaid')"></p-radioButton>
+                            <label for="prepaid-no" class="ml-2">Nem</label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <ng-template pTemplate="footer">
+                <div class="flex justify-content-end ap-2">
+                    <button pButton 
+                            pRipple 
+                            label="Szűrők törlése" 
+                            icon="pi pi-times" 
+                            class="p-button-outlined"
+                            (click)="clearDialogFilters()">
+                    </button>
+                </div>
+            </ng-template>
+        </p-sidebar>
     </div>
 </div>
 
