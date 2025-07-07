@@ -14,11 +14,13 @@ import { MessageService } from 'primeng/api';
 import { UserService } from '../../service/user.service';
 import { MealService } from '../../service/meal.service';
 import { ApiResponse } from '../../api/ApiResponse';
-import { Conference } from '../../api/conference';
+import { Conference, FormFieldInfo } from '../../api/conference';
 import { User } from '../../api/user';
 import { Table } from 'primeng/table';
 import * as moment from 'moment';
 moment.locale('hu')
+
+type Option = { label: string; value: string }
 
 @Component({
     selector: 'conference',
@@ -53,6 +55,7 @@ export class ConferenceComponent implements OnInit {
     originalFormFieldInfosFormValues: any        // The original values of the form field infos form
     sidebar: boolean = false                     // Table item maintenance sidebar
     formFieldsInfosSidebar: boolean = false      // Form fields maintenance sidebar
+    formFieldsInfosPosition: Option[] = []       // Form fields informations position
     questionsSidebar: boolean = false            // Questions maintenance sidebar
     deleteDialog: boolean = false                // Popup for deleting table item
     bulkDeleteDialog: boolean = false            // Popup for deleting table items
@@ -65,6 +68,28 @@ export class ConferenceComponent implements OnInit {
     isOrganizer: boolean = false                 // User has organizer role
     loggedInUserId: number                       // Logged in user id
     isMobile: boolean = false                    // Mobile screen detection
+
+    FORM_FIELD_INFOS_CONFIG = [
+        { field: 'lastName',        label: 'Vezetéknév' },
+        { field: 'firstName',       label: 'Keresztnév' },
+        { field: 'gender',          label: 'Neme' },
+        { field: 'birthDate',       label: 'Születési dátum' },
+        { field: 'nationality',     label: 'Állampolgárság' },
+        { field: 'country',         label: 'Lakóhely - ország' },
+        { field: 'zipCode',         label: 'Lakóhely - irányítószám' },
+        { field: 'email',           label: 'Email' },
+        { field: 'telephone',       label: 'Telefon' },
+        { field: 'dateOfArrival',   label: 'Érkezés dátuma' },
+        { field: 'firstMeal',       label: 'Első étkezés' },
+        { field: 'diet',            label: 'Étrend' },
+        { field: 'dateOfDeparture', label: 'Távozás dátuma' },
+        { field: 'lastMeal',        label: 'Utolsó étkezés' },
+        { field: 'babyBed',         label: 'Babaágyat kérsz?' },
+        { field: 'roomType',        label: 'Szállástípus' },
+        { field: 'climate',         label: 'Klímát kérsz?' },
+        { field: 'roomMate',        label: 'Kivel laknál egy szobában' },
+        { field: 'payment',         label: 'Fizetési mód' },
+    ]
 
     private initialFormValues = {
         id: null,
@@ -92,8 +117,6 @@ export class ConferenceComponent implements OnInit {
     private conferenceObs$: Observable<any> | undefined
     private serviceMessageObs$: Observable<any> | undefined
     private questionMessageObs$: Observable<any> | undefined
-
-    
 
     constructor(
         public userService: UserService,
@@ -160,7 +183,7 @@ export class ConferenceComponent implements OnInit {
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
         this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => this.isOrganizer = isOrganizer)
         this.loggedInUserId = this.userService.getLoggedInUserId()
-        
+
         // Default filter values
         this.filterValues['enabled'] = '1'
 
@@ -226,8 +249,12 @@ export class ConferenceComponent implements OnInit {
         return this.questionsForm.get('questions') as FormArray
     }
 
+    get formFieldInfosArray(): FormArray {
+        return this.formFieldInfosForm.get('fields') as FormArray
+    }
+
     get formFieldInfosQuestions(): FormArray {
-        return this.formFieldInfosForm.get('questions') as FormArray;
+        return this.formFieldInfosForm.get('questions') as FormArray
     }
 
     /**
@@ -281,7 +308,7 @@ export class ConferenceComponent implements OnInit {
             if (this.filterValues[field] === filterValue) {
                 this.doQuery()
             }
-        // otherwise wait for the debounce time
+            // otherwise wait for the debounce time
         } else {
             if (this.debounce[field]) {
                 clearTimeout(this.debounce[field])
@@ -365,41 +392,36 @@ export class ConferenceComponent implements OnInit {
         }
     }
 
-    initializeFormFieldInfosForm() {
-        const q = this.tableItem.questions;
-        const maxQuestions = 5;
+    /**
+     * Initializes the form field infos form
+     */
+    initializeFormFieldInfosForm(fieldInfos?: FormFieldInfo[]) {
 
-        // Check for questions and translations
-        const existingQuestions = q && q.length && q[0].translations ? q[0].translations : [];
+        this.formFieldsInfosPosition = [
+            { label: 'Mező alatti szöveg', value: 'text' },
+            { label: 'Információs buborék', value: 'bubble' }
+        ]
 
-        // Reinitialize the form
+        // Reinitialize the form, including the questions FormArray
         this.formFieldInfosForm = this.formBuilder.group({
-            conferenceid: [this.tableItem.id],
-            questions: this.formBuilder.array([])
-        });
+            conferenceId: [this.tableItem.id, Validators.required],
+            fields: this.formBuilder.array(
+                this.FORM_FIELD_INFOS_CONFIG.map(cfg => {
+                    const found = fieldInfos?.find(f => f.field === cfg.field)
+                    return this.formBuilder.group({
+                        field: [cfg.field],
+                        info: this.formBuilder.group({
+                            hu: [found?.info['hu'] || ''],
+                            en: [found?.info['en'] || ''],
+                        }),
+                        position: [found?.position || 'text'],
+                    }, { validators: allLanguagesRequiredValidator() })
+                })
+            )
+        })
 
-        // Lokális változó a FormArray-re
-        const questionsArray = this.formFieldInfosForm.get('questions') as FormArray;
-
-        // Feltöltés meglévő kérdésekkel
-        existingQuestions.forEach((question: any) => {
-            questionsArray.push(this.formBuilder.group({
-                hu: [question.hu],
-                en: [question.en]
-            }, { validators: allLanguagesRequiredValidator() }));
-        });
-
-        // Üres kérdések hozzáadása
-        const missingQuestions = maxQuestions - questionsArray.length;
-        for (let i = 0; i < missingQuestions; i++) {
-            questionsArray.push(this.formBuilder.group({
-                hu: [''],
-                en: ['']
-            }, { validators: allLanguagesRequiredValidator() }));
-        }
-
-        // Eredeti értékek eltárolása
-        this.originalFormFieldInfosFormValues = this.formFieldInfosForm.value;
+        // Store original values for comparison
+        this.originalFormFieldInfosFormValues = this.formFieldInfosForm.value
     }
 
     /**
@@ -520,7 +542,7 @@ export class ConferenceComponent implements OnInit {
             if (!formValues.id) {
                 this.conferenceService.create(formValues)
 
-            // Update
+                // Update
             } else {
                 this.conferenceService.update(formValues)
             }
@@ -543,7 +565,7 @@ export class ConferenceComponent implements OnInit {
     editFormFieldInfos(conference: Conference) {
         this.tableItem = conference
         this.formFieldInfosForm.reset()
-        this.initializeFormFieldInfosForm()
+        this.initializeFormFieldInfosForm(conference.formFieldInfos)
         this.formFieldsInfosSidebar = true
     }
 
@@ -551,21 +573,29 @@ export class ConferenceComponent implements OnInit {
      * Saving the form field infos form
      */
     saveFormFieldInfos() {
-        this.loading = true
-        const questions = {
-            id: this.tableItem.questions && this.tableItem.questions[0]?.id ? this.tableItem.questions[0].id : null,
-            conferenceid: this.tableItem.id,
-            translations: this.questionsForm.value.questions,
+        if (this.formFieldInfosForm.invalid) return
+
+        const val = this.formFieldInfosForm.value
+
+        // Only where at least one language is filled in
+        const infosToSave = val.fields.filter(
+            (f: { info: { hu: string; en: string } }) => f.info.hu?.trim() || f.info.en?.trim()
+        )
+
+        const updatedConference = {
+            ...this.tableItem,
+            formFieldInfos: infosToSave
         }
-        // Question insert
-        if (questions.id == null) {
-            this.questionService.create(questions)
-        }
-        // Question update
-        else {
-            this.questionService.update(questions)
-        }
-        this.questionsSidebar = false
+
+        this.conferenceService.update(updatedConference)
+        this.formFieldsInfosSidebar = false
+    }
+
+    /**
+     * Cancel saving the form field infos form
+     */
+    cancelFormFieldInfos() {
+        this.formFieldInfosForm.reset(this.originalFormFieldInfosFormValues)
     }
 
     /**

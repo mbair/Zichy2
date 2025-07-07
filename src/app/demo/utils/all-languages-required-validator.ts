@@ -9,6 +9,6 @@ export function allLanguagesRequiredValidator(): ValidatorFn {
         // Check if only one field is filled
         const isOneFieldFilled = (hu && !en) || (!hu && en)
 
-        return isOneFieldFilled ? { bothLanguagesRequired: true } : null
+        return isOneFieldFilled ? { allLanguagesRequired: true } : null
     }
 }

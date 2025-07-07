@@ -14,7 +14,7 @@ import { ConferenceService } from '../../service/conference.service';
 import { AnswerService } from '../../service/answer.service';
 import { GuestService } from '../../service/guest.service';
 import { ApiResponse } from '../../api/ApiResponse';
-import { Conference } from '../../api/conference';
+import { Conference, FormFieldInfo } from '../../api/conference';
 import { Answer } from '../../api/answer';
 import * as moment from 'moment';
 
@@ -50,7 +50,8 @@ export class ConferenceFormComponent implements OnInit {
     showClimateField: boolean = false            // Climate field visibility
     szepCardMessage: Message[]                   // Message for szep card payment
     idCardTemplateVisible: boolean = false       // ID card template visible
-    formFieldInfos: any = {}                     // Field messages for validation
+    formFieldInfos: FormFieldInfo[] = []         // Field messages for validation
+    formFieldInfosMap: { [key: string]: FormFieldInfo } = {}
 
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -373,6 +374,9 @@ export class ConferenceFormComponent implements OnInit {
         // Set the szepCardMessage
         this.setSzepCardMessage()
 
+        // Set form field informations
+        this.setFormFieldInfos()
+
         // On language change, update the szepCardMessage
         this.translate.onLangChange.subscribe(() => {
             this.currentLang = this.translate.currentLang === 'gb' ? 'en' : this.translate.currentLang
@@ -422,8 +426,14 @@ export class ConferenceFormComponent implements OnInit {
      * @param key 
      * @returns 
      */
-    getFormFieldInfo(key: string): string | undefined {
-        return this.formFieldInfos?.[key]?.[this.currentLang]
+    getFormFieldInfo(field: string): string | undefined {
+        const info = this.formFieldInfosMap[field]
+        if (!info) return undefined
+        return info.info[this.currentLang] || info.info['hu']
+    }
+
+    getFormFieldInfoPosition(field: string): 'bubble' | 'text' {
+        return this.formFieldInfosMap[field]?.position || 'text'
     }
 
     /**
@@ -531,92 +541,92 @@ export class ConferenceFormComponent implements OnInit {
     /**
      * Form fields information messages
      */
-    setFormFieldInfos(): void {
-        if (this.conference?.name === '20250713-20250718 Új Jeruzsálem nyári tábor') {
-            this.formFieldInfos = {
-                firstMeal: {
-                    hu: 'Kérlek, első étkezésnek a vacsorát jelöld meg',
-                    en: 'Please select dinner as your first meal.',
-                    tooltip: false
-                },
-                diet: {
-                    hu: 'Normáltól eltérő menü rendelésének felára 10 év felettieknek 1300 Ft/fő/éj, 3-10 év közöttiek esetén 800 Ft/fő/éj',
-                    en: 'The surcharge for ordering a menu other than the standard one is 1300 HUF/person/night for those over 10 years old, 800 HUF/person/night for those between 3 and 10 years old.',
-                    tooltip: false
-                },
-                lastMeal: {
-                    hu: 'Kérlek, utolsó étkezésnek az ebédet jelöld meg',
-                    en: 'Please mark lunch as your last meal.',
-                    tooltip: false
-                },
-                climate: {
-                    hu: 'Klímával felszerelt szoba felára 1000 Ft/fő/éj',
-                    en: 'Surcharge for a room with air conditioning 1000 HUF/person/night',
-                    tooltip: false
-                },
-                payment: {
-                    hu: 'Kérlek, a "Banki átutalás" és "SZÉP kártya" közül válassz. Készpénzes fizetést, kérlek, csak a Szervezővel való  egyeztetés után jelölj meg. programujjeruzsalem@gmail.com',
-                    en: 'Please choose between "Bank transfer" and "SZÉP card". Please only indicate cash payment after consultation with the Organizer. programujjeruzsalem@gmail.com',
-                    tooltip: true
-                }
-            }
-        }
+    // setFormFieldInfos(): void {
+    //     if (this.conference?.name === '20250713-20250718 Új Jeruzsálem nyári tábor') {
+    //         this.formFieldInfos = {
+    //             firstMeal: {
+    //                 hu: 'Kérlek, első étkezésnek a vacsorát jelöld meg',
+    //                 en: 'Please select dinner as your first meal.',
+    //                 tooltip: false
+    //             },
+    //             diet: {
+    //                 hu: 'Normáltól eltérő menü rendelésének felára 10 év felettieknek 1300 Ft/fő/éj, 3-10 év közöttiek esetén 800 Ft/fő/éj',
+    //                 en: 'The surcharge for ordering a menu other than the standard one is 1300 HUF/person/night for those over 10 years old, 800 HUF/person/night for those between 3 and 10 years old.',
+    //                 tooltip: false
+    //             },
+    //             lastMeal: {
+    //                 hu: 'Kérlek, utolsó étkezésnek az ebédet jelöld meg',
+    //                 en: 'Please mark lunch as your last meal.',
+    //                 tooltip: false
+    //             },
+    //             climate: {
+    //                 hu: 'Klímával felszerelt szoba felára 1000 Ft/fő/éj',
+    //                 en: 'Surcharge for a room with air conditioning 1000 HUF/person/night',
+    //                 tooltip: false
+    //             },
+    //             payment: {
+    //                 hu: 'Kérlek, a "Banki átutalás" és "SZÉP kártya" közül válassz. Készpénzes fizetést, kérlek, csak a Szervezővel való  egyeztetés után jelölj meg. programujjeruzsalem@gmail.com',
+    //                 en: 'Please choose between "Bank transfer" and "SZÉP card". Please only indicate cash payment after consultation with the Organizer. programujjeruzsalem@gmail.com',
+    //                 tooltip: true
+    //             }
+    //         }
+    //     }
 
-        if (this.conference?.name === '20250803-20250808 Golgota nyári hetek 1' || this.conference?.name === '20250803-20250808 Önkéntesek Golgota nyári hetek 1' || this.conference?.name === '20250810-20250815 Golgota nyári hetek 2' || this.conference?.name === '20250810-20250815 Önkéntesek Golgota nyári hetek 2') {
-            this.formFieldInfos = {
-                firstMeal: {
-                    hu: 'Vasárnap csak vacsora kérhető',
-                    en: 'Only dinner is available on Sunday.',
-                    tooltip: false
-                },
-                diet: {
-                    hu: 'A normáltól eltérő étkezésnek felára van',
-                    en: 'There is a surcharge for meals other than the standard.',
-                    tooltip: false
-                },
-                lastMeal: {
-                    hu: 'Pénteken ebéd is kérhető',
-                    en: 'Lunch is also available on Fridays.',
-                    tooltip: false
-                },
-                climate: {
-                    hu: 'Ennek a felára 1.000 Ft/fő/éjszaka',
-                    en: 'The surcharge for this is 1,000 HUF/person/night.',
-                    tooltip: false
-                },
-                roomMate: {
-                    hu: 'Kérjük ugyanazt az egy családtagot írja be az egész család',
-                    en: 'Please enter the same one family member for the entire family.',
-                    tooltip: true
-                },
-                payment: {
-                    hu: 'NE válassz készpénzes fizetést',
-                    en: 'DO NOT choose cash payment.',
-                    tooltip: false
-                }
-            }
-        }
+    //     if (this.conference?.name === '20250803-20250808 Golgota nyári hetek 1' || this.conference?.name === '20250803-20250808 Önkéntesek Golgota nyári hetek 1' || this.conference?.name === '20250810-20250815 Golgota nyári hetek 2' || this.conference?.name === '20250810-20250815 Önkéntesek Golgota nyári hetek 2') {
+    //         this.formFieldInfos = {
+    //             firstMeal: {
+    //                 hu: 'Vasárnap csak vacsora kérhető',
+    //                 en: 'Only dinner is available on Sunday.',
+    //                 tooltip: false
+    //             },
+    //             diet: {
+    //                 hu: 'A normáltól eltérő étkezésnek felára van',
+    //                 en: 'There is a surcharge for meals other than the standard.',
+    //                 tooltip: false
+    //             },
+    //             lastMeal: {
+    //                 hu: 'Pénteken ebéd is kérhető',
+    //                 en: 'Lunch is also available on Fridays.',
+    //                 tooltip: false
+    //             },
+    //             climate: {
+    //                 hu: 'Ennek a felára 1.000 Ft/fő/éjszaka',
+    //                 en: 'The surcharge for this is 1,000 HUF/person/night.',
+    //                 tooltip: false
+    //             },
+    //             roomMate: {
+    //                 hu: 'Kérjük ugyanazt az egy családtagot írja be az egész család',
+    //                 en: 'Please enter the same one family member for the entire family.',
+    //                 tooltip: true
+    //             },
+    //             payment: {
+    //                 hu: 'NE válassz készpénzes fizetést',
+    //                 en: 'DO NOT choose cash payment.',
+    //                 tooltip: false
+    //             }
+    //         }
+    //     }
 
-        if (this.conference?.name === '20250727-20250801 Sarokkő nyári tábor') {
-            this.formFieldInfos = {
-                dateOfDeparture: {
-                    hu: 'Ha végig maradsz a táborban (augusztus 1), a távozás megadásánál, az augusztus hónaphoz kell ugrani',
-                    en: 'If you stay in the camp until the end (August 1), when you enter your departure, you must jump to the month of August.',
-                    tooltip: false
-                },
-                climate: {
-                    hu: 'Klíma csak adott szobák esetében lehetséges, garantálni nem tudjuk',
-                    en: 'Air conditioning is only available in certain rooms, we cannot guarantee it.',
-                    tooltip: false
-                },
-                payment: {
-                    hu: 'A banki átutalás választása technikai okok nem lehetséges, kérjük ezt NE jelöld meg',
-                    en: 'The bank transfer option is not possible for technical reasons, please DO NOT select this option.',
-                    tooltip: true
-                }
-            }
-        }
-    }
+    //     if (this.conference?.name === '20250727-20250801 Sarokkő nyári tábor') {
+    //         this.formFieldInfos = {
+    //             dateOfDeparture: {
+    //                 hu: 'Ha végig maradsz a táborban (augusztus 1), a távozás megadásánál, az augusztus hónaphoz kell ugrani',
+    //                 en: 'If you stay in the camp until the end (August 1), when you enter your departure, you must jump to the month of August.',
+    //                 tooltip: false
+    //             },
+    //             climate: {
+    //                 hu: 'Klíma csak adott szobák esetében lehetséges, garantálni nem tudjuk',
+    //                 en: 'Air conditioning is only available in certain rooms, we cannot guarantee it.',
+    //                 tooltip: false
+    //             },
+    //             payment: {
+    //                 hu: 'A banki átutalás választása technikai okok nem lehetséges, kérjük ezt NE jelöld meg',
+    //                 en: 'The bank transfer option is not possible for technical reasons, please DO NOT select this option.',
+    //                 tooltip: true
+    //             }
+    //         }
+    //     }
+    // }
 
     /**
      * Handles the submission of the form.
@@ -809,6 +819,15 @@ export class ConferenceFormComponent implements OnInit {
             idCardControl?.disable()
         }
         idCardControl?.updateValueAndValidity()
+    }
+
+    setFormFieldInfos() {
+        this.formFieldInfosMap = {};
+        if (this.conference?.formFieldInfos) {
+            for (const info of this.conference.formFieldInfos) {
+                this.formFieldInfosMap[info.field] = info;
+            }
+        }
     }
 
     /**

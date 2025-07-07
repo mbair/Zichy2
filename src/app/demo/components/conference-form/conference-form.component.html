@@ -55,7 +55,7 @@
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12">
                                             <label for="lastName" class="font-medium text-900">
                                                 {{'Vezetéknév' | translate }}
-                                                <i *ngIf="formFieldInfos?.lastName && formFieldInfos.lastName.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('lastName') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('lastName')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -67,7 +67,7 @@
                                             <div *ngIf="lastName?.dirty && lastName?.errors?.['required']" class="p-error">
                                                 {{'Vezetéknév' | translate }} {{'kötelezos' | translate }}
                                             </div>
-                                            <small *ngIf="formFieldInfos.lastName && !formFieldInfos.lastName.tooltip" id="lastName-info">
+                                            <small *ngIf="getFormFieldInfoPosition('lastName') === 'text' && getFormFieldInfo('lastName')" id="lastName-info">
                                                 {{ getFormFieldInfo('lastName') }}
                                             </small>
                                         </div>
@@ -76,7 +76,7 @@
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
                                             <label for="firstName" class="font-medium text-900">
                                                 {{'Keresztnév' | translate }}
-                                                <i *ngIf="formFieldInfos?.firstName && formFieldInfos.firstName.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('firstName') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('firstName')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -88,7 +88,7 @@
                                             <div *ngIf="firstName?.dirty && firstName?.errors?.['required']" class="p-error">
                                                 {{'Keresztnév' | translate }} {{'kötelező' | translate }}
                                             </div>
-                                            <small *ngIf="formFieldInfos.firstName && !formFieldInfos.firstName.tooltip" id="firstName-info">
+                                            <small *ngIf="getFormFieldInfoPosition('firstName') === 'text' && getFormFieldInfo('firstName')" id="firstName-info">
                                                 {{ getFormFieldInfo('firstName') }}
                                             </small>
                                         </div>
@@ -97,7 +97,7 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="gender" class="font-medium text-900">
                                                 {{'Neme' | translate }}
-                                                <i *ngIf="formFieldInfos?.gender && formFieldInfos.gender.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('gender') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('gender')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -118,7 +118,7 @@
                                             <div *ngIf="gender?.dirty && gender?.errors?.['required']" class="p-error">
                                                 {{'Neme' | translate }} {{'kötelező' | translate }}
                                             </div>
-                                            <small *ngIf="formFieldInfos.gender && !formFieldInfos.gender.tooltip" id="gender-info">
+                                            <small *ngIf="getFormFieldInfoPosition('gender') === 'text' && getFormFieldInfo('gender')" id="gender-info">
                                                 {{ getFormFieldInfo('gender') }}
                                             </small>
                                         </div>
@@ -127,7 +127,7 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="birthDate" class="font-medium text-900">
                                                 {{'Születési dátum' | translate }}
-                                                <i *ngIf="formFieldInfos?.birthDate && formFieldInfos.birthDate.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('birthDate') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('birthDate')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -147,7 +147,7 @@
                                             <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
                                                 {{'Születési dátum' | translate }} {{'kötelező' | translate }}
                                             </div>
-                                            <small *ngIf="formFieldInfos.birthDate && !formFieldInfos.birthDate.tooltip" id="birthDate-info">
+                                            <small *ngIf="getFormFieldInfoPosition('birthDate') === 'text' && getFormFieldInfo('birthDate')" id="birthDate-info">
                                                 {{ getFormFieldInfo('birthDate') }}
                                             </small>
                                         </div>
@@ -156,7 +156,7 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="nationality" class="font-medium text-900">
                                                 {{'Állampolgárság' | translate }}
-                                                <i *ngIf="formFieldInfos?.nationality && formFieldInfos.nationality.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('nationality') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('nationality')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -168,7 +168,7 @@
                                             <div *ngIf="nationality?.dirty && nationality?.errors?.['required']" class="p-error">
                                                 {{'Állampolgárság' | translate }} {{'kötelező' | translate }}
                                             </div>
-                                            <small *ngIf="formFieldInfos.nationality && !formFieldInfos.nationality.tooltip" id="nationality-info">
+                                            <small *ngIf="getFormFieldInfoPosition('nationality') === 'text' && getFormFieldInfo('nationality')" id="nationality-info">
                                                 {{ getFormFieldInfo('nationality') }}
                                             </small>
                                         </div>
@@ -177,7 +177,7 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="country" class="font-medium text-900">
                                                 {{'Lakóhely - ország' | translate }}
-                                                <i *ngIf="formFieldInfos?.country && formFieldInfos.country.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('country') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('country')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -189,7 +189,7 @@
                                             <div *ngIf="country?.dirty && country?.errors?.['required']" class="p-error">
                                                 {{'Ország' | translate }} {{'kötelező' | translate }}
                                             </div>
-                                            <small *ngIf="formFieldInfos.country && !formFieldInfos.country.tooltip" id="country-info">
+                                            <small *ngIf="getFormFieldInfoPosition('country') === 'text' && getFormFieldInfo('country')" id="country-info">
                                                 {{ getFormFieldInfo('country') }}
                                             </small>
                                         </div>
@@ -198,7 +198,7 @@
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
                                             <label for="zipCode" class="font-medium text-900">
                                                 {{'Lakóhely - irányítószám' | translate }}
-                                                <i *ngIf="formFieldInfos?.zipCode && formFieldInfos.zipCode.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('zipCode') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('zipCode')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -230,7 +230,7 @@
                                                     {{'A magyar irányítószámnak 4 számjegyből kell állnia' | translate }}
                                                 </div>
                                             </div>
-                                            <small *ngIf="formFieldInfos.zipCode && !formFieldInfos.zipCode.tooltip" id="zipCode-info">
+                                            <small *ngIf="getFormFieldInfoPosition('zipCode') === 'text' && getFormFieldInfo('zipCode')" id="zipCode-info">
                                                 {{ getFormFieldInfo('zipCode') }}
                                             </small>
                                         </div>
@@ -239,7 +239,7 @@
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
                                             <label for="email" class="font-medium text-900">
                                                 {{'Email' | translate }}
-                                                <i *ngIf="formFieldInfos?.email && formFieldInfos.email.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('email') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('email')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -256,7 +256,7 @@
                                                     {{'Nem megfelelő email formátum' | translate }}
                                                 </div>
                                             </div>
-                                            <small *ngIf="formFieldInfos.email && !formFieldInfos.email.tooltip" id="email-info">
+                                            <small *ngIf="getFormFieldInfoPosition('email') === 'text' && getFormFieldInfo('email')" id="email-info">
                                                 {{ getFormFieldInfo('email') }}
                                             </small>
                                         </div>
@@ -265,7 +265,7 @@
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12" >
                                             <label for="telephone" class="font-medium text-900">
                                                 {{'Telefon' | translate }}
-                                                <i *ngIf="formFieldInfos?.telephone && formFieldInfos.telephone.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('telephone') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('telephone')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -281,7 +281,7 @@
                                             <div *ngIf="telephone?.dirty && telephone?.errors?.['required']" class="p-error">
                                                 {{'Telefon' | translate }} {{'kötelező' | translate }}
                                             </div>
-                                            <small *ngIf="formFieldInfos.telephone && !formFieldInfos.telephone.tooltip" id="telephone-info">
+                                            <small *ngIf="getFormFieldInfoPosition('telephone') === 'text' && getFormFieldInfo('telephone')" id="telephone-info">
                                                 {{ getFormFieldInfo('telephone') }}
                                             </small>
                                         </div>
@@ -290,7 +290,7 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="dateOfArrival" class="font-medium text-900">
                                                 {{'Érkezés dátuma' | translate }}
-                                                <i *ngIf="formFieldInfos?.dateOfArrival && formFieldInfos.dateOfArrival.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('dateOfArrival') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('dateOfArrival')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -314,7 +314,7 @@
                                             <div *ngIf="conferenceForm.errors?.['dateRangeInvalid']" class="p-error">
                                                 {{'Az érkezés dátumának korábbinak kell lennie, mint a távozási dátum' | translate }}!
                                             </div>
-                                            <small *ngIf="formFieldInfos.dateOfArrival && !formFieldInfos.dateOfArrival.tooltip" id="dateOfArrival-info">
+                                            <small *ngIf="getFormFieldInfoPosition('dateOfArrival') === 'text' && getFormFieldInfo('dateOfArrival')" id="dateOfArrival-info">
                                                 {{ getFormFieldInfo('dateOfArrival') }}
                                             </small>
                                         </div>
@@ -323,7 +323,7 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="firstMeal" class="font-medium text-900">
                                                 {{'Első étkezés' | translate }}
-                                                <i *ngIf="formFieldInfos?.firstMeal && formFieldInfos.firstMeal.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('firstMeal') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('firstMeal')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -341,7 +341,7 @@
                                             <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, válassza ki az első étkezését' | translate }}!
                                             </div>
-                                            <small *ngIf="formFieldInfos.firstMeal && !formFieldInfos.firstMeal.tooltip" id="firstMeal-info">
+                                            <small *ngIf="getFormFieldInfoPosition('firstMeal') === 'text' && getFormFieldInfo('firstMeal')" id="firstMeal-info">
                                                 {{ getFormFieldInfo('firstMeal') }}
                                             </small>
                                         </div>
@@ -350,7 +350,7 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="diet" class="font-medium text-900">
                                                 {{'Étrend' | translate }}
-                                                <i *ngIf="formFieldInfos?.diet && formFieldInfos.diet.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('diet') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('diet')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -362,7 +362,7 @@
                                             <div *ngIf="diet?.dirty && diet?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, válassza ki az étrendjét' | translate }}!
                                             </div>
-                                            <small *ngIf="formFieldInfos.diet && !formFieldInfos.diet.tooltip" id="diet-info">
+                                            <small *ngIf="getFormFieldInfoPosition('diet') === 'text' && getFormFieldInfo('diet')" id="diet-info">
                                                 {{ getFormFieldInfo('diet') }}
                                             </small>
                                         </div>
@@ -371,7 +371,7 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="dateOfDeparture" class="font-medium text-900">
                                                 {{'Távozás dátuma' | translate }}
-                                                <i *ngIf="formFieldInfos?.dateOfDeparture && formFieldInfos.dateOfDeparture.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('dateOfDeparture') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('dateOfDeparture')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -395,7 +395,7 @@
                                             <div *ngIf="conferenceForm.errors?.['dateRangeInvalid']" class="p-error">
                                                 {{'A távozás dátumának későbbinek kell lennie, mint az érkezési dátum' | translate }}!
                                             </div>
-                                            <small *ngIf="formFieldInfos.dateOfDeparture && !formFieldInfos.dateOfDeparture.tooltip" id="dateOfDeparture-info">
+                                            <small *ngIf="getFormFieldInfoPosition('dateOfDeparture') === 'text' && getFormFieldInfo('dateOfDeparture')" id="dateOfDeparture-info">
                                                 {{ getFormFieldInfo('dateOfDeparture') }}
                                             </small>
                                         </div>
@@ -404,7 +404,7 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="lastMeal" class="font-medium text-900">
                                                 {{'Utolsó étkezés' | translate }}
-                                                <i *ngIf="formFieldInfos?.lastMeal && formFieldInfos.lastMeal.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('lastMeal') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('lastMeal')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -422,7 +422,7 @@
                                             <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, válassza ki az utolsó étkezését' | translate }}!
                                             </div>
-                                            <small *ngIf="formFieldInfos.lastMeal && !formFieldInfos.lastMeal.tooltip" id="lastMeal-info">
+                                            <small *ngIf="getFormFieldInfoPosition('lastMeal') === 'text' && getFormFieldInfo('lastMeal')" id="lastMeal-info">
                                                 {{ getFormFieldInfo('lastMeal') }}
                                             </small>
                                         </div>
@@ -431,7 +431,7 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="babyBed" class="font-medium text-900">
                                                 {{'Babaágyat kérsz' | translate }}?
-                                                <i *ngIf="formFieldInfos?.babyBed && formFieldInfos.babyBed.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('babyBed') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('babyBed')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -452,7 +452,7 @@
                                             <div *ngIf="babyBed?.dirty && babyBed?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki, hogy kér-e babaágyat' | translate }}!
                                             </div>
-                                            <small *ngIf="formFieldInfos.babyBed && !formFieldInfos.babyBed.tooltip" id="babyBed-info">
+                                            <small *ngIf="getFormFieldInfoPosition('babyBed') === 'text' && getFormFieldInfo('babyBed')" id="babyBed-info">
                                                 {{ getFormFieldInfo('babyBed') }}
                                             </small>
                                         </div>
@@ -461,7 +461,7 @@
                                         <div class="field mb-4 col-12 lg:col-8">
                                             <label for="roomType" class="font-medium text-900">
                                                 {{'Szállástípus' | translate }}
-                                                <i *ngIf="formFieldInfos?.roomType && formFieldInfos.roomType.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('roomType') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('roomType')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -479,7 +479,7 @@
                                             <small id="roomType-help">
                                                 {{'Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szállástípusra osztunk be' | translate }}.
                                             </small>
-                                            <small *ngIf="formFieldInfos.roomType && !formFieldInfos.roomType.tooltip" id="roomType-info">
+                                            <small *ngIf="getFormFieldInfoPosition('roomType') === 'text' && getFormFieldInfo('roomType')" id="roomType-info">
                                                 {{ getFormFieldInfo('roomType') }}
                                             </small>
                                         </div>
@@ -488,7 +488,7 @@
                                         <div *ngIf="showClimateField" class="field mb-4 col-12 lg:col-4">
                                             <label for="climate" class="font-medium text-900">
                                                 {{'Klímát kérsz' | translate }}?
-                                                <i *ngIf="formFieldInfos?.climate && formFieldInfos.climate.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('climate') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('climate')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -509,7 +509,7 @@
                                             <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki, hogy kér-e klímát' | translate }}!
                                             </div>
-                                            <small *ngIf="formFieldInfos.climate && !formFieldInfos.climate.tooltip" id="climate-info">
+                                            <small *ngIf="getFormFieldInfoPosition('climate') === 'text' && getFormFieldInfo('climate')" id="climate-info">
                                                 {{ getFormFieldInfo('climate') }}
                                             </small>
                                         </div>
@@ -518,7 +518,7 @@
                                         <div class="field mb-4 col-12 lg:col-8" *ngIf="conferenceForm.get('roomType')?.value !== 'Nem kérek szállást'">
                                             <label for="roomMate" class="font-medium text-900">
                                                 {{'Kivel laknál egy szobában' | translate }}?
-                                                <i *ngIf="formFieldInfos?.roomMate && formFieldInfos.roomMate.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('roomMate') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('roomMate')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -540,7 +540,7 @@
                                             <small id="roomMate-help">
                                                 {{'Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában' | translate }}.
                                             </small>
-                                            <small *ngIf="formFieldInfos.roomMate && !formFieldInfos.roomMate.tooltip" id="roomMate-info">
+                                            <small *ngIf="getFormFieldInfoPosition('roomMate') === 'text' && getFormFieldInfo('roomMate')" id="roomMate-info">
                                                 {{ getFormFieldInfo('roomMate') }}
                                             </small>
                                         </div>
@@ -549,7 +549,7 @@
                                         <div class="field mb-4 col-12 lg:col-4">
                                             <label for="payment" class="font-medium text-900">
                                                 {{'Fizetési mód' | translate }}
-                                                <i *ngIf="formFieldInfos?.payment && formFieldInfos.payment.tooltip"
+                                                <i *ngIf="getFormFieldInfoPosition('payment') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('payment')"                                                    
                                                     [escape]="false"
                                                     appendTo="body"
@@ -564,7 +564,7 @@
                                             <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki a fizetési módot' | translate }}!
                                             </div>
-                                            <small *ngIf="formFieldInfos.payment && !formFieldInfos.payment.tooltip" id="payment-info">
+                                            <small *ngIf="getFormFieldInfoPosition('payment') === 'text' && getFormFieldInfo('payment')" id="payment-info">
                                                 {{ getFormFieldInfo('payment') }}
                                             </small>
                                         </div>
