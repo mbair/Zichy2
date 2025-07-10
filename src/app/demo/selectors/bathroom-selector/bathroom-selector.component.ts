@@ -94,6 +94,12 @@ export class BathroomSelectorComponent implements OnInit, ControlValueAccessor {
         this.change.emit({ value: event.value, field: this.controlName })
     }
 
+    /**
+     * Sets the disabled state of the component.
+     * Used by Angular forms to enable/disable the input dynamically.
+     * 
+     * @param isDisabled - Boolean indicating whether the component should be disabled.
+     */
     setDisabledState(isDisabled: boolean): void {
         this.disabled = isDisabled
         this.cdRef.detectChanges()
