@@ -1,6 +1,6 @@
 {
     "name": "nfc-reserve",
-    "version": "1.12.22",
+    "version": "1.12.23",
     "scripts": {
         "ng": "ng",
         "start": "ng serve",
