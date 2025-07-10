@@ -1,37 +1,69 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit, OnDestroy } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
 import { DropdownChangeEvent } from 'primeng/dropdown';
 import { RoleService } from '../../service/role.service';
 import { Role } from '../../api/role';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-role-selector',
-    templateUrl: './role-selector.component.html'
+    templateUrl: './role-selector.component.html',
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => RoleSelectorComponent),
+            multi: true
+        }
+    ]
 })
 export class RoleSelectorComponent {
     @Input() parentForm: FormGroup
     @Input() controlName: string
+    @Input() placeholder: string
     @Input() showClear: boolean
     @Output() change = new EventEmitter<any>()
 
     roles: Role[] = []              // Available roles
     selectedRole: string = ''       // Selected role
+    disabled = false
 
-    constructor(private roleService: RoleService) {}
+    private subs: Subscription
+
+    constructor(private roleService: RoleService, 
+                private cdRef: ChangeDetectorRef) {
+
+        if (!this.placeholder) {
+            this.placeholder = 'Válasszon...'
+        }
+    }
 
     /**
      * OnInit lifecycle hook
      * Fetches roles for the selector and updates the component's roles property with the retrieved roles.
      */
     ngOnInit() {
-        // Get roles for selector
-        this.roleService.getRolesForSelector().subscribe({
+        this.subs = this.roleService.getRolesForSelector().subscribe({
             next: (data) => {
                 if (data) {
                     this.roles = data
+                    
+                    // Invalidate selectedRole if not in new list
+                    if (this.selectedRole && !this.roles.some(r => r.id === this.selectedRole)) {
+                        this.selectedRole = ''
+                        this.onChange('')
+                    }
+                    this.cdRef.detectChanges()
                 }
             }
         })
+    }
+
+    /**
+     * Cleans up all subscriptions when the component is destroyed,
+     * preventing potential memory leaks.
+     */
+    ngOnDestroy() {
+        this.subs.unsubscribe()
     }
 
     /**
@@ -69,4 +101,62 @@ export class RoleSelectorComponent {
         const roleStyleClass = role ? role?.name?.trim().toLowerCase().replace(/\s+/g, '') : ''
         return `user-role-badge role-${roleStyleClass}`
     }
+
+    /**
+     * Sets the disabled state of the component.
+     * Used by Angular forms to enable/disable the input dynamically.
+     * 
+     * @param isDisabled - Boolean indicating whether the component should be disabled.
+     */
+    setDisabledState(isDisabled: boolean): void {
+        this.disabled = isDisabled
+        this.cdRef.detectChanges()
+    }
+
+    // ===========================
+    // ControlValueAccessor Methods
+    // ===========================
+
+    /**
+     * Writes the value from the parent form into the component.
+     * Used when the form initializes or updates externally.
+     * 
+     * @param value - The selected conferences coming from the form.
+     */
+    writeValue(value: any): void {
+        this.selectedRole = value
+        this.cdRef.detectChanges()
+    }
+
+    /**
+     * Registers a callback function that is called when the value changes.
+     * This is part of the ControlValueAccessor implementation.
+     * 
+     * @param fn - The callback function to be triggered on value change.
+     */
+    registerOnChange(fn: any): void {
+        this.onChange = fn
+    }
+
+    /**
+     * Registers a callback function that is called when the input is touched.
+     * This is part of the ControlValueAccessor implementation.
+     * 
+     * @param fn - The callback function to be triggered on input touch.
+     */
+    registerOnTouched(fn: any): void {
+        this.onTouched = fn
+    }
+
+    /**
+     * Callback function to handle value changes from the parent form.
+     * Initially set as an empty function, but will be assigned dynamically.
+     */
+    onChange = (_: any) => { }
+
+    /**
+     * Callback function to handle when the input is touched.
+     * Initially set as an empty function, but will be assigned dynamically.
+     */
+    onTouched = () => { }
 }
