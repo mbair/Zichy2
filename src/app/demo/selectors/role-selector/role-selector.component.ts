@@ -16,7 +16,7 @@ import { Subscription } from 'rxjs';
         }
     ]
 })
-export class RoleSelectorComponent {
+export class RoleSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() placeholder: string
