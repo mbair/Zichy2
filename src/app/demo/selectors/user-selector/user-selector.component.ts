@@ -75,7 +75,22 @@ export class UserSelectorComponent implements OnInit, OnDestroy, ControlValueAcc
      * Updates the available role options when input properties change.
      * @param changes An object of key-value pairs for the changed properties.
      */
-    ngOnChanges(changes: SimpleChanges) {}
+    ngOnChanges(changes: SimpleChanges) {
+        if (changes['user_rolesid'] && !changes['user_rolesid'].firstChange) {
+            // If role changes its needed to get users again
+            this.userService.getUsersForSelector(this.user_rolesid).subscribe({
+                next: (data) => {
+                    this.users = this.user_rolesid ? data.filter(user => user.user_rolesid === this.user_rolesid) : data
+                    // Invalidate selection if not valid anymore
+                    if (this.selectedUser && !this.users.some(u => u.id === this.selectedUser)) {
+                        this.selectedUser = ''
+                        this.onChange('')
+                    }
+                    this.cdRef.detectChanges()
+                }
+            })
+        }
+    }
 
     /**
      * Fetches roles from the RoleService and updates the component's roles property with the retrieved roles.
