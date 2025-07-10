@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { DropdownChangeEvent } from 'primeng/dropdown';
 
@@ -10,9 +10,16 @@ export interface changeEvent {
 
 @Component({
     selector: 'app-bedtype-selector',
-    templateUrl: './bedtype-selector.component.html'
+    templateUrl: './bedtype-selector.component.html',
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => BedtypeSelectorComponent),
+            multi: true
+        }
+    ]
 })
-export class BedtypeSelectorComponent {
+export class BedtypeSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() placeholder: string
@@ -21,8 +28,11 @@ export class BedtypeSelectorComponent {
     
     bedtypes: any[] = []            // Available bedtypes
     selectedBedtype: string = ''    // Selected bedtype
+    disabled = false
 
-    constructor(private translate: TranslateService) {
+    constructor(private translate: TranslateService, 
+                private cdRef: ChangeDetectorRef) {
+        
         if (!this.placeholder) {
             this.placeholder = 'Válasszon...'
         }
@@ -37,6 +47,7 @@ export class BedtypeSelectorComponent {
         this.translate.onLangChange.subscribe(() => {
             this.setBedtypes()
         })
+        this.setBedtypes()
     }
 
     /**
@@ -77,6 +88,61 @@ export class BedtypeSelectorComponent {
      * @param event the change event of the bedtype selector
      */
     handleOnChange(event: DropdownChangeEvent) {
+        this.selectedBedtype = event.value
+        this.onChange(event.value)
+        this.onTouched()
         this.change.emit({ value: event.value, field: this.controlName })
     }
+
+    setDisabledState(isDisabled: boolean): void {
+        this.disabled = isDisabled
+        this.cdRef.detectChanges()
+    }
+
+    // ===========================
+    // ControlValueAccessor Methods
+    // ===========================
+
+    /**
+     * Writes the value from the parent form into the component.
+     * Used when the form initializes or updates externally.
+     * 
+     * @param value - The selected conferences coming from the form.
+     */
+    writeValue(value: any): void {
+        this.selectedBedtype = value
+        this.cdRef.detectChanges()
+    }
+
+    /**
+     * Registers a callback function that is called when the value changes.
+     * This is part of the ControlValueAccessor implementation.
+     * 
+     * @param fn - The callback function to be triggered on value change.
+     */
+    registerOnChange(fn: any): void {
+        this.onChange = fn
+    }
+
+    /**
+     * Registers a callback function that is called when the input is touched.
+     * This is part of the ControlValueAccessor implementation.
+     * 
+     * @param fn - The callback function to be triggered on input touch.
+     */
+    registerOnTouched(fn: any): void {
+        this.onTouched = fn
+    }
+
+    /**
+     * Callback function to handle value changes from the parent form.
+     * Initially set as an empty function, but will be assigned dynamically.
+     */
+    onChange = (_: any) => { }
+
+    /**
+     * Callback function to handle when the input is touched.
+     * Initially set as an empty function, but will be assigned dynamically.
+     */
+    onTouched = () => { }
 }

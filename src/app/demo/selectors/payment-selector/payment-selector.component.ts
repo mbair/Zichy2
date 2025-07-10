@@ -88,6 +88,11 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
         this.change.emit({ value: event.value, field: this.controlName })
     }
 
+    setDisabledState(isDisabled: boolean): void {
+        this.disabled = isDisabled
+        this.cdRef.detectChanges()
+    }
+
     // ===========================
     // ControlValueAccessor Methods
     // ===========================
