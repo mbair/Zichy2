@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { DropdownChangeEvent } from 'primeng/dropdown';
 
@@ -10,9 +10,16 @@ export interface changeEvent {
 
 @Component({
     selector: 'app-meal-selector',
-    templateUrl: './meal-selector.component.html'
+    templateUrl: './meal-selector.component.html',
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => MealSelectorComponent),
+            multi: true
+        }
+    ]
 })
-export class MealSelectorComponent {
+export class MealSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
@@ -23,8 +30,10 @@ export class MealSelectorComponent {
 
     meals: any[] = []           // Available meals
     selectedMeal: string = ''   // Selected meal
+    disabled = false
 
-    constructor(private translate: TranslateService) {}
+    constructor(private translate: TranslateService, 
+                private cdRef: ChangeDetectorRef) {}
     
     /**
      * Lifecycle hook: called when the component is initialized.
@@ -35,6 +44,7 @@ export class MealSelectorComponent {
         this.translate.onLangChange.subscribe(() => {
             this.setMeals()
         })
+        this.setMeals()
     }
 
     /**
@@ -71,7 +81,7 @@ export class MealSelectorComponent {
         if (this.earliestMeal) {
             const earliestIndex = this.meals.findIndex(meal => meal.value === this.earliestMeal)
             if (earliestIndex > -1) {
-                this.meals = this.meals.slice(earliestIndex);
+                this.meals = this.meals.slice(earliestIndex)
             }
         }
     
@@ -115,6 +125,61 @@ export class MealSelectorComponent {
      * @param event the change event of the meal selector
      */
     handleOnChange(event: DropdownChangeEvent) {
+        this.selectedMeal = event.value
+        this.onChange(event.value)
+        this.onTouched()
         this.change.emit({ value: event.value, field: this.controlName })
     }
+
+    setDisabledState(isDisabled: boolean): void {
+        this.disabled = isDisabled
+        this.cdRef.detectChanges()
+    }
+
+    // ===========================
+    // ControlValueAccessor Methods
+    // ===========================
+
+    /**
+     * Writes the value from the parent form into the component.
+     * Used when the form initializes or updates externally.
+     * 
+     * @param value - The selected conferences coming from the form.
+     */
+    writeValue(value: any): void {
+        this.selectedMeal = value
+        this.cdRef.detectChanges()
+    }
+
+    /**
+     * Registers a callback function that is called when the value changes.
+     * This is part of the ControlValueAccessor implementation.
+     * 
+     * @param fn - The callback function to be triggered on value change.
+     */
+    registerOnChange(fn: any): void {
+        this.onChange = fn
+    }
+
+    /**
+     * Registers a callback function that is called when the input is touched.
+     * This is part of the ControlValueAccessor implementation.
+     * 
+     * @param fn - The callback function to be triggered on input touch.
+     */
+    registerOnTouched(fn: any): void {
+        this.onTouched = fn
+    }
+
+    /**
+     * Callback function to handle value changes from the parent form.
+     * Initially set as an empty function, but will be assigned dynamically.
+     */
+    onChange = (_: any) => { }
+
+    /**
+     * Callback function to handle when the input is touched.
+     * Initially set as an empty function, but will be assigned dynamically.
+     */
+    onTouched = () => { }
 }
