@@ -47,10 +47,6 @@ export class NationalitySelectorComponent implements OnInit, ControlValueAccesso
             this.countries = countries
             // Set Hungary as default nationality if applicable
             const hungary = this.countries.find(country => country.name === 'Hungary')
-            // if (hungary && this.parentForm && this.controlName) {
-            //     this.parentForm.get(this.controlName)?.setValue(hungary.code)
-            //     this.cdRef.detectChanges() // Notify Angular about the change
-            // }
             if (
                 hungary &&
                 this.selectedNationality === '' &&
