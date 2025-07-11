@@ -36,7 +36,7 @@ export class ConferenceService {
      * @param queryParams
      */
     public get(page: number, rowsPerPage: number, sort: any, queryParams: string): void {
-        
+
         // Get user role & id
         const userrole = localStorage.getItem('userrole')
         const userid = localStorage.getItem('userid')
@@ -44,19 +44,19 @@ export class ConferenceService {
         // Organizers can only see their own conferences
         if (userrole === 'Szervezo' && userid) {
             const organizerFilter = `organizer_user_id=${userid}`
-            queryParams = queryParams 
-                ? `${queryParams}&${organizerFilter}` 
+            queryParams = queryParams
+                ? `${queryParams}&${organizerFilter}`
                 : organizerFilter
         }
 
         // By default, only enabled=1 conferences are requested,
         // unless the queryParams specifically contains the "enabled" filter.
         if (!queryParams.includes('enabled=')) {
-            queryParams = queryParams 
-                ? `${queryParams}&enabled=1` 
+            queryParams = queryParams
+                ? `${queryParams}&enabled=1`
                 : 'enabled=1';
         }
-        
+
         let pageSort: string = '';
         if (sort !== '') {
             const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC'
@@ -263,17 +263,41 @@ export class ConferenceService {
      */
     public removeRoomsFromConference(conferenceId: number, roomIds: number[]): void {
         this.apiService.post(`conferencesroom/removeroom/${conferenceId}`, { roomIds })
-        .subscribe({
-            next: (response: any) => {
-                this.message$.next({
-                    severity: 'success',
-                    summary: 'Összerendelés törölve',
-                    detail: `Szoba-konferencia összerendelés törölve`,
-                })
-            },
-            error: (error: any) => {
-                this.message$.next(error)
-            }
-        })
+            .subscribe({
+                next: (response: any) => {
+                    this.message$.next({
+                        severity: 'success',
+                        summary: 'Összerendelés törölve',
+                        detail: `Szoba-konferencia összerendelés törölve`,
+                    })
+                },
+                error: (error: any) => {
+                    this.message$.next(error)
+                }
+            })
+    }
+
+    /**
+     * Saves custom registration form field information for a specific conference.
+     * Sends the array of field info objects (including translations and display positions)
+     * to the backend for the given conference ID.
+     *
+     * @param formFieldInfos - An object containing the conferenceId and the fields array,
+     *   where each field contains the field name, translations (hu/en), and display position.
+     */
+    public saveFormFieldInfos(formFieldInfos: { conferenceId: number; fields: any[] }): void {
+        this.apiService.post(`conference/saveFormFieldInfos/${formFieldInfos.conferenceId}`, formFieldInfos.fields)
+            .subscribe({
+                next: (response: any) => {
+                    this.message$.next({
+                        severity: 'success',
+                        summary: 'Mező információk mentve',
+                        detail: `Űrlap mező információk sikeresen mentve`,
+                    })
+                },
+                error: (error: any) => {
+                    this.message$.next(error)
+                }
+            })
     }
 }   

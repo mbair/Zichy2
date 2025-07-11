@@ -114,7 +114,11 @@ export class ConferenceSelectorComponent implements OnInit, ControlValueAccessor
         this.onTouched()
 
         if (this.selectionLimit == this.selectedConferences.length) {
-            setTimeout(() => this.conferenceSelectorRef.hide(), 0)
+            setTimeout(() => {
+                if (this.conferenceSelectorRef) {
+                    this.conferenceSelectorRef.hide()
+                }
+            }, 0)
         }
     }
 

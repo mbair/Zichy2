@@ -16,6 +16,13 @@
     animation: moveinright .15s linear;
 }
 
+::ng-deep .p-tooltip .p-tooltip-text img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-top: 0.5rem;
+}
+
 @keyframes moveinright {
     0% {
       opacity: 0;

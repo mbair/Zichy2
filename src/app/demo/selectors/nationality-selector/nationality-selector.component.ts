@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Input, Output, ChangeDetectorRef } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { Component, EventEmitter, OnInit, Input, Output, ChangeDetectorRef, forwardRef  } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { CountryService } from '../../service/country.service';
 import { DropdownChangeEvent } from 'primeng/dropdown';
@@ -11,9 +11,16 @@ export interface changeEvent {
 
 @Component({
     selector: 'app-nationality-selector',
-    templateUrl: './nationality-selector.component.html'
+    templateUrl: './nationality-selector.component.html',
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => NationalitySelectorComponent),
+            multi: true
+        }
+    ]
 })
-export class NationalitySelectorComponent {
+export class NationalitySelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
@@ -23,6 +30,7 @@ export class NationalitySelectorComponent {
     selectedNationality: string = ''        // Selected nationality
     optionLabel: string = 'hunationality'
     filterBy: string = 'hunationality'
+    disabled = false
 
     constructor(private translate: TranslateService, 
                 private countryService: CountryService,
@@ -39,8 +47,17 @@ export class NationalitySelectorComponent {
             this.countries = countries
             // Set Hungary as default nationality if applicable
             const hungary = this.countries.find(country => country.name === 'Hungary')
-            if (hungary && this.parentForm && this.controlName) {
-                this.parentForm.get(this.controlName)?.setValue(hungary.code)
+            if (
+                hungary &&
+                this.selectedNationality === '' &&
+                this.parentForm &&
+                this.controlName &&
+                !this.parentForm.get(this.controlName)?.value
+            ) {
+                this.writeValue(hungary.code)
+                if (this.parentForm.get(this.controlName)) {
+                    this.parentForm.get(this.controlName)?.setValue(hungary.code)
+                }
                 this.cdRef.detectChanges() // Notify Angular about the change
             }
         })
@@ -69,6 +86,67 @@ export class NationalitySelectorComponent {
      * @param event the change event of the meal selector
      */
     handleOnChange(event: DropdownChangeEvent) {
+        this.selectedNationality = event.value
+        this.onChange(event.value)
+        this.onTouched()
         this.change.emit({ value: event.value, field: this.controlName })
     }
+
+    /**
+     * Sets the disabled state of the component.
+     * Used by Angular forms to enable/disable the input dynamically.
+     * 
+     * @param isDisabled - Boolean indicating whether the component should be disabled.
+     */
+    setDisabledState(isDisabled: boolean): void {
+        this.disabled = isDisabled
+        this.cdRef.detectChanges()
+    }
+
+    // ===========================
+    // ControlValueAccessor Methods
+    // ===========================
+
+    /**
+     * Writes the value from the parent form into the component.
+     * Used when the form initializes or updates externally.
+     * 
+     * @param value - The selected conferences coming from the form.
+     */
+    writeValue(value: any): void {
+        this.selectedNationality = value
+        this.cdRef.detectChanges()
+    }
+
+    /**
+     * Registers a callback function that is called when the value changes.
+     * This is part of the ControlValueAccessor implementation.
+     * 
+     * @param fn - The callback function to be triggered on value change.
+     */
+    registerOnChange(fn: any): void {
+        this.onChange = fn
+    }
+
+    /**
+     * Registers a callback function that is called when the input is touched.
+     * This is part of the ControlValueAccessor implementation.
+     * 
+     * @param fn - The callback function to be triggered on input touch.
+     */
+    registerOnTouched(fn: any): void {
+        this.onTouched = fn
+    }
+
+    /**
+     * Callback function to handle value changes from the parent form.
+     * Initially set as an empty function, but will be assigned dynamically.
+     */
+    onChange = (_: any) => { }
+
+    /**
+     * Callback function to handle when the input is touched.
+     * Initially set as an empty function, but will be assigned dynamically.
+     */
+    onTouched = () => { }
 }

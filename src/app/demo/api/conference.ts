@@ -1,5 +1,11 @@
 import { Room } from "./room";
 
+export interface FormFieldInfo {
+    field: string;
+    info: { [lang: string]: string };
+    position?: 'text' | 'bubble';
+}
+
 export interface Conference {
     id?: number;
     name?: string;
@@ -28,6 +34,7 @@ export interface Conference {
     guestEditEndDate?: string | null;
     guestsNumber?: number;
     acceptanceCriteriaUrl?: string | null;
+    formFieldInfos?: FormFieldInfo[];
 
     // Can be deleted
     code?: string;

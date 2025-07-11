@@ -10,6 +10,7 @@
             placeholder="{{ 'Válasszon...' | translate }}"
             [virtualScroll]="true"
             [virtualScrollItemSize]="30"
+            [showClear]="showClear"
             appendTo="body">
 
     <ng-template pTemplate="item" let-option>
@@ -39,6 +40,7 @@
                 placeholder="{{ 'Válasszon...' | translate }}"
                 [virtualScroll]="true"
                 [virtualScrollItemSize]="30"
+                [showClear]="showClear"
                 appendTo="body">
 
         <ng-template pTemplate="item" let-option>

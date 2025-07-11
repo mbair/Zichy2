@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { DropdownChangeEvent } from 'primeng/dropdown';
 
@@ -10,9 +10,16 @@ export interface changeEvent {
 
 @Component({
     selector: 'app-payment-selector',
-    templateUrl: './payment-selector.component.html'
+    templateUrl: './payment-selector.component.html',
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => PaymentSelectorComponent),
+            multi: true
+        }
+    ]
 })
-export class PaymentSelectorComponent {
+export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
@@ -20,8 +27,10 @@ export class PaymentSelectorComponent {
     
     payments: any[] = []            // Available payments
     selectedPayment: string = ''    // Selected payment
+    disabled = false
 
-    constructor(private translate: TranslateService) {}
+    constructor(private translate: TranslateService, 
+                private cdRef: ChangeDetectorRef) {}
 
     /**
      * Lifecycle hook: called when the component is initialized.
@@ -32,6 +41,7 @@ export class PaymentSelectorComponent {
         this.translate.onLangChange.subscribe(() => {
             this.setPayments()
         })
+        this.setPayments()
     }
 
     /**
@@ -72,6 +82,67 @@ export class PaymentSelectorComponent {
      * @param event the change event of the payment selector
      */
     handleOnChange(event: DropdownChangeEvent) {
+        this.selectedPayment = event.value
+        this.onChange(event.value)
+        this.onTouched()
         this.change.emit({ value: event.value, field: this.controlName })
     }
+
+    /**
+     * Sets the disabled state of the component.
+     * Used by Angular forms to enable/disable the input dynamically.
+     * 
+     * @param isDisabled - Boolean indicating whether the component should be disabled.
+     */
+    setDisabledState(isDisabled: boolean): void {
+        this.disabled = isDisabled
+        this.cdRef.detectChanges()
+    }
+
+    // ===========================
+    // ControlValueAccessor Methods
+    // ===========================
+
+    /**
+     * Writes the value from the parent form into the component.
+     * Used when the form initializes or updates externally.
+     * 
+     * @param value - The selected conferences coming from the form.
+     */
+    writeValue(value: any): void {
+        this.selectedPayment = value
+        this.cdRef.detectChanges()
+    }
+
+    /**
+     * Registers a callback function that is called when the value changes.
+     * This is part of the ControlValueAccessor implementation.
+     * 
+     * @param fn - The callback function to be triggered on value change.
+     */
+    registerOnChange(fn: any): void {
+        this.onChange = fn
+    }
+
+    /**
+     * Registers a callback function that is called when the input is touched.
+     * This is part of the ControlValueAccessor implementation.
+     * 
+     * @param fn - The callback function to be triggered on input touch.
+     */
+    registerOnTouched(fn: any): void {
+        this.onTouched = fn
+    }
+
+    /**
+     * Callback function to handle value changes from the parent form.
+     * Initially set as an empty function, but will be assigned dynamically.
+     */
+    onChange = (_: any) => { }
+
+    /**
+     * Callback function to handle when the input is touched.
+     * Initially set as an empty function, but will be assigned dynamically.
+     */
+    onTouched = () => { }
 }

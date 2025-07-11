@@ -187,9 +187,8 @@ export class RoomConferenceBinderComponent {
         }
 
         const conferenceId = this.selectedConferences[0]
-        console.log('selectedRooms', this.selectedRooms)
         const roomIds = this.selectedRooms.map((r: any) => Number(r.id))
-        console.log('selectedRooms', this.selectedRooms)
+        
         this.conferenceService.assignRoomsToConference(conferenceId, roomIds).subscribe({
             next: (response: any) => {
                 this.messageService.add({

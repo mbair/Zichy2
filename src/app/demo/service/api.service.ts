@@ -1,5 +1,5 @@
 import { Inject, Injectable, isDevMode } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { DOCUMENT } from '@angular/common';
@@ -25,20 +25,40 @@ export class ApiService {
         }
     }
 
-    get<T>(endpoint: string): Observable<T> {
-        return this.http.get<T>(`${this.apiURL}/${endpoint}`, { observe: 'response' }) // { observe: 'response' } gives back everything, not only the req.body
+    get<T>(endpoint: string, options?: { params?: any }): Observable<T> {
+        const url = `${this.apiURL}/${endpoint}`;
+
+        // Erős típus: observe response, params opcionális
+        const httpOptions: {
+            observe: 'response';
+            params?: any;
+        } = {
+            observe: 'response'
+        };
+
+        if (options?.params) {
+            httpOptions.params = options.params;
+        }
+
+        // A get<T>(…, httpOptions) most Observable<HttpResponse<T>>-t ad vissza
+        return this.http.get<T>(url, httpOptions)
             .pipe(
-                tap(response => this.refreshToken(response)),
-                map(response => response.body as T),
-                catchError(this.handleError))
+                // explicit HttpResponse<T> típus
+                tap((response: HttpResponse<T>) => this.refreshToken(response)),
+                map((response: HttpResponse<T>) => {
+                    // itt már biztos, hogy van .body
+                    return response.body as T;
+                }),
+                catchError(this.handleError)
+            );
     }
 
     post<T>(endpoint: string, body: any): Observable<T> {
         const isFormData = body instanceof FormData;
-        const options: { 
-            headers?: HttpHeaders; 
-            observe: 'response'; 
-            responseType: 'json' 
+        const options: {
+            headers?: HttpHeaders;
+            observe: 'response';
+            responseType: 'json'
         } = {
             observe: 'response',
             responseType: 'json'
@@ -48,7 +68,7 @@ export class ApiService {
         if (!isFormData) {
             options.headers = new HttpHeaders({ 'Content-Type': 'application/json' })
         }
-        
+
         return this.http.post<T>(`${this.apiURL}/${endpoint}`, body, options)
             .pipe(
                 tap(response => this.refreshToken(response)),

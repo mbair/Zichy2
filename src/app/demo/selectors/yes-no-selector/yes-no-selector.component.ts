@@ -19,6 +19,7 @@ export class YesNoSelectorComponent implements ControlValueAccessor {
 
     // A belső érték mindig boolean
     value: boolean = false
+    disabled = false
 
     // ControlValueAccessor callback-ek
     onChange = (value: any) => { }
@@ -51,5 +52,9 @@ export class YesNoSelectorComponent implements ControlValueAccessor {
         this.value = newValue
         this.onChange(outValue)
         this.onTouched()
+    }
+
+    setDisabledState(isDisabled: boolean): void {
+        this.disabled = isDisabled
     }
 }

@@ -1,26 +1,39 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit, OnDestroy } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
 import { DropdownChangeEvent } from 'primeng/dropdown';
 import { UserService } from '../../service/user.service';
 import { RoleService } from '../../service/role.service';
 import { Role } from '../../api/role';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-user-selector',
-    templateUrl: './user-selector.component.html'
+    templateUrl: './user-selector.component.html',
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => UserSelectorComponent),
+            multi: true
+        }
+    ]
 })
-export class UserSelectorComponent {
+export class UserSelectorComponent implements OnInit, OnDestroy, ControlValueAccessor {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() user_rolesid: number
     @Input() showClear: boolean
     @Output() change = new EventEmitter<any>()
+    disabled = false
 
     users: any[] = []               // Available users
-    selecteduser: string = ''       // Selected user
+    selectedUser: string = ''       // Selected user
     roles: Role[] = []              // Fetched roles
 
-    constructor(private userService: UserService, public roleService: RoleService) {}
+    private subs = new Subscription()
+
+    constructor(private userService: UserService, 
+                public roleService: RoleService,
+                private cdRef: ChangeDetectorRef) {}
 
     /**
      * OnInit lifecycle hook
@@ -30,16 +43,31 @@ export class UserSelectorComponent {
      * Fetches roles for users.
      */
     ngOnInit() {
-        // Get users for selector
-        this.userService.getUsersForSelector(this.user_rolesid).subscribe({
-            next: (data) => {
-                if (data) {
-                    this.users = this.user_rolesid ? data.filter(user => user.user_rolesid === this.user_rolesid) : data
-                    // Fetch roles for users
-                    this.fetchRolesForUsers()
+        this.subs.add(
+            this.userService.getUsersForSelector(this.user_rolesid).subscribe({
+                next: (data) => {
+                    if (data) {
+                        this.users = this.user_rolesid ? data.filter(user => user.user_rolesid === this.user_rolesid) : data
+                        this.fetchRolesForUsers()
+                        
+                        // Invalidate selection if not valid anymore
+                        if (this.selectedUser && !this.users.some(u => u.id === this.selectedUser)) {
+                            this.selectedUser = ''
+                            this.onChange('')
+                        }
+                        this.cdRef.detectChanges()
+                    }
                 }
-            }
-        })
+            })
+        )
+    }
+
+    /**
+     * Cleans up all subscriptions when the component is destroyed,
+     * preventing potential memory leaks.
+     */
+    ngOnDestroy() {
+        this.subs.unsubscribe()
     }
 
     /**
@@ -47,17 +75,35 @@ export class UserSelectorComponent {
      * Updates the available role options when input properties change.
      * @param changes An object of key-value pairs for the changed properties.
      */
-    ngOnChanges(changes: SimpleChanges) {}
+    ngOnChanges(changes: SimpleChanges) {
+        if (changes['user_rolesid'] && !changes['user_rolesid'].firstChange) {
+            // If role changes its needed to get users again
+            this.userService.getUsersForSelector(this.user_rolesid).subscribe({
+                next: (data) => {
+                    this.users = this.user_rolesid ? data.filter(user => user.user_rolesid === this.user_rolesid) : data
+                    // Invalidate selection if not valid anymore
+                    if (this.selectedUser && !this.users.some(u => u.id === this.selectedUser)) {
+                        this.selectedUser = ''
+                        this.onChange('')
+                    }
+                    this.cdRef.detectChanges()
+                }
+            })
+        }
+    }
 
     /**
      * Fetches roles from the RoleService and updates the component's roles property with the retrieved roles.
      */
     fetchRolesForUsers() {
-        this.roleService.fetchRoles().subscribe({
-            next: (roles) => {
-                this.roles = roles
-            }
-        })
+        this.subs.add(
+            this.roleService.fetchRoles().subscribe({
+                next: (roles) => {
+                    this.roles = roles
+                    this.cdRef.detectChanges()
+                }
+            })
+        )
     }
 
     /**
@@ -73,6 +119,9 @@ export class UserSelectorComponent {
      * @param event the change event of the user selector
      */
     handleOnChange(event: DropdownChangeEvent) {
+        this.selectedUser = event.value
+        this.onChange(event.value)
+        this.onTouched()
         this.change.emit({ value: event.value, field: this.controlName })
     }
 
@@ -89,4 +138,62 @@ export class UserSelectorComponent {
         const roleStyleClass = role ? role?.name?.trim().toLowerCase().replace(/\s+/g, '') : ''
         return `user-role-badge role-${roleStyleClass}`
     }
+
+    /**
+     * Sets the disabled state of the component.
+     * Used by Angular forms to enable/disable the input dynamically.
+     * 
+     * @param isDisabled - Boolean indicating whether the component should be disabled.
+     */
+    setDisabledState(isDisabled: boolean): void {
+        this.disabled = isDisabled
+        this.cdRef.detectChanges()
+    }
+
+    // ===========================
+    // ControlValueAccessor Methods
+    // ===========================
+
+    /**
+     * Writes the value from the parent form into the component.
+     * Used when the form initializes or updates externally.
+     * 
+     * @param value - The selected conferences coming from the form.
+     */
+    writeValue(value: any): void {
+        this.selectedUser = value
+        this.cdRef.detectChanges()
+    }
+
+    /**
+     * Registers a callback function that is called when the value changes.
+     * This is part of the ControlValueAccessor implementation.
+     * 
+     * @param fn - The callback function to be triggered on value change.
+     */
+    registerOnChange(fn: any): void {
+        this.onChange = fn
+    }
+
+    /**
+     * Registers a callback function that is called when the input is touched.
+     * This is part of the ControlValueAccessor implementation.
+     * 
+     * @param fn - The callback function to be triggered on input touch.
+     */
+    registerOnTouched(fn: any): void {
+        this.onTouched = fn
+    }
+
+    /**
+     * Callback function to handle value changes from the parent form.
+     * Initially set as an empty function, but will be assigned dynamically.
+     */
+    onChange = (_: any) => { }
+
+    /**
+     * Callback function to handle when the input is touched.
+     * Initially set as an empty function, but will be assigned dynamically.
+     */
+    onTouched = () => { }
 }
