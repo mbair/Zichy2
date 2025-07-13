@@ -386,7 +386,7 @@ export class GuestComponent implements OnInit {
             const conferenceIds = this.selectedConferences
                 .map(c => c.id)
                 .filter((id): id is number => id !== undefined)
-            
+
             this.guestService.getBySearch(
                 searchValue,
                 { sortField: this.sortField, sortOrder: this.sortOrder },
@@ -546,10 +546,17 @@ export class GuestComponent implements OnInit {
         this.sidebar = true
 
         // Get guest conference details
+        let selectedConf: any = null
         if (guest.conferenceid) {
-            const selectedConf = this.conferenceSelector.conferences.find(conf => conf.id === guest.conferenceid)
-            guest.conference = selectedConf ? [selectedConf] : []
+            selectedConf = this.conferenceSelector.conferences.find(conf => conf.id === guest.conferenceid)
+        } else if (guest.conferenceName) {
+            // If conferenceid is null, search by conferenceName
+            selectedConf = this.conferenceSelector.conferences.find(conf => conf.name === guest.conferenceName)
+        }
+        
+        guest.conference = selectedConf ? [selectedConf] : []
 
+        if (selectedConf) {
             // Because side bar is not visible yet, we need to wait a bit
             setTimeout(() => {
                 this.guestForm.patchValue(guest)
@@ -565,6 +572,8 @@ export class GuestComponent implements OnInit {
             this.getEarliestLastMeal()
             this.getLatestLastMeal()
             this.cdRef.detectChanges()
+        } else {
+            console.warn('No conference found for guest:', guest);
         }
     }
 
