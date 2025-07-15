@@ -1150,18 +1150,18 @@ export class GuestComponent implements OnInit {
                 'rfid_id',
                 'diet_id',
                 'room_id',
-                // 'roomNum',
+                // 'roomNum',  // Ez kell a szervezőknek
                 'conferenceid',
-                // 'rfid',
-                // 'rfidColor',
-                // 'lastRfidUsage',
-                // 'accommodationExtra',
-                // 'enabled',
+                'rfid',
+                'rfidColor',
+                'lastRfidUsage',
+                'accommodationExtra',
+                'enabled',
                 'dietDetails',
-                // 'idcardtype',
-                // 'idcard',
-                // 'createdAt',
-                // 'updatedAt',
+                'idcardtype',
+                'idcard',
+                'createdAt',
+                'updatedAt',
                 'answers' // We handle answers separately.
             ]
 
