@@ -822,10 +822,10 @@ export class ConferenceFormComponent implements OnInit {
     }
 
     setFormFieldInfos() {
-        this.formFieldInfosMap = {};
+        this.formFieldInfosMap = {}
         if (this.conference?.formFieldInfos) {
             for (const info of this.conference.formFieldInfos) {
-                this.formFieldInfosMap[info.field] = info;
+                this.formFieldInfosMap[info.field] = info
             }
         }
     }
