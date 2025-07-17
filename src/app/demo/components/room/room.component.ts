@@ -356,38 +356,31 @@ export class RoomComponent implements OnInit {
      */
     exportExcel() {
         import("xlsx").then(xlsx => {
-            let data = this.selected.map(row => {
-                // Remove id column and keep the rest columns
-                const { id, ...rest } = row
-                return { ...rest }
-            })
+            // Hungarian header
+            const headerMap = [
+                { key: 'roomNum', label: 'Szoba-szám' },
+                { key: 'roomCode', label: 'Szoba kód' },
+                { key: 'beds', label: 'Ágyak száma' },
+                { key: 'spareBeds', label: 'Matrac / gyerekágy' },
+                { key: 'building', label: 'Épület / folyosó' },
+                { key: 'bedType', label: 'Ágy típus' },
+                { key: 'bathroom', label: 'Fürdőszoba' },
+                { key: 'comment', label: 'Megjegyzés' }
+            ]
 
-            // If the selected array is empty, we work from the filtered or full dataset as a fallback
-            if (data.length === 0) {
-                console.warn("No rows selected for export. Exporting filtered or full data.")
-                data = this.tableData.map((row: any) => {
-                    const { id, ...rest } = row
-                    return { ...rest }
+            let rows = this.selected.length > 0 ? this.selected : this.tableData
+        
+            // Extract only the desired fields and Hungarian headers
+            const data = rows.map((row: any) => {
+                let obj: any = {}
+                headerMap.forEach(col => {
+                    obj[col.label] = row[col.key] ?? ''
                 })
-            }
-
-            // Delete unnecessary columns
-            data.forEach((row: Room) => {
-                delete row.description
-                delete row.matracee
-                delete row.color
-                delete row.createdAt
-                delete row.updatedAt
-                delete row.floor_id
-                delete row.room_typeid
-                delete row.userid
-                delete row.guestData
-                delete row.Reservations
-                delete row.conferences
+                return obj
             })
 
-            // Creating an Excel worksheet and file
-            const worksheet = xlsx.utils.json_to_sheet(data)
+            // The first row will be the Hungarian headers (by label)
+            const worksheet = xlsx.utils.json_to_sheet(data, { header: headerMap.map(h => h.label) })
             const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
             const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
             this.saveAsExcelFile(excelBuffer, "rooms")
