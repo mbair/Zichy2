@@ -61,6 +61,7 @@
                         <span class="block mt-2 md:mt-0">
                             <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="create()" [disabled]="!canCreate"></button>
                             <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="bulkDeleteDialog = true" [disabled]="!selected || !selected.length || !canDelete"></button>
+                            <button pButton pRipple label="Export" icon="pi pi-download" class="p-button-help mr-2" (click)="exportExcel()"></button>
                         </span>
                     </div>
                 </ng-template>

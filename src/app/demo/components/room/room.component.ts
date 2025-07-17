@@ -11,6 +11,7 @@ import { ConferenceService } from '../../service/conference.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Room } from '../../api/room';
+import * as FileSaver from 'file-saver';
 import * as moment from 'moment';
 moment.locale('hu')
 
@@ -187,7 +188,7 @@ export class RoomComponent implements OnInit {
         // Organizer need select conference
         if (this.isOrganizer && !this.selectedConferences) return
 
-        const noWaitFields: string[] = ['conferenceName','building','bedType','spareBeds']
+        const noWaitFields: string[] = ['conferenceName', 'building', 'bedType', 'spareBeds']
         let filterValue = ''
 
         // Calendar date as String
@@ -234,8 +235,8 @@ export class RoomComponent implements OnInit {
     onLazyLoad(event: any) {
         this.page = event.first! / event.rows!
         this.rowsPerPage = event.rows ?? this.rowsPerPage
-        // this.sortField = event.sortField ?? this.sortField
-        // this.sortOrder = event.sortOrder ?? this.sortOrder
+        this.sortField = event.sortField ?? ''
+        this.sortOrder = event.sortOrder ?? 1
         this.globalFilter = event.globalFilter ?? ''
         this.doQuery()
     }
@@ -345,6 +346,68 @@ export class RoomComponent implements OnInit {
 
     onConferenceRemove(conference: any, room: any) {
         this.conferenceService.removeRoomsFromConference(conference.id, [room.id])
+    }
+
+    /**
+     * Exports the currently selected table rows (or filtered rows, or all rows if no selection is made) to an Excel file.
+     * The file is named "rooms.xlsx" and is saved in the user's Downloads folder.
+     * The export uses the xlsx library and is done asynchronously.
+     * @export
+     */
+    exportExcel() {
+        import("xlsx").then(xlsx => {
+            let data = this.selected.map(row => {
+                // Remove id column and keep the rest columns
+                const { id, ...rest } = row
+                return { ...rest }
+            })
+
+            // If the selected array is empty, we work from the filtered or full dataset as a fallback
+            if (data.length === 0) {
+                console.warn("No rows selected for export. Exporting filtered or full data.")
+                data = this.tableData.map((row: any) => {
+                    const { id, ...rest } = row
+                    return { ...rest }
+                })
+            }
+
+            // Delete unnecessary columns
+            data.forEach((row: Room) => {
+                delete row.description
+                delete row.matracee
+                delete row.color
+                delete row.createdAt
+                delete row.updatedAt
+                delete row.floor_id
+                delete row.room_typeid
+                delete row.userid
+                delete row.guestData
+                delete row.Reservations
+                delete row.conferences
+            })
+
+            // Creating an Excel worksheet and file
+            const worksheet = xlsx.utils.json_to_sheet(data)
+            const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
+            const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
+            this.saveAsExcelFile(excelBuffer, "rooms")
+        })
+    }
+
+    /**
+     * Saves the provided buffer as an Excel file with the specified file name.
+     * The file is saved in the 'xlsx' format and is named with a timestamp suffix.
+     *
+     * @param buffer - The data buffer to be saved as an Excel file.
+     * @param fileName - The base name of the file to be saved, without extension.
+     */
+    saveAsExcelFile(buffer: any, fileName: string): void {
+        let EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+        let EXCEL_EXTENSION = '.xlsx'
+        const data: Blob = new Blob([buffer], {
+            type: EXCEL_TYPE
+        })
+        FileSaver.saveAs(data, fileName + '_export_' + moment().format('YYYYMMDD') + EXCEL_EXTENSION)
     }
 
     // Don't delete this, its needed from a performance point of view,

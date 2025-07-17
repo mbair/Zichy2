@@ -15,4 +15,12 @@ export interface Room {
     climate?: boolean;
     familyRoom?: boolean;
     enabled?: boolean;
+    createdAt?: Date;
+    updatedAt?: Date;
+    floor_id?: any;
+    room_typeid?: any;
+    userid?: any;
+    guestData?: any;
+    Reservations?: any;
+    conferences?: any;
 }

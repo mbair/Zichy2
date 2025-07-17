@@ -386,7 +386,7 @@ export class GuestComponent implements OnInit {
             const conferenceIds = this.selectedConferences
                 .map(c => c.id)
                 .filter((id): id is number => id !== undefined)
-            
+
             this.guestService.getBySearch(
                 searchValue,
                 { sortField: this.sortField, sortOrder: this.sortOrder },
@@ -546,10 +546,17 @@ export class GuestComponent implements OnInit {
         this.sidebar = true
 
         // Get guest conference details
+        let selectedConf: any = null
         if (guest.conferenceid) {
-            const selectedConf = this.conferenceSelector.conferences.find(conf => conf.id === guest.conferenceid)
-            guest.conference = selectedConf ? [selectedConf] : []
+            selectedConf = this.conferenceSelector.conferences.find(conf => conf.id === guest.conferenceid)
+        } else if (guest.conferenceName) {
+            // If conferenceid is null, search by conferenceName
+            selectedConf = this.conferenceSelector.conferences.find(conf => conf.name === guest.conferenceName)
+        }
 
+        guest.conference = selectedConf ? [selectedConf] : []
+
+        if (selectedConf) {
             // Because side bar is not visible yet, we need to wait a bit
             setTimeout(() => {
                 this.guestForm.patchValue(guest)
@@ -565,6 +572,8 @@ export class GuestComponent implements OnInit {
             this.getEarliestLastMeal()
             this.getLatestLastMeal()
             this.cdRef.detectChanges()
+        } else {
+            console.warn('No conference found for guest:', guest);
         }
     }
 
@@ -575,6 +584,7 @@ export class GuestComponent implements OnInit {
         this.loading = true
         this.deleteDialog = false
         this.guestService.delete(this.tableItem)
+        setTimeout(() => this.doQuery(), 200)
     }
 
     /**
@@ -584,6 +594,7 @@ export class GuestComponent implements OnInit {
         this.loading = true
         this.bulkDeleteDialog = false
         this.guestService.bulkdelete(this.selected)
+        setTimeout(() => this.doQuery(), 200)
     }
 
     hideDialog() {
@@ -1131,15 +1142,50 @@ export class GuestComponent implements OnInit {
 
     downloadImportTemplate() {
         import("xlsx").then(xlsx => {
-            const headers = Object.keys(this.tableData[0] || {}).filter(key => key !== 'id')
+            // Unnecessary columns that should be omitted
+            const excludedColumns = [
+                'id',
+                'is_test',
+                'userid',
+                'rfid_id',
+                'diet_id',
+                'room_id',
+                // 'roomNum',  // Ez kell a szervezőknek
+                'conferenceid',
+                'rfid',
+                'rfidColor',
+                'lastRfidUsage',
+                'accommodationExtra',
+                'enabled',
+                'dietDetails',
+                'idcardtype',
+                'idcard',
+                'createdAt',
+                'updatedAt',
+                'answers' // We handle answers separately.
+            ]
+
+            // Filter relevant columns based on tableData
+            const headers = Object.keys(this.tableData[0] || {})
+                .filter(key => !excludedColumns.includes(key))
+
+            // Add question-answer columns (e.g. question_1, answer_1)
+            const maxQA = 5; // Example: maximum 5 question-answer pairs (adjustable as needed)
+            for (let i = 1; i <= maxQA; i++) {
+                headers.push(`question_${i}`, `answer_${i}`)
+            }
+
+            // Create a blank template header
             const worksheet = xlsx.utils.aoa_to_sheet([headers])
+
+            // Create an Excel workbook
             const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
-            const excelBuffer: any = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
-            const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
-            const EXCEL_EXTENSION = '.xlsx';
-            const data: Blob = new Blob([excelBuffer], {
-                type: EXCEL_TYPE
-            })
+            const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
+
+            // Save file
+            const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+            const EXCEL_EXTENSION = '.xlsx'
+            const data = new Blob([excelBuffer], { type: EXCEL_TYPE })
             FileSaver.saveAs(data, 'NFCReserve_import_template' + EXCEL_EXTENSION)
         })
     }
