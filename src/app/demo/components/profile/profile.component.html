@@ -22,6 +22,7 @@
                     <div class="field mb-4 col-12 md:col-6">
                         <label for="user_rolesid" class="font-medium text-900">Szerepkör</label>
                         <p-dropdown
+                            *ngIf="canEditRoles"
                             id="user_rolesid"
                             formControlName="user_rolesid"
                             [options]="roles"
@@ -29,6 +30,7 @@
                             optionValue="id"
                             placeholder="Válasszon szerepkört..."
                             emptyMessage="Nincs találat..."
+                            [disabled]="true"
                             [showClear]="true"
                             [virtualScroll]="true"
                             [virtualScrollItemSize]="30">
@@ -45,6 +47,11 @@
                         </p-dropdown>
                         <div *ngIf="userForm.get('user_rolesid')?.invalid && userForm.get('user_rolesid')?.dirty">
                             <div *ngIf="userForm.get('user_rolesid')?.errors?.['required']" class="p-error">Kötelező kitölteni</div>
+                        </div>
+                        <div *ngIf="!canEditRoles" class="mt-2">
+                            <span [ngClass]="roleService.getRoleStyleClass(userForm.get('user_rolesid')?.value)">
+                                {{roleService.getRoleName(userForm.get('user_rolesid')?.value)}}
+                            </span>
                         </div>
                     </div>
                     <div class="field mb-4 col-12 md:col-6">

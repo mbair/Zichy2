@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { emailDomainValidator } from 'src/app/demo/utils/email-validator';
 import { passwordMatchValidator } from 'src/app/demo/utils/password-match-validator';
@@ -25,6 +25,7 @@ export class ProfileComponent implements OnInit {
     roles: Role[] = []                  // Possible roles
     userForm: FormGroup                 // Form for User whose profile we are currently editing
     originalFormValues: any             // The original values ​​of the form
+    canEditRoles: boolean = false       // Can the user change the roles of the user
 
     private initialFormValues = {
         id: null,
@@ -44,9 +45,17 @@ export class ProfileComponent implements OnInit {
         public userService: UserService,
         public roleService: RoleService,
         private messageService: MessageService,
+        private cdRef: ChangeDetectorRef,
         private fb: FormBuilder) { }
 
     ngOnInit() {
+        // Permissions
+        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canEditRoles => {
+            this.canEditRoles = canEditRoles
+            this.userForm.get('user_rolesid')?.disable();
+            this.cdRef.detectChanges();
+        })
+        
         // Get User data
         this.userService.getOwnData()
 
