@@ -43,5 +43,6 @@ export interface Guest {
     room_id?: string;
     answers?: string;
     dietDetails?: string;
+    idCardUploaded?: any;
     conference?: Conference[]
 }

@@ -91,7 +91,11 @@ export class GuestComponent implements OnInit {
     endDate: any                                 // Conference end date
     exportButtonItems: MenuItem[]                // Export button items
     isOrganizer: boolean = false                 // User has organizer role
-    imageUrl: string | null = null               // idCard image URL
+    imageUrl: string | null = null               // idCard image URL in Guest table row
+    currentIdCardUrl: string | null = null       // idCard image URL in Guest edit form   
+    idCardImageUrls: { [guestId: string]: string } = {};
+    loadingIdCard: { [guestId: string]: boolean } = {};
+    showUploadBlock: boolean = false             // Upload block visibility in edit form  
     guestConference: Conference                  // Guest's conference
     prepaidOptions: any[] = []                   // Possible prepaid options
 
@@ -256,7 +260,28 @@ export class GuestComponent implements OnInit {
         this.guestObs$.subscribe((data: ApiResponse) => {
             this.loading = false
             if (data && data.rows) {
-                this.tableData = data.rows || []
+                this.tableData = (data.rows || []).map((guest: any) => ({
+                    ...guest,
+                    answers: Array.isArray(guest.answers)
+                        ? guest.answers.map((answer: any) => ({
+                            ...answer,
+                            translations: Array.isArray(answer.translations)
+                                ? answer.translations
+                                : answer.translations
+                                    ? [answer.translations]
+                                    : []
+                        }))
+                        : guest.answers
+                            ? [{
+                                ...guest.answers,
+                                translations: Array.isArray(guest.answers.translations)
+                                    ? guest.answers.translations
+                                    : guest.answers.translations
+                                        ? [guest.answers.translations]
+                                        : []
+                            }]
+                            : []
+                }))
                 this.totalRecords = data.totalItems || 0
                 this.page = data.currentPage || 0
 
@@ -524,9 +549,11 @@ export class GuestComponent implements OnInit {
      */
     onRowExpand(guest: Guest): void {
         // Load idCard image
-        this.imageUrl = null
-        let idCard = guest.idcard || ''
-        this.getIdCardURL(idCard)
+        // this.imageUrl = null
+
+        if (guest.idcard) {
+            this.getIdCardImage(guest)
+        }
     }
 
     /**
@@ -543,6 +570,11 @@ export class GuestComponent implements OnInit {
      */
     edit(guest: Guest) {
         this.guestForm.reset(this.initialFormValues)
+        this.currentIdCardUrl = guest.idcard ? `${this.apiURL}/guest/idcard/${guest.id}` : null
+        if (this.currentIdCardUrl) {
+            this.getIdCardImage(guest)
+        }
+        
         this.sidebar = true
 
         // Get guest conference details
@@ -617,19 +649,21 @@ export class GuestComponent implements OnInit {
             this.loading = true
             const formValues = this.guestForm.value
 
-            // Create
-            if (!formValues.id) {
-                this.guestService.create(formValues, [])
+            // ID Card kezelés
+            const rawIdCard = this.guestForm.get('idCard')?.value
+            // Ha van új file, azt File-ként add át, ha nincs, üres tömb
+            const files: File[] = rawIdCard instanceof File ? [rawIdCard] : []
 
-                // Update
-            } else {
-                this.guestService.update(formValues)
+            // CREATE
+            if (!formValues.id) {
+                this.guestService.create(formValues, files)
+            } 
+            // UPDATE
+            else {
+                this.guestService.update(formValues, files)
 
                 // Update Guest in the table and rowexpansion
-                const index = this.tableData.findIndex(guest => guest.id === formValues.id)
-                if (index !== -1) {
-                    this.tableData[index] = { ...formValues }
-                }
+                this.doQuery()
             }
 
             this.sidebar = false
@@ -867,6 +901,56 @@ export class GuestComponent implements OnInit {
         this.selectedFile = event.target.files[0]
     }
 
+    getIdCardImage(guest: Guest) {
+        const id = guest.id;
+        if (!id || !guest.idcard) return;
+        if (this.idCardImageUrls[id]) return;
+
+        this.loadingIdCard[id] = true;
+
+        const cleanedIdCardName = guest.idcard.toString().trim().replace(/,+$/, '');
+
+        this.http.get(this.apiURL + '/guest/idcardimage/' + cleanedIdCardName, { responseType: 'blob' })
+            .subscribe({
+                next: (blob) => {
+                    this.idCardImageUrls[id] = window.URL.createObjectURL(blob);
+                    this.loadingIdCard[id] = false;
+                },
+                error: () => {
+                    this.idCardImageUrls[id] = '';
+                    this.loadingIdCard[id] = false;
+                }
+            });
+    }
+
+    downloadIdCardFromUrl(url: string, fileName: string) {
+        // Ha az URL böngészőben jelenik meg (ObjectURL), blobként kell letölteni
+        fetch(url)
+            .then(response => response.blob())
+            .then(blob => {
+                const a = document.createElement('a')
+                a.href = window.URL.createObjectURL(blob)
+                // Alapértelmezett fájlnév az idcard, vagy pl. "igazolvany.jpg"
+                a.download = fileName?.replace(/,+$/, '') || 'igazolvany.jpg'
+                document.body.appendChild(a)
+                a.click()
+                document.body.removeChild(a)
+            })
+    }
+
+    onIdCardFileSelected(event: any) {
+        const file: File = event.target.files[0]
+        if (file) {
+            const reader = new FileReader()
+            reader.onload = (e: any) => {
+                this.currentIdCardUrl = e.target.result
+            }
+            reader.readAsDataURL(file)
+
+            this.guestForm.get('idCard')?.setValue(file)
+        }
+    }
+
     getIdCardURL(idCardName: string) {
         if (!idCardName) return undefined
 
@@ -894,6 +978,32 @@ export class GuestComponent implements OnInit {
             a.click()
             document.body.removeChild(a)
         })
+    }
+
+    deleteIdCard() {
+        const guestId = this.guestForm.get('id')?.value;
+        this.http.delete(`${this.apiURL}/guest/idcard/${guestId}`).subscribe({
+            next: () => {
+                this.currentIdCardUrl = null;
+                this.guestForm.get('idCard')?.setValue(null);
+                this.messageService.add({
+                    severity: 'success',
+                    summary: '',
+                    detail: 'Sikeres igazolvány törlés',
+                    life: 3000
+                });
+            },
+            error: (err) => {
+                // Ha a szerver küld message-t, azt jelenítsük meg
+                const detail = err?.error?.message || 'Ismeretlen hiba történt az igazolvány törlésekor';
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Hiba',
+                    detail,
+                    life: 6000
+                });
+            }
+        });
     }
 
     hasDietName(dietName: string): boolean {
@@ -1188,6 +1298,14 @@ export class GuestComponent implements OnInit {
             const data = new Blob([excelBuffer], { type: EXCEL_TYPE })
             FileSaver.saveAs(data, 'NFCReserve_import_template' + EXCEL_EXTENSION)
         })
+    }
+
+    isImage(url: string) {
+        return url && (url.endsWith('.jpg') || url.endsWith('.jpeg') || url.endsWith('.png'))
+    }
+
+    isArray(val: any): val is any[] {
+        return Array.isArray(val) && val.length > 0
     }
 
     @HostListener('window:keypress', ['$event'])
