@@ -794,8 +794,10 @@
                 </div>
             </ng-template>
             <ng-template pTemplate="footer">
-                <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-text" (click)="hideTagDialog()"></button>
-                <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button-text" (click)="saveTag()"></button>
+                <div class="flex justify-content-end ap-2">
+                    <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-outlined" (click)="hideTagDialog()"></button>
+                    <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button ml-2" (click)="saveTag()"></button>
+                </div>
             </ng-template>
         </p-dialog>
 

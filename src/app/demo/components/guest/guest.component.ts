@@ -574,7 +574,7 @@ export class GuestComponent implements OnInit {
         if (this.currentIdCardUrl) {
             this.getIdCardImage(guest)
         }
-        
+
         this.sidebar = true
 
         // Get guest conference details
@@ -657,7 +657,7 @@ export class GuestComponent implements OnInit {
             // CREATE
             if (!formValues.id) {
                 this.guestService.create(formValues, files)
-            } 
+            }
             // UPDATE
             else {
                 this.guestService.update(formValues, files)
@@ -759,14 +759,12 @@ export class GuestComponent implements OnInit {
         // Check if RFID is according to the diet
         this.tagService.getByRFID(this.scannedCode).subscribe({
             next: (data) => {
-
                 if (data.rows && data.rows.length > 0) {
-
                     // Check if tag color is the same as the guest diet color
                     let tagColor = data.rows[0].color
-                    let guestDietColor = this.diets.find(d => d.name == this.guest.diet).color
+                    let guestDietColor = this.diets.find(d => d.name === this.guest.diet)?.color
 
-                    if (tagColor == 'gray') {
+                    if (tagColor === 'gray') {
                         tagColor = 'black'
                     }
 
@@ -777,65 +775,91 @@ export class GuestComponent implements OnInit {
                     // Wrong color
                     if (guestDietColor !== tagColor) {
                         this.messages = [
-                            { severity: 'error', summary: '', detail: 'Nem megfelelő a karszalag színe!' },
+                            { severity: 'error', summary: '', detail: 'Nem megfelelő a karszalag színe!' }
                         ]
                         this.identifierElement.nativeElement.focus()
                         return
+                    }
 
-                        // Right color
-                    } else {
+                    // Right color, check if somebody has the same RFID
+                    this.guestService.getByRFID(this.scannedCode).subscribe({
+                        next: (data) => {
+                            // If there is data, then somebody is using this RFID
+                            this.messages = [
+                                {
+                                    severity: 'error',
+                                    summary: '',
+                                    detail: `${data.lastName} ${data.firstName} már használja a karszalagot!`
+                                }
+                            ];
+                            // Logging
+                            this.logService.create({
+                                action_type: 'tag duplicate',
+                                table_name: 'guest',
+                                original_data: `Tag duplicate: ${data.rfid} is used by ${data.lastName} ${data.firstName}`
+                            })
+                        },
+                        error: () => {
+                            // RFID is free, proceed with update
+                            const updateData = {
+                                id: this.guest.id,
+                                rfid: this.scannedCode
+                            }
 
-                        // Check if somebody has the same RFID number
-                        this.guestService.getByRFID(this.scannedCode).subscribe({
-                            next: (data) => {
-
-                                // If there is data, then somebody is using this RFID
-                                this.messages = [
-                                    { severity: 'error', summary: '', detail: data.lastName + ' ' + data.firstName + ' már használja a karszalagot!' },
-                                ]
-                                // Logging
-                                this.logService.create({
-                                    action_type: "tag duplicate",
-                                    table_name: "guest",
-                                    original_data: "Tag duplicate: " + data.rfid + " is used by " + data.lastName + " " + data.firstName,
-                                })
-                                return
-                            },
-                            // Strange, but this is the OK way
-                            error: (error) => {
-                                this.guest.rfid = this.scannedCode;
-                                // this.guestService.update({ id: this.guest.id, rfid: this.scannedCode})
-                                this.guestService.updateGuest2(this.guest).subscribe(() => {
+                            this.guestService.updateGuest2(updateData).subscribe({
+                                next: () => {
+                                    // Update local table data
                                     let guestsClone = JSON.parse(JSON.stringify(this.tableData))
-                                    guestsClone[this.findIndexById(this.guest.id)] = this.guest;
+                                    const guestIndex = this.findIndexById(this.guest.id);
+                                    guestsClone[guestIndex] = { ...guestsClone[guestIndex], rfid: this.scannedCode }
                                     this.tableData = guestsClone
-                                    this.successfulMessage = [{
-                                        severity: 'success',
-                                        summary: '',
-                                        detail: 'Sikeresen hozzárendelte a címkét a vendéghez!'
-                                    }]
-                                    this.totalTaggedGuests++;
+
+                                    this.successfulMessage = [
+                                        {
+                                            severity: 'success',
+                                            summary: '',
+                                            detail: 'Sikeresen hozzárendelte a címkét a vendéghez!'
+                                        }
+                                    ]
+                                    this.totalTaggedGuests++
                                     setTimeout(() => {
                                         this.tagDialog = false
-                                    }, 200);
+                                    }, 200)
 
                                     // Logging
                                     this.logService.create({
-                                        action_type: "assign Tag",
-                                        table_name: "guest",
-                                        original_data: "Assign Tag " + this.guest.rfid + " to " + this.guest.lastName + " " + this.guest.firstName,
+                                        action_type: 'assign Tag',
+                                        table_name: 'guest',
+                                        original_data: `Assign Tag ${this.scannedCode} to ${this.guest.lastName} ${this.guest.firstName}`
                                     })
 
-                                    this.scannedCode = '';
+                                    this.scannedCode = ''
                                     this.guest = {}
-                                })
-                            }
-                        })
-                    }
+                                },
+                                error: (error) => {
+                                    console.error('Hiba az RFID frissítése közben:', error)
+                                    this.messages = [
+                                        {
+                                            severity: 'error',
+                                            summary: '',
+                                            detail: 'Hiba történt a címke hozzárendelése során!'
+                                        }
+                                    ]
+                                }
+                            })
+                        }
+                    })
                 }
             },
             error: (error) => {
-                console.log('tagService.getByRFID error', error)
+                console.error('tagService.getByRFID error:', error)
+                this.messages = [
+                    {
+                        severity: 'error',
+                        summary: '',
+                        detail: 'Hiba történt a címke ellenőrzése során!'
+                    }
+                ]
             }
         })
     }
