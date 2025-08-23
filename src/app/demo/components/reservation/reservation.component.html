@@ -1,0 +1,439 @@
+<div class="grid">
+    <div class="col-12">
+        <div class="card px-0 py-0">
+            <p-table #dt
+                     dataKey="id"
+                     [value]="tableData"
+                     responsiveLayout="scroll"
+                     [rows]="rowsPerPage"
+                     [totalRecords]="totalRecords"
+                     [globalFilterFields]="['roomNum']"
+                     [paginator]="true"
+                     [rowsPerPageOptions]="rowsPerPageOptions"
+                     [showCurrentPageReport]="true"
+                     currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
+                     [(selection)]="selected"
+                     selectionMode="multiple"
+                     [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
+                     [rowHover]="true"
+                     (onLazyLoad)="onLazyLoad($event)"
+                     [lazy]="true">
+
+                <ng-template pTemplate="caption">
+                    <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                        <h5 class="m-0">Foglalások</h5>
+                        <span class="block mt-2 md:mt-0">
+                            <app-conference-selector
+                                [(ngModel)]="selectedConferences"
+                                [showClear]="true"
+                                [style]="{'minWidth': '35rem'}"
+                                placeholder="Válasszon konferenciát..."
+                                (ngModelChange)="doQuery()">
+                            </app-conference-selector>
+                        </span>
+                        <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Ágyak száma: {{ numberOfBeds }}" tooltipPosition="top">
+                                <div class="flex align-items-center justify-content-center py-1 px-1">
+                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
+                                        <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
+                                            <g id="SVGRepo_bgCarrier" stroke-width="0"/>
+                                            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <g id="SVGRepo_iconCarrier">
+                                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> 
+                                                    <g id="ic_fluent_bed_24_filled" fill="#334155" fill-rule="nonzero"> 
+                                                        <path d="M19.25,11 C20.7125318,11 21.9084043,12.1417046 21.9949812,13.5824777 L22,13.75 L22,20.25 C22,20.6642136 21.6642136,21 21.25,21 C20.8703042,21 20.556509,20.7178461 20.5068466,20.3517706 L20.5,20.25 L20.5,18 L3.5,18 L3.5,20.25 C3.5,20.6296958 3.21784612,20.943491 2.85177056,20.9931534 L2.75,21 C2.37030423,21 2.05650904,20.7178461 2.00684662,20.3517706 L2,20.25 L2,13.75 C2,12.2874682 3.1417046,11.0915957 4.58247767,11.0050188 L4.75,11 L19.25,11 Z M6.75,4 L17.25,4 C18.7125318,4 19.9084043,5.1417046 19.9949812,6.58247767 L20,6.75 L20,10 L17,10 L16.9932723,9.88337887 C16.9399506,9.42429701 16.575703,9.06004937 16.1166211,9.00672773 L16,9 L14,9 C13.4871642,9 13.0644928,9.38604019 13.0067277,9.88337887 L13,10 L11,10 L10.9932723,9.88337887 C10.9399506,9.42429701 10.575703,9.06004937 10.1166211,9.00672773 L10,9 L8,9 C7.48716416,9 7.06449284,9.38604019 7.00672773,9.88337887 L7,10 L4,10 L4,6.75 C4,5.28746816 5.1417046,4.09159572 6.58247767,4.00501879 L6.75,4 Z"> 
+                                                        </path> 
+                                                    </g> 
+                                                </g> 
+                                            </g>
+                                        </svg>
+                                        <span class="text-2xl font-normal white-space-nowrap vertical-align-middle">
+                                            {{ numberOfBeds }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </span>
+                        <span class="block mt-2 md:mt-0">
+                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="create()" [disabled]="!canCreate"></button>
+                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="bulkDeleteDialog = true" [disabled]="!selected || !selected.length || !canDelete"></button>
+                            <!-- <button pButton pRipple label="Export" icon="pi pi-download" class="p-button-help mr-2" (click)="exportExcel()"></button> -->
+                        </span>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th></th>
+                        <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
+                        <th pSortableColumn="guests">Vendégek <p-sortIcon field="guests"></p-sortIcon></th>
+                        <th pSortableColumn="dateOfArrival">Érkezés <p-sortIcon field="dateOfArrival"></p-sortIcon></th>
+                        <th pSortableColumn="dateOfDeparture">Távozás <p-sortIcon field="dateOfDeparture"></p-sortIcon></th>
+                        <th pSortableColumn="status">Státusz <p-sortIcon field="status"></p-sortIcon></th>
+                        <th pSortableColumn="comment">Megjegyzés <p-sortIcon field="comment"></p-sortIcon></th>
+                        <th></th>
+                    </tr>
+                    <tr>
+                        <th styleClass="w-3rem">
+                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   class="mr-2"
+                                   (input)="onFilter($event, 'reservationNum')"
+                                   placeholder="Szobaszám..."
+                                   style="width:8rem"/>
+                           <app-building-selector
+                                   class="mr-2"
+                                   (change)="onFilter($event, 'building')"
+                                   [showClear]="true"
+                                   placeholder="Épület...">
+                           </app-building-selector>
+                           <app-bedtype-selector
+                                   (change)="onFilter($event, 'bedType')"
+                                   [showClear]="true"
+                                   placeholder="Ágytipus...">
+                           </app-bedtype-selector>
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'guests')"
+                                   placeholder="Vendég..."
+                                   style="width: 7rem"/>
+                        </th>
+                        <th>
+                            <p-calendar
+                                (onSelect)="onFilter($event, 'dateOfArrival')"
+                                (onClearClick)="onFilter($event, 'dateOfArrival')"
+                                appendTo="body"
+                                dataType="string"
+                                placeholder="Keresés..."
+                                [showButtonBar]="true">
+                            </p-calendar>
+                        </th>
+                        <th>
+                            <p-calendar
+                                (onSelect)="onFilter($event, 'dateOfDeparture')"
+                                (onClearClick)="onFilter($event, 'dateOfDeparture')"
+                                appendTo="body"
+                                dataType="string"
+                                placeholder="Keresés..."
+                                [showButtonBar]="true">
+                            </p-calendar>
+                        </th>
+                        <th>
+                            <p-dropdown 
+                                [options]="statusOptions" 
+                                optionLabel="name"
+                                optionValue="value"
+                                (onChange)="onFilter($event, 'status')"
+                                [showClear]="true"
+                                placeholder="Válasszon...">
+                            </p-dropdown>
+                            
+                        </th>
+                        <th>
+                            <input pInputText
+                                   type="text"
+                                   (input)="onFilter($event, 'comment')"
+                                   placeholder="Keresés..."
+                                   style="width:7rem"/>
+                        </th>
+                        <th></th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-reservation>
+                    <tr>
+                        <td>
+                            <p-tableCheckbox [value]="reservation"></p-tableCheckbox>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Szoba szám</span>
+
+                            <div class="building-badge {{reservation.building}} border-round-xl w-min p-0">
+                                <div class="flex align-items-center justify-content-center py-1 px-1">
+                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
+                                        <i class="pi pi-key vertical-align-middle"></i>
+                                        <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ reservation.reservationNum }}" tooltipPosition="top">
+                                            {{ reservation.reservationNum }}
+                                        </span>
+                                    </div>
+                                    <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ reservation.reservationCode }}" tooltipPosition="top">
+                                        <div class="flex flex-column align-items-left justify-content-center">
+                                            <span class="text-base font-semibold uppercase">
+                                                {{ 'BUILDINGS.' + reservation.building.toUpperCase() | translate }} <span *ngIf="reservation.floor" class="font-normal text-sm uppercase">({{ reservation.floor }})</span>
+                                                <span *ngIf="reservation.climate" class="pl-1">❄️</span>
+                                            </span>
+                                            <span class="font-light text-xs uppercase">
+                                                {{ reservation.beds }} SZEMÉLYES ({{ reservation.bedType }}<span *ngIf="reservation.bathreservation">, {{ reservation.bathreservation }}</span>)
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Pótágy</span>
+                            <span *ngIf="reservation.spareBeds" class="sparebed-badge {{ reservation.spareBeds }}">
+                                {{ 'SPAREBEDS.' + reservation.spareBeds?.toUpperCase() | translate }}
+                            </span>
+                        </td>
+                        <td style="max-width: 300px;">
+                            <span class="p-column-title">Komment</span>
+                            {{reservation.comment}}
+                        </td>
+                        <td *ngIf="!selectedConferences.length">
+                            <span class="p-column-title">Konferenciák</span>
+                            <div *ngFor="let conference of reservation.conferences">
+                                <p-chip 
+                                    styleClass="m-1" 
+                                    [label]="conference.name" 
+                                    icon="pi pi-calendar"
+                                    [removable]="!isOrganizer" 
+                                    (onRemove)="onConferenceRemove(conference, reservation)">
+                                </p-chip>
+                            </div>
+                        </td>
+                        <td *ngIf="selectedConferences.length">
+                            <span class="p-column-title">Vendégek</span>
+                            <p-avatarGroup >
+                                <p-avatar *ngFor="let guest of reservation.guests" 
+                                           icon="pi pi-user" 
+                                           size="large" 
+                                           shape="circle"
+                                           pTooltip="{{guest.guestName}}" 
+                                           tooltipPosition="top">
+                                </p-avatar>
+                            </p-avatarGroup>
+                        </td>
+                        <td *ngIf="selectedConferences.length">
+                            <span class="p-column-title">Telítettség</span>
+                            <p-progressBar 
+                                [value]="(reservation.guests?.length / reservation.beds) * 100" 
+                                [showValue]="false" 
+                                [style]="{'height':'.5rem'}"
+                                pTooltip="Ágy/vendég: {{reservation.beds}}/{{reservation.guests?.length}}" 
+                                tooltipPosition="top">
+                            </p-progressBar>
+                        </td>
+                        <td>
+                            <div class="flex">
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(reservation)" [disabled]="!canEdit"></button>
+                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = reservation; deleteDialog = true" [disabled]="!canDelete"></button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td [attr.colspan]="6" class="text-center">Nincs találat...</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+
+        <!-- New / Update sidebar -->
+        <p-sidebar 
+            id="sidebar" 
+            [(visible)]="sidebar" 
+            position="right" 
+            styleClass="p-sidebar-md"
+            [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
+            [fullScreen]="isMobile"
+            [blockScroll]="true">
+            
+            <!-- Sidebar header -->
+            <ng-template pTemplate="header">
+                <span class="font-semibold text-xl">
+                    {{ id?.value ? 'Foglalás adatai' : 'Új foglalás' }}
+                </span>
+            </ng-template>
+            
+            <form [formGroup]="reservationForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
+                
+                <!-- Reservation Id -->
+                <input formControlName="id" type="hidden">
+
+                <!-- reservationNum -->
+                <div class="field mb-4 col-6">
+                    <label for="reservationNum" class="font-medium text-900">Szoba szám</label>
+                    <input id="reservationNum" type="text" pInputText formControlName="reservationNum">
+                    <div *ngIf="reservationNum?.dirty && reservationNum?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+                
+                <!-- reservationCode -->
+                <div class="field mb-4 col-6">
+                    <label for="reservationCode" class="font-medium text-900">Szoba kód</label>
+                    <input id="reservationCode" type="text" pInputText formControlName="reservationCode">
+                    <div *ngIf="reservationCode?.dirty && reservationCode?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- beds -->
+                <div class="field mb-4 col-6">
+                    <label for="beds" class="font-medium text-900">Ágyak száma</label>
+                    <input id="beds" type="text" pInputText formControlName="beds">
+                    <div *ngIf="beds?.dirty && beds?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- bedType -->
+                <div class="field mb-4 col-6">
+                    <label for="bedType" class="font-medium text-900">Ágytípus</label>
+                    <app-bedtype-selector [parentForm]="reservationForm" controlName="bedType" [showClear]="true"></app-bedtype-selector>
+                    <div *ngIf="bedType?.dirty && bedType?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- spareBeds -->
+                <div class="field mb-4 col-6">
+                    <label for="spareBeds" class="font-medium text-900">Pótágy</label>
+                    <app-sparebed-selector [parentForm]="reservationForm" controlName="spareBeds" [showClear]="true"></app-sparebed-selector>
+                    <div *ngIf="spareBeds?.dirty && spareBeds?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- bathreservation -->
+                <div class="field mb-4 col-6">
+                    <label for="bathreservation" class="font-medium text-900">Fürdőszoba</label>
+                    <!-- <app-bathreservation-selector [parentForm]="reservationForm" controlName="bathreservation" [showClear]="true"></app-bathreservation-selector> -->
+                    <div *ngIf="bathreservation?.dirty && bathreservation?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- building -->
+                <div class="field mb-4 col-6">
+                    <label for="building" class="font-medium text-900">Épület</label>
+                    <app-building-selector [parentForm]="reservationForm" controlName="building" [showClear]="true"></app-building-selector>
+                    <div *ngIf="building?.dirty && building?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- floor -->
+                <div class="field mb-4 col-6">
+                    <label for="floor" class="font-medium text-900">Emelet</label>
+                    <app-floor-selector [parentForm]="reservationForm" controlName="floor" [showClear]="true"></app-floor-selector>
+                    <div *ngIf="floor?.dirty && floor?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- comment -->
+                <div class="field mb-4 col-6">
+                    <label for="comment" class="font-medium text-900">Megjegyzés</label>
+                    <input id="comment" type="text" pInputText formControlName="comment">
+                    <div *ngIf="comment?.dirty && comment?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- extraBeds -->
+                <div class="field mb-4 col-6">
+                    <label for="extraBeds" class="font-medium text-900">Extra férőhely</label>
+                    <input id="extraBeds" type="text" pInputText formControlName="extraBeds">
+                    <div *ngIf="extraBeds?.dirty && extraBeds?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- climate -->
+                <div class="field mb-4 col-6">
+                    <label for="climate" class="font-medium text-900">Klimatizált?</label>
+                    <div class="flex flex-wrap gap-3 my-3">
+                        <div class="flex align-items-center">
+                            <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes"></p-radioButton>
+                            <label for="climate-yes" class="ml-2">Igen</label>
+                        </div>
+                        <div class="flex align-items-center">
+                            <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no"></p-radioButton>
+                            <label for="climate-no" class="ml-2">Nem</label>
+                        </div>
+                    </div>
+                    <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
+                        Kérjük válassza ki, hogy klimatizált e a szoba!
+                    </div>
+                </div>
+
+                <!-- familyReservation -->
+                <div class="field mb-4 col-6">
+                    <label for="familyReservation" class="font-medium text-900">Családi szoba?</label>
+                    <div class="flex flex-wrap gap-3 my-3">
+                        <div class="flex align-items-center">
+                            <p-radioButton name="familyReservation" value="1" formControlName="familyReservation" inputId="familyReservation-yes"></p-radioButton>
+                            <label for="familyReservation-yes" class="ml-2">Igen</label>
+                        </div>
+                        <div class="flex align-items-center">
+                            <p-radioButton name="familyReservation" value="0" formControlName="familyReservation" inputId="familyReservation-no"></p-radioButton>
+                            <label for="familyReservation-no" class="ml-2">Nem</label>
+                        </div>
+                    </div>
+                    <div *ngIf="familyReservation?.dirty && familyReservation?.errors?.['required']" class="p-error">
+                        Kérjük válassza ki, hogy a szoba családi szoba e!
+                    </div>
+                </div>
+            </form>
+
+            <ng-template pTemplate="footer">
+                <div class="flex justify-content-end ap-2">
+                    <button pButton 
+                            pRipple 
+                            label="Mégsem" 
+                            icon="pi pi-times" 
+                            class="p-button-outlined"
+                            (click)="cancel()" 
+                            [disabled]="!reservationForm.dirty">
+                    </button>
+                    <button pButton 
+                            pRipple 
+                            label="Mentés" 
+                            icon="pi pi-check" 
+                            class="p-button ml-2" 
+                            (click)="save()"
+                            [disabled]="!reservationForm.valid || !reservationForm.dirty">
+                    </button>
+                </div>
+            </ng-template>
+        </p-sidebar>
+
+        <!-- Delete dialog -->
+        <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
+            <div class="flex align-items-center justify-content-center">
+                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+                <!-- <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.reservationNum}}</b> szobát?</span> -->
+            </div>
+            <ng-template pTemplate="footer">
+                <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="deleteDialog = false"></button>
+                <button pButton pRipple label="Igen" icon="pi pi-check" class="p-button ml-2" (click)="delete()"></button>
+            </ng-template>
+        </p-dialog>
+
+        <!-- Bulk Delete dialog -->
+        <p-dialog [(visible)]="bulkDeleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
+            <div class="flex align-items-center justify-content-center">
+                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+                <span>Biztosan törölni akarja a kiválasztott foglalásokat?</span>
+            </div>
+            <ng-template pTemplate="footer">
+                <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="bulkDeleteDialog = false"></button>
+                <button pButton pRipple label="Igen" icon="pi pi-check" class="p-button ml-2" (click)="deleteSelected()"></button>
+            </ng-template>
+        </p-dialog>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<p-blockUI [autoZIndex]="true" [blocked]="loading">
+    <p-progressSpinner></p-progressSpinner>
+</p-blockUI>
+
+<!-- Notifications -->
+<p-toast></p-toast>
