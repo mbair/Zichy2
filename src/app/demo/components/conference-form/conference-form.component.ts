@@ -265,11 +265,7 @@ export class ConferenceFormComponent implements OnInit {
 
                         // If registration has ended, show error
                         if (this.registrationEnded) {
-                            this.messageService.add({
-                                severity: "error",
-                                summary: "Figyelem!",
-                                detail: "A regisztrációs időszak lejárt!",
-                            })
+                            this.setRegistrationEndMessage()
                         }
                     }
                 } else {
@@ -381,6 +377,11 @@ export class ConferenceFormComponent implements OnInit {
         this.translate.onLangChange.subscribe(() => {
             this.currentLang = this.translate.currentLang === 'gb' ? 'en' : this.translate.currentLang
             this.setSzepCardMessage()
+            
+            // If registration has ended, show error
+            if (this.registrationEnded) {
+                this.setRegistrationEndMessage()
+            }
         })
     }
 
@@ -535,6 +536,21 @@ export class ConferenceFormComponent implements OnInit {
                     detail: translatedMessage,
                 },
             ]
+        })
+    }
+
+    /**
+     * Sets the registration expired message.
+     * Translates the 'registrationEndMessage' translation key and sets the message to the translated value.
+     * @returns void
+     */
+    setRegistrationEndMessage(): void {
+        this.translate.get('registrationEndMessage').subscribe((translatedMessage: string) => {
+            this.messageService.add({
+                    severity: 'error',
+                    summary: this.currentLang == 'hu' ? "Figyelem!" : "Attention!",
+                    detail: translatedMessage,
+            })
         })
     }
 

@@ -167,5 +167,6 @@
     "Ennek a felára 1.000 Ft/fő/éjszaka": "Ennek a felára 1.000 Ft/fő/éjszaka",
     "Klíma csak adott szobák esetében lehetséges, garantálni nem tudjuk": "Klíma csak adott szobák esetében lehetséges, garantálni nem tudjuk",
     "A banki átutalás választása technikai okok nem lehetséges, kérjük ezt NE jelöld meg": "A banki átutalás választása technikai okok nem lehetséges, kérjük ezt NE jelöld meg",
-    "Ha végig maradsz a táborban (augusztus 1), a távozás megadásánál, az augusztus hónaphoz kell ugrani": "Ha végig maradsz a táborban (augusztus 1), a távozás megadásánál, az augusztus hónaphoz kell ugrani"
+    "Ha végig maradsz a táborban (augusztus 1), a távozás megadásánál, az augusztus hónaphoz kell ugrani": "Ha végig maradsz a táborban (augusztus 1), a távozás megadásánál, az augusztus hónaphoz kell ugrani",
+    "registrationEndMessage": "A regisztrációs időszak lejárt"
 }
