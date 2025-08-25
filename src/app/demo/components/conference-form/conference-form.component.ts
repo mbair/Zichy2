@@ -13,6 +13,7 @@ import { Message, MessageService } from 'primeng/api';
 import { ConferenceService } from '../../service/conference.service';
 import { AnswerService } from '../../service/answer.service';
 import { GuestService } from '../../service/guest.service';
+import { UserService } from '../../service/user.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference, FormFieldInfo } from '../../api/conference';
 import { Answer } from '../../api/answer';
@@ -50,6 +51,7 @@ export class ConferenceFormComponent implements OnInit {
     showClimateField: boolean = false            // Climate field visibility
     szepCardMessage: Message[]                   // Message for szep card payment
     idCardTemplateVisible: boolean = false       // ID card template visible
+    canFillFormAfterDeadline: boolean = false    // User has permission to fill form after deadline
     formFieldInfos: FormFieldInfo[] = []         // Field messages for validation
     formFieldInfosMap: { [key: string]: FormFieldInfo } = {}
 
@@ -61,6 +63,7 @@ export class ConferenceFormComponent implements OnInit {
     private answerServiceMessageObs$: Observable<any> | undefined
 
     constructor(public router: Router,
+        public userService: UserService,
         private layoutService: LayoutService,
         private messageService: MessageService,
         private conferenceService: ConferenceService,
@@ -119,6 +122,9 @@ export class ConferenceFormComponent implements OnInit {
     }
 
     ngOnInit() {
+        // Permissions
+        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canFillFormAfterDeadline => this.canFillFormAfterDeadline = canFillFormAfterDeadline)
+
         // Get conference by URL
         this.getConferenceBySlug()
 
@@ -264,7 +270,7 @@ export class ConferenceFormComponent implements OnInit {
                         this.registrationEnded = registrationEndDate < today
 
                         // If registration has ended, show error
-                        if (this.registrationEnded) {
+                        if (this.registrationEnded && !this.canFillFormAfterDeadline) {
                             this.setRegistrationEndMessage()
                         }
                     }

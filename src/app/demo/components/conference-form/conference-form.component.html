@@ -46,7 +46,7 @@
                                 <p-messages></p-messages>
 
                                 <!-- Show registration form if registration is not ended -->
-                                <div *ngIf="registrationEnded === false && showForm === true">
+                                <div *ngIf="!registrationEnded || (registrationEnded && canFillFormAfterDeadline) && showForm">
 
                                     <!-- Registration form -->
                                     <form [formGroup]="conferenceForm" (ngSubmit)="onSubmit()" novalidate class="grid formgrid p-fluid">
