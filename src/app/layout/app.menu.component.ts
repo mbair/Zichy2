@@ -34,6 +34,12 @@ export class AppMenuComponent implements OnInit {
                     label: 'Hotel',
                     items: this.getFilteredItems([
                         {
+                            label: 'Foglalás',
+                            icon: 'pi pi-fw pi-address-book',
+                            routerLink: ['/reservation'],
+                            requiredRoles: ['Super Admin', 'Nagy Admin']
+                        },
+                        {
                             label: 'Konferencia',
                             icon: 'pi pi-fw pi-calendar',
                             routerLink: ['/conference'],

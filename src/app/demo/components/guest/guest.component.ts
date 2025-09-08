@@ -1276,32 +1276,42 @@ export class GuestComponent implements OnInit {
 
     downloadImportTemplate() {
         import("xlsx").then(xlsx => {
-            // Unnecessary columns that should be omitted
-            const excludedColumns = [
-                'id',
-                'is_test',
-                'userid',
-                'rfid_id',
-                'diet_id',
-                'room_id',
-                // 'roomNum',  // Ez kell a szervezőknek
-                'conferenceid',
+            const INCLUDED_COLUMNS = [
+                'firstName',
+                'lastName',
+                'gender',
+                'nationality',
+                'country',
+                'zipCode',
+                'roomNum',
+                'dateOfArrival',
+                'firstMeal',
+                'dateOfDeparture',
+                'lastMeal',
+                'diet',
+                'accommodationExtra',
+                'birthDate',
+                'conferenceName',
                 'rfid',
                 'rfidColor',
-                'lastRfidUsage',
-                'accommodationExtra',
                 'enabled',
-                'dietDetails',
+                'lastRfidUsage',
+                'email',
+                'telephone',
+                'roomType',
+                'payment',
+                'babyBed',
+                'roomMate',
                 'idcardtype',
                 'idcard',
+                'prepaid',
+                'climate',
                 'createdAt',
-                'updatedAt',
-                'answers' // We handle answers separately.
+                'updatedAt'
             ]
 
-            // Filter relevant columns based on tableData
-            const headers = Object.keys(this.tableData[0] || {})
-                .filter(key => !excludedColumns.includes(key))
+            // Default headers
+            const headers: string[] = [...INCLUDED_COLUMNS]
 
             // Add question-answer columns (e.g. question_1, answer_1)
             const maxQA = 5; // Example: maximum 5 question-answer pairs (adjustable as needed)
