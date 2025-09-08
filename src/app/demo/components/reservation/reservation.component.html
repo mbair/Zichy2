@@ -151,6 +151,9 @@
                         <td>
                             <span class="p-column-title">Szoba szám</span>
 
+                            {{ reservation.room.roomNum }}
+
+                            <!--
                             <div class="building-badge {{reservation.building}} border-round-xl w-min p-0">
                                 <div class="flex align-items-center justify-content-center py-1 px-1">
                                     <div class="flex align-items-center justify-content-center gap-2 px-2">
@@ -171,7 +174,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div>-->
                         </td>
                         <td>
                             <span class="p-column-title">Pótágy</span>
@@ -255,129 +258,12 @@
                 <!-- Reservation Id -->
                 <input formControlName="id" type="hidden">
 
-                <!-- reservationNum -->
-                <div class="field mb-4 col-6">
-                    <label for="reservationNum" class="font-medium text-900">Szoba szám</label>
-                    <input id="reservationNum" type="text" pInputText formControlName="reservationNum">
-                    <div *ngIf="reservationNum?.dirty && reservationNum?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-                
-                <!-- reservationCode -->
-                <div class="field mb-4 col-6">
-                    <label for="reservationCode" class="font-medium text-900">Szoba kód</label>
-                    <input id="reservationCode" type="text" pInputText formControlName="reservationCode">
-                    <div *ngIf="reservationCode?.dirty && reservationCode?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- beds -->
-                <div class="field mb-4 col-6">
-                    <label for="beds" class="font-medium text-900">Ágyak száma</label>
-                    <input id="beds" type="text" pInputText formControlName="beds">
-                    <div *ngIf="beds?.dirty && beds?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- bedType -->
-                <div class="field mb-4 col-6">
-                    <label for="bedType" class="font-medium text-900">Ágytípus</label>
-                    <app-bedtype-selector [parentForm]="reservationForm" controlName="bedType" [showClear]="true"></app-bedtype-selector>
-                    <div *ngIf="bedType?.dirty && bedType?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- spareBeds -->
-                <div class="field mb-4 col-6">
-                    <label for="spareBeds" class="font-medium text-900">Pótágy</label>
-                    <app-sparebed-selector [parentForm]="reservationForm" controlName="spareBeds" [showClear]="true"></app-sparebed-selector>
-                    <div *ngIf="spareBeds?.dirty && spareBeds?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- bathreservation -->
-                <div class="field mb-4 col-6">
-                    <label for="bathreservation" class="font-medium text-900">Fürdőszoba</label>
-                    <!-- <app-bathreservation-selector [parentForm]="reservationForm" controlName="bathreservation" [showClear]="true"></app-bathreservation-selector> -->
-                    <div *ngIf="bathreservation?.dirty && bathreservation?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- building -->
-                <div class="field mb-4 col-6">
-                    <label for="building" class="font-medium text-900">Épület</label>
-                    <app-building-selector [parentForm]="reservationForm" controlName="building" [showClear]="true"></app-building-selector>
-                    <div *ngIf="building?.dirty && building?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- floor -->
-                <div class="field mb-4 col-6">
-                    <label for="floor" class="font-medium text-900">Emelet</label>
-                    <app-floor-selector [parentForm]="reservationForm" controlName="floor" [showClear]="true"></app-floor-selector>
-                    <div *ngIf="floor?.dirty && floor?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
                 <!-- comment -->
                 <div class="field mb-4 col-6">
                     <label for="comment" class="font-medium text-900">Megjegyzés</label>
                     <input id="comment" type="text" pInputText formControlName="comment">
                     <div *ngIf="comment?.dirty && comment?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- extraBeds -->
-                <div class="field mb-4 col-6">
-                    <label for="extraBeds" class="font-medium text-900">Extra férőhely</label>
-                    <input id="extraBeds" type="text" pInputText formControlName="extraBeds">
-                    <div *ngIf="extraBeds?.dirty && extraBeds?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- climate -->
-                <div class="field mb-4 col-6">
-                    <label for="climate" class="font-medium text-900">Klimatizált?</label>
-                    <div class="flex flex-wrap gap-3 my-3">
-                        <div class="flex align-items-center">
-                            <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes"></p-radioButton>
-                            <label for="climate-yes" class="ml-2">Igen</label>
-                        </div>
-                        <div class="flex align-items-center">
-                            <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no"></p-radioButton>
-                            <label for="climate-no" class="ml-2">Nem</label>
-                        </div>
-                    </div>
-                    <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
-                        Kérjük válassza ki, hogy klimatizált e a szoba!
-                    </div>
-                </div>
-
-                <!-- familyReservation -->
-                <div class="field mb-4 col-6">
-                    <label for="familyReservation" class="font-medium text-900">Családi szoba?</label>
-                    <div class="flex flex-wrap gap-3 my-3">
-                        <div class="flex align-items-center">
-                            <p-radioButton name="familyReservation" value="1" formControlName="familyReservation" inputId="familyReservation-yes"></p-radioButton>
-                            <label for="familyReservation-yes" class="ml-2">Igen</label>
-                        </div>
-                        <div class="flex align-items-center">
-                            <p-radioButton name="familyReservation" value="0" formControlName="familyReservation" inputId="familyReservation-no"></p-radioButton>
-                            <label for="familyReservation-no" class="ml-2">Nem</label>
-                        </div>
-                    </div>
-                    <div *ngIf="familyReservation?.dirty && familyReservation?.errors?.['required']" class="p-error">
-                        Kérjük válassza ki, hogy a szoba családi szoba e!
                     </div>
                 </div>
             </form>

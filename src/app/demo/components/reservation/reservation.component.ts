@@ -28,32 +28,31 @@ moment.locale('hu')
 export class ReservationComponent implements OnInit {
 
     loading: boolean = true                      // Loading overlay trigger value
-    tableItem: Reservation = {}                         // One reservation object
-    tableData: Reservation[] = []                       // Data set displayed in a table
+    tableItem: Reservation = {}                  // One reservation object
+    tableData: Reservation[] = []                // Data set displayed in a table
     rowsPerPageOptions = [20, 50, 100, 200]      // Possible rows per page
     rowsPerPage: number = 20                     // Default rows per page
     totalRecords: number = 0                     // Total number of rows in the table
     page: number = 0                             // Current page
-    sortField: string = 'reservationNum'                // Current sort field
+    sortField: string = 'reservationNum'         // Current sort field
     sortOrder: number = 1                        // Current sort order
     globalFilter: string = ''                    // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
     debounce: { [key: string]: any } = {}        // Search delay in filter field
-    reservationForm: FormGroup                          // Form for reservation creation and modification
+    reservationForm: FormGroup                   // Form for reservation creation and modification
     originalFormValues: any                      // The original values ​​of the form
     sidebar: boolean = false                     // Table item maintenance sidebar
     deleteDialog: boolean = false                // Popup for deleting table item
     bulkDeleteDialog: boolean = false            // Popup for deleting table items
-    selected: Reservation[] = []                        // Table items chosen by reservation
+    selected: Reservation[] = []                 // Table items chosen by reservation
     canCreate: boolean = false                   // User has permission to create new reservation
     canEdit: boolean = false                     // User has permission to update reservation
     canDelete: boolean = false                   // User has permission to delete reservation
     isMobile: boolean = false                    // Mobile screen detection
     isOrganizer: boolean = false                 // User has organizer role
-    occupancyFilter: any                         // TODO: Not used yet  
     selectedConferences: Conference[] = []       // Selected conferences
     numberOfBeds: number = 0                     // Number of beds
-    statusOptions: any[] = []                   // Possible status options
+    statusOptions: any[] = []                    // Possible status options
 
     private initialFormValues = {
         id: null,
