@@ -29,7 +29,7 @@ export class LoginComponent {
         })
 
         // Set default theme
-        this.changeTheme('default')
+        this.changeTheme('indigo')
     }
 
     login() {

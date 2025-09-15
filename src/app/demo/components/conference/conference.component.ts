@@ -6,6 +6,7 @@ import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { emailDomainValidator } from '../../utils/email-validator';
 import { allLanguagesRequiredValidator } from '../../utils/all-languages-required-validator';
+import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { ConferenceService } from '../../service/conference.service';
 import { ResponsiveService } from '../../service/responsive.service';
 import { QuestionService } from '../../service/question.service';
@@ -122,12 +123,16 @@ export class ConferenceComponent implements OnInit {
         public userService: UserService,
         private router: Router,
         private formBuilder: FormBuilder,
+        private layoutService: LayoutService,
         private conferenceService: ConferenceService,
         private questionService: QuestionService,
         private mealService: MealService,
         private apiService: ApiService,
         private messageService: MessageService,
         private responsiveService: ResponsiveService) {
+
+        // Set default theme
+        this.changeTheme('indigo')
 
         // Conference form fields and validators
         this.conferenceForm = this.formBuilder.group({
@@ -691,6 +696,48 @@ export class ConferenceComponent implements OnInit {
                 return 'dinner'
             default:
                 return 'nothing'
+        }
+    }
+
+    /**
+     * Replaces the theme link with a new one.
+     * @param href The href attribute of the new link element.
+     * @param onComplete Called when the new style sheet is loaded.
+     * This method is used to switch the app's theme.
+     * It creates a clone of the current theme link, sets its href to the given one,
+     * inserts the clone after the original link, and then removes the original link.
+     * When the new style sheet is loaded, it calls the onComplete callback.
+     */
+    replaceThemeLink(href: string, onComplete: () => void) {
+        const themeLink = <HTMLLinkElement>document.getElementById('theme-link')
+        const cloneLinkElement = <HTMLLinkElement>themeLink.cloneNode(true)
+
+        cloneLinkElement.setAttribute('href', href)
+        cloneLinkElement.setAttribute('id', 'theme-link-clone')
+
+        themeLink.parentNode!.insertBefore(cloneLinkElement, themeLink.nextSibling)
+
+        cloneLinkElement.addEventListener('load', () => {
+            themeLink.remove()
+            cloneLinkElement.setAttribute('id', 'theme-link')
+            onComplete()
+        })
+    }
+
+    /**
+     * Switches the theme to the given one.
+     * @param theme The name of the theme to switch to.
+     * Finds the theme CSS link element and replaces its href with the new theme's href.
+     * After the new style sheet is loaded, updates the layout service's theme and notifies the listeners.
+     */
+    changeTheme(theme: string) {
+        const themeLink = <HTMLLinkElement>document.getElementById('theme-link')
+        if (themeLink) {
+            const newHref = themeLink.getAttribute('href')!.replace(this.layoutService.config.theme, theme)
+            this.replaceThemeLink(newHref, () => {
+                this.layoutService.config.theme = theme
+                this.layoutService.onConfigUpdate()
+            })
         }
     }
 
