@@ -283,28 +283,33 @@ export class ConferenceFormComponent implements OnInit {
 
         // Guest created => Save answers
         this.createdGuestObs$ = this.guestService.createdGuestObs
-        this.createdGuestObs$.subscribe((data: any) => {
+        this.createdGuestObs$.subscribe((createdGuest: any) => {
             this.loading = false
-            if (data && data.guest) {
-                if (this.conference?.questions?.length > 0) {
-                    let answers: Answer = {
-                        translations: [],
-                        guestid: data.guest.id,
-                        questionid: this.conference?.questions[0].id
-                    }
+            if (!createdGuest) return
 
-                    this.conference.questions[0].translations?.forEach((question: any, i: number) => {
-                        if (question['hu'] !== '' || question['en'] !== '') {
-                            answers.translations.push({
-                                hu: question['hu'],
-                                en: question['en'],
-                                answers: this.conferenceForm.get('answers')?.value[i]
-                            })
-                        }
-                    })
-
-                    this.answerService.create(answers)
+            // If there are extra questions: save answers
+            if (this.conference?.questions?.length > 0) {
+                const answers: Answer = {
+                    translations: [],
+                    guestid: createdGuest.id,
+                    questionid: this.conference?.questions[0].id
                 }
+
+                const lang = this.currentLang
+
+                this.conference.questions[0].translations?.forEach((question: any, i: number) => {
+                    const hu = question['hu']
+                    const en = question['en']
+                    if (hu !== '' || en !== '') {
+                        answers.translations.push({
+                            hu: hu,
+                            en: en,
+                            answers: this.conferenceForm.get('answers')?.value[i]
+                        })
+                    }
+                })
+
+                this.answerService.create(answers)
             }
         })
 
@@ -312,14 +317,22 @@ export class ConferenceFormComponent implements OnInit {
         this.guestServiceMessageObs$ = this.guestService.messageObs
         this.guestServiceMessageObs$.subscribe(message => {
             this.loading = false
-            if (message == 'success') {
-                // Show success message if we have no answers to save
-                if (this.conference?.questions?.length == 0) {
-                    this.saveSuccess()
-                }
-            } else {
-                this.saveFailed()
+            if (!message) return
+
+            // If message is a Toast
+            if (message?.severity) {
+                this.messageService.add(message)
+                message.severity === 'success' ? this.saveSuccess() : this.saveFailed()
+                return
             }
+
+            // If message is NOT a Toast
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Válasz mentés hiba',
+                detail: message?.errorMessage || message?.message || 'Ismeretlen hiba.'
+            })
+            this.saveFailed()
         })
 
         // Answer Message

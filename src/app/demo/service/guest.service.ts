@@ -4,10 +4,28 @@ import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { Guest } from '../api/guest';
 
+type ToastMsg = {
+  severity: 'success' | 'info' | 'warn' | 'error';
+  summary: string;
+  detail?: string;
+  life?: number;
+}
+
+type EmailStatus = {
+  status: 'sent' | 'failed' | 'timeout' | 'unknown';
+  message?: string;
+  code?: string | number;
+  providerResponse?: any;
+}
+
+type CreateGuestResponse = {
+  guest: Guest;
+  email?: EmailStatus;
+}
+
 @Injectable({
     providedIn: 'root',
 })
-
 export class GuestService {
 
     public apiURL: string
@@ -152,19 +170,25 @@ export class GuestService {
             }
         }
 
-        this.apiService.post(`guest/create/`, formData)
+        this.apiService.post<CreateGuestResponse>(`guest/create/`, formData)
             .subscribe({
-                next: (response: any) => {
-                    this.createdGuest$.next(response)
-                    this.message$.next('success')
-                    // this.message$.next({
-                    //     severity: 'success',
-                    //     summary: 'Sikeres vendég rögzítés',
-                    //     detail: `${response.lastName} ${response.firstName} rögzítve`,
-                    // })
+                next: (response: CreateGuestResponse) => {
+                    // server returns { guest, email }
+                    this.createdGuest$.next(response.guest)
+                    
+                    const regToast = this.registrationToast(response.guest)
+                    const emailToast = this.emailStatusToast(response.email)
+                    
+                    this.message$.next(regToast)
+                    this.message$.next(emailToast)
                 },
                 error: (error: any) => {
-                    this.message$.next(error)
+                    const errToast: ToastMsg = {
+                        severity: 'error',
+                        summary: 'Vendég rögzítés sikertelen',
+                        detail: error?.errorMessage || error?.message || 'Ismeretlen hiba történt.'
+                    }
+                    this.message$.next(errToast)
                 }
             })
     }
@@ -279,5 +303,22 @@ export class GuestService {
             // Let the app keep running by returning an empty result.
             return of(result as T)
         }
+    }
+
+    private emailStatusToast(email?: EmailStatus): ToastMsg {
+        if (!email) {
+            return { severity: 'warn', summary: 'E-mail', detail: 'E-mail státusz ismeretlen.' };
+        }
+        switch (email.status) {
+            case 'sent':    return { severity: 'success', summary: 'E-mail', detail: 'Visszaigazoló e-mail elküldve.' };
+            case 'timeout': return { severity: 'warn',    summary: 'E-mail', detail: 'Az e-mail küldés időkorlátot ért el.' };
+            case 'failed':  return { severity: 'error',   summary: 'E-mail hiba', detail: email.message || 'Az e-mail küldés nem sikerült.' };
+            default:        return { severity: 'info',    summary: 'E-mail', detail: 'E-mail státusz: ismeretlen.' };
+        }
+    }
+
+    private registrationToast(guest: any): ToastMsg {
+        const name = (guest?.lastName && guest?.firstName) ? `${guest.lastName} ${guest.firstName}` : 'Vendég';
+        return { severity: 'success', summary: 'Vendég rögzítve', detail: `${name} sikeresen rögzítve.` };
     }
 }
