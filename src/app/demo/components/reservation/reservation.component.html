@@ -123,21 +123,21 @@
                             </p-calendar>
                         </th>
                         <th>
-                            <!-- <p-dropdown 
+                            <p-dropdown 
                                 [options]="statusOptions" 
                                 optionLabel="name"
                                 optionValue="value"
                                 (onChange)="onFilter($event, 'status')"
                                 [showClear]="true"
                                 placeholder="Válasszon...">
-                            </p-dropdown> -->
+                            </p-dropdown>
                         </th>
                         <th>
                             <input pInputText
                                    type="text"
-                                   (input)="onFilter($event, 'comment')"
+                                   (input)="onFilter($event, 'notes')"
                                    placeholder="Keresés..."
-                                   style="width:7rem"/>
+                                   style="width:10rem"/>
                         </th>
                         <th></th>
                     </tr>
@@ -148,57 +148,32 @@
                             <p-tableCheckbox [value]="reservation"></p-tableCheckbox>
                         </td>
                         <td>
-                            <span class="p-column-title">Szoba szám</span>
-
-                            {{ reservation.room.roomNum }}
-
-                            <!--
-                            <div class="building-badge {{reservation.building}} border-round-xl w-min p-0">
+                            <span class="p-column-title">Szoba</span>
+                            <div class="building-badge {{reservation.room.building}} border-round-xl w-min p-0">
                                 <div class="flex align-items-center justify-content-center py-1 px-1">
                                     <div class="flex align-items-center justify-content-center gap-2 px-2">
                                         <i class="pi pi-key vertical-align-middle"></i>
-                                        <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ reservation.reservationNum }}" tooltipPosition="top">
-                                            {{ reservation.reservationNum }}
+                                        <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ reservation.room.roomNum }}" tooltipPosition="top">
+                                            {{ reservation.room.roomNum }}
                                         </span>
                                     </div>
-                                    <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ reservation.reservationCode }}" tooltipPosition="top">
+                                    <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ reservation.room.roomCode }}" tooltipPosition="top">
                                         <div class="flex flex-column align-items-left justify-content-center">
                                             <span class="text-base font-semibold uppercase">
-                                                {{ 'BUILDINGS.' + reservation.building.toUpperCase() | translate }} <span *ngIf="reservation.floor" class="font-normal text-sm uppercase">({{ reservation.floor }})</span>
-                                                <span *ngIf="reservation.climate" class="pl-1">❄️</span>
+                                                {{ 'BUILDINGS.' + reservation.room.building.toUpperCase() | translate }} <span *ngIf="reservation.room.floor" class="font-normal text-sm uppercase">({{ reservation.room.floor }})</span>
+                                                <span *ngIf="reservation.room.climate" class="pl-1">❄️</span>
                                             </span>
                                             <span class="font-light text-xs uppercase">
-                                                {{ reservation.beds }} SZEMÉLYES ({{ reservation.bedType }}<span *ngIf="reservation.bathreservation">, {{ reservation.bathreservation }}</span>)
+                                                {{ reservation.room.beds }} SZEMÉLYES ({{ reservation.room.bedType }}<span *ngIf="reservation.room.bathroom">, {{ reservation.room.bathroom }}</span>)
                                             </span>
                                         </div>
                                     </div>
                                 </div>
-                            </div>-->
-                        </td>
-                        <td>
-                            <span class="p-column-title">Pótágy</span>
-                            <span *ngIf="reservation.spareBeds" class="sparebed-badge {{ reservation.spareBeds }}">
-                                {{ 'SPAREBEDS.' + reservation.spareBeds?.toUpperCase() | translate }}
-                            </span>
-                        </td>
-                        <td style="max-width: 300px;">
-                            <span class="p-column-title">Komment</span>
-                            {{reservation.comment}}
-                        </td>
-                        <td *ngIf="!selectedConferences.length">
-                            <span class="p-column-title">Konferenciák</span>
-                            <div *ngFor="let conference of reservation.conferences">
-                                <p-chip 
-                                    styleClass="m-1" 
-                                    [label]="conference.name" 
-                                    icon="pi pi-calendar"
-                                    [removable]="!isOrganizer" 
-                                    (onRemove)="onConferenceRemove(conference, reservation)">
-                                </p-chip>
                             </div>
                         </td>
-                        <td *ngIf="selectedConferences.length">
+                        <td>
                             <span class="p-column-title">Vendégek</span>
+                            {{ reservation.guests.join(', ') }}
                             <p-avatarGroup >
                                 <p-avatar *ngFor="let guest of reservation.guests" 
                                            icon="pi pi-user" 
@@ -209,6 +184,20 @@
                                 </p-avatar>
                             </p-avatarGroup>
                         </td>
+                        <td style="max-width: 300px;">
+                            <span class="p-column-title">Érkezés</span>
+                            <span class="calendar-badge">
+                                <i class="pi pi-calendar mr-1"></i>
+                                {{ reservation.startDate | date:'yyyy.MM.dd' }}
+                            </span>
+                        </td>
+                        <td style="max-width: 300px;">
+                            <span class="p-column-title">Távozás</span>
+                            <span class="calendar-badge">
+                                <i class="pi pi-calendar mr-1"></i>
+                                {{ reservation.endDate | date:'yyyy.MM.dd' }}
+                            </span>
+                        </td>
                         <td *ngIf="selectedConferences.length">
                             <span class="p-column-title">Telítettség</span>
                             <p-progressBar 
@@ -218,6 +207,14 @@
                                 pTooltip="Ágy/vendég: {{reservation.beds}}/{{reservation.guests?.length}}" 
                                 tooltipPosition="top">
                             </p-progressBar>
+                        </td>
+                        <td style="max-width: 300px;">
+                            <span class="p-column-title">Státusz</span>
+                            {{ reservation.status }}
+                        </td>
+                        <td>
+                            <span class="p-column-title">Megjegyzés</span>
+                            {{ reservation.notes }}
                         </td>
                         <td>
                             <div class="flex">
@@ -260,7 +257,7 @@
 
                 <!-- Conference -->
                 <div class="field mb-4 col-12">
-                    <label for="conference" class="font-medium text-900">Konferencia {{ reservationForm.get('conference_id')?.value ?? '—' }}</label>
+                    <label for="conference" class="font-medium text-900">Konferencia</label>
                     <app-conference-selector
                         formControlName="conference"
                         [selectionLimit]="1"
