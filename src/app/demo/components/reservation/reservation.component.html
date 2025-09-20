@@ -123,15 +123,14 @@
                             </p-calendar>
                         </th>
                         <th>
-                            <p-dropdown 
+                            <!-- <p-dropdown 
                                 [options]="statusOptions" 
                                 optionLabel="name"
                                 optionValue="value"
                                 (onChange)="onFilter($event, 'status')"
                                 [showClear]="true"
                                 placeholder="Válasszon...">
-                            </p-dropdown>
-                            
+                            </p-dropdown> -->
                         </th>
                         <th>
                             <input pInputText
@@ -252,17 +251,101 @@
                     {{ id?.value ? 'Foglalás adatai' : 'Új foglalás' }}
                 </span>
             </ng-template>
-            
+
             <form [formGroup]="reservationForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
                 
                 <!-- Reservation Id -->
                 <input formControlName="id" type="hidden">
+                <input formControlName="conference_id" type="hidden">
 
-                <!-- comment -->
+                <!-- Conference -->
+                <div class="field mb-4 col-12">
+                    <label for="conference" class="font-medium text-900">Konferencia {{ reservationForm.get('conference_id')?.value ?? '—' }}</label>
+                    <app-conference-selector
+                        formControlName="conference"
+                        [selectionLimit]="1"
+                        [showClear]="true"
+                        placeholder="Válasszon konferenciát...">
+                    </app-conference-selector>
+                    <div *ngIf="conference?.dirty && conference?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- Room ID -->
+                <div class="field mb-4 col-12">
+                    <label for="room_id" class="font-medium text-900">Szoba ID</label>
+                    <input id="room_id" type="text" pInputText formControlName="room_id">
+                    <div *ngIf="room_id?.dirty && room_id?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- Guest IDs -->
+                <div class="field mb-4 col-12">
+                    <label for="guestIds" class="font-medium text-900">Vendég ID</label>
+                    <input id="guestIds" type="text" pInputText formControlName="guestIds">
+                    <div *ngIf="guestIds?.dirty && guestIds?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- startDate -->
                 <div class="field mb-4 col-6">
-                    <label for="comment" class="font-medium text-900">Megjegyzés</label>
-                    <input id="comment" type="text" pInputText formControlName="comment">
-                    <div *ngIf="comment?.dirty && comment?.errors?.['required']" class="block p-error">
+                    <label for="startDate" class="font-medium text-900">
+                        {{'Érkezés dátuma' | translate }}
+                    </label>
+                    <p-calendar id="startDate"
+                                formControlName="startDate"
+                                [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
+                                [disabled]="!conferenceStart"
+                                dateFormat="yy-mm-dd"
+                                dataType="string"
+                                appendTo="body">
+                    </p-calendar>
+                    <div *ngIf="startDate?.dirty && startDate?.errors?.['required']" class="p-error">
+                        {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
+                    </div>
+                    <div *ngIf="reservationForm.errors?.['dateRangeInvalid']" class="p-error">
+                        {{'Az érkezés dátumának korábbinak kell lennie, mint a távozási dátum' | translate }}!
+                    </div>
+                </div>
+
+                <!-- endDate -->
+                <div class="field mb-4 col-6">
+                    <label for="endDate" class="font-medium text-900">
+                        {{'Távozás dátuma' | translate }}
+                    </label>
+                    <p-calendar id="endDate"
+                                formControlName="endDate"
+                                [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
+                                [disabled]="!conferenceEnd"
+                                dateFormat="yy-mm-dd"
+                                dataType="string"
+                                appendTo="body">
+                    </p-calendar>
+                    <div *ngIf="endDate?.dirty && endDate?.errors?.['required']" class="p-error">
+                        {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
+                    </div>
+                    <div *ngIf="reservationForm.errors?.['dateRangeInvalid']" class="p-error">
+                        {{'Az érkezés dátumának korábbinak kell lennie, mint a távozási dátum' | translate }}!
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="field mb-4 col-12">
+                    <label for="status" class="font-medium text-900">Státusz</label>
+                    <input id="status" type="text" pInputText formControlName="status">
+                    <div *ngIf="status?.dirty && status?.errors?.['required']" class="block p-error">
+                        Kötelező kitölteni
+                    </div>
+                </div>
+
+                <!-- notes -->
+                <div class="field mb-4 col-12">
+                    <label for="notes" class="font-medium text-900">Megjegyzés</label>
+                    <input id="notes" type="text" pInputText formControlName="notes">
+                    <div *ngIf="notes?.dirty && notes?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>
