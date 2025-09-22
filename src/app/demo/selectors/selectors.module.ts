@@ -25,6 +25,7 @@ import { BedtypeSelectorComponent } from './bedtype-selector/bedtype-selector.co
 import { BathroomSelectorComponent } from './bathroom-selector/bathroom-selector.component';
 import { FloorSelectorComponent } from './floor-selector/floor-selector.component';
 import { YesNoSelectorComponent } from './yes-no-selector/yes-no-selector.component';
+import { ReservationStatusSelectorComponent } from './reservation-status-selector/reservation-status-selector.component';
 
 @NgModule({
     declarations: [
@@ -46,6 +47,7 @@ import { YesNoSelectorComponent } from './yes-no-selector/yes-no-selector.compon
         BathroomSelectorComponent,
         FloorSelectorComponent,
         YesNoSelectorComponent,
+        ReservationStatusSelectorComponent,
     ],
     imports: [
         CommonModule,
@@ -76,6 +78,7 @@ import { YesNoSelectorComponent } from './yes-no-selector/yes-no-selector.compon
         BathroomSelectorComponent,
         FloorSelectorComponent,
         YesNoSelectorComponent,
+        ReservationStatusSelectorComponent,
     ]
 })
 export class SelectorsModule {}

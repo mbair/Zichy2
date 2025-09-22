@@ -123,14 +123,11 @@
                             </p-calendar>
                         </th>
                         <th>
-                            <p-dropdown 
-                                [options]="statusOptions" 
-                                optionLabel="name"
-                                optionValue="value"
-                                (onChange)="onFilter($event, 'status')"
-                                [showClear]="true"
-                                placeholder="Válasszon...">
-                            </p-dropdown>
+                            <app-reservation-status-selector
+                                   (change)="onFilter($event, 'status')"
+                                   [showClear]="true"
+                                   placeholder="Státusz...">
+                            </app-reservation-status-selector>
                         </th>
                         <th>
                             <input pInputText
@@ -332,7 +329,11 @@
                 <!-- Status -->
                 <div class="field mb-4 col-12">
                     <label for="status" class="font-medium text-900">Státusz</label>
-                    <input id="status" type="text" pInputText formControlName="status">
+                    <app-reservation-status-selector
+                            formControlName="status"
+                            [showClear]="true"
+                            placeholder="Státusz...">
+                    </app-reservation-status-selector>
                     <div *ngIf="status?.dirty && status?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
@@ -341,7 +342,7 @@
                 <!-- notes -->
                 <div class="field mb-4 col-12">
                     <label for="notes" class="font-medium text-900">Megjegyzés</label>
-                    <input id="notes" type="text" pInputText formControlName="notes">
+                    <textarea id="notes" type="text" formControlName="notes" pInputTextarea rows="5"></textarea>
                     <div *ngIf="notes?.dirty && notes?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
