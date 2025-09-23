@@ -207,7 +207,9 @@
                         </td>
                         <td style="max-width: 300px;">
                             <span class="p-column-title">Státusz</span>
-                            {{ reservation.status }}
+                            <span *ngIf="reservation.status" class="reservation-status-badge {{ reservation.status }}">
+                                {{ 'RESERVATION_STATUSES.' + reservation.status?.toUpperCase() | translate }}
+                            </span>
                         </td>
                         <td>
                             <span class="p-column-title">Megjegyzés</span>

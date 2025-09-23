@@ -57,14 +57,6 @@ export class ReservationComponent implements OnInit {
     conferenceStart?: Date | null = null
     conferenceEnd?: Date | null = null
 
-    statusOptions = [
-        { code: 'tentative', name: 'Feltételes' },
-        { code: 'confirmed', name: 'Visszaigazolva' },
-        { code: 'in_house', name: 'Házon belül' },
-        { code: 'checked_out', name: 'Kijelentkezett' },
-        { code: 'cancelled', name: 'Törölve' }
-    ]
-
     private initialFormValues = {
         id: null,
         room_id: null,
@@ -318,11 +310,11 @@ export class ReservationComponent implements OnInit {
 
             // Create
             if (!formValues.id) {
-                this.reservationService.create(formValues)
+                // this.reservationService.create(formValues)
 
             // Update
             } else {
-                this.reservationService.update(formValues)
+                // this.reservationService.update(formValues)
             }
 
             this.sidebar = false

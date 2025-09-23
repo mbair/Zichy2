@@ -76,11 +76,11 @@ export class ReservationStatusSelectorComponent implements OnInit, ControlValueA
      */
     setReservationStatuses() {
         this.statuses = [
-            { label: this.translate.instant('RESERVATION_STATUSES.TENTATIVE'), value: 'feltételes', color: 'indigo' },
-            { label: this.translate.instant('RESERVATION_STATUSES.CONFIRMED'), value: 'visszaigazolva', color: 'blue' },
-            { label: this.translate.instant('RESERVATION_STATUSES.IN_HOUSE'), value: 'házon belül', color: 'cyan' },
-            { label: this.translate.instant('RESERVATION_STATUSES.CHECKED_OUT'), value: 'kijelentkezett', color: 'green' },
-            { label: this.translate.instant('RESERVATION_STATUSES.CANCELLED'), value: 'törölve', color: 'red' },
+            { label: 'tentative', value: 'tentative' },
+            { label: 'confirmed', value: 'confirmed' },
+            { label: 'in_house', value: 'in_house' },
+            { label: 'checked_out', value: 'checked_out' },
+            { label: 'cancelled', value: 'cancelled' },
         ]
     }
 

@@ -144,7 +144,7 @@
     },
     "RESERVATION_STATUSES": {
         "TENTATIVE": "feltételes",
-        "CONFIRMED": "visszaigazolva.",
+        "CONFIRMED": "visszaigazolva",
         "IN_HOUSE": "házon belül",
         "CHECKED_OUT": "kijelentkezett",
         "CANCELLED": "törölve"

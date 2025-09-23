@@ -10,13 +10,13 @@
             [showClear]="showClear"
             appendTo="body">
     <ng-template pTemplate="item" let-option>
-        <span [ngClass]="'color-badge ' + option?.color">
-            {{ option.label }}
+        <span class="reservation-status-badge {{ option.value }}">
+            {{ 'RESERVATION_STATUSES.' + option.label?.toUpperCase() | translate }}
         </span>
     </ng-template>
     <ng-template pTemplate="selectedItem" let-selectedItem>
-        <span [ngClass]="'color-badge ' + selectedItem?.color">
-            {{ selectedItem?.label }}
+        <span class="reservation-status-badge {{ selectedItem?.value }}">
+            {{ 'RESERVATION_STATUSES.' + selectedItem?.label?.toUpperCase() | translate }}
         </span>
     </ng-template>
 </p-dropdown>
@@ -33,13 +33,13 @@
                 [showClear]="showClear"
                 appendTo="body">
         <ng-template pTemplate="item" let-option>
-            <span [ngClass]="'color-badge ' + option?.color">
-                {{ option.label }}
+            <span class="reservation-status-badge {{ option.value }}">
+                {{ 'RESERVATION_STATUSES.' + option.label?.toUpperCase() | translate }}
             </span>
         </ng-template>
         <ng-template pTemplate="selectedItem" let-selectedItem>
-            <span [ngClass]="'color-badge ' + selectedItem?.color">
-                {{ selectedItem?.label }}
+            <span class="reservation-status-badge {{ selectedItem?.value }}">
+                {{ 'RESERVATION_STATUSES.' + selectedItem?.label?.toUpperCase() | translate }}
             </span>
         </ng-template>
     </p-dropdown>
