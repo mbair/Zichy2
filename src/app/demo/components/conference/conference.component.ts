@@ -439,28 +439,51 @@ export class ConferenceComponent implements OnInit {
      * corresponding language.
      */
     initializeQuestionsForm() {
-        const q = this.tableItem.questions;
-        const maxQuestions = 5;
+        const q = this.tableItem.questions
+        const maxQuestions = 5
 
-        // Extract existing translations, or use empty array
-        const existingQuestions = q && q.length && q[0].translations ? q[0].translations : [];
+        // Extract existing translations from all questions
+        const existingQuestions: any[] = []
+
+        if (q && q.length > 0) {
+            q.forEach((question: any) => {
+                if (question.translations) {
+                    // Check if translations is an array or object
+                    if (Array.isArray(question.translations)) {
+                        // If it's an array, add each translation
+                        question.translations.forEach((translation: any) => {
+                            // Only add if at least one language has content
+                            if (translation.hu || translation.en) {
+                                existingQuestions.push(translation)
+                            }
+                        });
+                    } else {
+                        // If it's an object, add it directly
+                        // Only add if at least one language has content
+                        if (question.translations.hu || question.translations.en) {
+                            existingQuestions.push(question.translations)
+                        }
+                    }
+                }
+            })
+        }
 
         // Reinitialize the form, including the questions FormArray
         this.questionsForm = this.formBuilder.group({
             conferenceid: [this.tableItem.id],
             questions: this.formBuilder.array([])
-        });
+        })
 
         // Use local variable instead of this.questions getter
-        const questionsArray = this.questionsForm.get('questions') as FormArray;
+        const questionsArray = this.questionsForm.get('questions') as FormArray
 
         // Fill form with stored questions
         existingQuestions.forEach((question: any) => {
             questionsArray.push(this.formBuilder.group({
                 hu: [question.hu],
                 en: [question.en]
-            }, { validators: allLanguagesRequiredValidator() }));
-        });
+            }, { validators: allLanguagesRequiredValidator() }))
+        })
 
         // Add empty questions if needed
         const missingQuestions = maxQuestions - questionsArray.length;
@@ -468,11 +491,11 @@ export class ConferenceComponent implements OnInit {
             questionsArray.push(this.formBuilder.group({
                 hu: [''],
                 en: ['']
-            }, { validators: allLanguagesRequiredValidator() }));
+            }, { validators: allLanguagesRequiredValidator() }))
         }
 
         // Store original values for comparison
-        this.originalQuestionsFormValues = this.questionsForm.value;
+        this.originalQuestionsFormValues = this.questionsForm.value
     }
 
 
