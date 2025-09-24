@@ -296,7 +296,6 @@
                     <p-calendar id="startDate"
                                 formControlName="startDate"
                                 [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
-                                [disabled]="!conferenceStart"
                                 dateFormat="yy-mm-dd"
                                 dataType="string"
                                 appendTo="body">
@@ -317,7 +316,6 @@
                     <p-calendar id="endDate"
                                 formControlName="endDate"
                                 [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
-                                [disabled]="!conferenceEnd"
                                 dateFormat="yy-mm-dd"
                                 dataType="string"
                                 appendTo="body">

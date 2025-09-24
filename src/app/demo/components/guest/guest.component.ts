@@ -1143,11 +1143,9 @@ export class GuestComponent implements OnInit {
                 conf.guestEditEndDate && moment().isSameOrBefore(moment(conf.guestEditEndDate), 'day')
             )
         } else {
-            this.canEdit = false
+            this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo']).subscribe(canEdit => this.canEdit = canEdit)
         }
 
-        // this.tableData = []
-        // this.doQuery()
         this.selectionChanges$.next(this.selectedConferences)
     }
 

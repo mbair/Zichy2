@@ -12,7 +12,7 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Reservation } from '../../api/reservation';
 import { dateRangeValidator } from '../../utils/date-range-validator';
-import { distinctArrayBy, distinctByIds } from '../../utils/rx-ops';
+import { distinctByIds } from '../../utils/rx-ops';
 import * as FileSaver from 'file-saver';
 import * as moment from 'moment';
 moment.locale('hu')
@@ -97,8 +97,8 @@ export class ReservationComponent implements OnInit {
             room_id: [this.initialFormValues.room_id, Validators.required],
             conference: [this.initialFormValues.conference, Validators.required], // UI
             conference_id: [this.initialFormValues.conference_id, Validators.required],                           // Backend
-            startDate: [this.initialFormValues.startDate, Validators.required],
-            endDate: [this.initialFormValues.endDate, Validators.required],
+            startDate: [{ value: this.initialFormValues.startDate, disabled: true }, Validators.required],
+            endDate: [{ value: this.initialFormValues.endDate, disabled: true }, Validators.required],
             status: [this.initialFormValues.status, Validators.required],
             notes: [this.initialFormValues.notes],
             guestIds: [this.initialFormValues.guestIds, Validators.required],
@@ -159,14 +159,19 @@ export class ReservationComponent implements OnInit {
             .pipe(distinctByIds<Conference>())
             .subscribe(conf => {
                 const first = conf?.[0]
-                this.reservationForm.patchValue(
-                    {
-                        conference_id: first?.id ?? null,
-                        startDate: first?.beginDate ?? null,
-                        endDate: first?.endDate ?? null
-                    },
-                    { emitEvent: false }
-                )
+                this.reservationForm.patchValue({
+                    conference_id: first?.id ?? null,
+                    startDate: first?.beginDate ?? null,
+                    endDate: first?.endDate ?? null
+                }, { emitEvent: false })
+
+                if (first) {
+                    this.startDate?.enable({ emitEvent: false })
+                    this.endDate?.enable({ emitEvent: false })
+                } else {
+                    this.startDate?.disable({ emitEvent: false })
+                    this.endDate?.disable({ emitEvent: false })
+                }
             })
 
         // Monitor the changes of the window size
