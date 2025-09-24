@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, of, Subject, switchMap } from 'rxjs';
+import { auditTime, BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject, Subscription, switchMap } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
@@ -12,11 +12,13 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Reservation } from '../../api/reservation';
 import { dateRangeValidator } from '../../utils/date-range-validator';
+import { distinctArrayBy, distinctByIds } from '../../utils/rx-ops';
 import * as FileSaver from 'file-saver';
 import * as moment from 'moment';
 moment.locale('hu')
 
-import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
+import { ChangeSource, ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
+type SortDir = 1 | -1
 
 @Component({
     selector: 'reservation-component',
@@ -40,7 +42,7 @@ export class ReservationComponent implements OnInit {
     totalRecords: number = 0                     // Total number of rows in the table
     page: number = 0                             // Current page
     sortField: string = 'id'                     // Current sort field
-    sortOrder: number = 1                        // Current sort order
+    sortOrder: SortDir = 1                       // Current sort order
     globalFilter: string = ''                    // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
     debounce: { [key: string]: any } = {}        // Search delay in filter field
@@ -74,9 +76,10 @@ export class ReservationComponent implements OnInit {
         guestIds: []
     }
 
+    private query$ = new Subject<void>()
+    private querySub?: Subscription
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
-    private reservationObs$: Observable<any> | undefined
     private serviceMessageObs$: Observable<any> | undefined
     private conferenceMessageObs$: Observable<any> | undefined
 
@@ -114,33 +117,56 @@ export class ReservationComponent implements OnInit {
         this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => this.isOrganizer = isOrganizer)
 
         // Reservations
-        this.reservationObs$ = this.reservationService.reservationObs
-        this.reservationObs$.subscribe((data: ApiResponse) => {
-            this.loading = false
-            if (data) {
-                this.tableData = data.rows || []
-                this.totalRecords = data.totalItems || 0
-                this.page = data.currentPage || 0
-                this.numberOfBeds = data.numberOfBeds || 0
+        this.querySub = this.query$.pipe(
+            map(() => this.buildQueryKey()),
+            distinctUntilChanged(),
+            auditTime(50),
+            switchMap(() => {
+                this.loading = true
+
+                this.filterValues['conferences'] =
+                    (this.selectedConferences ?? []).map(x => x.id).join(',')
+
+                const filters = Object.keys(this.filterValues)
+                    .map(k => this.filterValues[k]?.length ? `${k}=${this.filterValues[k]}` : '')
+                    .filter(Boolean)
+                    .join('&')
+
+                const sortArg = this.sortField
+                    ? { sortField: this.sortField, sortOrder: this.sortOrder }
+                    : ''
+
+                return (this.globalFilter !== '')
+                    ? this.reservationService.getBySearch$(this.globalFilter, sortArg)
+                    : this.reservationService.get$(this.page, this.rowsPerPage, sortArg, filters)
+            })
+        ).subscribe({
+            next: (data: ApiResponse) => {
+                this.loading = false
+                this.tableData = data?.rows ?? []
+                this.totalRecords = data?.totalItems ?? 0
+                this.page = data?.currentPage ?? 0
+                this.numberOfBeds = data?.numberOfBeds ?? 0
+            },
+            error: () => {
+                this.loading = false
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Hiba történt!' })
             }
         })
 
         // Monitor conference change
         this.conference?.valueChanges
-            .pipe(distinctUntilChanged())
-            .subscribe((conf: Conference[] | null) => {
-
-                // Set conference_id
-                const selectedConferenceId = conf ? conf[0]?.id : null
+            .pipe(distinctByIds<Conference>())
+            .subscribe(conf => {
+                const first = conf?.[0]
                 this.reservationForm.patchValue(
-                    { conference_id: selectedConferenceId },
+                    {
+                        conference_id: first?.id ?? null,
+                        startDate: first?.beginDate ?? null,
+                        endDate: first?.endDate ?? null
+                    },
                     { emitEvent: false }
                 )
-
-                // Set reservation begin and end dates
-                const startDate = conf ? conf[0]?.beginDate : null
-                const endDate = conf ? conf[0]?.endDate : null
-                this.reservationForm.patchValue({ startDate, endDate }, { emitEvent: false })
             })
 
         // Monitor the changes of the window size
@@ -178,21 +204,7 @@ export class ReservationComponent implements OnInit {
      * @returns
      */
     doQuery() {
-        // Organizer need select conference
-        if (this.isOrganizer && !this.selectedConferences.length) return
-
-        this.loading = true
-        this.filterValues['conferences'] = this.selectedConferences.map(conference => conference.id).join(',')
-
-        const filters = Object.keys(this.filterValues)
-            .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
-        const queryParams = filters.filter(x => x.length > 0).join('&')
-
-        if (this.globalFilter !== '') {
-            return this.reservationService.getBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
-        }
-
-        return this.reservationService.get(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
+        this.query$.next()
     }
 
     /**
@@ -202,7 +214,7 @@ export class ReservationComponent implements OnInit {
      */
     onFilter(event: any, field: string) {
         // Organizer need select conference
-        if (this.isOrganizer && !this.selectedConferences) return
+        if (this.isOrganizer && this.selectedConferences.length === 0) return
 
         const noWaitFields: string[] = ['conferenceName', 'building', 'bedType', 'spareBeds']
         let filterValue = ''
@@ -252,7 +264,7 @@ export class ReservationComponent implements OnInit {
         this.page = event.first! / event.rows!
         this.rowsPerPage = event.rows ?? this.rowsPerPage
         this.sortField = event.sortField ?? ''
-        this.sortOrder = event.sortOrder ?? 1
+        this.sortOrder = (event.sortOrder === -1 ? -1 : 1)
         this.globalFilter = event.globalFilter ?? ''
         this.doQuery()
     }
@@ -367,8 +379,13 @@ export class ReservationComponent implements OnInit {
         }
     }
 
-    onConferenceRemove(conference: any, reservation: any) {
-        // this.conferenceService.removeReservationsFromConference(conference.id, [reservation.id])
+    onConfChange(e: { value: Conference[]; source: ChangeSource }) {
+        this.selectedConferences = e.value;
+        // Csak a számodra értelmes forrásokra kérdezz le:
+        if (e.source === 'user' || e.source === 'auto-select-first') {
+            this.tableData = [];
+            this.doQuery();
+        }
     }
 
     /**
@@ -438,6 +455,21 @@ export class ReservationComponent implements OnInit {
         const m = String(d.getMonth() + 1).padStart(2, '0')
         const day = String(d.getDate()).padStart(2, '0')
         return `${y}-${m}-${day}`
+    }
+
+    /**
+     * 
+     */
+    private buildQueryKey(): string {
+        const confIds = (this.selectedConferences ?? []).map(c => c.id).sort().join(',')
+        const filters = Object.keys(this.filterValues)
+            .map(k => this.filterValues[k] ? `${k}=${this.filterValues[k]}` : '')
+            .filter(Boolean)
+            .join('&')
+        return [
+            this.page, this.rowsPerPage, this.sortField, this.sortOrder,
+            this.globalFilter || '', confIds, filters
+        ].join('|')
     }
 
     // Don't delete this, its needed from a performance point of view,

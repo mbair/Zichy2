@@ -186,6 +186,7 @@
             [(ngModel)]="selectedConferences"
             [selectionLimit]="1"
             [selectFirstOption]="true"
+            [emitOnSelectFirstOption]="true"
             placeholder="Válasszon konferenciát..."
             [showClear]="true"
             (ngModelChange)="onConferenceChange($event)">

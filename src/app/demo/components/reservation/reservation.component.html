@@ -25,6 +25,7 @@
                         <span class="block mt-2 md:mt-0">
                             <app-conference-selector
                                 [(ngModel)]="selectedConferences"
+                                [emitOnSelectFirstOption]="true"
                                 [showClear]="true"
                                 [style]="{'minWidth': '35rem'}"
                                 placeholder="Válasszon konferenciát..."
@@ -225,7 +226,7 @@
                 </ng-template>
                 <ng-template pTemplate="emptymessage">
                     <tr>
-                        <td [attr.colspan]="6" class="text-center">Nincs találat...</td>
+                        <td [attr.colspan]="8" class="text-center">Nincs találat...</td>
                     </tr>
                 </ng-template>
             </p-table>
