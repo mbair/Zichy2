@@ -25,6 +25,7 @@ import { SliderModule } from 'primeng/slider';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { CalendarModule } from 'primeng/calendar';
 import { ChipModule } from 'primeng/chip';
+import { InputTextareaModule } from 'primeng/inputtextarea';
 import { SelectorsModule } from '../../selectors/selectors.module';
 import { ReservationService } from '../../service/reservation.service';
 
@@ -56,7 +57,8 @@ import { ReservationService } from '../../service/reservation.service';
         RadioButtonModule,
         TranslateModule,
         CalendarModule,
-        ChipModule
+        ChipModule,
+        InputTextareaModule
     ],
     declarations: [ReservationComponent],
     providers: [ReservationService]

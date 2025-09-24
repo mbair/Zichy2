@@ -6,6 +6,7 @@ import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { emailDomainValidator } from '../../utils/email-validator';
 import { allLanguagesRequiredValidator } from '../../utils/all-languages-required-validator';
+import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { ConferenceService } from '../../service/conference.service';
 import { ResponsiveService } from '../../service/responsive.service';
 import { QuestionService } from '../../service/question.service';
@@ -122,12 +123,16 @@ export class ConferenceComponent implements OnInit {
         public userService: UserService,
         private router: Router,
         private formBuilder: FormBuilder,
+        private layoutService: LayoutService,
         private conferenceService: ConferenceService,
         private questionService: QuestionService,
         private mealService: MealService,
         private apiService: ApiService,
         private messageService: MessageService,
         private responsiveService: ResponsiveService) {
+
+        // Set default theme
+        this.changeTheme('indigo')
 
         // Conference form fields and validators
         this.conferenceForm = this.formBuilder.group({
@@ -434,28 +439,51 @@ export class ConferenceComponent implements OnInit {
      * corresponding language.
      */
     initializeQuestionsForm() {
-        const q = this.tableItem.questions;
-        const maxQuestions = 5;
+        const q = this.tableItem.questions
+        const maxQuestions = 5
 
-        // Extract existing translations, or use empty array
-        const existingQuestions = q && q.length && q[0].translations ? q[0].translations : [];
+        // Extract existing translations from all questions
+        const existingQuestions: any[] = []
+
+        if (q && q.length > 0) {
+            q.forEach((question: any) => {
+                if (question.translations) {
+                    // Check if translations is an array or object
+                    if (Array.isArray(question.translations)) {
+                        // If it's an array, add each translation
+                        question.translations.forEach((translation: any) => {
+                            // Only add if at least one language has content
+                            if (translation.hu || translation.en) {
+                                existingQuestions.push(translation)
+                            }
+                        });
+                    } else {
+                        // If it's an object, add it directly
+                        // Only add if at least one language has content
+                        if (question.translations.hu || question.translations.en) {
+                            existingQuestions.push(question.translations)
+                        }
+                    }
+                }
+            })
+        }
 
         // Reinitialize the form, including the questions FormArray
         this.questionsForm = this.formBuilder.group({
             conferenceid: [this.tableItem.id],
             questions: this.formBuilder.array([])
-        });
+        })
 
         // Use local variable instead of this.questions getter
-        const questionsArray = this.questionsForm.get('questions') as FormArray;
+        const questionsArray = this.questionsForm.get('questions') as FormArray
 
         // Fill form with stored questions
         existingQuestions.forEach((question: any) => {
             questionsArray.push(this.formBuilder.group({
                 hu: [question.hu],
                 en: [question.en]
-            }, { validators: allLanguagesRequiredValidator() }));
-        });
+            }, { validators: allLanguagesRequiredValidator() }))
+        })
 
         // Add empty questions if needed
         const missingQuestions = maxQuestions - questionsArray.length;
@@ -463,11 +491,11 @@ export class ConferenceComponent implements OnInit {
             questionsArray.push(this.formBuilder.group({
                 hu: [''],
                 en: ['']
-            }, { validators: allLanguagesRequiredValidator() }));
+            }, { validators: allLanguagesRequiredValidator() }))
         }
 
         // Store original values for comparison
-        this.originalQuestionsFormValues = this.questionsForm.value;
+        this.originalQuestionsFormValues = this.questionsForm.value
     }
 
 
@@ -691,6 +719,48 @@ export class ConferenceComponent implements OnInit {
                 return 'dinner'
             default:
                 return 'nothing'
+        }
+    }
+
+    /**
+     * Replaces the theme link with a new one.
+     * @param href The href attribute of the new link element.
+     * @param onComplete Called when the new style sheet is loaded.
+     * This method is used to switch the app's theme.
+     * It creates a clone of the current theme link, sets its href to the given one,
+     * inserts the clone after the original link, and then removes the original link.
+     * When the new style sheet is loaded, it calls the onComplete callback.
+     */
+    replaceThemeLink(href: string, onComplete: () => void) {
+        const themeLink = <HTMLLinkElement>document.getElementById('theme-link')
+        const cloneLinkElement = <HTMLLinkElement>themeLink.cloneNode(true)
+
+        cloneLinkElement.setAttribute('href', href)
+        cloneLinkElement.setAttribute('id', 'theme-link-clone')
+
+        themeLink.parentNode!.insertBefore(cloneLinkElement, themeLink.nextSibling)
+
+        cloneLinkElement.addEventListener('load', () => {
+            themeLink.remove()
+            cloneLinkElement.setAttribute('id', 'theme-link')
+            onComplete()
+        })
+    }
+
+    /**
+     * Switches the theme to the given one.
+     * @param theme The name of the theme to switch to.
+     * Finds the theme CSS link element and replaces its href with the new theme's href.
+     * After the new style sheet is loaded, updates the layout service's theme and notifies the listeners.
+     */
+    changeTheme(theme: string) {
+        const themeLink = <HTMLLinkElement>document.getElementById('theme-link')
+        if (themeLink) {
+            const newHref = themeLink.getAttribute('href')!.replace(this.layoutService.config.theme, theme)
+            this.replaceThemeLink(newHref, () => {
+                this.layoutService.config.theme = theme
+                this.layoutService.onConfigUpdate()
+            })
         }
     }
 

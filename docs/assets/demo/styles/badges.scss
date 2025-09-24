@@ -391,6 +391,41 @@
     }
 }
 
+/* Reservation-status badge */
+.reservation-status-badge {
+    border-radius: var(--border-radius);
+    padding: .25em .5rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .3px;
+
+    &.tentative {
+        background: var(--yellow-200);
+        color: var(--yellow-800);
+    }
+
+    &.confirmed {
+        background: var(--teal-200);
+        color: var(--teal-800);
+    }
+
+    &.in_house {
+        background: var(--purple-200);
+        color: var(--purple-800);
+    }
+
+    &.checked_out {
+        background: var(--blue-200);
+        color: var(--blue-800);
+    }
+
+    &.cancelled {
+        background: var(--red-200);
+        color: var(--red-800);
+    }
+}
+
 /* Calendar badge */
 .calendar-badge {
     border-radius: var(--border-radius);

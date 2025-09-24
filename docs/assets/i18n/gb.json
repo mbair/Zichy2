@@ -142,6 +142,13 @@
         "GATE": "gate",
         "CARETAKER": "caretaker floor"
     },
+    "RESERVATION_STATUSES": {
+        "TENTATIVE": "tentative",
+        "CONFIRMED": "confirmed",
+        "IN_HOUSE": "in house",
+        "CHECKED_OUT": "checked out",
+        "CANCELLED": "cancelled"
+    },
     "Jelentkezzen be a folytatáshoz": "Please login to continue",
     "Jelszó": "Password",
     "Elfelejtette jelszavát": "Forgot your password",

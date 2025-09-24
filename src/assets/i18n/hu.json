@@ -142,6 +142,13 @@
         "GATE": "Kapu első",
         "CARETAKER": "Gondnoki emelet"
     },
+    "RESERVATION_STATUSES": {
+        "TENTATIVE": "feltételes",
+        "CONFIRMED": "visszaigazolva",
+        "IN_HOUSE": "házon belül",
+        "CHECKED_OUT": "kijelentkezett",
+        "CANCELLED": "törölve"
+    },
     "Jelentkezzen be a folytatáshoz": "Jelentkezzen be a folytatáshoz",
     "Jelszó": "Jelszó",
     "Elfelejtette jelszavát": "Elfelejtette jelszavát",

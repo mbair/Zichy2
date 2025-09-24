@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, of, Subject, switchMap } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
@@ -11,9 +11,12 @@ import { ConferenceService } from '../../service/conference.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Reservation } from '../../api/reservation';
+import { dateRangeValidator } from '../../utils/date-range-validator';
 import * as FileSaver from 'file-saver';
 import * as moment from 'moment';
 moment.locale('hu')
+
+import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
 
 @Component({
     selector: 'reservation-component',
@@ -26,6 +29,8 @@ moment.locale('hu')
 @AutoUnsubscribe()
 
 export class ReservationComponent implements OnInit {
+    @ViewChild(ConferenceSelectorComponent) conferenceSelector!: ConferenceSelectorComponent;
+    conferenceSelectorComponent!: ConferenceSelectorComponent;
 
     loading: boolean = true                      // Loading overlay trigger value
     tableItem: Reservation = {}                  // One reservation object
@@ -34,7 +39,7 @@ export class ReservationComponent implements OnInit {
     rowsPerPage: number = 20                     // Default rows per page
     totalRecords: number = 0                     // Total number of rows in the table
     page: number = 0                             // Current page
-    sortField: string = 'reservationNum'         // Current sort field
+    sortField: string = 'id'                     // Current sort field
     sortOrder: number = 1                        // Current sort order
     globalFilter: string = ''                    // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
@@ -52,22 +57,21 @@ export class ReservationComponent implements OnInit {
     isOrganizer: boolean = false                 // User has organizer role
     selectedConferences: Conference[] = []       // Selected conferences
     numberOfBeds: number = 0                     // Number of beds
-    statusOptions: any[] = []                    // Possible status options
+
+    preselectConferenceId?: number
+    conferenceStart: Date | null = null
+    conferenceEnd: Date | null = null
 
     private initialFormValues = {
         id: null,
-        reservationNum: '',
-        reservationCode: '',
-        beds: '',
-        spareBeds: '',
-        bathreservation: '',
-        building: '',
-        floor: '',
-        bedType: '',
-        climate: 0,
-        familyReservation: 0,
-        comment: '',
-        extraBeds: 0
+        room_id: null,
+        conference: null,
+        conference_id: null,
+        startDate: '',
+        endDate: '',
+        status: '',
+        notes: '',
+        guestIds: []
     }
 
     private isFormValid$: Observable<boolean>
@@ -87,26 +91,17 @@ export class ReservationComponent implements OnInit {
         // Reservation form fields and validators
         this.reservationForm = this.fb.group({
             id: [this.initialFormValues.id],
-            reservationNum: [this.initialFormValues.reservationNum, Validators.required],
-            reservationCode: [this.initialFormValues.reservationCode, Validators.required],
-            beds: [this.initialFormValues.beds, Validators.required],
-            spareBeds: [this.initialFormValues.spareBeds],
-            bathreservation: [this.initialFormValues.bathreservation],
-            building: [this.initialFormValues.building, Validators.required],
-            floor: [this.initialFormValues.floor],
-            bedType: [this.initialFormValues.bedType],
-            climate: [this.initialFormValues.climate],
-            familyReservation: [this.initialFormValues.familyReservation],
-            comment: [this.initialFormValues.comment],
-            extraBeds: [this.initialFormValues.extraBeds]
+            room_id: [this.initialFormValues.room_id, Validators.required],
+            conference: [this.initialFormValues.conference, Validators.required], // UI
+            conference_id: [this.initialFormValues.conference_id, Validators.required],                           // Backend
+            startDate: [this.initialFormValues.startDate, Validators.required],
+            endDate: [this.initialFormValues.endDate, Validators.required],
+            status: [this.initialFormValues.status, Validators.required],
+            notes: [this.initialFormValues.notes],
+            guestIds: [this.initialFormValues.guestIds, Validators.required],
+        }, {
+            validators: dateRangeValidator('startDate', 'endDate')
         })
-
-        // Prepaid options
-        this.statusOptions = [
-            { name: 'Aktív', value: 'active' },
-            { name: 'Lemondott', value: 'cancelled' },
-            { name: 'Teljesített', value: 'completed' }
-        ]
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
     }
@@ -130,6 +125,24 @@ export class ReservationComponent implements OnInit {
             }
         })
 
+        // Monitor conference change
+        this.conference?.valueChanges
+            .pipe(distinctUntilChanged())
+            .subscribe((conf: Conference[] | null) => {
+
+                // Set conference_id
+                const selectedConferenceId = conf ? conf[0]?.id : null
+                this.reservationForm.patchValue(
+                    { conference_id: selectedConferenceId },
+                    { emitEvent: false }
+                )
+
+                // Set reservation begin and end dates
+                const startDate = conf ? conf[0]?.beginDate : null
+                const endDate = conf ? conf[0]?.endDate : null
+                this.reservationForm.patchValue({ startDate, endDate }, { emitEvent: false })
+            })
+
         // Monitor the changes of the window size
         this.responsiveService.isMobile$.subscribe((isMobile) => {
             this.isMobile = isMobile
@@ -151,18 +164,14 @@ export class ReservationComponent implements OnInit {
 
     // Getters for form validation
     get id() { return this.reservationForm.get('id') }
-    get reservationNum() { return this.reservationForm.get('reservationNum') }
-    get reservationCode() { return this.reservationForm.get('reservationCode') }
-    get beds() { return this.reservationForm.get('beds') }
-    get spareBeds() { return this.reservationForm.get('spareBeds') }
-    get bathreservation() { return this.reservationForm.get('bathreservation') }
-    get building() { return this.reservationForm.get('building') }
-    get floor() { return this.reservationForm.get('floor') }
-    get bedType() { return this.reservationForm.get('bedType') }
-    get climate() { return this.reservationForm.get('climate') }
-    get familyReservation() { return this.reservationForm.get('familyReservation') }
-    get comment() { return this.reservationForm.get('comment') }
-    get extraBeds() { return this.reservationForm.get('extraBeds') }
+    get room_id() { return this.reservationForm.get('room_id') }
+    get conference() { return this.reservationForm.get('conference') }
+    get conference_id() { return this.reservationForm.get('conference_id') }
+    get startDate() { return this.reservationForm.get('startDate') }
+    get endDate() { return this.reservationForm.get('endDate') }
+    get status() { return this.reservationForm.get('status') }
+    get notes() { return this.reservationForm.get('notes') }
+    get guestIds() { return this.reservationForm.get('guestIds') }
 
     /**
      * Load filtered data into the Table
@@ -271,7 +280,12 @@ export class ReservationComponent implements OnInit {
      */
     edit(reservation: Reservation) {
         this.reservationForm.reset(this.initialFormValues)
-        this.reservationForm.patchValue(reservation)
+        this.preselectConferenceId = undefined
+        this.reservationForm.patchValue(reservation, { emitEvent: false })
+        setTimeout(() => {
+            this.preselectConferenceId = reservation.conference_id ?? undefined
+        })
+
         this.originalFormValues = this.reservationForm.value
         this.sidebar = true
     }
@@ -302,13 +316,15 @@ export class ReservationComponent implements OnInit {
             this.loading = true
             const formValues = this.reservationForm.value
 
+            console.log('SAVE', formValues)
+
             // Create
             if (!formValues.id) {
-                this.reservationService.create(formValues)
+                // this.reservationService.create(formValues)
 
                 // Update
             } else {
-                this.reservationService.update(formValues)
+                // this.reservationService.update(formValues)
             }
 
             this.sidebar = false
@@ -372,11 +388,11 @@ export class ReservationComponent implements OnInit {
                 { key: 'building', label: 'Épület / folyosó' },
                 { key: 'bedType', label: 'Ágy típus' },
                 { key: 'bathreservation', label: 'Fürdőszoba' },
-                { key: 'comment', label: 'Megjegyzés' }
+                { key: 'notes', label: 'Megjegyzés' }
             ]
 
             let rows = this.selected.length > 0 ? this.selected : this.tableData
-        
+
             // Extract only the desired fields and Hungarian headers
             const data = rows.map((row: any) => {
                 let obj: any = {}
@@ -408,6 +424,20 @@ export class ReservationComponent implements OnInit {
             type: EXCEL_TYPE
         })
         FileSaver.saveAs(data, fileName + '_export_' + moment().format('YYYYMMDD') + EXCEL_EXTENSION)
+    }
+
+    // string "YYYY-MM-DD"  -> Date (timezone-secure)
+    fromYMD(ymd: string): Date {
+        const [y, m, d] = ymd.split('-').map(Number)
+        return new Date(y, (m - 1), d)
+    }
+
+    // Date -> "YYYY-MM-DD"
+    toYMD(d: Date): string {
+        const y = d.getFullYear()
+        const m = String(d.getMonth() + 1).padStart(2, '0')
+        const day = String(d.getDate()).padStart(2, '0')
+        return `${y}-${m}-${day}`
     }
 
     // Don't delete this, its needed from a performance point of view,
