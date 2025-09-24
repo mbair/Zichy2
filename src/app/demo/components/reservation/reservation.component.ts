@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, of, Subject, switchMap } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
@@ -16,6 +16,8 @@ import * as FileSaver from 'file-saver';
 import * as moment from 'moment';
 moment.locale('hu')
 
+import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
+
 @Component({
     selector: 'reservation-component',
     templateUrl: './reservation.component.html',
@@ -27,6 +29,8 @@ moment.locale('hu')
 @AutoUnsubscribe()
 
 export class ReservationComponent implements OnInit {
+    @ViewChild(ConferenceSelectorComponent) conferenceSelector!: ConferenceSelectorComponent;
+    conferenceSelectorComponent!: ConferenceSelectorComponent;
 
     loading: boolean = true                      // Loading overlay trigger value
     tableItem: Reservation = {}                  // One reservation object
@@ -54,8 +58,9 @@ export class ReservationComponent implements OnInit {
     selectedConferences: Conference[] = []       // Selected conferences
     numberOfBeds: number = 0                     // Number of beds
 
-    conferenceStart?: Date | null = null
-    conferenceEnd?: Date | null = null
+    preselectConferenceId?: number
+    conferenceStart: Date | null = null
+    conferenceEnd: Date | null = null
 
     private initialFormValues = {
         id: null,
@@ -124,7 +129,7 @@ export class ReservationComponent implements OnInit {
         this.conference?.valueChanges
             .pipe(distinctUntilChanged())
             .subscribe((conf: Conference[] | null) => {
-                
+
                 // Set conference_id
                 const selectedConferenceId = conf ? conf[0]?.id : null
                 this.reservationForm.patchValue(
@@ -136,7 +141,7 @@ export class ReservationComponent implements OnInit {
                 const startDate = conf ? conf[0]?.beginDate : null
                 const endDate = conf ? conf[0]?.endDate : null
                 this.reservationForm.patchValue({ startDate, endDate }, { emitEvent: false })
-        })
+            })
 
         // Monitor the changes of the window size
         this.responsiveService.isMobile$.subscribe((isMobile) => {
@@ -275,7 +280,12 @@ export class ReservationComponent implements OnInit {
      */
     edit(reservation: Reservation) {
         this.reservationForm.reset(this.initialFormValues)
-        this.reservationForm.patchValue(reservation)
+        this.preselectConferenceId = undefined
+        this.reservationForm.patchValue(reservation, { emitEvent: false })
+        setTimeout(() => {
+            this.preselectConferenceId = reservation.conference_id ?? undefined
+        })
+
         this.originalFormValues = this.reservationForm.value
         this.sidebar = true
     }
@@ -312,7 +322,7 @@ export class ReservationComponent implements OnInit {
             if (!formValues.id) {
                 // this.reservationService.create(formValues)
 
-            // Update
+                // Update
             } else {
                 // this.reservationService.update(formValues)
             }
@@ -382,7 +392,7 @@ export class ReservationComponent implements OnInit {
             ]
 
             let rows = this.selected.length > 0 ? this.selected : this.tableData
-        
+
             // Extract only the desired fields and Hungarian headers
             const data = rows.map((row: any) => {
                 let obj: any = {}

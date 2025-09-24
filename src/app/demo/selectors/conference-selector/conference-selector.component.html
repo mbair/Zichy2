@@ -1,6 +1,7 @@
 <p-multiSelect
     #conferenceSelector
     class="multiselect-custom-virtual-scroll"
+    dataKey="id"
     [options]="conferences"
     [(ngModel)]="selectedConferences"
     (onChange)="onSelectionChange($event)"

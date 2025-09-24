@@ -259,6 +259,7 @@
                     <label for="conference" class="font-medium text-900">Konferencia</label>
                     <app-conference-selector
                         formControlName="conference"
+                        [preselectConferenceId]="preselectConferenceId"
                         [selectionLimit]="1"
                         [showClear]="true"
                         placeholder="Válasszon konferenciát...">

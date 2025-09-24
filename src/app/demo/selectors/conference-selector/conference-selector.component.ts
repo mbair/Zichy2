@@ -1,22 +1,26 @@
-import { Component, forwardRef, Input, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { MultiSelect } from 'primeng/multiselect';
+import { MessageService } from 'primeng/api';
 import { Conference } from '../../api/conference';
 import { ConferenceService } from '../../service/conference.service';
-import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-conference-selector',
     templateUrl: './conference-selector.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [{
         provide: NG_VALUE_ACCESSOR,
         useExisting: forwardRef(() => ConferenceSelectorComponent),
         multi: true
     }]
 })
-export class ConferenceSelectorComponent implements OnInit, ControlValueAccessor {
+export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy, ControlValueAccessor {
 
-    @ViewChild('conferenceSelector') conferenceSelectorRef: MultiSelect
+    // static: false ensures that the ViewChild is dynamically updated when the template changes
+    @ViewChild('conferenceSelector', { static: false }) 
+    private readonly conferenceSelectorRef: MultiSelect
 
     @Input() selectionLimit?: number                // Maximum number of selectable conferences (optional)
     @Input() selectFirstOption: boolean = false     // Whether to automatically select the first available option
@@ -24,6 +28,11 @@ export class ConferenceSelectorComponent implements OnInit, ControlValueAccessor
     @Input() showClear: boolean = true              // Whether to show the clear button
     @Input() style: { [key: string]: string } = {}  // Custom style for the dropdown
     @Input() disabledOptions: Conference[] = []     // List of disabled conference IDs
+    @Input()
+    set preselectConferenceId(value: number | undefined) {
+        this._pendingSelectId = value
+        this.tryPreselectById()                      // Select predefined conference by Id
+    }
 
     loading: boolean = true                          // Loading state indicator
     disabled: boolean = false                        // Whether the selector is disabled
@@ -31,27 +40,49 @@ export class ConferenceSelectorComponent implements OnInit, ControlValueAccessor
     originalConferences: Conference[] = []           // Original list of conference options
     selectedConferences: Conference[] = []           // List of currently selected conferences
 
+    private _pendingSelectId?: number
     private subscriptions: Subscription = new Subscription()
-    
-    constructor(private conferenceService: ConferenceService) { }
+
+    constructor(private conferenceService: ConferenceService,
+        private messageService: MessageService
+    ) { }
 
     /**
      * Lifecycle hook: Called when the component is initialized.
      * Fetches the list of conferences and selects the first option if required.
      */
     ngOnInit(): void {
-        const sub = this.conferenceService.getConferencesForSelector().subscribe(conferences => {
-            this.originalConferences = conferences
-            this.updateDisabledFlags()
-            this.handleSelectFirstOption()
-            this.loading = false
-        })
+        const sub = this.conferenceService.getConferencesForSelector()
+            .subscribe({
+                next: conferences => {
+                    this.conferences = conferences ?? []
+                    this.originalConferences = [...(conferences ?? [])]   // clone
+                    this.syncSelectedConferences()
+                    this.handleSelectFirstOption()
+                    this.updateDisabledFlags()
+                    this.tryPreselectById()
+                    this.loading = false
+                },
+                error: () => {
+                    this.conferences = []
+                    this.originalConferences = []
+                    this.loading = false
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Failed to load conferences. Please try again later.'
+                    })
+                }
+            })
         this.subscriptions.add(sub)
     }
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['disabledOptions'] && this.originalConferences.length > 0) {
             this.updateDisabledFlags()
+        }
+        if (changes['preselectConferenceId']) {
+            this.tryPreselectById()
         }
     }
 
@@ -79,6 +110,29 @@ export class ConferenceSelectorComponent implements OnInit, ControlValueAccessor
             this.selectedConferences = this.conferences.slice(0, limit)
             this.onChange(this.selectedConferences) // Notify the parent component about the selection
         }
+    }
+
+    /**
+     * Applies any pending preselection once the options list is available.
+     *
+     * Finds the conference matching `_pendingSelectId` in `conferences` and updates
+     * `selectedConferences` accordingly (single-item array or empty). Idempotent:
+     * safe to call multiple times, even with the same ID.
+     *
+     * Side effects:
+     * - Invokes ControlValueAccessor hooks (`onChange`, `onTouched`) to sync the parent form.
+     *
+     * Notes:
+     * - Selection is ID-based (use `dataKey="id"` on the MultiSelect), not by object reference.
+     */
+    private tryPreselectById(): void {
+        if (!this.conferences?.length) return       // No conference list
+        if (this._pendingSelectId == null) return   // Nothing to select
+
+        const conference = this.conferences.find(c => c.id === this._pendingSelectId)
+        this.selectedConferences = conference ? [conference] : []
+        this.onChange(this.selectedConferences)   // Push back to form
+        this.onTouched()
     }
 
     /**
@@ -113,12 +167,8 @@ export class ConferenceSelectorComponent implements OnInit, ControlValueAccessor
         this.onChange(this.selectedConferences)
         this.onTouched()
 
-        if (this.selectionLimit == this.selectedConferences.length) {
-            setTimeout(() => {
-                if (this.conferenceSelectorRef) {
-                    this.conferenceSelectorRef.hide()
-                }
-            }, 0)
+        if (this.selectionLimit === this.selectedConferences.length && this.conferenceSelectorRef) {
+            this.conferenceSelectorRef.hide()
         }
     }
 
@@ -143,7 +193,7 @@ export class ConferenceSelectorComponent implements OnInit, ControlValueAccessor
      * @param value - The selected conferences coming from the form.
      */
     writeValue(value: Conference[]): void {
-        this.selectedConferences = value || []
+        this.selectedConferences = value?.slice(0, this.selectionLimit ?? value.length) || []
         if (this.conferences.length > 0) {
             this.syncSelectedConferences()
         }
