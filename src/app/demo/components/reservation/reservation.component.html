@@ -261,6 +261,7 @@
                     <app-conference-selector
                         formControlName="conference"
                         [preselectConferenceId]="preselectConferenceId"
+                        [selectionLimit]="1"
                         [showClear]="true"
                         placeholder="Válasszon konferenciát...">
                     </app-conference-selector>
@@ -274,6 +275,7 @@
                     <label for="room_id" class="font-medium text-900">Szoba</label>
                     <app-room-selector
                         formControlName="room"
+                        [filter]="roomFilter"
                         [selectionLimit]="1"
                         [showClear]="true"
                         placeholder="Szoba...">

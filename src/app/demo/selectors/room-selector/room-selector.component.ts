@@ -8,6 +8,15 @@ import { RoomService } from '../../service/room.service';
 
 export type ChangeSource = 'user' | 'auto-select-first' | 'preselect-id' | 'programmatic';
 
+export type RoomFilter = {
+    conferenceId?: number | null;
+    building?: string | string[];
+    minBeds?: number;
+    climate?: boolean;   
+    enabled?: boolean;
+    // (optionel) startDate?: string; endDate?: string; onlyFree?: boolean;
+}
+
 @Component({
     selector: 'app-room-selector',
     templateUrl: './room-selector.component.html',
@@ -24,6 +33,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
     @ViewChild('roomSelector', { static: false })
     private readonly roomSelectorRef: MultiSelect
 
+    @Input() filter: RoomFilter | null = null       // All Room filters
     @Input() selectionLimit?: number                // Maximum number of selectable rooms (optional)
     @Input() selectFirstOption: boolean = false     // Whether to automatically select the first available option
     @Input() placeholder: string                    // Placeholder text for the dropdown
@@ -34,7 +44,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
     @Input() emitOnPreselectId = false
     @Input() emitOnWriteValue = false
     @Input()
-    set preselectConferenceId(value: number | undefined) {
+    set preselectRoomId(value: number | undefined) {
         this._pendingSelectId = value
         this.tryPreselectById()                      // Select predefined room by Id
     }
@@ -61,52 +71,35 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
      * Fetches the list of rooms and selects the first option if required.
      */
     ngOnInit(): void {
-        const sub = this.roomService.getRoomsForSelector()
-            .subscribe({
-                next: rooms => {
-                    this.rooms = rooms ?? []
-                    this.originalRooms = [...(rooms ?? [])]   // clone
-                    this.syncSelectedConferences()
-                    this.handleSelectFirstOption()
-                    this.updateDisabledFlags()
-                    this.tryPreselectById()
-                    this.loading = false
-                },
-                error: () => {
-                    this.rooms = []
-                    this.originalRooms = []
-                    this.loading = false
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: 'Failed to load rooms. Please try again later.'
-                    })
-                }
-            })
-        this.subscriptions.add(sub)
+        this.reload()
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes['disabledOptions'] && this.originalRooms.length > 0) {
-            this.updateDisabledFlags()
-        }
-        if (changes['preselectConferenceId']) {
-            this.tryPreselectById()
-        }
+        this.reload()
     }
 
     ngOnDestroy(): void {
         this.subscriptions.unsubscribe()
     }
 
-    /**
-     * Update the rooms list by assigning the disabled field to each option
-     */
-    updateDisabledFlags(): void {
-        this.rooms = this.originalRooms.map((room: Room) => ({
-            ...room,
-            disabled: this.disabledOptions.some(disabledRoom => disabledRoom.id === room.id)
-        }))
+    private reload() {
+        this.loading = true;
+        this.roomService.searchRoomsForSelector$(this.filter ?? {})
+            .subscribe({
+                next: list => { 
+                    this.rooms = list ?? []
+                    this.loading = false
+                },
+                error: _ => { 
+                    this.rooms = []
+                    this.loading = false
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Failed to load rooms.'
+                    })
+                }
+            });
     }
 
     // Opcionális publikus setter programozott beállításhoz:
@@ -164,7 +157,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
      * Synchronizes the selected rooms with the available options.
      * Ensures that the selected values remain valid if the list of rooms updates.
      */
-    private syncSelectedConferences(): void {
+    private syncSelectedRooms(): void {
         this.selectedRooms = this.rooms.filter(conf =>
             this.selectedRooms.some(sel => sel.id === conf.id)
         )
@@ -180,6 +173,12 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
     onSelectionChange(event: any): void {
         this.selectedRooms = event.value
         this.emit(this.selectedRooms, 'user')
+
+        // Auto-close if max 1 can be selected and there is already a selection
+        if ((this.selectionLimit ?? 1) === 1 && this.selectedRooms?.length >= 1) {
+            // small delay to let MultiSelect update its own state first
+            setTimeout(() => this.roomSelectorRef?.hide())
+        }
     }
 
     /**

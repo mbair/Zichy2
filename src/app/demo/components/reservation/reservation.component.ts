@@ -18,7 +18,7 @@ import * as moment from 'moment';
 moment.locale('hu')
 
 import { ChangeSource, ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
-import { Room } from '../../api/room';
+import { Room, RoomFilter } from '../../api/room';
 type SortDir = 1 | -1
 
 @Component({
@@ -64,6 +64,8 @@ export class ReservationComponent implements OnInit {
     preselectConferenceId?: number
     conferenceStart: Date | null = null
     conferenceEnd: Date | null = null
+
+    roomFilter: RoomFilter = { enabled: true }
 
     private initialFormValues = {
         id: null,
@@ -119,6 +121,9 @@ export class ReservationComponent implements OnInit {
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
         this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => this.isOrganizer = isOrganizer)
 
+        // while there is no conference
+        this.room?.disable({ emitEvent: false }) 
+
         // Reservations
         this.querySub = this.query$.pipe(
             map(() => this.buildQueryKey()),
@@ -162,16 +167,27 @@ export class ReservationComponent implements OnInit {
             .pipe(distinctByIds<Conference>())
             .subscribe(conf => {
                 const first = conf?.[0]
+                
+                // Set form values by selected conference
                 this.reservationForm.patchValue({
                     conference_id: first?.id ?? null,
                     startDate: first?.beginDate ?? null,
                     endDate: first?.endDate ?? null
                 }, { emitEvent: false })
-
+                
+                // Filter rooms by selected conference
+                this.roomFilter = { ...this.roomFilter, conferenceId: first?.id ?? null }
+                
                 if (first) {
+                    this.room?.reset(null, { emitEvent: false })
+                    this.room_id?.reset(null, { emitEvent: false })
+                    this.room?.enable({ emitEvent: false })
                     this.startDate?.enable({ emitEvent: false })
                     this.endDate?.enable({ emitEvent: false })
                 } else {
+                    this.room?.reset(null, { emitEvent: false })
+                    this.room_id?.reset(null, { emitEvent: false })
+                    this.room?.disable({ emitEvent: false })
                     this.startDate?.disable({ emitEvent: false })
                     this.endDate?.disable({ emitEvent: false })
                 }

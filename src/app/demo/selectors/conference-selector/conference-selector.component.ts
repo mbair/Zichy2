@@ -180,6 +180,12 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
     onSelectionChange(event: any): void {
         this.selectedConferences = event.value
         this.emit(this.selectedConferences, 'user')
+
+        // Auto-close if max 1 can be selected and there is already a selection
+        if ((this.selectionLimit ?? 1) === 1 && this.selectedConferences?.length >= 1) {
+            // small delay to let MultiSelect update its own state first
+            setTimeout(() => this.conferenceSelectorRef?.hide())
+        }
     }
 
     /**

@@ -2,8 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, map, Observable, of } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
-import { Room } from '../api/room';
-import { Conference } from '../api/conference';
+import { Room, RoomFilter } from '../api/room';
 import { HttpClient } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -99,6 +98,10 @@ export class RoomService {
                     this.message$.next(error)
                 }
             })
+    }
+
+    public getBySearchQuery$(filters: string) {
+        return this.apiService.get<ApiResponse>(`room/searchquery?${filters}`);
     }
 
     /**
@@ -206,75 +209,93 @@ export class RoomService {
         )
     }
 
+    searchRoomsForSelector$(filter: RoomFilter = {}) {
+        return this.getBySearchQuery$(this.buildRoomQS(filter))
+            .pipe(map((data: any) => data ? (data.rows ?? []) : []))
+    }
+
+    private buildRoomQS(f: RoomFilter = {}): string {
+        const parts: string[] = [];
+        if (f.conferenceId != null) parts.push(`conferences=${encodeURIComponent(String(f.conferenceId))}`);
+        if (f.building) {
+            const arr = Array.isArray(f.building) ? f.building : [f.building];
+            parts.push(`building=${arr.map(encodeURIComponent).join(',')}`);
+        }
+        if (typeof f.minBeds === 'number') parts.push(`minBeds=${f.minBeds}`);
+        if (typeof f.climate === 'boolean') parts.push(`climate=${f.climate ? 1 : 0}`);
+        if (f.enabled) parts.push(`enabled=1`);
+        return parts.join('&')
+    }
+
     // TODO: NOT USED
     getRoomTypeByCode(code: string, beds: number) {
 
         let roomTypes = [
-            { 
+            {
                 code: 'KB', // Kastély Bunked (emeleteságyas)
                 beds: 4,
-                label: this.translate.instant('ROOMTYPES.CASTLE'), 
-                description: this.translate.instant('ROOMTYPES.4-BED-ROOM'), 
-                value: 'Kastély szállás 4 ágyas szoba', 
-                color: 'teal' 
+                label: this.translate.instant('ROOMTYPES.CASTLE'),
+                description: this.translate.instant('ROOMTYPES.4-BED-ROOM'),
+                value: 'Kastély szállás 4 ágyas szoba',
+                color: 'teal'
             },
-            { 
+            {
                 code: 'KB', // Kastély Bunked (emeleteságyas)
                 beds: 6,
-                label: this.translate.instant('ROOMTYPES.CASTLE'), 
-                description: this.translate.instant('ROOMTYPES.6-BED-ROOM'), 
-                value: 'Kastély szállás 6 ágyas szoba', 
-                color: 'teal' 
+                label: this.translate.instant('ROOMTYPES.CASTLE'),
+                description: this.translate.instant('ROOMTYPES.6-BED-ROOM'),
+                value: 'Kastély szállás 6 ágyas szoba',
+                color: 'teal'
             },
-            { 
+            {
                 code: 'KB', // Kastély Bunked (emeleteságyas)
                 beds: 8,
-                label: this.translate.instant('ROOMTYPES.CASTLE'), 
-                description: this.translate.instant('ROOMTYPES.8-BED-ROOM'), 
-                value: 'Kastély szállás 8 ágyas szoba', 
-                color: 'teal' 
+                label: this.translate.instant('ROOMTYPES.CASTLE'),
+                description: this.translate.instant('ROOMTYPES.8-BED-ROOM'),
+                value: 'Kastély szállás 8 ágyas szoba',
+                color: 'teal'
             },
-            { 
+            {
                 code: 'MD', // Maranatha Double (kétágyas)
                 beds: 2,
-                label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
-                description: this.translate.instant('ROOMTYPES.2-BED-ROOM'), 
-                value: 'Maranatha Panzióház 2 ágyas szoba (külön fürdős)', 
-                color: 'yellow' 
+                label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'),
+                description: this.translate.instant('ROOMTYPES.2-BED-ROOM'),
+                value: 'Maranatha Panzióház 2 ágyas szoba (külön fürdős)',
+                color: 'yellow'
             },
-            { 
+            {
                 code: 'MQ', // Maranatha Queenbed (franciaágyas)
                 beds: 2,
-                label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
-                description: this.translate.instant('ROOMTYPES.DOUBLE-BED-ROOM'), 
-                value: 'Maranatha Panzióház franciaágyas szoba (külön fürdős)', 
-                color: 'yellow' 
+                label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'),
+                description: this.translate.instant('ROOMTYPES.DOUBLE-BED-ROOM'),
+                value: 'Maranatha Panzióház franciaágyas szoba (külön fürdős)',
+                color: 'yellow'
             },
-            { 
+            {
                 code: 'MB', // Maranatha Bunkbed (négyágyas emeleteságyas)
                 beds: 4,
-                label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
-                description: this.translate.instant('ROOMTYPES.M-4-BED-ROOM'), 
-                value: 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)', 
-                color: 'yellow' 
+                label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'),
+                description: this.translate.instant('ROOMTYPES.M-4-BED-ROOM'),
+                value: 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)',
+                color: 'yellow'
             },
-            { 
+            {
                 code: 'A', // Apartman
-                label: this.translate.instant('ROOMTYPES.FAMILY-ROOM'), 
-                description: this.translate.instant('ROOMTYPES.WITH-KITCHEN'), 
-                value: 'Családi szoba (közös konyhával, fürdővel és nappalival)', 
-                color: 'orange' 
+                label: this.translate.instant('ROOMTYPES.FAMILY-ROOM'),
+                description: this.translate.instant('ROOMTYPES.WITH-KITCHEN'),
+                value: 'Családi szoba (közös konyhával, fürdővel és nappalival)',
+                color: 'orange'
             },
         ]
 
-        let roomType = roomTypes.find(roomType => 
-            roomType.code === code && 
+        let roomType = roomTypes.find(roomType =>
+            roomType.code === code &&
             (roomType.beds === undefined || roomType.beds === beds)
         )
 
         return roomType
 
 
-        
+
     }
 }
