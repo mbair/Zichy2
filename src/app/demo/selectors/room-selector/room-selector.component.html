@@ -13,17 +13,16 @@
     [placeholder]="placeholder"
     emptyMessage="{{ 'Nincs találat...' | translate }}"
     [virtualScroll]="true"
-    [virtualScrollItemSize]="43"
+    [virtualScrollItemSize]="50"
     [showClear]="showClear"
     [style]="style"
+    styleClass="height:53px"
     scrollHeight="400px"
     appendTo="body"
     display="chip">
   
     <ng-template pTemplate="item" let-option>
-        {{ option.roomNum }}
-
-        <div class="building-badge {{option.building}} border-round-xl w-min p-0 mb-2">
+        <div class="building-badge {{option.building}} border-round-xl w-min p-0">
             <div class="flex align-items-center justify-content-center py-1 px-1">
                 <div class="flex align-items-center justify-content-center gap-2 px-2">
                     <i class="pi pi-key vertical-align-middle"></i>
@@ -47,7 +46,7 @@
     </ng-template>
   
     <ng-template pTemplate="selectedItem" let-selectedItem>
-        <div class="building-badge {{selectedItem.building}} border-round-xl w-min p-0 mb-2">
+        <div class="building-badge {{selectedItem.building}} border-round-xl w-min p-0">
             <div class="flex align-items-center justify-content-center py-1 px-1">
                 <div class="flex align-items-center justify-content-center gap-2 px-2">
                     <i class="pi pi-key vertical-align-middle"></i>

@@ -75,7 +75,7 @@ export class ReservationComponent implements OnInit {
         conference_id: null,
         startDate: '',
         endDate: '',
-        status: '',
+        status: 'confirmed',
         notes: '',
         guestIds: []
     }
