@@ -492,12 +492,12 @@
                 <!-- conference -->
                 <div class="field mb-4 col-8">
                     <label for="conference" class="font-medium text-900">Konferencia</label>
-                    <!-- <app-conference-selector
+                    <app-conference-selector
                         formControlName="conference"
                         [selectionLimit]="1"
                         [showClear]="true"
                         placeholder="Válasszon konferenciát...">
-                    </app-conference-selector> -->
+                    </app-conference-selector>
                     <div *ngIf="conference?.dirty && conference?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>

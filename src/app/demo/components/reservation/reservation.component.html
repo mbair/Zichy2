@@ -261,7 +261,6 @@
                     <app-conference-selector
                         formControlName="conference"
                         [preselectConferenceId]="preselectConferenceId"
-                        [selectionLimit]="1"
                         [showClear]="true"
                         placeholder="Válasszon konferenciát...">
                     </app-conference-selector>
@@ -272,8 +271,14 @@
 
                 <!-- Room ID -->
                 <div class="field mb-4 col-12">
-                    <label for="room_id" class="font-medium text-900">Szoba ID</label>
-                    <input id="room_id" type="text" pInputText formControlName="room_id">
+                    <label for="room_id" class="font-medium text-900">Szoba</label>
+                    <app-room-selector
+                        formControlName="room"
+                        [selectionLimit]="1"
+                        [showClear]="true"
+                        placeholder="Szoba...">
+                    </app-room-selector>
+
                     <div *ngIf="room_id?.dirty && room_id?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>

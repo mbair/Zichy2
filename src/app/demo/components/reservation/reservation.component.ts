@@ -18,6 +18,7 @@ import * as moment from 'moment';
 moment.locale('hu')
 
 import { ChangeSource, ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
+import { Room } from '../../api/room';
 type SortDir = 1 | -1
 
 @Component({
@@ -66,6 +67,7 @@ export class ReservationComponent implements OnInit {
 
     private initialFormValues = {
         id: null,
+        room: null,
         room_id: null,
         conference: null,
         conference_id: null,
@@ -94,6 +96,7 @@ export class ReservationComponent implements OnInit {
         // Reservation form fields and validators
         this.reservationForm = this.fb.group({
             id: [this.initialFormValues.id],
+            room: [this.initialFormValues.room, Validators.required], // UI
             room_id: [this.initialFormValues.room_id, Validators.required],
             conference: [this.initialFormValues.conference, Validators.required], // UI
             conference_id: [this.initialFormValues.conference_id, Validators.required],                           // Backend
@@ -174,6 +177,16 @@ export class ReservationComponent implements OnInit {
                 }
             })
 
+        // Monitor room change
+        this.room?.valueChanges
+            .pipe(distinctByIds<Room>())
+            .subscribe(room => {
+                const first = room?.[0]
+                this.reservationForm.patchValue({
+                    room_id: first?.id ?? null,
+                }, { emitEvent: false })
+            })
+
         // Monitor the changes of the window size
         this.responsiveService.isMobile$.subscribe((isMobile) => {
             this.isMobile = isMobile
@@ -195,6 +208,7 @@ export class ReservationComponent implements OnInit {
 
     // Getters for form validation
     get id() { return this.reservationForm.get('id') }
+    get room() { return this.reservationForm.get('room') }
     get room_id() { return this.reservationForm.get('room_id') }
     get conference() { return this.reservationForm.get('conference') }
     get conference_id() { return this.reservationForm.get('conference_id') }

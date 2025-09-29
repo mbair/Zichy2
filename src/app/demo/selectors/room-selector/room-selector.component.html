@@ -1,0 +1,72 @@
+<p-multiSelect
+    #conferenceSelector
+    class="multiselect-custom-virtual-scroll"
+    dataKey="id"
+    [options]="rooms"
+    [(ngModel)]="selectedRooms"
+    (onChange)="onSelectionChange($event)"
+    (onClear)="onSelectionClear()"
+    [disabled]="disabled"
+    optionLabel="roomNum"
+    optionDisabled="disabled"
+    [selectionLimit]="selectionLimit"
+    [placeholder]="placeholder"
+    emptyMessage="{{ 'Nincs találat...' | translate }}"
+    [virtualScroll]="true"
+    [virtualScrollItemSize]="43"
+    [showClear]="showClear"
+    [style]="style"
+    scrollHeight="400px"
+    appendTo="body"
+    display="chip">
+  
+    <ng-template pTemplate="item" let-option>
+        {{ option.roomNum }}
+
+        <div class="building-badge {{option.building}} border-round-xl w-min p-0 mb-2">
+            <div class="flex align-items-center justify-content-center py-1 px-1">
+                <div class="flex align-items-center justify-content-center gap-2 px-2">
+                    <i class="pi pi-key vertical-align-middle"></i>
+                    <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ option.roomNum }}" tooltipPosition="top">
+                        {{ option.roomNum }}
+                    </span>
+                </div>
+                <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ option.roomCode }}" tooltipPosition="top">
+                    <div class="flex flex-column align-items-left justify-content-center">
+                        <span class="text-base font-semibold uppercase">
+                            {{ 'BUILDINGS.' + option.building.toUpperCase() | translate }} <span *ngIf="option.floor" class="font-normal text-sm uppercase">({{ option.floor }})</span>
+                            <span *ngIf="option.climate" class="pl-1">❄️</span>
+                        </span>
+                        <span class="font-light text-xs uppercase">
+                            {{ option.beds }} SZEMÉLYES ({{ option.bedType }}<span *ngIf="option.bathroom">, {{ option.bathroom }}</span>)
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-template>
+  
+    <ng-template pTemplate="selectedItem" let-selectedItem>
+        <div class="building-badge {{selectedItem.building}} border-round-xl w-min p-0 mb-2">
+            <div class="flex align-items-center justify-content-center py-1 px-1">
+                <div class="flex align-items-center justify-content-center gap-2 px-2">
+                    <i class="pi pi-key vertical-align-middle"></i>
+                    <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ selectedItem.roomNum }}" tooltipPosition="top">
+                        {{ selectedItem.roomNum }}
+                    </span>
+                </div>
+                <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ selectedItem.roomCode }}" tooltipPosition="top">
+                    <div class="flex flex-column align-items-left justify-content-center">
+                        <span class="text-base font-semibold uppercase">
+                            {{ 'BUILDINGS.' + selectedItem.building.toUpperCase() | translate }} <span *ngIf="selectedItem.floor" class="font-normal text-sm uppercase">({{ selectedItem.floor }})</span>
+                            <span *ngIf="selectedItem.climate" class="pl-1">❄️</span>
+                        </span>
+                        <span class="font-light text-xs uppercase">
+                            {{ selectedItem.beds }} SZEMÉLYES ({{ selectedItem.bedType }}<span *ngIf="selectedItem.bathroom">, {{ selectedItem.bathroom }}</span>)
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-template>
+</p-multiSelect>
