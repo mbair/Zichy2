@@ -101,7 +101,7 @@ export class RoomService {
     }
 
     public getBySearchQuery$(filters: string) {
-        return this.apiService.get<ApiResponse>(`room/searchquery?${filters}`);
+        return this.apiService.get<ApiResponse>(`room/searchquery?${filters}`)
     }
 
     /**

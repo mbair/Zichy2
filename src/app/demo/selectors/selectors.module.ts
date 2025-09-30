@@ -28,6 +28,7 @@ import { FloorSelectorComponent } from './floor-selector/floor-selector.componen
 import { YesNoSelectorComponent } from './yes-no-selector/yes-no-selector.component';
 import { ReservationStatusSelectorComponent } from './reservation-status-selector/reservation-status-selector.component';
 import { RoomSelectorComponent } from './room-selector/room-selector.component';
+import { GuestSelectorComponent } from './guest-selector/guest-selector.component';
 
 @NgModule({
     declarations: [
@@ -51,6 +52,7 @@ import { RoomSelectorComponent } from './room-selector/room-selector.component';
         YesNoSelectorComponent,
         ReservationStatusSelectorComponent,
         RoomSelectorComponent,
+        GuestSelectorComponent,
     ],
     imports: [
         CommonModule,
@@ -84,6 +86,7 @@ import { RoomSelectorComponent } from './room-selector/room-selector.component';
         YesNoSelectorComponent,
         ReservationStatusSelectorComponent,
         RoomSelectorComponent,
+        GuestSelectorComponent,
     ]
 })
 export class SelectorsModule {}

@@ -125,7 +125,7 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
             this.runSilently(() => {
                 this.selectedConferences = this.conferences.slice(0, this.selectionLimit ?? 1);
             })
-            // ha kifejezetten szeretnéd, hogy ez indítson szűrést:
+            // if you specifically want this to trigger filtering:
             if (this.emitOnSelectFirstOption) this.emit(this.selectedConferences, 'auto-select-first', /*force*/ true);
         }
     }

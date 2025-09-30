@@ -11,14 +11,15 @@ import { ConferenceService } from '../../service/conference.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Reservation } from '../../api/reservation';
+import { Room, RoomFilter } from '../../api/room';
+import { Guest } from '../../api/guest';
 import { dateRangeValidator } from '../../utils/date-range-validator';
 import { distinctByIds } from '../../utils/rx-ops';
+import { ChangeSource, ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
 import * as FileSaver from 'file-saver';
 import * as moment from 'moment';
 moment.locale('hu')
 
-import { ChangeSource, ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
-import { Room, RoomFilter } from '../../api/room';
 type SortDir = 1 | -1
 
 @Component({
@@ -66,6 +67,7 @@ export class ReservationComponent implements OnInit {
     conferenceEnd: Date | null = null
 
     roomFilter: RoomFilter = { enabled: true }
+    guestFilter: RoomFilter = { enabled: true }
 
     private initialFormValues = {
         id: null,
@@ -77,7 +79,8 @@ export class ReservationComponent implements OnInit {
         endDate: '',
         status: 'confirmed',
         notes: '',
-        guestIds: []
+        guests: [],
+        guestIds: [],
     }
 
     private query$ = new Subject<void>()
@@ -98,7 +101,7 @@ export class ReservationComponent implements OnInit {
         // Reservation form fields and validators
         this.reservationForm = this.fb.group({
             id: [this.initialFormValues.id],
-            room: [this.initialFormValues.room, Validators.required], // UI
+            room: [{ value: this.initialFormValues.room, disabled: true }, Validators.required], // UI
             room_id: [this.initialFormValues.room_id, Validators.required],
             conference: [this.initialFormValues.conference, Validators.required], // UI
             conference_id: [this.initialFormValues.conference_id, Validators.required],                           // Backend
@@ -106,6 +109,7 @@ export class ReservationComponent implements OnInit {
             endDate: [{ value: this.initialFormValues.endDate, disabled: true }, Validators.required],
             status: [this.initialFormValues.status, Validators.required],
             notes: [this.initialFormValues.notes],
+            guests: [{ value: this.initialFormValues.guests, disabled: true }, Validators.required], // UI
             guestIds: [this.initialFormValues.guestIds, Validators.required],
         }, {
             validators: dateRangeValidator('startDate', 'endDate')
@@ -122,7 +126,7 @@ export class ReservationComponent implements OnInit {
         this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => this.isOrganizer = isOrganizer)
 
         // while there is no conference
-        this.room?.disable({ emitEvent: false }) 
+        this.room?.disable({ emitEvent: false })
 
         // Reservations
         this.querySub = this.query$.pipe(
@@ -132,7 +136,7 @@ export class ReservationComponent implements OnInit {
             switchMap(() => {
                 this.loading = true
 
-                this.filterValues['conferences'] =
+                this.filterValues['conference_id'] =
                     (this.selectedConferences ?? []).map(x => x.id).join(',')
 
                 const filters = Object.keys(this.filterValues)
@@ -167,27 +171,40 @@ export class ReservationComponent implements OnInit {
             .pipe(distinctByIds<Conference>())
             .subscribe(conf => {
                 const first = conf?.[0]
-                
+
                 // Set form values by selected conference
                 this.reservationForm.patchValue({
                     conference_id: first?.id ?? null,
                     startDate: first?.beginDate ?? null,
                     endDate: first?.endDate ?? null
                 }, { emitEvent: false })
-                
+
                 // Filter rooms by selected conference
                 this.roomFilter = { ...this.roomFilter, conferenceId: first?.id ?? null }
-                
+
+                // Filter guests by selected conference
+                this.guestFilter = { ...this.guestFilter, conferenceId: first?.id ?? null }
+
                 if (first) {
                     this.room?.reset(null, { emitEvent: false })
                     this.room_id?.reset(null, { emitEvent: false })
                     this.room?.enable({ emitEvent: false })
+
+                    this.guests?.reset(null, { emitEvent: false })
+                    this.guestIds?.reset(null, { emitEvent: false })
+                    this.guests?.enable({ emitEvent: false })
+
                     this.startDate?.enable({ emitEvent: false })
                     this.endDate?.enable({ emitEvent: false })
                 } else {
                     this.room?.reset(null, { emitEvent: false })
                     this.room_id?.reset(null, { emitEvent: false })
                     this.room?.disable({ emitEvent: false })
+
+                    this.guests?.reset(null, { emitEvent: false })
+                    this.guestIds?.reset(null, { emitEvent: false })
+                    this.guests?.disable({ emitEvent: false })
+
                     this.startDate?.disable({ emitEvent: false })
                     this.endDate?.disable({ emitEvent: false })
                 }
@@ -202,6 +219,23 @@ export class ReservationComponent implements OnInit {
                     room_id: first?.id ?? null,
                 }, { emitEvent: false })
             })
+
+        // Monitor guest change
+        this.guests?.valueChanges.pipe(
+            // Normalization: always be an array
+            map((v: Guest | Guest[] | null | undefined) => Array.isArray(v) ? v : v ? [v] : []),
+            // Extract only IDs + filter out nulls
+            map(arr => arr
+                .map(g => g?.id)
+                .filter((id) => id != null)
+            ),
+            // Filter out duplicates
+            map(ids => Array.from(new Set(ids))),
+            // Avoid unnecessary patching (do not rewrite the same ID sequence)
+            distinctUntilChanged((a, b) => a.length === b.length && a.every((x, i) => x === b[i]))
+        ).subscribe(ids => {
+            this.reservationForm.patchValue({ guestIds: ids }, { emitEvent: false })
+        })
 
         // Monitor the changes of the window size
         this.responsiveService.isMobile$.subscribe((isMobile) => {
@@ -232,6 +266,7 @@ export class ReservationComponent implements OnInit {
     get endDate() { return this.reservationForm.get('endDate') }
     get status() { return this.reservationForm.get('status') }
     get notes() { return this.reservationForm.get('notes') }
+    get guests() { return this.reservationForm.get('guests') }
     get guestIds() { return this.reservationForm.get('guestIds') }
 
     /**
@@ -326,16 +361,59 @@ export class ReservationComponent implements OnInit {
      * @param reservation
      */
     edit(reservation: Reservation) {
-        this.reservationForm.reset(this.initialFormValues)
-        this.preselectConferenceId = undefined
-        this.reservationForm.patchValue(reservation, { emitEvent: false })
-        setTimeout(() => {
-            this.preselectConferenceId = reservation.conference_id ?? undefined
-        })
+        // 0) Reset tisztán, események nélkül
+        this.reservationForm.reset(this.initialFormValues, { emitEvent: false });
 
-        this.originalFormValues = this.reservationForm.value
-        this.sidebar = true
+        // 1) Konferencia előkészítés (objektum + [objektum] a selectorhoz)
+        const confObj =
+            (reservation as any).conference ??
+            ((reservation as any).conference_id ? { id: (reservation as any).conference_id } : null);
+
+        // 1/a) Konferencia beállítása úgy, hogy FUSSON a valueChanges (engedi a room/guests-t és beállítja a filtereket)
+        this.reservationForm.patchValue({
+            conference: confObj ? [confObj] : [],
+            conference_id: confObj?.id ?? null,
+        }, { emitEvent: true });
+
+        // 2) Szoba és vendégek előkészítése
+        const roomObj =
+            reservation.room ??
+            ((reservation as any).room_id ? { id: (reservation as any).room_id } : null);
+
+        const guestObjs: Guest[] = Array.isArray((reservation as any).guests)
+            ? (reservation as any).guests
+            : [];
+
+        const guestIds = guestObjs
+            .map(g => g?.id)
+            .filter((id) => id != null);
+
+        // 3) A konferencia-change utáni ciklusba időzítve patcheljük a room/guests-t és a REZERVÁCIÓ dátumait,
+        //    mert a konferencia-subscriber különben felülírja/üríti őket.
+        Promise.resolve().then(() => {
+            // Gondoskodj róla, hogy a selectorokhoz TÖMB menjen (selectionLimit=1 esetén is)
+            this.reservationForm.patchValue({
+                id: reservation.id ?? null,
+                room: roomObj ? [roomObj] : [],
+                room_id: roomObj?.id ?? null,
+                guests: guestObjs,            // UI-hoz teljes objektumok tömbje
+                guestIds: Array.from(new Set(guestIds)), // backendhez csak ID-k
+                startDate: reservation.startDate,        // konferencia-subscriber által kitöltött értékek felülírása
+                endDate: reservation.endDate,
+                status: (reservation as any).status ?? 'confirmed',
+                notes: (reservation as any).notes ?? null,
+            }, { emitEvent: false });
+
+            // ha használsz preselectet, itt állítsd
+            this.preselectConferenceId = confObj?.id ?? undefined;
+
+            // eredeti állapot és panel megnyitása
+            this.originalFormValues = this.reservationForm.getRawValue();
+            this.sidebar = true;
+            this.doQuery()
+        })
     }
+
 
     /**
      * Delete the Reservation
@@ -359,23 +437,51 @@ export class ReservationComponent implements OnInit {
      * Saving the form
      */
     save() {
-        if (this.reservationForm.valid) {
-            this.loading = true
-            const formValues = this.reservationForm.value
+        if (!this.reservationForm.valid) return
+        this.loading = true
 
-            console.log('SAVE', formValues)
+        const v = this.reservationForm.value
 
-            // Create
-            if (!formValues.id) {
-                // this.reservationService.create(formValues)
-
-                // Update
-            } else {
-                // this.reservationService.update(formValues)
-            }
-
-            this.sidebar = false
+        const formValues = {
+            room_id: v.room?.id ?? v.room_id ?? null,
+            conference_id: v.conference?.id ?? v.conference_id ?? null,
+            startDate: v.startDate,
+            endDate: v.endDate,
+            status: v.status ?? 'confirmed',
+            notes: v.notes ?? null
         }
+
+        // CREATE
+        if (!v.id) {
+            // we only send IDs from guests
+            const guestIds: number[] = Array.isArray(v.guestIds)
+                ? v.guestIds
+                : Array.isArray(v.guest)
+                    ? v.guest.map((g: any) => g?.id).filter((x: any) => x != null)
+                    : v.guest?.id ? [v.guest.id] : [];
+
+            const payload = { ...formValues, guestIds: Array.from(new Set(guestIds)) }
+
+            console.log('payload', payload)
+
+            // NEM küldünk: guest, guests
+            this.reservationService.create(payload)
+
+        } else {
+            // UPDATE: NE küldj vendég-listát itt
+            const payload = { id: v.id, ...formValues }
+
+            console.log('payload', payload)
+
+            this.reservationService.update(payload)
+
+            // Vendég hozzáadás/levétel külön hívással:
+            // this.reservationService.addGuests(v.id, [{ guestId: 123, is_primary: true }]).subscribe(...)
+            // this.reservationService.removeGuest(v.id, 123).subscribe(...)
+            // (Ezekhez a backend végpontok: POST /reservation/:id/guests, DELETE /reservation/:id/guests/:guestId) 
+        }
+
+        this.sidebar = false
     }
 
     /**

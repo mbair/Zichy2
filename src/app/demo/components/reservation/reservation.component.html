@@ -171,13 +171,12 @@
                         </td>
                         <td>
                             <span class="p-column-title">Vendégek</span>
-                            {{ reservation.guests.join(', ') }}
                             <p-avatarGroup >
                                 <p-avatar *ngFor="let guest of reservation.guests" 
                                            icon="pi pi-user" 
                                            size="large" 
                                            shape="circle"
-                                           pTooltip="{{guest.guestName}}" 
+                                           pTooltip="{{guest.lastName + ' ' + guest.firstName}}" 
                                            tooltipPosition="top">
                                 </p-avatar>
                             </p-avatarGroup>
@@ -254,6 +253,8 @@
                 <!-- Reservation Id -->
                 <input formControlName="id" type="hidden">
                 <input formControlName="conference_id" type="hidden">
+                <input formControlName="room_id" type="hidden">
+                <input formControlName="guestIds" type="hidden">
 
                 <!-- Conference -->
                 <div class="field mb-4 col-12">
@@ -280,17 +281,21 @@
                         [showClear]="true"
                         placeholder="Szoba...">
                     </app-room-selector>
-
-                    <div *ngIf="room_id?.dirty && room_id?.errors?.['required']" class="block p-error">
+                    <div *ngIf="room?.dirty && room?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>
 
-                <!-- Guest IDs -->
+                <!-- Guests -->
                 <div class="field mb-4 col-12">
-                    <label for="guestIds" class="font-medium text-900">Vendég ID</label>
-                    <input id="guestIds" type="text" pInputText formControlName="guestIds">
-                    <div *ngIf="guestIds?.dirty && guestIds?.errors?.['required']" class="block p-error">
+                    <label for="guest" class="font-medium text-900">Vendég</label>
+                    <app-guest-selector
+                        formControlName="guests"
+                        [filter]="guestFilter"
+                        [showClear]="true"
+                        placeholder="Vendég...">
+                    </app-guest-selector>
+                    <div *ngIf="guests?.dirty && guests?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>

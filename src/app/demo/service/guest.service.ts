@@ -1,26 +1,26 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, catchError, of, tap } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { Guest } from '../api/guest';
 
 type ToastMsg = {
-  severity: 'success' | 'info' | 'warn' | 'error';
-  summary: string;
-  detail?: string;
-  life?: number;
+    severity: 'success' | 'info' | 'warn' | 'error';
+    summary: string;
+    detail?: string;
+    life?: number;
 }
 
 type EmailStatus = {
-  status: 'sent' | 'failed' | 'timeout' | 'unknown';
-  message?: string;
-  code?: string | number;
-  providerResponse?: any;
+    status: 'sent' | 'failed' | 'timeout' | 'unknown';
+    message?: string;
+    code?: string | number;
+    providerResponse?: any;
 }
 
 type CreateGuestResponse = {
-  guest: Guest;
-  email?: EmailStatus;
+    guest: Guest;
+    email?: EmailStatus;
 }
 
 @Injectable({
@@ -120,6 +120,10 @@ export class GuestService {
             })
     }
 
+    public getBySearchQuery$(filters: string) {
+        return this.apiService.get<ApiResponse>(`guest/searchquery?${filters}`)
+    }
+
     /**
      * Retrieves guests associated with a specific conference name.
      * @param conferenceName - The name of the conference to search guests for.
@@ -175,10 +179,10 @@ export class GuestService {
                 next: (response: CreateGuestResponse) => {
                     // server returns { guest, email }
                     this.createdGuest$.next(response.guest)
-                    
+
                     const regToast = this.registrationToast(response.guest)
                     const emailToast = this.emailStatusToast(response.email)
-                    
+
                     this.message$.next(regToast)
                     this.message$.next(emailToast)
                 },
@@ -284,6 +288,20 @@ export class GuestService {
             })
     }
 
+    searchGuestsForSelector$(filter: any = {}) {
+        return this.getBySearchQuery$(this.buildGuestQS(filter))
+            .pipe(map((data: any) => data ? (data.rows ?? []) : []))
+    }
+
+    private buildGuestQS(f: any = {}): string {
+        const parts: string[] = []
+        if (f.conferenceId != null) parts.push(`conferenceid=${encodeURIComponent(String(f.conferenceId))}`)
+        if (typeof f.minBeds === 'number') parts.push(`minBeds=${f.minBeds}`)
+        if (typeof f.climate === 'boolean') parts.push(`climate=${f.climate ? 1 : 0}`)
+        if (f.enabled) parts.push(`enabled=1`)
+        return parts.join('&')
+    }
+
     /**
      * Handle Http operation that failed.
      * Let the app continue.
@@ -310,10 +328,10 @@ export class GuestService {
             return { severity: 'warn', summary: 'E-mail', detail: 'E-mail státusz ismeretlen.' };
         }
         switch (email.status) {
-            case 'sent':    return { severity: 'success', summary: 'E-mail', detail: 'Visszaigazoló e-mail elküldve.' };
-            case 'timeout': return { severity: 'warn',    summary: 'E-mail', detail: 'Az e-mail küldés időkorlátot ért el.' };
-            case 'failed':  return { severity: 'error',   summary: 'E-mail hiba', detail: email.message || 'Az e-mail küldés nem sikerült.' };
-            default:        return { severity: 'info',    summary: 'E-mail', detail: 'E-mail státusz: ismeretlen.' };
+            case 'sent': return { severity: 'success', summary: 'E-mail', detail: 'Visszaigazoló e-mail elküldve.' };
+            case 'timeout': return { severity: 'warn', summary: 'E-mail', detail: 'Az e-mail küldés időkorlátot ért el.' };
+            case 'failed': return { severity: 'error', summary: 'E-mail hiba', detail: email.message || 'Az e-mail küldés nem sikerült.' };
+            default: return { severity: 'info', summary: 'E-mail', detail: 'E-mail státusz: ismeretlen.' };
         }
     }
 
