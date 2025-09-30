@@ -139,6 +139,7 @@ export class GuestComponent implements OnInit {
     private globalSearch$ = new Subject<string>()
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
+    private selectionChanges$ = new Subject<Conference[] | null>()
     private guestObs$: Observable<any> | undefined
     private genderObs$: Observable<any> | undefined
     private messageObs$: Observable<any> | undefined
@@ -254,6 +255,13 @@ export class GuestComponent implements OnInit {
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canAssign => this.canAssign = canAssign)
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canImport => this.canImport = canImport)
         this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => this.isOrganizer = isOrganizer)
+
+        this.selectionChanges$
+            .pipe(
+                map(v => (v ?? []).map(x => x.id).sort().join(',')), 
+                distinctUntilChanged()
+            )
+            .subscribe(() => this.doQuery())
 
         // Guests
         this.guestObs$ = this.guestService.guestObs
@@ -1134,10 +1142,11 @@ export class GuestComponent implements OnInit {
             this.canEdit = this.selectedConferences.some(conf =>
                 conf.guestEditEndDate && moment().isSameOrBefore(moment(conf.guestEditEndDate), 'day')
             )
+        } else {
+            this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo']).subscribe(canEdit => this.canEdit = canEdit)
         }
 
-        this.tableData = []
-        this.doQuery()
+        this.selectionChanges$.next(this.selectedConferences)
     }
 
     /**

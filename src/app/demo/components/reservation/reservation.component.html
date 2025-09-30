@@ -25,6 +25,7 @@
                         <span class="block mt-2 md:mt-0">
                             <app-conference-selector
                                 [(ngModel)]="selectedConferences"
+                                [emitOnSelectFirstOption]="true"
                                 [showClear]="true"
                                 [style]="{'minWidth': '35rem'}"
                                 placeholder="Válasszon konferenciát..."
@@ -170,13 +171,12 @@
                         </td>
                         <td>
                             <span class="p-column-title">Vendégek</span>
-                            {{ reservation.guests.join(', ') }}
                             <p-avatarGroup >
                                 <p-avatar *ngFor="let guest of reservation.guests" 
                                            icon="pi pi-user" 
                                            size="large" 
                                            shape="circle"
-                                           pTooltip="{{guest.guestName}}" 
+                                           pTooltip="{{guest.lastName + ' ' + guest.firstName}}" 
                                            tooltipPosition="top">
                                 </p-avatar>
                             </p-avatarGroup>
@@ -225,7 +225,7 @@
                 </ng-template>
                 <ng-template pTemplate="emptymessage">
                     <tr>
-                        <td [attr.colspan]="6" class="text-center">Nincs találat...</td>
+                        <td [attr.colspan]="8" class="text-center">Nincs találat...</td>
                     </tr>
                 </ng-template>
             </p-table>
@@ -253,6 +253,8 @@
                 <!-- Reservation Id -->
                 <input formControlName="id" type="hidden">
                 <input formControlName="conference_id" type="hidden">
+                <input formControlName="room_id" type="hidden">
+                <input formControlName="guestIds" type="hidden">
 
                 <!-- Conference -->
                 <div class="field mb-4 col-12">
@@ -271,18 +273,29 @@
 
                 <!-- Room ID -->
                 <div class="field mb-4 col-12">
-                    <label for="room_id" class="font-medium text-900">Szoba ID</label>
-                    <input id="room_id" type="text" pInputText formControlName="room_id">
-                    <div *ngIf="room_id?.dirty && room_id?.errors?.['required']" class="block p-error">
+                    <label for="room_id" class="font-medium text-900">Szoba</label>
+                    <app-room-selector
+                        formControlName="room"
+                        [filter]="roomFilter"
+                        [selectionLimit]="1"
+                        [showClear]="true"
+                        placeholder="Szoba...">
+                    </app-room-selector>
+                    <div *ngIf="room?.dirty && room?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>
 
-                <!-- Guest IDs -->
+                <!-- Guests -->
                 <div class="field mb-4 col-12">
-                    <label for="guestIds" class="font-medium text-900">Vendég ID</label>
-                    <input id="guestIds" type="text" pInputText formControlName="guestIds">
-                    <div *ngIf="guestIds?.dirty && guestIds?.errors?.['required']" class="block p-error">
+                    <label for="guest" class="font-medium text-900">Vendég</label>
+                    <app-guest-selector
+                        formControlName="guests"
+                        [filter]="guestFilter"
+                        [showClear]="true"
+                        placeholder="Vendég...">
+                    </app-guest-selector>
+                    <div *ngIf="guests?.dirty && guests?.errors?.['required']" class="block p-error">
                         Kötelező kitölteni
                     </div>
                 </div>
@@ -295,7 +308,6 @@
                     <p-calendar id="startDate"
                                 formControlName="startDate"
                                 [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
-                                [disabled]="!conferenceStart"
                                 dateFormat="yy-mm-dd"
                                 dataType="string"
                                 appendTo="body">
@@ -316,7 +328,6 @@
                     <p-calendar id="endDate"
                                 formControlName="endDate"
                                 [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
-                                [disabled]="!conferenceEnd"
                                 dateFormat="yy-mm-dd"
                                 dataType="string"
                                 appendTo="body">

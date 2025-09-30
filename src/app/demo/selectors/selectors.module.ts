@@ -6,6 +6,7 @@ import { ChipModule } from 'primeng/chip';
 import { DropdownModule } from 'primeng/dropdown';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { InputSwitchModule } from 'primeng/inputswitch';
+import { TooltipModule } from 'primeng/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { ConferenceSelectorComponent } from './conference-selector/conference-selector.component';
 import { CountrySelectorComponent } from './country-selector/country-selector.component';
@@ -26,6 +27,8 @@ import { BathroomSelectorComponent } from './bathroom-selector/bathroom-selector
 import { FloorSelectorComponent } from './floor-selector/floor-selector.component';
 import { YesNoSelectorComponent } from './yes-no-selector/yes-no-selector.component';
 import { ReservationStatusSelectorComponent } from './reservation-status-selector/reservation-status-selector.component';
+import { RoomSelectorComponent } from './room-selector/room-selector.component';
+import { GuestSelectorComponent } from './guest-selector/guest-selector.component';
 
 @NgModule({
     declarations: [
@@ -48,6 +51,8 @@ import { ReservationStatusSelectorComponent } from './reservation-status-selecto
         FloorSelectorComponent,
         YesNoSelectorComponent,
         ReservationStatusSelectorComponent,
+        RoomSelectorComponent,
+        GuestSelectorComponent,
     ],
     imports: [
         CommonModule,
@@ -57,6 +62,7 @@ import { ReservationStatusSelectorComponent } from './reservation-status-selecto
         DropdownModule,
         MultiSelectModule,
         InputSwitchModule,
+        TooltipModule,
         TranslateModule,
     ],
     exports: [
@@ -79,6 +85,8 @@ import { ReservationStatusSelectorComponent } from './reservation-status-selecto
         FloorSelectorComponent,
         YesNoSelectorComponent,
         ReservationStatusSelectorComponent,
+        RoomSelectorComponent,
+        GuestSelectorComponent,
     ]
 })
 export class SelectorsModule {}

@@ -1,9 +1,12 @@
+import { Room } from "./room";
+
 // Reservation statuses
 export type ReservationStatus = 'active' | 'cancelled' | 'completed';
 // tentative, confirmed, in_house, checked_out, cancelled, no_show
 
 export interface Reservation {
     id?: number;
+    room?: Room;
     room_id?: number;
     conference_id?: number;
     startDate?: string;

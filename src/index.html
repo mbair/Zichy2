@@ -16,13 +16,29 @@
 </head>
 
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-X7J5J6885K"></script>
 <script>
-  window.dataLayer = window.dataLayer || []
-  function gtag(){dataLayer.push(arguments)}
-  gtag('js', new Date())
-  gtag('config', 'G-X7J5J6885K')
+  (function () {
+    // localhost / 127.0.0.1 / ::1
+    var isLocal =
+      location.hostname === 'localhost' ||
+      /^127\.\d+\.\d+\.\d+$/.test(location.hostname) ||
+      location.hostname === '::1';
+
+    if (isLocal) return; // fejlesztéskor nem töltünk be semmit
+
+    // gtag loader
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=G-X7J5J6885K';
+    document.head.appendChild(s);
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    gtag('js', new Date());
+    gtag('config', 'G-X7J5J6885K');
+  })();
 </script>
+
 
 <body>
     <app-root>

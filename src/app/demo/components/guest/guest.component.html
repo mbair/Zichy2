@@ -30,6 +30,7 @@
                                 [showClear]="true"
                                 [selectionLimit]="1"
                                 [selectFirstOption]="isOrganizer"
+                                [emitOnSelectFirstOption]="true"
                                 [style]="{'minWidth': '35rem'}"
                                 placeholder="Válasszon konferenciát..."
                                 (ngModelChange)="onConferenceSelectionChange($event)">
@@ -104,10 +105,10 @@
                                    style="width:8%; min-width:6rem;"/>
                         </th>
                         <th>
-                            <app-diet-selector 
+                            <!-- <app-diet-selector 
                                 (change)="onFilter($event, 'diet')" 
                                 [showClear]="true">
-                            </app-diet-selector>
+                            </app-diet-selector> -->
                         </th>
                         <th>
                             <input *ngIf="!isOrganizer"

@@ -18,8 +18,10 @@
                     "builder": "@angular-devkit/build-angular:browser",
                     "options": {
                         "allowedCommonJsDependencies": [
+                            "file-saver",
                             "lodash",
                             "moment",
+                            "moment-timezone",
                             "quill-delta"
                         ],
                         "outputPath": "dist/nfc-reserve",

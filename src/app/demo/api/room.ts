@@ -9,7 +9,7 @@ export interface Room {
     bathroom?: string;
     building?: string;
     color?: string;
-    floor?: string;    
+    floor?: string;
     bedtype?: string;
     comment?: string;
     climate?: boolean;
@@ -23,4 +23,13 @@ export interface Room {
     guestData?: any;
     Reservations?: any;
     conferences?: any;
+}
+
+export interface RoomFilter {
+    conferenceId?: number | null;
+    building?: string | string[];
+    minBeds?: number;
+    climate?: boolean;      // true = klímás, false = nem klímás, undefined = mindegy
+    enabled?: boolean;  // csak aktív szobák
+    // (opcionális jövőre) startDate?: string; endDate?: string; onlyFree?: boolean;
 }

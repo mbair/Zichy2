@@ -16,13 +16,29 @@
 <style>*{box-sizing:border-box}html{height:100%;font-size:14px}body{font-weight:400;padding:0;margin:0;min-height:100%;background:var(--surface-ground);color:var(--text-color);font-family:var(--font-family);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}</style><link rel="stylesheet" href="styles.72fea310219692f1.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles.72fea310219692f1.css"></noscript></head>
 
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-X7J5J6885K"></script>
 <script>
-  window.dataLayer = window.dataLayer || []
-  function gtag(){dataLayer.push(arguments)}
-  gtag('js', new Date())
-  gtag('config', 'G-X7J5J6885K')
+  (function () {
+    // localhost / 127.0.0.1 / ::1
+    var isLocal =
+      location.hostname === 'localhost' ||
+      /^127\.\d+\.\d+\.\d+$/.test(location.hostname) ||
+      location.hostname === '::1';
+
+    if (isLocal) return; // fejlesztéskor nem töltünk be semmit
+
+    // gtag loader
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=G-X7J5J6885K';
+    document.head.appendChild(s);
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    gtag('js', new Date());
+    gtag('config', 'G-X7J5J6885K');
+  })();
 </script>
+
 
 <body>
     <app-root>
@@ -32,6 +48,6 @@
             </div>
         </div>
     </app-root>
-<script src="runtime.3f5be478d5c0d207.js" type="module"></script><script src="polyfills.485141ba735566e0.js" type="module"></script><script src="main.8e945e72d04e5688.js" type="module"></script></body>
+<script src="runtime.1fd84794d24eb828.js" type="module"></script><script src="polyfills.485141ba735566e0.js" type="module"></script><script src="main.820c5bf87703fad7.js" type="module"></script></body>
 
 </html>

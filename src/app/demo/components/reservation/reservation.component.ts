@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, of, Subject, switchMap } from 'rxjs';
+import { auditTime, BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject, Subscription, switchMap } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
@@ -11,12 +11,16 @@ import { ConferenceService } from '../../service/conference.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Reservation } from '../../api/reservation';
+import { Room, RoomFilter } from '../../api/room';
+import { Guest } from '../../api/guest';
 import { dateRangeValidator } from '../../utils/date-range-validator';
+import { distinctByIds } from '../../utils/rx-ops';
+import { ChangeSource, ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
 import * as FileSaver from 'file-saver';
 import * as moment from 'moment';
 moment.locale('hu')
 
-import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
+type SortDir = 1 | -1
 
 @Component({
     selector: 'reservation-component',
@@ -40,7 +44,7 @@ export class ReservationComponent implements OnInit {
     totalRecords: number = 0                     // Total number of rows in the table
     page: number = 0                             // Current page
     sortField: string = 'id'                     // Current sort field
-    sortOrder: number = 1                        // Current sort order
+    sortOrder: SortDir = 1                       // Current sort order
     globalFilter: string = ''                    // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
     debounce: { [key: string]: any } = {}        // Search delay in filter field
@@ -62,21 +66,27 @@ export class ReservationComponent implements OnInit {
     conferenceStart: Date | null = null
     conferenceEnd: Date | null = null
 
+    roomFilter: RoomFilter = { enabled: true }
+    guestFilter: RoomFilter = { enabled: true }
+
     private initialFormValues = {
         id: null,
+        room: null,
         room_id: null,
         conference: null,
         conference_id: null,
         startDate: '',
         endDate: '',
-        status: '',
+        status: 'confirmed',
         notes: '',
-        guestIds: []
+        guests: [],
+        guestIds: [],
     }
 
+    private query$ = new Subject<void>()
+    private querySub?: Subscription
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
-    private reservationObs$: Observable<any> | undefined
     private serviceMessageObs$: Observable<any> | undefined
     private conferenceMessageObs$: Observable<any> | undefined
 
@@ -91,13 +101,15 @@ export class ReservationComponent implements OnInit {
         // Reservation form fields and validators
         this.reservationForm = this.fb.group({
             id: [this.initialFormValues.id],
+            room: [{ value: this.initialFormValues.room, disabled: true }, Validators.required], // UI
             room_id: [this.initialFormValues.room_id, Validators.required],
             conference: [this.initialFormValues.conference, Validators.required], // UI
             conference_id: [this.initialFormValues.conference_id, Validators.required],                           // Backend
-            startDate: [this.initialFormValues.startDate, Validators.required],
-            endDate: [this.initialFormValues.endDate, Validators.required],
+            startDate: [{ value: this.initialFormValues.startDate, disabled: true }, Validators.required],
+            endDate: [{ value: this.initialFormValues.endDate, disabled: true }, Validators.required],
             status: [this.initialFormValues.status, Validators.required],
             notes: [this.initialFormValues.notes],
+            guests: [{ value: this.initialFormValues.guests, disabled: true }, Validators.required], // UI
             guestIds: [this.initialFormValues.guestIds, Validators.required],
         }, {
             validators: dateRangeValidator('startDate', 'endDate')
@@ -113,35 +125,117 @@ export class ReservationComponent implements OnInit {
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
         this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => this.isOrganizer = isOrganizer)
 
+        // while there is no conference
+        this.room?.disable({ emitEvent: false })
+
         // Reservations
-        this.reservationObs$ = this.reservationService.reservationObs
-        this.reservationObs$.subscribe((data: ApiResponse) => {
-            this.loading = false
-            if (data) {
-                this.tableData = data.rows || []
-                this.totalRecords = data.totalItems || 0
-                this.page = data.currentPage || 0
-                this.numberOfBeds = data.numberOfBeds || 0
+        this.querySub = this.query$.pipe(
+            map(() => this.buildQueryKey()),
+            distinctUntilChanged(),
+            auditTime(50),
+            switchMap(() => {
+                this.loading = true
+
+                this.filterValues['conference_id'] =
+                    (this.selectedConferences ?? []).map(x => x.id).join(',')
+
+                const filters = Object.keys(this.filterValues)
+                    .map(k => this.filterValues[k]?.length ? `${k}=${this.filterValues[k]}` : '')
+                    .filter(Boolean)
+                    .join('&')
+
+                const sortArg = this.sortField
+                    ? { sortField: this.sortField, sortOrder: this.sortOrder }
+                    : ''
+
+                return (this.globalFilter !== '')
+                    ? this.reservationService.getBySearch$(this.globalFilter, sortArg)
+                    : this.reservationService.get$(this.page, this.rowsPerPage, sortArg, filters)
+            })
+        ).subscribe({
+            next: (data: ApiResponse) => {
+                this.loading = false
+                this.tableData = data?.rows ?? []
+                this.totalRecords = data?.totalItems ?? 0
+                this.page = data?.currentPage ?? 0
+                this.numberOfBeds = data?.numberOfBeds ?? 0
+            },
+            error: () => {
+                this.loading = false
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Hiba történt!' })
             }
         })
 
         // Monitor conference change
         this.conference?.valueChanges
-            .pipe(distinctUntilChanged())
-            .subscribe((conf: Conference[] | null) => {
+            .pipe(distinctByIds<Conference>())
+            .subscribe(conf => {
+                const first = conf?.[0]
 
-                // Set conference_id
-                const selectedConferenceId = conf ? conf[0]?.id : null
-                this.reservationForm.patchValue(
-                    { conference_id: selectedConferenceId },
-                    { emitEvent: false }
-                )
+                // Set form values by selected conference
+                this.reservationForm.patchValue({
+                    conference_id: first?.id ?? null,
+                    startDate: first?.beginDate ?? null,
+                    endDate: first?.endDate ?? null
+                }, { emitEvent: false })
 
-                // Set reservation begin and end dates
-                const startDate = conf ? conf[0]?.beginDate : null
-                const endDate = conf ? conf[0]?.endDate : null
-                this.reservationForm.patchValue({ startDate, endDate }, { emitEvent: false })
+                // Filter rooms by selected conference
+                this.roomFilter = { ...this.roomFilter, conferenceId: first?.id ?? null }
+
+                // Filter guests by selected conference
+                this.guestFilter = { ...this.guestFilter, conferenceId: first?.id ?? null }
+
+                if (first) {
+                    this.room?.reset(null, { emitEvent: false })
+                    this.room_id?.reset(null, { emitEvent: false })
+                    this.room?.enable({ emitEvent: false })
+
+                    this.guests?.reset(null, { emitEvent: false })
+                    this.guestIds?.reset(null, { emitEvent: false })
+                    this.guests?.enable({ emitEvent: false })
+
+                    this.startDate?.enable({ emitEvent: false })
+                    this.endDate?.enable({ emitEvent: false })
+                } else {
+                    this.room?.reset(null, { emitEvent: false })
+                    this.room_id?.reset(null, { emitEvent: false })
+                    this.room?.disable({ emitEvent: false })
+
+                    this.guests?.reset(null, { emitEvent: false })
+                    this.guestIds?.reset(null, { emitEvent: false })
+                    this.guests?.disable({ emitEvent: false })
+
+                    this.startDate?.disable({ emitEvent: false })
+                    this.endDate?.disable({ emitEvent: false })
+                }
             })
+
+        // Monitor room change
+        this.room?.valueChanges
+            .pipe(distinctByIds<Room>())
+            .subscribe(room => {
+                const first = room?.[0]
+                this.reservationForm.patchValue({
+                    room_id: first?.id ?? null,
+                }, { emitEvent: false })
+            })
+
+        // Monitor guest change
+        this.guests?.valueChanges.pipe(
+            // Normalization: always be an array
+            map((v: Guest | Guest[] | null | undefined) => Array.isArray(v) ? v : v ? [v] : []),
+            // Extract only IDs + filter out nulls
+            map(arr => arr
+                .map(g => g?.id)
+                .filter((id) => id != null)
+            ),
+            // Filter out duplicates
+            map(ids => Array.from(new Set(ids))),
+            // Avoid unnecessary patching (do not rewrite the same ID sequence)
+            distinctUntilChanged((a, b) => a.length === b.length && a.every((x, i) => x === b[i]))
+        ).subscribe(ids => {
+            this.reservationForm.patchValue({ guestIds: ids }, { emitEvent: false })
+        })
 
         // Monitor the changes of the window size
         this.responsiveService.isMobile$.subscribe((isMobile) => {
@@ -164,6 +258,7 @@ export class ReservationComponent implements OnInit {
 
     // Getters for form validation
     get id() { return this.reservationForm.get('id') }
+    get room() { return this.reservationForm.get('room') }
     get room_id() { return this.reservationForm.get('room_id') }
     get conference() { return this.reservationForm.get('conference') }
     get conference_id() { return this.reservationForm.get('conference_id') }
@@ -171,6 +266,7 @@ export class ReservationComponent implements OnInit {
     get endDate() { return this.reservationForm.get('endDate') }
     get status() { return this.reservationForm.get('status') }
     get notes() { return this.reservationForm.get('notes') }
+    get guests() { return this.reservationForm.get('guests') }
     get guestIds() { return this.reservationForm.get('guestIds') }
 
     /**
@@ -178,21 +274,7 @@ export class ReservationComponent implements OnInit {
      * @returns
      */
     doQuery() {
-        // Organizer need select conference
-        if (this.isOrganizer && !this.selectedConferences.length) return
-
-        this.loading = true
-        this.filterValues['conferences'] = this.selectedConferences.map(conference => conference.id).join(',')
-
-        const filters = Object.keys(this.filterValues)
-            .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
-        const queryParams = filters.filter(x => x.length > 0).join('&')
-
-        if (this.globalFilter !== '') {
-            return this.reservationService.getBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
-        }
-
-        return this.reservationService.get(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
+        this.query$.next()
     }
 
     /**
@@ -202,7 +284,7 @@ export class ReservationComponent implements OnInit {
      */
     onFilter(event: any, field: string) {
         // Organizer need select conference
-        if (this.isOrganizer && !this.selectedConferences) return
+        if (this.isOrganizer && this.selectedConferences.length === 0) return
 
         const noWaitFields: string[] = ['conferenceName', 'building', 'bedType', 'spareBeds']
         let filterValue = ''
@@ -252,7 +334,7 @@ export class ReservationComponent implements OnInit {
         this.page = event.first! / event.rows!
         this.rowsPerPage = event.rows ?? this.rowsPerPage
         this.sortField = event.sortField ?? ''
-        this.sortOrder = event.sortOrder ?? 1
+        this.sortOrder = (event.sortOrder === -1 ? -1 : 1)
         this.globalFilter = event.globalFilter ?? ''
         this.doQuery()
     }
@@ -279,16 +361,59 @@ export class ReservationComponent implements OnInit {
      * @param reservation
      */
     edit(reservation: Reservation) {
-        this.reservationForm.reset(this.initialFormValues)
-        this.preselectConferenceId = undefined
-        this.reservationForm.patchValue(reservation, { emitEvent: false })
-        setTimeout(() => {
-            this.preselectConferenceId = reservation.conference_id ?? undefined
-        })
+        // 0) Reset tisztán, események nélkül
+        this.reservationForm.reset(this.initialFormValues, { emitEvent: false });
 
-        this.originalFormValues = this.reservationForm.value
-        this.sidebar = true
+        // 1) Konferencia előkészítés (objektum + [objektum] a selectorhoz)
+        const confObj =
+            (reservation as any).conference ??
+            ((reservation as any).conference_id ? { id: (reservation as any).conference_id } : null);
+
+        // 1/a) Konferencia beállítása úgy, hogy FUSSON a valueChanges (engedi a room/guests-t és beállítja a filtereket)
+        this.reservationForm.patchValue({
+            conference: confObj ? [confObj] : [],
+            conference_id: confObj?.id ?? null,
+        }, { emitEvent: true });
+
+        // 2) Szoba és vendégek előkészítése
+        const roomObj =
+            reservation.room ??
+            ((reservation as any).room_id ? { id: (reservation as any).room_id } : null);
+
+        const guestObjs: Guest[] = Array.isArray((reservation as any).guests)
+            ? (reservation as any).guests
+            : [];
+
+        const guestIds = guestObjs
+            .map(g => g?.id)
+            .filter((id) => id != null);
+
+        // 3) A konferencia-change utáni ciklusba időzítve patcheljük a room/guests-t és a REZERVÁCIÓ dátumait,
+        //    mert a konferencia-subscriber különben felülírja/üríti őket.
+        Promise.resolve().then(() => {
+            // Gondoskodj róla, hogy a selectorokhoz TÖMB menjen (selectionLimit=1 esetén is)
+            this.reservationForm.patchValue({
+                id: reservation.id ?? null,
+                room: roomObj ? [roomObj] : [],
+                room_id: roomObj?.id ?? null,
+                guests: guestObjs,            // UI-hoz teljes objektumok tömbje
+                guestIds: Array.from(new Set(guestIds)), // backendhez csak ID-k
+                startDate: reservation.startDate,        // konferencia-subscriber által kitöltött értékek felülírása
+                endDate: reservation.endDate,
+                status: (reservation as any).status ?? 'confirmed',
+                notes: (reservation as any).notes ?? null,
+            }, { emitEvent: false });
+
+            // ha használsz preselectet, itt állítsd
+            this.preselectConferenceId = confObj?.id ?? undefined;
+
+            // eredeti állapot és panel megnyitása
+            this.originalFormValues = this.reservationForm.getRawValue();
+            this.sidebar = true;
+            this.doQuery()
+        })
     }
+
 
     /**
      * Delete the Reservation
@@ -312,23 +437,51 @@ export class ReservationComponent implements OnInit {
      * Saving the form
      */
     save() {
-        if (this.reservationForm.valid) {
-            this.loading = true
-            const formValues = this.reservationForm.value
+        if (!this.reservationForm.valid) return
+        this.loading = true
 
-            console.log('SAVE', formValues)
+        const v = this.reservationForm.value
 
-            // Create
-            if (!formValues.id) {
-                // this.reservationService.create(formValues)
-
-                // Update
-            } else {
-                // this.reservationService.update(formValues)
-            }
-
-            this.sidebar = false
+        const formValues = {
+            room_id: v.room?.id ?? v.room_id ?? null,
+            conference_id: v.conference?.id ?? v.conference_id ?? null,
+            startDate: v.startDate,
+            endDate: v.endDate,
+            status: v.status ?? 'confirmed',
+            notes: v.notes ?? null
         }
+
+        // CREATE
+        if (!v.id) {
+            // we only send IDs from guests
+            const guestIds: number[] = Array.isArray(v.guestIds)
+                ? v.guestIds
+                : Array.isArray(v.guest)
+                    ? v.guest.map((g: any) => g?.id).filter((x: any) => x != null)
+                    : v.guest?.id ? [v.guest.id] : [];
+
+            const payload = { ...formValues, guestIds: Array.from(new Set(guestIds)) }
+
+            console.log('payload', payload)
+
+            // NEM küldünk: guest, guests
+            this.reservationService.create(payload)
+
+        } else {
+            // UPDATE: NE küldj vendég-listát itt
+            const payload = { id: v.id, ...formValues }
+
+            console.log('payload', payload)
+
+            this.reservationService.update(payload)
+
+            // Vendég hozzáadás/levétel külön hívással:
+            // this.reservationService.addGuests(v.id, [{ guestId: 123, is_primary: true }]).subscribe(...)
+            // this.reservationService.removeGuest(v.id, 123).subscribe(...)
+            // (Ezekhez a backend végpontok: POST /reservation/:id/guests, DELETE /reservation/:id/guests/:guestId) 
+        }
+
+        this.sidebar = false
     }
 
     /**
@@ -367,8 +520,13 @@ export class ReservationComponent implements OnInit {
         }
     }
 
-    onConferenceRemove(conference: any, reservation: any) {
-        // this.conferenceService.removeReservationsFromConference(conference.id, [reservation.id])
+    onConfChange(e: { value: Conference[]; source: ChangeSource }) {
+        this.selectedConferences = e.value;
+        // Csak a számodra értelmes forrásokra kérdezz le:
+        if (e.source === 'user' || e.source === 'auto-select-first') {
+            this.tableData = [];
+            this.doQuery();
+        }
     }
 
     /**
@@ -438,6 +596,21 @@ export class ReservationComponent implements OnInit {
         const m = String(d.getMonth() + 1).padStart(2, '0')
         const day = String(d.getDate()).padStart(2, '0')
         return `${y}-${m}-${day}`
+    }
+
+    /**
+     * 
+     */
+    private buildQueryKey(): string {
+        const confIds = (this.selectedConferences ?? []).map(c => c.id).sort().join(',')
+        const filters = Object.keys(this.filterValues)
+            .map(k => this.filterValues[k] ? `${k}=${this.filterValues[k]}` : '')
+            .filter(Boolean)
+            .join('&')
+        return [
+            this.page, this.rowsPerPage, this.sortField, this.sortOrder,
+            this.globalFilter || '', confIds, filters
+        ].join('|')
     }
 
     // Don't delete this, its needed from a performance point of view,

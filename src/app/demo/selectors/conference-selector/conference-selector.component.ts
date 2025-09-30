@@ -1,10 +1,12 @@
-import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy, Output, EventEmitter } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { MultiSelect } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
 import { Conference } from '../../api/conference';
 import { ConferenceService } from '../../service/conference.service';
+
+export type ChangeSource = 'user' | 'auto-select-first' | 'preselect-id' | 'programmatic';
 
 @Component({
     selector: 'app-conference-selector',
@@ -19,7 +21,7 @@ import { ConferenceService } from '../../service/conference.service';
 export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy, ControlValueAccessor {
 
     // static: false ensures that the ViewChild is dynamically updated when the template changes
-    @ViewChild('conferenceSelector', { static: false }) 
+    @ViewChild('conferenceSelector', { static: false })
     private readonly conferenceSelectorRef: MultiSelect
 
     @Input() selectionLimit?: number                // Maximum number of selectable conferences (optional)
@@ -28,11 +30,16 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
     @Input() showClear: boolean = true              // Whether to show the clear button
     @Input() style: { [key: string]: string } = {}  // Custom style for the dropdown
     @Input() disabledOptions: Conference[] = []     // List of disabled conference IDs
+    @Input() emitOnSelectFirstOption = false         // only turn it on where you really need it
+    @Input() emitOnPreselectId = false
+    @Input() emitOnWriteValue = false
     @Input()
     set preselectConferenceId(value: number | undefined) {
         this._pendingSelectId = value
         this.tryPreselectById()                      // Select predefined conference by Id
     }
+
+    @Output() change = new EventEmitter<{ value: Conference[]; source: ChangeSource }>()
 
     loading: boolean = true                          // Loading state indicator
     disabled: boolean = false                        // Whether the selector is disabled
@@ -42,6 +49,8 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
 
     private _pendingSelectId?: number
     private subscriptions: Subscription = new Subscription()
+    private suppress = 0
+    private runSilently<T>(fn: () => T): T { this.suppress++; try { return fn() } finally { this.suppress-- } }
 
     constructor(private conferenceService: ConferenceService,
         private messageService: MessageService
@@ -100,15 +109,24 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
         }))
     }
 
+    // Opcionális publikus setter programozott beállításhoz:
+    public setSelection(value: Conference[], opts?: { emit?: boolean; source?: ChangeSource }) {
+        const source = opts?.source ?? 'programmatic';
+        this.runSilently(() => { this.selectedConferences = value?.slice(0, this.selectionLimit ?? value.length) ?? []; });
+        if (opts?.emit) this.emit(this.selectedConferences, source, true);
+    }
+
     /**
      * Selects the first available conference if the `selectFirstOption` flag is enabled.
      * This ensures that the component has an initial selection when loaded.
      */
     private handleSelectFirstOption(): void {
-        if (this.selectFirstOption && (!this.selectedConferences || this.selectedConferences.length === 0)) {
-            const limit = this.selectionLimit ?? 1
-            this.selectedConferences = this.conferences.slice(0, limit)
-            this.onChange(this.selectedConferences) // Notify the parent component about the selection
+        if (this.selectFirstOption && this.selectedConferences.length === 0 && this.conferences.length) {
+            this.runSilently(() => {
+                this.selectedConferences = this.conferences.slice(0, this.selectionLimit ?? 1);
+            })
+            // if you specifically want this to trigger filtering:
+            if (this.emitOnSelectFirstOption) this.emit(this.selectedConferences, 'auto-select-first', /*force*/ true);
         }
     }
 
@@ -126,13 +144,10 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * - Selection is ID-based (use `dataKey="id"` on the MultiSelect), not by object reference.
      */
     private tryPreselectById(): void {
-        if (!this.conferences?.length) return       // No conference list
-        if (this._pendingSelectId == null) return   // Nothing to select
-
-        const conference = this.conferences.find(c => c.id === this._pendingSelectId)
-        this.selectedConferences = conference ? [conference] : []
-        this.onChange(this.selectedConferences)   // Push back to form
-        this.onTouched()
+        if (!this.conferences?.length || this._pendingSelectId == null) return;
+        const c = this.conferences.find(x => x.id === this._pendingSelectId);
+        this.runSilently(() => { this.selectedConferences = c ? [c] : []; });
+        if (this.emitOnPreselectId) this.emit(this.selectedConferences, 'preselect-id', true);
     }
 
     /**
@@ -164,11 +179,12 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      */
     onSelectionChange(event: any): void {
         this.selectedConferences = event.value
-        this.onChange(this.selectedConferences)
-        this.onTouched()
+        this.emit(this.selectedConferences, 'user')
 
-        if (this.selectionLimit === this.selectedConferences.length && this.conferenceSelectorRef) {
-            this.conferenceSelectorRef.hide()
+        // Auto-close if max 1 can be selected and there is already a selection
+        if ((this.selectionLimit ?? 1) === 1 && this.selectedConferences?.length >= 1) {
+            // small delay to let MultiSelect update its own state first
+            setTimeout(() => this.conferenceSelectorRef?.hide())
         }
     }
 
@@ -182,6 +198,12 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
         this.onTouched()
     }
 
+    private emit(value: Conference[], source: ChangeSource, force = false) {
+        if (this.suppress && !force) return;   // némítás alatt csak force esetén engedünk
+        this.onChange(value); this.onTouched();
+        this.change.emit({ value, source });
+    }
+
     // ===========================
     // ControlValueAccessor Methods
     // ===========================
@@ -193,10 +215,10 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * @param value - The selected conferences coming from the form.
      */
     writeValue(value: Conference[]): void {
-        this.selectedConferences = value?.slice(0, this.selectionLimit ?? value.length) || []
-        if (this.conferences.length > 0) {
-            this.syncSelectedConferences()
-        }
+        this.runSilently(() => {
+            this.selectedConferences = value?.slice(0, this.selectionLimit ?? value.length) ?? [];
+        });
+        if (this.emitOnWriteValue) this.emit(this.selectedConferences, 'programmatic', true);
     }
 
     /**
