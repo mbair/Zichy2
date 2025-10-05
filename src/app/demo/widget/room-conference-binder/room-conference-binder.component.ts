@@ -45,7 +45,6 @@ export class RoomConferenceBinderComponent {
     numberOfFilteredBeds: number = 0             // Number of filtered beds
     numberOfFilteredGuests: number = 0           // Number of filtered guests
 
-
     private roomObs$: Observable<any> | undefined
 
     constructor(
@@ -188,7 +187,7 @@ export class RoomConferenceBinderComponent {
 
         const conferenceId = this.selectedConferences[0]
         const roomIds = this.selectedRooms.map((r: any) => Number(r.id))
-        
+
         this.conferenceService.assignRoomsToConference(conferenceId, roomIds).subscribe({
             next: (response: any) => {
                 this.messageService.add({
@@ -278,4 +277,10 @@ export class RoomConferenceBinderComponent {
             return conferenceBegin < selectedEnd && conferenceEnd > selectedBegin
         })
     }
+
+    // Used by Angular *ngFor to efficiently track list items by their unique ID.
+    // This function handles both object and primitive (number/string) values safely.
+    // If the item is an object, it returns its 'id'; otherwise, it returns the value itself.
+    trackById = (_: number, item: { id?: number | string } | number | string) =>
+        typeof item === 'object' ? (item as any)?.id ?? _ : item;
 }
