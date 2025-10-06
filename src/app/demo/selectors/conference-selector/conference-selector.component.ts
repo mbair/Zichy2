@@ -1,4 +1,4 @@
-import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy, Output, EventEmitter } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { MultiSelect } from 'primeng/multiselect';
@@ -22,7 +22,7 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
 
     // static: false ensures that the ViewChild is dynamically updated when the template changes
     @ViewChild('conferenceSelector', { static: false })
-    private readonly conferenceSelectorRef: MultiSelect
+    private conferenceSelectorRef: MultiSelect
 
     @Input() selectionLimit?: number                // Maximum number of selectable conferences (optional)
     @Input() selectFirstOption: boolean = false     // Whether to automatically select the first available option
@@ -53,7 +53,8 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
     private runSilently<T>(fn: () => T): T { this.suppress++; try { return fn() } finally { this.suppress-- } }
 
     constructor(private conferenceService: ConferenceService,
-        private messageService: MessageService
+        private messageService: MessageService,
+        private cdr: ChangeDetectorRef
     ) { }
 
     /**
@@ -107,13 +108,34 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
             ...conference,
             disabled: this.disabledOptions.some(disabledConf => disabledConf.id === conference.id)
         }))
+        this.cdr.markForCheck() // no emit -> manual mark (reflect disabled state updates)
     }
 
     // Opcionális publikus setter programozott beállításhoz:
     public setSelection(value: Conference[], opts?: { emit?: boolean; source?: ChangeSource }) {
-        const source = opts?.source ?? 'programmatic';
-        this.runSilently(() => { this.selectedConferences = value?.slice(0, this.selectionLimit ?? value.length) ?? []; });
-        if (opts?.emit) this.emit(this.selectedConferences, source, true);
+        const source = opts?.source ?? 'programmatic'
+        this.runSilently(() => {
+            this.selectedConferences = value?.slice(0, this.selectionLimit ?? value.length) ?? []
+        })
+        if (opts?.emit) {
+            this.emit(this.selectedConferences, source, true)
+        } else {
+            this.cdr.markForCheck() // no emit -> manual mark
+        }
+    }
+
+    // Public hard-clear to be callable if ever needed
+    public clearSelection(opts?: { emit?: boolean; source?: ChangeSource }) {
+        const source = opts?.source ?? 'programmatic'
+        this.runSilently(() => {
+            this.selectedConferences = []
+        })
+        if (opts?.emit) {
+            this.emit(this.selectedConferences, source, true)
+        } else {
+            this.cdr.markForCheck(); // no emit -> manual mark
+        }
+        try { (this.conferenceSelectorRef as any)?.updateLabel?.() } catch { }
     }
 
     /**
@@ -123,10 +145,14 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
     private handleSelectFirstOption(): void {
         if (this.selectFirstOption && this.selectedConferences.length === 0 && this.conferences.length) {
             this.runSilently(() => {
-                this.selectedConferences = this.conferences.slice(0, this.selectionLimit ?? 1);
+                this.selectedConferences = this.conferences.slice(0, this.selectionLimit ?? 1)
             })
             // if you specifically want this to trigger filtering:
-            if (this.emitOnSelectFirstOption) this.emit(this.selectedConferences, 'auto-select-first', /*force*/ true);
+            if (this.emitOnSelectFirstOption) {
+                this.emit(this.selectedConferences, 'auto-select-first', true)
+            } else {
+                this.cdr.markForCheck()
+            }
         }
     }
 
@@ -144,10 +170,18 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * - Selection is ID-based (use `dataKey="id"` on the MultiSelect), not by object reference.
      */
     private tryPreselectById(): void {
-        if (!this.conferences?.length || this._pendingSelectId == null) return;
-        const c = this.conferences.find(x => x.id === this._pendingSelectId);
-        this.runSilently(() => { this.selectedConferences = c ? [c] : []; });
-        if (this.emitOnPreselectId) this.emit(this.selectedConferences, 'preselect-id', true);
+        if (!this.conferences?.length || this._pendingSelectId == null) {
+            return
+        }
+        const c = this.conferences.find(x => x.id === this._pendingSelectId)
+        this.runSilently(() => {
+            this.selectedConferences = c ? [c] : []
+        })
+        if (this.emitOnPreselectId) {
+            this.emit(this.selectedConferences, 'preselect-id', true)
+        } else {
+            this.cdr.markForCheck()
+        }
     }
 
     /**
@@ -169,6 +203,7 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
             this.selectedConferences.some(sel => sel.id === conf.id)
         )
         this.onChange(this.selectedConferences)
+        this.cdr.markForCheck() // no emit -> manual mark
     }
 
     /**
@@ -194,14 +229,22 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      */
     onSelectionClear(): void {
         this.selectedConferences = []
-        this.onChange(this.selectedConferences)
-        this.onTouched()
+        // Emit so parent form & listeners see the clear as well
+        this.emit(this.selectedConferences, 'user', true)
     }
 
     private emit(value: Conference[], source: ChangeSource, force = false) {
-        if (this.suppress && !force) return;   // némítás alatt csak force esetén engedünk
-        this.onChange(value); this.onTouched();
-        this.change.emit({ value, source });
+        // during mute we only allow it in case of force
+        if (this.suppress && !force) {
+            return
+        }
+
+        this.onChange(value)
+        this.onTouched()
+        this.change.emit({ value, source })
+
+        // Ensure UI updates after every emission under OnPush
+        this.cdr.markForCheck()
     }
 
     // ===========================
@@ -217,8 +260,12 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
     writeValue(value: Conference[]): void {
         this.runSilently(() => {
             this.selectedConferences = value?.slice(0, this.selectionLimit ?? value.length) ?? [];
-        });
-        if (this.emitOnWriteValue) this.emit(this.selectedConferences, 'programmatic', true);
+        })
+        if (this.emitOnWriteValue) {
+            this.emit(this.selectedConferences, 'programmatic', true)
+        } else {
+            this.cdr.markForCheck() // no emit -> manual mark
+        }
     }
 
     /**

@@ -239,7 +239,9 @@
             styleClass="p-sidebar-md"
             [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
             [fullScreen]="isMobile"
-            [blockScroll]="true">
+            [blockScroll]="true"
+            (onHide)="onSidebarHide()"
+            (onShow)="onSidebarShow()">
             
             <!-- Sidebar header -->
             <ng-template pTemplate="header">

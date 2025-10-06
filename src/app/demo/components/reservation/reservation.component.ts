@@ -357,6 +357,57 @@ export class ReservationComponent implements OnInit {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains')
     }
 
+    // Fires when the sidebar gets hidden by user (X button or backdrop click).
+    // We clear the form-level conference selector and disable dependent controls,
+    // so the next open starts from a clean, consistent state.
+    onSidebarHide(): void {
+        // Clear conference + id; emit to trigger your valueChanges logic (which disables/clears deps)
+        this.reservationForm.patchValue({
+            conference: [],
+            conference_id: null
+        }, { emitEvent: true });
+
+        // Hard reset room/guests and dates, and disable them explicitly (defensive)
+        this.room?.reset(null, { emitEvent: false });
+        this.room_id?.reset(null, { emitEvent: false });
+        this.room?.disable({ emitEvent: false });
+
+        this.guests?.reset([], { emitEvent: false });
+        this.guestIds?.reset([], { emitEvent: false });
+        this.guests?.disable({ emitEvent: false });
+
+        this.startDate?.reset(null, { emitEvent: false });
+        this.endDate?.reset(null, { emitEvent: false });
+        this.startDate?.disable({ emitEvent: false });
+        this.endDate?.disable({ emitEvent: false });
+
+        // Remove conference-dependent filters to avoid leaking state to next open
+        this.roomFilter = { ...this.roomFilter, conferenceId: null };
+        this.guestFilter = { ...this.guestFilter, conferenceId: null };
+
+        // Drop any preselect to avoid auto-filling on next open unless you set it intentionally
+        this.preselectConferenceId = undefined;
+
+        // Also reset dirty state to keep footer buttons consistent
+        this.reservationForm.markAsPristine();
+        this.reservationForm.markAsUntouched();
+    }
+
+    // Optional: prepare a clean slate when the sidebar opens.
+    // You can keep this empty, or pre-fill from an external selection if that's desired.
+    onSidebarShow(): void {
+        // Example: keep it empty (true clean start)
+        // If you DO want to mirror the table caption selector, you could do:
+        // const first = this.selectedConferences?.[0];
+        // if (first) {
+        //     this.reservationForm.patchValue({
+        //         conference: [first],
+        //         conference_id: first.id
+        //     }, { emitEvent: true });
+        // }
+    }
+
+
     /**
      * Create new Reservation
      */
