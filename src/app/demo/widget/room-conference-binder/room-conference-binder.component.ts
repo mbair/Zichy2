@@ -14,6 +14,7 @@ moment.locale('hu')
 @Component({
     selector: 'app-room-conference-binder',
     templateUrl: './room-conference-binder.component.html',
+    styleUrls: ['./room-conference-binder.component.scss'],
     providers: [MessageService]
 })
 export class RoomConferenceBinderComponent {
@@ -44,6 +45,7 @@ export class RoomConferenceBinderComponent {
     numberOfGuests: number = 0                   // Number of guests
     numberOfFilteredBeds: number = 0             // Number of filtered beds
     numberOfFilteredGuests: number = 0           // Number of filtered guests
+    showOnlyFreeRooms: boolean = false           // Toggle: show only rooms which are free (no overlap with selected conferences)
 
     private roomObs$: Observable<any> | undefined
 
@@ -53,6 +55,12 @@ export class RoomConferenceBinderComponent {
         private userService: UserService,
         private messageService: MessageService
     ) { }
+
+    /** The array actually shown in the table (original or filtered by "free") */
+    get displayedRooms(): Room[] {
+        if (!this.showOnlyFreeRooms || !this.selectedConferences?.length) return this.tableData;
+        return this.tableData.filter(room => !this.roomHasOverlapWithSelected(room));
+    }
 
     ngOnInit() {
         // Permissions
@@ -276,6 +284,23 @@ export class RoomConferenceBinderComponent {
 
             return conferenceBegin < selectedEnd && conferenceEnd > selectedBegin
         })
+    }
+
+    /** Date overlap helper (zárt, lokális segédfv.) */
+    private overlaps(a: Conference, b: Conference): boolean {
+        if (!a?.beginDate || !a?.endDate || !b?.beginDate || !b?.endDate) return false;
+        const aStart = new Date(a.beginDate);
+        const aEnd = new Date(a.endDate);
+        const bStart = new Date(b.beginDate);
+        const bEnd = new Date(b.endDate);
+        return aStart < bEnd && aEnd > bStart; // strict overlap
+    }
+
+    /** Room has ANY enabled conference overlapping with ANY selected conference? */
+    private roomHasOverlapWithSelected(room: Room): boolean {
+        if (!this.selectedConferences?.length) return false;
+        const enabledConfs = (room?.conferences ?? []).filter((c: any) => c?.enabled);
+        return enabledConfs.some((rc: any) => this.selectedConferences.some(sc => this.overlaps(rc, sc)));
     }
 
     // Used by Angular *ngFor to efficiently track list items by their unique ID.

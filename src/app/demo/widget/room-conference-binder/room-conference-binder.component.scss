@@ -1,0 +1,12 @@
+/* Hide Sidebar footer */
+:host ::ng-deep .binder-sidebar .p-sidebar-footer {
+    display: none !important;
+    height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+}
+
+/* Sidebar content bottom padding set to 0 */
+:host ::ng-deep .binder-sidebar .p-sidebar-content {
+    padding-bottom: 0 !important;
+}
