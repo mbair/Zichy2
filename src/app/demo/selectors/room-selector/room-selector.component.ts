@@ -178,7 +178,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
         this.emit(this.selectedRooms, 'user')
 
         // Auto-close if max 1 can be selected and there is already a selection
-        if ((this.selectionLimit ?? 1) === 1 && this.selectedRooms?.length >= 1) {
+        if (this.selectionLimit == 1 && this.selectedRooms?.length >= 1) {
             // small delay to let MultiSelect update its own state first
             setTimeout(() => this.roomSelectorRef?.hide())
         }

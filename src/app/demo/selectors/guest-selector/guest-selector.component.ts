@@ -183,7 +183,7 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
         this.emit(this.selectedGuests, 'user')
 
         // Auto-close if max 1 can be selected and there is already a selection
-        if ((this.selectionLimit ?? 1) === 1 && this.selectedGuests?.length >= 1) {
+        if (this.selectionLimit == 1 && this.selectedGuests?.length >= 1) {
             // small delay to let MultiSelect update its own state first
             setTimeout(() => this.guestSelectorRef?.hide())
         }
