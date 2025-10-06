@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { Reservation } from '../api/reservation';
@@ -15,7 +16,9 @@ export class ReservationService {
         return this.message$.asObservable()
     }
 
-    constructor(private apiService: ApiService) {
+    constructor(private apiService: ApiService,
+        private translate: TranslateService
+    ) {
         this.apiURL = apiService.apiURL
     }
 
@@ -60,12 +63,18 @@ export class ReservationService {
                 next: () => {
                     this.message$.next({
                         severity: 'success',
-                        summary: 'Sikeres szoba rögzítés',
-                        detail: `${reservation.id} számú szoba rögzítve`,
-                    });
+                        summary: 'Sikeres foglalás rögzítés',
+                        detail: `Foglalás rögzítve`,
+                    })
                 },
-                error: (error: any) => this.message$.next(error)
-            });
+                error: (error: any) => {
+                    this.message$.next({
+                        severity: 'error',
+                        summary: 'Foglalás nem menthető',
+                        detail: this.localizeError(error)
+                    })
+                }
+            })
     }
 
     update(modifiedReservation: Reservation): void {
@@ -74,12 +83,18 @@ export class ReservationService {
                 next: () => {
                     this.message$.next({
                         severity: 'success',
-                        summary: 'Sikeres szoba módosítás',
-                        detail: `${modifiedReservation.id} számú szoba módosítva`,
-                    });
+                        summary: 'Sikeres foglalás módosítás',
+                        detail: `Foglalás módosítva`,
+                    })
                 },
-                error: (error: any) => this.message$.next(error)
-            });
+                error: (error: any) => {
+                    this.message$.next({
+                        severity: 'error',
+                        summary: 'Foglalás nem módosítható',
+                        detail: this.localizeError(error)
+                    })
+                }
+            })
     }
 
     delete(reservation: Reservation): void {
@@ -88,12 +103,18 @@ export class ReservationService {
                 next: () => {
                     this.message$.next({
                         severity: 'success',
-                        summary: 'Sikeres szoba törlés',
-                        detail: `${reservation.id} számú szoba törölve`,
-                    });
+                        summary: 'Sikeres foglalás törlés',
+                        detail: `Foglalás törölve`,
+                    })
                 },
-                error: (error: any) => this.message$.next(error)
-            });
+                error: (error: any) => {
+                    this.message$.next({
+                        severity: 'error',
+                        summary: 'Foglalás nem törölhető',
+                        detail: this.localizeError(error)
+                    })
+                }
+            })
     }
 
     bulkdelete(reservations: Reservation[]): void {
@@ -103,11 +124,44 @@ export class ReservationService {
                 next: () => {
                     this.message$.next({
                         severity: 'success',
-                        summary: 'Sikeres szoba törlés',
-                        detail: `${reservations.length} szoba törölve`,
-                    });
+                        summary: 'Sikeres foglalás törlés',
+                        detail: `${reservations.length} foglalás törölve`,
+                    })
                 },
-                error: (error: any) => this.message$.next(error)
-            });
+                error: (error: any) => {
+                    this.message$.next({
+                        severity: 'error',
+                        summary: 'Foglalás nem törölhető',
+                        detail: this.localizeError(error)
+                    })
+                }
+            })
+    }
+
+    // Extract raw backend message from HttpErrorResponse
+    private getRawBackendMessage(err: any): string {
+        const e = err?.error;
+        if (e && typeof e === 'object' && 'message' in e && e.message) {
+            return String(e.message)
+        }
+        if (typeof e === 'string') {
+            try {
+                const obj = JSON.parse(e)
+                if (obj?.message) return String(obj.message)
+            } catch {
+                return e // plain text body
+            }
+        }
+        return err?.message ?? 'Unknown error'
+    }
+
+    // Localize the raw message; if missing in hu.json, it falls back to the English text
+    private localize(msg: string): string {
+        return this.translate.instant(msg)
+    }
+
+    // Convenience helper: directly produce a localized error detail from HttpErrorResponse
+    private localizeError(err: any): string {
+        return this.localize(this.getRawBackendMessage(err))
     }
 }

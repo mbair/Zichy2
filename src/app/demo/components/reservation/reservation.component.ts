@@ -83,7 +83,7 @@ export class ReservationComponent implements OnInit {
         guestIds: [],
     }
 
-    private query$ = new Subject<void>()
+    private query$ = new Subject<{ force?: boolean }>()
     private querySub?: Subscription
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -132,8 +132,8 @@ export class ReservationComponent implements OnInit {
         this.querySub = this.query$.pipe(
             // DO NOT query if there is no conference selected
             filter(() => (this.selectedConferences?.length ?? 0) > 0),
-            map(() => this.buildQueryKey()),
-            distinctUntilChanged(),
+            map(tr => ({ key: this.buildQueryKey(), force: !!tr?.force })),
+            distinctUntilChanged((prev, curr) => !curr.force && prev.key === curr.key),
             auditTime(50),
             switchMap(() => {
                 this.loading = true
@@ -275,15 +275,15 @@ export class ReservationComponent implements OnInit {
      * Load filtered data into the Table
      * @returns
      */
-    doQuery() {
+    doQuery(force: boolean = false) {
         // Don't query if there is no conference selected
         if (!this.selectedConferences?.length) {
-            this.tableData = [];
-            this.totalRecords = 0;
-            this.loading = false;
-            return;
+            this.tableData = []
+            this.totalRecords = 0
+            this.loading = false
+            return
         }
-        this.query$.next();
+        this.query$.next({ force })
     }
 
     /**
@@ -490,6 +490,7 @@ export class ReservationComponent implements OnInit {
             // (Ezekhez a backend végpontok: POST /reservation/:id/guests, DELETE /reservation/:id/guests/:guestId) 
         }
 
+        this.doQuery()
         this.sidebar = false
     }
 
@@ -510,11 +511,11 @@ export class ReservationComponent implements OnInit {
 
         this.loading = false
 
-        if (message == 'ERROR') {
+        if (message == 'ERROR' || message?.severity === 'error') {
             this.messageService.add({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'Hiba történt!'
+                summary: message?.summary ?? 'Error',
+                detail: message?.detail ?? 'Hiba történt!'
             })
         } else {
             // Show service response message
@@ -524,8 +525,8 @@ export class ReservationComponent implements OnInit {
             this.tableItem = {}
             this.selected = []
 
-            // Query for data changes
-            this.doQuery()
+            // Forced Query after data changes
+            this.doQuery(true)
         }
     }
 
