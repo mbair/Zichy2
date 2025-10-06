@@ -188,7 +188,13 @@
                         </td>
                         <td class="text-center" style="white-space: break-spaces">
                             <span class="p-column-title">Szoba</span>
-                            {{guest.roomNum}}
+                            <span *ngIf="guest.displayRoomNum" [ngClass]="'color-badge cyan'">
+                                {{guest.displayRoomNum}}
+                            </span>
+
+                            <span *ngIf="!guest.displayRoomNum">
+                                {{guest.roomNum}}
+                            </span>
                         </td>
                         <td>
                             <span *ngIf="hasDietName(guest.diet)" [ngClass]="'color-badge ' + guest?.dietDetails?.color">
