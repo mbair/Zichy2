@@ -5,6 +5,8 @@ import { MultiSelect } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
 import { Guest } from '../../api/guest';
 import { GuestService } from '../../service/guest.service';
+import * as moment from 'moment';
+moment.locale('hu')
 
 export type ChangeSource = 'user' | 'auto-select-first' | 'preselect-id' | 'programmatic';
 
@@ -201,6 +203,13 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
         if (this.suppress && !force) return   // during mute we only allow it in case of force
         this.onChange(value); this.onTouched()
         this.change.emit({ value, source })
+    }
+
+    getAge(birthDate: string): string {
+        if (!birthDate) return "";
+        const birth = moment(birthDate)
+        const today = moment()
+        return today.diff(birth, 'years').toString()
     }
 
     // ===========================

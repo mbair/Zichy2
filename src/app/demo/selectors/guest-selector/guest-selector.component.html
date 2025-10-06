@@ -22,11 +22,51 @@
     appendTo="body"
     display="chip">
   
-    <ng-template pTemplate="item" let-option>
-        <div>{{ option.lastName }} {{ option.firstName }} aa</div>
+    <!-- <ng-template pTemplate="item" let-option>
+        <div>{{ option.lastName }} {{ option.firstName }} ({{getAge(option.birthDate)}})</div>
     </ng-template>
   
     <ng-template pTemplate="selectedItem" let-selectedItem>
-        <div>{{ selectedItem.lastName }} {{ selectedItem.firstName }}</div>
+        <div>{{ selectedItem.lastName }} {{ selectedItem.firstName }} ({{getAge(selectedItem.birthDate)}})</div>
+    </ng-template> -->
+
+    <ng-template pTemplate="item" let-option>
+        <div class="building-badge {{option.building}} border-round-xl w-min p-0">
+            <div class="flex align-items-center justify-content-center py-1 px-1">
+                <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ option.roomCode }}" tooltipPosition="top">
+                    <div class="flex flex-column align-items-left justify-content-center">
+                        <span class="text-base font-semibold uppercase">
+                            {{ option.lastName }} {{ option.firstName }}
+                            <span class="font-normal text-sm uppercase">({{ getAge(option.birthDate) }})</span>
+                            <span *ngIf="option.climate" class="pl-1">❄️</span>
+                        </span>
+                        <span class="font-light text-xs uppercase">
+                            {{ option.beds }} SZEMÉLYES ({{ option.bedType }}<span *ngIf="option.bathroom">, {{ option.bathroom }}</span>)
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-template>
+  
+    <ng-template pTemplate="selectedItem" let-selectedItem>
+        <div class="color-badge cyan border-round-xl w-min p-0">
+            <div class="flex align-items-center justify-content-center py-1 px-1">
+                <div class="block min-w-max" pTooltip="{{ selectedItem.roomMate }}" tooltipPosition="top">
+                    <div class="flex flex-column align-items-left justify-content-center">
+                        <span class="text-base font-semibold uppercase">
+                            {{ selectedItem.lastName }} {{ selectedItem.firstName }}
+                            <span class="font-normal text-sm uppercase">({{ getAge(selectedItem.birthDate) }})</span>
+                        </span>
+                        <span class="font-light text-xs uppercase">
+                            {{ selectedItem.roomType }}
+                        </span>
+                        <span class="font-light text-xs text-overflow-ellipsis max-w-10rem">
+                            {{ selectedItem.roomMate }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </ng-template>
 </p-multiSelect>
