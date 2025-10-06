@@ -37,7 +37,7 @@ export class AppMenuComponent implements OnInit {
                             label: 'Foglalás',
                             icon: 'pi pi-fw pi-address-book',
                             routerLink: ['/reservation'],
-                            requiredRoles: ['Super Admin', 'Nagy Admin']
+                            requiredRoles: []
                         },
                         {
                             label: 'Konferencia',
