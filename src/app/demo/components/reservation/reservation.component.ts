@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { auditTime, BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject, Subscription, switchMap } from 'rxjs';
+import { auditTime, BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject, Subscription, switchMap, filter } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
@@ -130,6 +130,8 @@ export class ReservationComponent implements OnInit {
 
         // Reservations
         this.querySub = this.query$.pipe(
+            // DO NOT query if there is no conference selected
+            filter(() => (this.selectedConferences?.length ?? 0) > 0),
             map(() => this.buildQueryKey()),
             distinctUntilChanged(),
             auditTime(50),
@@ -274,7 +276,14 @@ export class ReservationComponent implements OnInit {
      * @returns
      */
     doQuery() {
-        this.query$.next()
+        // Don't query if there is no conference selected
+        if (!this.selectedConferences?.length) {
+            this.tableData = [];
+            this.totalRecords = 0;
+            this.loading = false;
+            return;
+        }
+        this.query$.next();
     }
 
     /**
