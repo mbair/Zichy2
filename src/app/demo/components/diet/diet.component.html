@@ -132,66 +132,69 @@
                 </span>
             </ng-template>
             
-            <form [formGroup]="dietForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
-                
-                <!-- Diet Id -->
-                <input formControlName="id" type="hidden">
+            <!-- Render content only after first open -->
+            <ng-container *ngIf="sidebar">
+                <form [formGroup]="dietForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
+                    
+                    <!-- Diet Id -->
+                    <input formControlName="id" type="hidden">
 
-                <!-- Name -->
-                <div class="field mb-4 col-12">
-                    <label for="name" class="font-medium text-900">Név</label>
-                    <input id="name" type="text" pInputText formControlName="name">
-                    <div *ngIf="name?.dirty && name?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
+                    <!-- Name -->
+                    <div class="field mb-4 col-12">
+                        <label for="name" class="font-medium text-900">Név</label>
+                        <input id="name" type="text" pInputText formControlName="name">
+                        <div *ngIf="name?.dirty && name?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Color -->
-                <div class="field mb-4 col-12">
-                    <label for="color" class="font-medium text-900">Szín</label>
-                    <app-color-selector [parentForm]="dietForm" controlName="color"></app-color-selector>
-                    <div *ngIf="color?.dirty && color?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
+                    
+                    <!-- Color -->
+                    <div class="field mb-4 col-12">
+                        <label for="color" class="font-medium text-900">Szín</label>
+                        <app-color-selector [parentForm]="dietForm" controlName="color"></app-color-selector>
+                        <div *ngIf="color?.dirty && color?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
                     </div>
-                </div>
 
-                <!-- Enabled -->
-                <div class="field mb-4 col-12">
-                    <label for="enabled" class="font-medium text-900">Engedélyezve</label>
-                    <app-yes-no-selector 
-                        formControlName="enabled"
-                        [yesText]="'Igen'"
-                        [noText]="'Nem'"
-                        [minHeight]="'44px'"
-                        [lineHeight]="'44px'"
-                        styleClass="vertical-align-middle">
-                    </app-yes-no-selector>
-                    <div *ngIf="enabled?.dirty && enabled?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
+                    <!-- Enabled -->
+                    <div class="field mb-4 col-12">
+                        <label for="enabled" class="font-medium text-900">Engedélyezve</label>
+                        <app-yes-no-selector 
+                            formControlName="enabled"
+                            [yesText]="'Igen'"
+                            [noText]="'Nem'"
+                            [minHeight]="'44px'"
+                            [lineHeight]="'44px'"
+                            styleClass="vertical-align-middle">
+                        </app-yes-no-selector>
+                        <div *ngIf="enabled?.dirty && enabled?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
 
-            <ng-template pTemplate="footer">
-                <div class="flex justify-content-end ap-2">
-                    <button pButton 
-                            pRipple 
-                            label="Mégsem" 
-                            icon="pi pi-times" 
-                            class="p-button-outlined"
-                            (click)="cancel()" 
-                            [disabled]="!dietForm.dirty">
-                    </button>
-                    <button pButton 
-                            pRipple 
-                            label="Mentés" 
-                            icon="pi pi-check" 
-                            class="p-button ml-2" 
-                            (click)="save()"
-                            [disabled]="!dietForm.valid || !dietForm.dirty">
-                    </button>
-                </div>
-            </ng-template>
+                <ng-template pTemplate="footer">
+                    <div class="flex justify-content-end ap-2">
+                        <button pButton 
+                                pRipple 
+                                label="Mégsem" 
+                                icon="pi pi-times" 
+                                class="p-button-outlined"
+                                (click)="cancel()" 
+                                [disabled]="!dietForm.dirty">
+                        </button>
+                        <button pButton 
+                                pRipple 
+                                label="Mentés" 
+                                icon="pi pi-check" 
+                                class="p-button ml-2" 
+                                (click)="save()"
+                                [disabled]="!dietForm.valid || !dietForm.dirty">
+                        </button>
+                    </div>
+                </ng-template>
+            </ng-container>
         </p-sidebar>
 
         <!-- Delete dialog -->
