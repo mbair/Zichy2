@@ -196,16 +196,6 @@
                                 {{ reservation.endDate | date:'yyyy.MM.dd' }}
                             </span>
                         </td>
-                        <!-- <td *ngIf="selectedConferences.length">
-                            <span class="p-column-title">Telítettség</span>
-                            <p-progressBar 
-                                [value]="(reservation.guests?.length / reservation.beds) * 100" 
-                                [showValue]="false" 
-                                [style]="{'height':'.5rem'}"
-                                pTooltip="Ágy/vendég: {{reservation.beds}}/{{reservation.guests?.length}}" 
-                                tooltipPosition="top">
-                            </p-progressBar>
-                        </td> -->
                         <td style="max-width: 300px;">
                             <span class="p-column-title">Státusz</span>
                             <span *ngIf="reservation.status" class="reservation-status-badge {{ reservation.status }}">

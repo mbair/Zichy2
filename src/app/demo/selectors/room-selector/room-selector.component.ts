@@ -47,7 +47,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
     set preselectIds(value: number | string | Array<number | string> | null | undefined) {
         const arr = Array.isArray(value) ? value : (value != null ? [value] : [])
         const nums = arr.map(v => typeof v === 'string' ? Number(v) : v)
-                        .filter((n): n is number => Number.isFinite(n))
+            .filter((n): n is number => Number.isFinite(n))
         this._pendingSelectIds = nums.length ? nums : undefined
         this.preselectByIds()    // try to apply immediately if data already loaded
     }
@@ -66,8 +66,8 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
     private runSilently<T>(fn: () => T): T { this.suppress++; try { return fn() } finally { this.suppress-- } }
 
     constructor(private roomService: RoomService,
-                private messageService: MessageService,
-                private cdr: ChangeDetectorRef
+        private messageService: MessageService,
+        private cdr: ChangeDetectorRef
     ) { }
 
     /**
@@ -147,10 +147,30 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
      * - Selection is ID-based (use `dataKey="id"` on the MultiSelect), not by object reference.
      */
     private preselectByIds(): void {
-        if (!this.rooms?.length || this._pendingSelectIds == null) return
-        const c = this.rooms.find(x => x.id === this._pendingSelectIds)
-        this.runSilently(() => { this.selectedRooms = c ? [c] : [] })
-        if (this.emitOnPreselectId) this.emit(this.selectedRooms, 'preselect-id', true)
+        if (!this.rooms?.length || !this._pendingSelectIds?.length) return;
+
+        const byId = new Set(this._pendingSelectIds); // already number[]
+
+        // Use normalized numeric ids for comparison
+        const resolved = this.rooms.filter(r => {
+            const id = this.toNumId((r as any)?.id);
+            return id != null && byId.has(id);
+        });
+
+        const limitIsSet = Number.isFinite(this.selectionLimit as number) && (this.selectionLimit as number) > 0;
+        const limit = limitIsSet ? (this.selectionLimit as number) : resolved.length;
+        const nextSelection = resolved.slice(0, limit);
+
+        this.runSilently(() => {
+            this.selectedRooms = nextSelection;
+            this.roomSelectorRef?.writeValue(this.selectedRooms);
+        });
+
+        this.onChange(this.selectedRooms);
+        this.onTouched();
+        if (this.emitOnPreselectId) this.emit(this.selectedRooms, 'preselect-id', true);
+
+        this._pendingSelectIds = undefined;
     }
 
     /**
@@ -169,9 +189,12 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
      * Ensures that the selected values remain valid if the list of rooms updates.
      */
     private syncSelectedRooms(): void {
-        this.selectedRooms = this.rooms.filter(conf =>
-            this.selectedRooms.some(sel => sel.id === conf.id)
-        )
+        // Keep selection only for options that still exist (id match in numeric form)
+        this.selectedRooms = this.rooms.filter(opt => {
+            const optId = this.toNumId((opt as any)?.id);
+            if (optId == null) return false;
+            return this.selectedRooms.some(sel => this.toNumId((sel as any)?.id) === optId);
+        })
         this.onChange(this.selectedRooms)
     }
 
@@ -208,6 +231,13 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
         if (this.suppress && !force) return   // during mute we only allow it in case of force
         this.onChange(value); this.onTouched()
         this.change.emit({ value, source })
+    }
+
+    // Normalize incoming ids (number | string | undefined) -> number | null
+    private toNumId(v: unknown): number | null {
+        if (typeof v === 'number' && Number.isFinite(v)) return v;
+        if (typeof v === 'string' && v.trim() !== '' && Number.isFinite(+v)) return +v;
+        return null;
     }
 
     // ===========================

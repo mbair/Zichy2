@@ -24,7 +24,7 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
 
     // static: false ensures that the ViewChild is dynamically updated when the template changes
     @ViewChild('guestSelector', { static: false })
-    private guestSelectorRef: MultiSelect
+    private guestSelectorRef?: MultiSelect
 
     @Input() filter: any | null = null              // All Guest filters
     @Input() selectionLimit?: number                // Maximum number of selectable guests (optional)
@@ -113,20 +113,30 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
     private preselectByIds(): void {
         if (!this.guests?.length || !this._pendingSelectIds?.length) return;
 
-        const idSet = new Set(this._pendingSelectIds);
-        const found = this.guests.filter(g => {
-            const gid = typeof g.id === 'string' ? Number(g.id) : g.id;
-            return idSet.has(gid as number);
+        const idSet = new Set(this._pendingSelectIds); // number[]
+        const resolved = this.guests.filter(g => {
+            const gid = this.toNumId((g as any)?.id);
+            return gid != null && idSet.has(gid);
         });
 
+        // Respect selectionLimit if present
+        const limitIsSet = Number.isFinite(this.selectionLimit as number) && (this.selectionLimit as number) > 0;
+        const limit = limitIsSet ? (this.selectionLimit as number) : resolved.length;
+        const nextSelection = resolved.slice(0, limit);
+
         this.runSilently(() => {
-            const limit = this.selectionLimit ?? found.length;
-            this.selectedGuests = found.slice(0, limit);
+            this.selectedGuests = nextSelection;
             this.guestSelectorRef?.writeValue(this.selectedGuests);
         });
 
+        // Notify CVA + optional external emit
+        this.onChange(this.selectedGuests);
+        this.onTouched();
         if (this.emitOnPreselectId) this.emit(this.selectedGuests, 'preselect-id', true);
+
+        this._pendingSelectIds = undefined;
     }
+
 
     // Opcionális publikus setter programozott beállításhoz:
     public setSelection(value: Guest[], opts?: { emit?: boolean; source?: ChangeSource }) {
@@ -157,6 +167,7 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
      */
     setDisabledState?(isDisabled: boolean): void {
         this.disabled = isDisabled
+        if (this.guestSelectorRef) this.guestSelectorRef.disabled = isDisabled
     }
 
     /**
@@ -164,10 +175,12 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
      * Ensures that the selected values remain valid if the list of guests updates.
      */
     private syncSelectedGuests(): void {
-        this.selectedGuests = this.guests.filter(conf =>
-            this.selectedGuests.some(sel => sel.id === conf.id)
-        )
-        this.onChange(this.selectedGuests)
+        this.selectedGuests = this.guests.filter(opt => {
+            const optId = this.toNumId((opt as any)?.id);
+            if (optId == null) return false;
+            return this.selectedGuests.some(sel => this.toNumId((sel as any)?.id) === optId);
+        });
+        this.onChange(this.selectedGuests);
     }
 
     /**
@@ -203,6 +216,12 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
         if (this.suppress && !force) return   // during mute we only allow it in case of force
         this.onChange(value); this.onTouched()
         this.change.emit({ value, source })
+    }
+
+    private toNumId(v: unknown): number | null {
+        if (typeof v === 'number' && Number.isFinite(v)) return v;
+        if (typeof v === 'string' && v.trim() !== '' && Number.isFinite(+v)) return +v;
+        return null;
     }
 
     getAge(birthDate: string): string {

@@ -386,17 +386,6 @@ export class ReservationComponent implements OnInit {
     onSidebarShow(): void {
         // Mark sidebar as visible before any reactive work
         this.sidebar = true
-
-        // Optional: prefill from table-level selector
-        const first = this.selectedConferences?.[0]
-        if (first) {
-            this.suppressEmits = true
-            this.reservationForm.patchValue({
-                conference: [first],
-                conference_id: first.id
-            }, { emitEvent: false })   // still programmatic, no emit
-            queueMicrotask(() => this.suppressEmits = false)
-        }
     }
 
     // Fires when the sidebar gets hidden by user (X button or backdrop click).
@@ -441,7 +430,7 @@ export class ReservationComponent implements OnInit {
         // 1) Konferencia előkészítés (objektum + [objektum] a selectorhoz)
         const confObj =
             (reservation as any).conference ??
-            ((reservation as any).conference_id ? { id: (reservation as any).conference_id } : null);
+            ((reservation as any).conference_id ? { id: reservation.conference_id } : null);
 
         // 1/a) Konferencia beállítása úgy, hogy FUSSON a valueChanges (engedi a room/guests-t és beállítja a filtereket)
         this.reservationForm.patchValue({
@@ -505,6 +494,8 @@ export class ReservationComponent implements OnInit {
         // 2/c) Gyerek selectornak átadott “pending” preselect ID-k
         this.preselectRoomIds = roomObj?.id ?? null;
         this.preselectGuestIds = Array.from(new Set(guestIdsNum));
+
+        console.log('preselectRoomIds', this.preselectRoomIds)
 
         // 3) Események újra engedése, állapotok
         this.suppressEmits = false;
