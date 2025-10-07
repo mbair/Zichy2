@@ -69,6 +69,8 @@ export class ReservationComponent implements OnInit {
     roomFilter: RoomFilter = { enabled: true }
     guestFilter: RoomFilter = { enabled: true }
 
+    suppressEmits = false;        // Guard: ignore programmatic changes
+
     private initialFormValues = {
         id: null,
         room: null,
@@ -81,6 +83,20 @@ export class ReservationComponent implements OnInit {
         notes: '',
         guests: [],
         guestIds: [],
+    }
+
+    private readonly INITIAL_FORM_STATE_CLOSED = {
+        id: { value: null, disabled: false },
+        room: { value: null, disabled: true },              // UI control (MultiSelect)
+        room_id: { value: null, disabled: false },          // backend id
+        conference: { value: [], disabled: false },         // UI control (MultiSelect)
+        conference_id: { value: null, disabled: false },
+        startDate: { value: null, disabled: true },
+        endDate: { value: null, disabled: true },
+        status: { value: 'confirmed', disabled: false },
+        notes: { value: '', disabled: false },
+        guests: { value: [], disabled: true },              // UI control (MultiSelect)
+        guestIds: { value: [], disabled: false }
     }
 
     private query$ = new Subject<{ force?: boolean }>()
@@ -100,17 +116,17 @@ export class ReservationComponent implements OnInit {
 
         // Reservation form fields and validators
         this.reservationForm = this.fb.group({
-            id: [this.initialFormValues.id],
-            room: [{ value: this.initialFormValues.room, disabled: true }, Validators.required], // UI
-            room_id: [this.initialFormValues.room_id, Validators.required],
-            conference: [this.initialFormValues.conference, Validators.required], // UI
-            conference_id: [this.initialFormValues.conference_id, Validators.required],                           // Backend
-            startDate: [{ value: this.initialFormValues.startDate, disabled: true }, Validators.required],
-            endDate: [{ value: this.initialFormValues.endDate, disabled: true }, Validators.required],
-            status: [this.initialFormValues.status, Validators.required],
-            notes: [this.initialFormValues.notes],
-            guests: [{ value: this.initialFormValues.guests, disabled: true }, Validators.required], // UI
-            guestIds: [this.initialFormValues.guestIds, Validators.required],
+            id: [this.INITIAL_FORM_STATE_CLOSED.id],
+            room: [{ value: this.INITIAL_FORM_STATE_CLOSED.room, disabled: true }, Validators.required], // UI
+            room_id: [this.INITIAL_FORM_STATE_CLOSED.room_id, Validators.required],
+            conference: [this.INITIAL_FORM_STATE_CLOSED.conference, Validators.required], // UI
+            conference_id: [this.INITIAL_FORM_STATE_CLOSED.conference_id, Validators.required],                           // Backend
+            startDate: [{ value: this.INITIAL_FORM_STATE_CLOSED.startDate, disabled: true }, Validators.required],
+            endDate: [{ value: this.INITIAL_FORM_STATE_CLOSED.endDate, disabled: true }, Validators.required],
+            status: [this.INITIAL_FORM_STATE_CLOSED.status, Validators.required],
+            notes: [this.INITIAL_FORM_STATE_CLOSED.notes],
+            guests: [{ value: this.INITIAL_FORM_STATE_CLOSED.guests, disabled: true }, Validators.required], // UI
+            guestIds: [this.INITIAL_FORM_STATE_CLOSED.guestIds, Validators.required],
         }, {
             validators: dateRangeValidator('startDate', 'endDate')
         })
@@ -170,7 +186,11 @@ export class ReservationComponent implements OnInit {
 
         // Monitor conference change
         this.conference?.valueChanges
-            .pipe(distinctByIds<Conference>())
+            .pipe(
+                distinctByIds<Conference>(),
+                // Do nothing if change is programmatic OR sidebar is closed
+                filter(() => !this.suppressEmits && this.sidebar)
+            )
             .subscribe(conf => {
                 const first = conf?.[0]
 
@@ -357,56 +377,45 @@ export class ReservationComponent implements OnInit {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains')
     }
 
+    /**
+     * Sidebar visibility
+     */
+    onSidebarShow(): void {
+        // Mark sidebar as visible before any reactive work
+        this.sidebar = true
+
+        // Optional: prefill from table-level selector
+        const first = this.selectedConferences?.[0]
+        if (first) {
+            this.suppressEmits = true
+            this.reservationForm.patchValue({
+                conference: [first],
+                conference_id: first.id
+            }, { emitEvent: false })   // still programmatic, no emit
+            queueMicrotask(() => this.suppressEmits = false)
+        }
+    }
+
     // Fires when the sidebar gets hidden by user (X button or backdrop click).
     // We clear the form-level conference selector and disable dependent controls,
     // so the next open starts from a clean, consistent state.
     onSidebarHide(): void {
-        // Clear conference + id; emit to trigger your valueChanges logic (which disables/clears deps)
-        this.reservationForm.patchValue({
-            conference: [],
-            conference_id: null
-        }, { emitEvent: true });
+        // Prevent subscribers from reacting to programmatic resets
+        this.suppressEmits = true
+        this.sidebar = false
 
-        // Hard reset room/guests and dates, and disable them explicitly (defensive)
-        this.room?.reset(null, { emitEvent: false });
-        this.room_id?.reset(null, { emitEvent: false });
-        this.room?.disable({ emitEvent: false });
+        // One-shot reset to initial closed state: clears room/guests/dates, disables where needed
+        this.reservationForm.reset(this.INITIAL_FORM_STATE_CLOSED, { emitEvent: false })
+        this.preselectConferenceId = undefined
 
-        this.guests?.reset([], { emitEvent: false });
-        this.guestIds?.reset([], { emitEvent: false });
-        this.guests?.disable({ emitEvent: false });
+        // Clean form state
+        this.preselectConferenceId = undefined
+        this.reservationForm.markAsPristine()
+        this.reservationForm.markAsUntouched()
 
-        this.startDate?.reset(null, { emitEvent: false });
-        this.endDate?.reset(null, { emitEvent: false });
-        this.startDate?.disable({ emitEvent: false });
-        this.endDate?.disable({ emitEvent: false });
-
-        // Remove conference-dependent filters to avoid leaking state to next open
-        this.roomFilter = { ...this.roomFilter, conferenceId: null };
-        this.guestFilter = { ...this.guestFilter, conferenceId: null };
-
-        // Drop any preselect to avoid auto-filling on next open unless you set it intentionally
-        this.preselectConferenceId = undefined;
-
-        // Also reset dirty state to keep footer buttons consistent
-        this.reservationForm.markAsPristine();
-        this.reservationForm.markAsUntouched();
+        // Re-enable emissions on the next tick (after hide finishes)
+        queueMicrotask(() => this.suppressEmits = false)
     }
-
-    // Optional: prepare a clean slate when the sidebar opens.
-    // You can keep this empty, or pre-fill from an external selection if that's desired.
-    onSidebarShow(): void {
-        // Example: keep it empty (true clean start)
-        // If you DO want to mirror the table caption selector, you could do:
-        // const first = this.selectedConferences?.[0];
-        // if (first) {
-        //     this.reservationForm.patchValue({
-        //         conference: [first],
-        //         conference_id: first.id
-        //     }, { emitEvent: true });
-        // }
-    }
-
 
     /**
      * Create new Reservation

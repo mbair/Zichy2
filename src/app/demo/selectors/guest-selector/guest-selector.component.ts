@@ -222,11 +222,21 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
      * 
      * @param value - The selected guests coming from the form.
      */
-    writeValue(value: Guest[]): void {
+    writeValue(value: Guest[] | Guest | null | undefined): void {
+        // Normalize to array first
+        const arr: Guest[] = Array.isArray(value) ? value : (value ? [value] : [])
+
+        // When selectionLimit is undefined/null/NaN/<=0, treat as "no limit"
+        const hasLimit = Number.isFinite(this.selectionLimit as number) && (this.selectionLimit as number) > 0
+        const limit = hasLimit ? (this.selectionLimit as number) : arr.length
+
         this.runSilently(() => {
-            this.selectedGuests = value?.slice(0, this.selectionLimit ?? value.length) ?? []
+            this.selectedGuests = arr.slice(0, limit)
         })
-        if (this.emitOnWriteValue) this.emit(this.selectedGuests, 'programmatic', true)
+
+        if (this.emitOnWriteValue) {
+            this.emit(this.selectedGuests, 'programmatic', true)
+        }
     }
 
     /**
