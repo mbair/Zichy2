@@ -376,28 +376,28 @@
                         </div>
                     </div>
                 </form>
-
-                <ng-template pTemplate="footer">
-                    <div class="flex justify-content-end ap-2">
-                        <button pButton 
-                                pRipple 
-                                label="Mégsem" 
-                                icon="pi pi-times" 
-                                class="p-button-outlined"
-                                (click)="cancel()" 
-                                [disabled]="!roomForm.dirty">
-                        </button>
-                        <button pButton 
-                                pRipple 
-                                label="Mentés" 
-                                icon="pi pi-check" 
-                                class="p-button ml-2" 
-                                (click)="save()"
-                                [disabled]="!roomForm.valid || !roomForm.dirty">
-                        </button>
-                    </div>
-                </ng-template>
             </ng-container>
+
+            <ng-template pTemplate="footer">
+                <div class="flex justify-content-end ap-2">
+                    <button pButton 
+                            pRipple 
+                            label="Mégsem" 
+                            icon="pi pi-times" 
+                            class="p-button-outlined"
+                            (click)="cancel()" 
+                            [disabled]="!roomForm.dirty">
+                    </button>
+                    <button pButton 
+                            pRipple 
+                            label="Mentés" 
+                            icon="pi pi-check" 
+                            class="p-button ml-2" 
+                            (click)="save()"
+                            [disabled]="!roomForm.valid || !roomForm.dirty">
+                    </button>
+                </div>
+            </ng-template>
         </p-sidebar>
 
         <!-- Delete dialog -->

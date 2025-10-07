@@ -66,6 +66,9 @@ export class ReservationComponent implements OnInit {
     conferenceStart: Date | null = null
     conferenceEnd: Date | null = null
 
+    preselectRoomIds?: number | undefined;
+    preselectGuestIds: number[] = [];
+
     roomFilter: RoomFilter = { enabled: true }
     guestFilter: RoomFilter = { enabled: true }
 
@@ -407,6 +410,8 @@ export class ReservationComponent implements OnInit {
         // One-shot reset to initial closed state: clears room/guests/dates, disables where needed
         this.reservationForm.reset(this.INITIAL_FORM_STATE_CLOSED, { emitEvent: false })
         this.preselectConferenceId = undefined
+        this.preselectRoomIds = undefined
+        this.preselectGuestIds = []
 
         // Clean form state
         this.preselectConferenceId = undefined
@@ -431,7 +436,7 @@ export class ReservationComponent implements OnInit {
      */
     edit(reservation: Reservation) {
         // 0) Reset tisztán, események nélkül
-        this.reservationForm.reset(this.initialFormValues, { emitEvent: false });
+        this.reservationForm.reset(this.initialFormValues, { emitEvent: false })
 
         // 1) Konferencia előkészítés (objektum + [objektum] a selectorhoz)
         const confObj =
@@ -442,47 +447,71 @@ export class ReservationComponent implements OnInit {
         this.reservationForm.patchValue({
             conference: confObj ? [confObj] : [],
             conference_id: confObj?.id ?? null,
-        }, { emitEvent: true });
+        }, { emitEvent: true })
 
         // 2) Szoba és vendégek előkészítése
         const roomObj =
             reservation.room ??
-            ((reservation as any).room_id ? { id: (reservation as any).room_id } : null);
+            ((reservation as any).room_id ? { id: (reservation as any).room_id } : null)
 
         const guestObjs: Guest[] = Array.isArray((reservation as any).guests)
             ? (reservation as any).guests
             : [];
 
-        const guestIds = guestObjs
-            .map(g => g?.id)
-            .filter((id) => id != null);
+        const guestIdsNum = Array.from(
+            new Set(
+                guestObjs
+                    .map(g => (typeof g?.id === 'string' ? Number(g.id) : g?.id))
+                    .filter((x): x is number => Number.isFinite(x as number))
+            )
+        )
 
-        // 3) A konferencia-change utáni ciklusba időzítve patcheljük a room/guests-t és a REZERVÁCIÓ dátumait,
-        //    mert a konferencia-subscriber különben felülírja/üríti őket.
-        Promise.resolve().then(() => {
-            // Gondoskodj róla, hogy a selectorokhoz TÖMB menjen (selectionLimit=1 esetén is)
-            this.reservationForm.patchValue({
-                id: reservation.id ?? null,
-                room: roomObj ? [roomObj] : [],
-                room_id: roomObj?.id ?? null,
-                guests: guestObjs,            // UI-hoz teljes objektumok tömbje
-                guestIds: Array.from(new Set(guestIds)), // backendhez csak ID-k
-                startDate: reservation.startDate,        // konferencia-subscriber által kitöltött értékek felülírása
-                endDate: reservation.endDate,
-                status: (reservation as any).status ?? 'confirmed',
-                notes: (reservation as any).notes ?? null,
-            }, { emitEvent: false });
+        // 2) BLOKK: mindent programból állítunk be, nem engedünk subscriber-t futni
+        this.suppressEmits = true
 
-            // ha használsz preselectet, itt állítsd
-            this.preselectConferenceId = confObj?.id ?? undefined;
+        // 2/a) Konferencia + belőle származtatott mezők, filterek, enable
+        this.reservationForm.patchValue({
+            conference: confObj ? [confObj] : [],
+            conference_id: confObj?.id ?? null,
+            guests: guestObjs,
+            guestIds: guestIdsNum,
+            startDate: reservation.startDate ?? null,   // szerkesztett foglalás dátumai
+            endDate: reservation.endDate ?? null
+        }, { emitEvent: false });
 
-            // eredeti állapot és panel megnyitása
-            this.originalFormValues = this.reservationForm.getRawValue();
-            this.sidebar = true;
-            this.doQuery()
-        })
+        this.preselectGuestIds = guestIdsNum;
+        
+        // A konferencia alapján szűrők (mi állítjuk, nem a subscriber)
+        this.roomFilter = { ...this.roomFilter, conferenceId: confObj?.id ?? null };
+        this.guestFilter = { ...this.guestFilter, conferenceId: confObj?.id ?? null };
+
+        // A kapcsolt kontrollokat aktiváljuk (nem várunk subscriberre)
+        this.room?.enable({ emitEvent: false });
+        this.guests?.enable({ emitEvent: false });
+        this.startDate?.enable({ emitEvent: false });
+        this.endDate?.enable({ emitEvent: false });
+
+        // 2/b) UI-értékek (CVA) + backend ID-k
+        this.reservationForm.patchValue({
+            id: reservation.id ?? null,
+            room: roomObj ? [roomObj] : [],
+            room_id: roomObj?.id ?? null,
+            guests: guestObjs,                         // UI-hoz objektumok
+            guestIds: Array.from(new Set(guestIdsNum)),   // backendhez ID-k
+            status: (reservation as any).status ?? 'confirmed',
+            notes: (reservation as any).notes ?? null,
+        }, { emitEvent: false });
+
+        // 2/c) Gyerek selectornak átadott “pending” preselect ID-k
+        this.preselectRoomIds = roomObj?.id ?? null;
+        this.preselectGuestIds = Array.from(new Set(guestIdsNum));
+
+        // 3) Események újra engedése, állapotok
+        this.suppressEmits = false;
+
+        this.originalFormValues = this.reservationForm.getRawValue();
+        this.sidebar = true;
     }
-
 
     /**
      * Delete the Reservation

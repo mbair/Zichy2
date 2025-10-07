@@ -26,6 +26,7 @@
                             <app-conference-selector
                                 [(ngModel)]="selectedConferences"
                                 [emitOnSelectFirstOption]="true"
+                                [selectionLimit]="1"
                                 [showClear]="true"
                                 [style]="{'minWidth': '35rem'}"
                                 placeholder="Válasszon konferenciát..."
@@ -265,7 +266,7 @@
                         <label for="conference" class="font-medium text-900">Konferencia</label>
                         <app-conference-selector
                             formControlName="conference"
-                            [preselectConferenceId]="preselectConferenceId"
+                            [preselectIds]="preselectConferenceId"
                             [selectionLimit]="1"
                             [showClear]="true"
                             placeholder="Válasszon konferenciát...">
@@ -282,6 +283,8 @@
                             formControlName="room"
                             [filter]="roomFilter"
                             [selectionLimit]="1"
+                            [preselectIds]="preselectRoomIds"
+                            [emitOnPreselectId]="true"
                             [showClear]="true"
                             placeholder="Szoba...">
                         </app-room-selector>
@@ -296,6 +299,8 @@
                         <app-guest-selector
                             formControlName="guests"
                             [filter]="guestFilter"
+                            [preselectIds]="preselectGuestIds"
+                            [emitOnPreselectId]="true"
                             [showClear]="true"
                             placeholder="Vendég...">
                         </app-guest-selector>
@@ -366,28 +371,28 @@
                         </div>
                     </div>
                 </form>
-
-                <ng-template pTemplate="footer">
-                    <div class="flex justify-content-end ap-2">
-                        <button pButton 
-                                pRipple 
-                                label="Mégsem" 
-                                icon="pi pi-times" 
-                                class="p-button-outlined"
-                                (click)="cancel()" 
-                                [disabled]="!reservationForm.dirty">
-                        </button>
-                        <button pButton 
-                                pRipple 
-                                label="Mentés" 
-                                icon="pi pi-check" 
-                                class="p-button ml-2" 
-                                (click)="save()"
-                                [disabled]="!reservationForm.valid || !reservationForm.dirty">
-                        </button>
-                    </div>
-                </ng-template>
             </ng-container>
+
+            <ng-template pTemplate="footer">
+                <div class="flex justify-content-end ap-2">
+                    <button pButton 
+                            pRipple 
+                            label="Mégsem" 
+                            icon="pi pi-times" 
+                            class="p-button-outlined"
+                            (click)="cancel()" 
+                            [disabled]="!reservationForm.dirty">
+                    </button>
+                    <button pButton 
+                            pRipple 
+                            label="Mentés" 
+                            icon="pi pi-check" 
+                            class="p-button ml-2" 
+                            (click)="save()"
+                            [disabled]="!reservationForm.valid || !reservationForm.dirty">
+                    </button>
+                </div>
+            </ng-template>
         </p-sidebar>
 
         <!-- Delete dialog -->

@@ -483,15 +483,15 @@
                         </div>
                     </div>
                 </form>
-                <ng-template pTemplate="footer">
-                    <div class="flex justify-content-end ap-2">
-                        <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-outlined"
-                            (click)="cancel()" [disabled]="!conferenceForm.dirty"></button>
-                        <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button ml-2" (click)="save()"
-                            [disabled]="!conferenceForm.valid || !conferenceForm.dirty"></button>
-                    </div>
-                </ng-template>
             </ng-container>
+            <ng-template pTemplate="footer">
+                <div class="flex justify-content-end ap-2">
+                    <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-outlined"
+                        (click)="cancel()" [disabled]="!conferenceForm.dirty"></button>
+                    <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button ml-2" (click)="save()"
+                        [disabled]="!conferenceForm.valid || !conferenceForm.dirty"></button>
+                </div>
+            </ng-template>
         </p-sidebar>
 
         <!-- Form Field Infos sidebar -->

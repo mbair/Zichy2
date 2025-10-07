@@ -10,15 +10,6 @@ moment.locale('hu')
 
 export type ChangeSource = 'user' | 'auto-select-first' | 'preselect-id' | 'programmatic';
 
-export type GuestFilter = {
-    conferenceId?: number | null;
-    building?: string | string[];
-    minBeds?: number;
-    climate?: boolean;
-    enabled?: boolean;
-    // (optionel) startDate?: string; endDate?: string; onlyFree?: boolean;
-}
-
 @Component({
     selector: 'app-guest-selector',
     templateUrl: './guest-selector.component.html',
@@ -33,9 +24,9 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
 
     // static: false ensures that the ViewChild is dynamically updated when the template changes
     @ViewChild('guestSelector', { static: false })
-    private readonly guestSelectorRef: MultiSelect
+    private guestSelectorRef: MultiSelect
 
-    @Input() filter: GuestFilter | null = null       // All Guest filters
+    @Input() filter: any | null = null              // All Guest filters
     @Input() selectionLimit?: number                // Maximum number of selectable guests (optional)
     @Input() selectFirstOption: boolean = false     // Whether to automatically select the first available option
     @Input() placeholder: string                    // Placeholder text for the dropdown
@@ -46,9 +37,12 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
     @Input() emitOnPreselectId = false
     @Input() emitOnWriteValue = false
     @Input()
-    set preselectGuestId(value: number | undefined) {
-        this._pendingSelectId = value
-        this.tryPreselectById()                      // Select predefined guest by Id
+    set preselectIds(value: number | string | Array<number | string> | null | undefined) {
+        const arr = Array.isArray(value) ? value : (value != null ? [value] : [])
+        const nums = arr.map(v => typeof v === 'string' ? Number(v) : v)
+            .filter((n): n is number => Number.isFinite(n))
+        this._pendingSelectIds = nums.length ? nums : undefined
+        this.preselectByIds()    // try to apply immediately if data already loaded
     }
 
     @Output() change = new EventEmitter<{ value: Guest[]; source: ChangeSource }>()
@@ -59,7 +53,7 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
     originalGuests: Guest[] = []                       // Original list of guest options
     selectedGuests: Guest[] = []                       // List of currently selected guests
 
-    private _pendingSelectId?: number
+    private _pendingSelectIds?: number[]
     private subscriptions: Subscription = new Subscription()
     private suppress = 0
     private runSilently<T>(fn: () => T): T { this.suppress++; try { return fn() } finally { this.suppress-- } }
@@ -80,7 +74,8 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        this.reload()
+        if (changes['filter']) this.reload()
+        if (changes['preselectIds']) this.preselectByIds()
     }
 
     ngOnDestroy(): void {
@@ -97,6 +92,7 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
                         fullName: `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim() // Create fullname
                     }))
                     this.loading = false
+                    this.preselectByIds()
                 },
                 error: _ => {
                     this.guests = []
@@ -108,6 +104,28 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
                     })
                 }
             })
+    }
+
+    /**
+     * Applies pending preselect IDs once the options list is available.
+     * Mirrors the Room selector logic (supports multiple IDs).
+     */
+    private preselectByIds(): void {
+        if (!this.guests?.length || !this._pendingSelectIds?.length) return;
+
+        const idSet = new Set(this._pendingSelectIds);
+        const found = this.guests.filter(g => {
+            const gid = typeof g.id === 'string' ? Number(g.id) : g.id;
+            return idSet.has(gid as number);
+        });
+
+        this.runSilently(() => {
+            const limit = this.selectionLimit ?? found.length;
+            this.selectedGuests = found.slice(0, limit);
+            this.guestSelectorRef?.writeValue(this.selectedGuests);
+        });
+
+        if (this.emitOnPreselectId) this.emit(this.selectedGuests, 'preselect-id', true);
     }
 
     // Opcionális publikus setter programozott beállításhoz:
@@ -129,26 +147,6 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
             // if you specifically want this to trigger filtering:
             if (this.emitOnSelectFirstOption) this.emit(this.selectedGuests, 'auto-select-first', /*force*/ true);
         }
-    }
-
-    /**
-     * Applies any pending preselection once the options list is available.
-     *
-     * Finds the guest matching `_pendingSelectId` in `guests` and updates
-     * `selectedGuests` accordingly (single-item array or empty). Idempotent:
-     * safe to call multiple times, even with the same ID.
-     *
-     * Side effects:
-     * - Invokes ControlValueAccessor hooks (`onChange`, `onTouched`) to sync the parent form.
-     *
-     * Notes:
-     * - Selection is ID-based (use `dataKey="id"` on the MultiSelect), not by object reference.
-     */
-    private tryPreselectById(): void {
-        if (!this.guests?.length || this._pendingSelectId == null) return
-        const c = this.guests.find(x => x.id === this._pendingSelectId)
-        this.runSilently(() => { this.selectedGuests = c ? [c] : [] })
-        if (this.emitOnPreselectId) this.emit(this.selectedGuests, 'preselect-id', true)
     }
 
     /**
@@ -194,9 +192,11 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
      * Resets the selected guests and notifies the parent component.
      */
     onSelectionClear(): void {
-        this.selectedGuests = []
-        this.onChange(this.selectedGuests)
-        this.onTouched()
+        this.runSilently(() => {
+            this.selectedGuests = [];
+            this.guestSelectorRef?.writeValue([]);
+        });
+        this.emit(this.selectedGuests, 'user', true);
     }
 
     private emit(value: Guest[], source: ChangeSource, force = false) {
@@ -232,6 +232,7 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
 
         this.runSilently(() => {
             this.selectedGuests = arr.slice(0, limit)
+            this.guestSelectorRef?.writeValue(this.selectedGuests)
         })
 
         if (this.emitOnWriteValue) {

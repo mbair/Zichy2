@@ -49,39 +49,27 @@ export class ProfileComponent implements OnInit {
         private fb: FormBuilder) { }
 
     ngOnInit() {
-        // 1) Build the form first
-        this.userForm = this.fb.group({
-            id: [this.initialFormValues.id],
-            username: [this.initialFormValues.username],
-            fullname: [this.initialFormValues.fullname, Validators.required],
-            // Start disabled by default; will be toggled after role check
-            user_rolesid: [{ value: this.initialFormValues.user_rolesid, disabled: true }, Validators.required],
-            email: [this.initialFormValues.email ?? '', [Validators.required, emailDomainValidator()]],
-            phone: [this.initialFormValues.phone ?? '', [Validators.required]],
-            password: [this.initialFormValues.password ?? ''],
-            password_again: [this.initialFormValues.password_again ?? ''],
-        }, { validators: passwordMatchValidator() })
-
-        // Permissions (Role-based enable/disable after form exists)
+        // Permissions
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canEditRoles => {
             this.canEditRoles = canEditRoles
-            // Enable/disable the control based on permission
-            const roleCtrl = this.userForm.get('user_rolesid')
-            if (canEditRoles) {
-                roleCtrl?.enable()   // User can edit roles
-            } else {
-                roleCtrl?.disable()  // Read-only mode for roles
-            }
-            this.cdRef.detectChanges()
+            this.userForm.get('user_rolesid')?.disable();
+            this.cdRef.detectChanges();
         })
         
         // Get User data
         this.userService.getOwnData()
 
-        // Username mirrors email (backend will drop username later)
-        this.userForm.get('email')?.valueChanges.subscribe(value => {
-            this.userForm.get('username')?.setValue(value, { emitEvent: false })
-        })
+        // User form
+        this.userForm = this.fb.group({
+            id: [this.initialFormValues.id],
+            username: [this.initialFormValues.username],
+            fullname: [this.initialFormValues.fullname, Validators.required],
+            user_rolesid: [{ value: this.initialFormValues.user_rolesid, disabled: true }, Validators.required],
+            email: [this.initialFormValues.email, [Validators.required, emailDomainValidator()]],
+            phone: [this.initialFormValues.phone, [Validators.required]],
+            password: ['', Validators.required],
+            password_again: ['', Validators.required],
+        }, { validators: passwordMatchValidator() })
 
         // Enabling/Disabling userrole dropdown by actual user role
         if (this.userService.hasRole(['Super Admin', 'Nagy Admin'])) {
@@ -90,7 +78,13 @@ export class ProfileComponent implements OnInit {
             this.userForm.get('user_rolesid')?.disable()
         }
 
-        // Adjust password validators based on id (create vs update)
+        // TODO: Remove username from backend
+        // Monitoring the changes in the email field
+        this.userForm.get('email')?.valueChanges.subscribe(value => {
+            this.userForm.get('username')?.setValue(value, { emitEvent: false })
+        })
+
+        // Monitor the changes in the id field
         this.userForm.get('id')?.valueChanges.subscribe(idValue => {
             this.setPasswordValidators(idValue)
         })

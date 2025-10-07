@@ -44,9 +44,12 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
     @Input() emitOnPreselectId = false
     @Input() emitOnWriteValue = false
     @Input()
-    set preselectRoomId(value: number | undefined) {
-        this._pendingSelectId = value
-        this.tryPreselectById()                      // Select predefined room by Id
+    set preselectIds(value: number | string | Array<number | string> | null | undefined) {
+        const arr = Array.isArray(value) ? value : (value != null ? [value] : [])
+        const nums = arr.map(v => typeof v === 'string' ? Number(v) : v)
+                        .filter((n): n is number => Number.isFinite(n))
+        this._pendingSelectIds = nums.length ? nums : undefined
+        this.preselectByIds()    // try to apply immediately if data already loaded
     }
 
     @Output() change = new EventEmitter<{ value: Room[]; source: ChangeSource }>()
@@ -57,7 +60,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
     originalRooms: Room[] = []                       // Original list of room options
     selectedRooms: Room[] = []                       // List of currently selected rooms
 
-    private _pendingSelectId?: number
+    private _pendingSelectIds?: number[]
     private subscriptions: Subscription = new Subscription()
     private suppress = 0
     private runSilently<T>(fn: () => T): T { this.suppress++; try { return fn() } finally { this.suppress-- } }
@@ -94,7 +97,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
                     this.rooms = list ?? []
                     this.loading = false
                     this.syncSelectedRooms() // Keep selection valid if options changed
-                    this.tryPreselectById() // If a preselect id arrived earlier, apply it now
+                    this.preselectByIds() // If a preselect id arrived earlier, apply it now
                     this.cdr.markForCheck()
                 },
                 error: _ => {
@@ -133,7 +136,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
     /**
      * Applies any pending preselection once the options list is available.
      *
-     * Finds the room matching `_pendingSelectId` in `rooms` and updates
+     * Finds the room matching `_pendingSelectIds` in `rooms` and updates
      * `selectedRooms` accordingly (single-item array or empty). Idempotent:
      * safe to call multiple times, even with the same ID.
      *
@@ -143,9 +146,9 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
      * Notes:
      * - Selection is ID-based (use `dataKey="id"` on the MultiSelect), not by object reference.
      */
-    private tryPreselectById(): void {
-        if (!this.rooms?.length || this._pendingSelectId == null) return
-        const c = this.rooms.find(x => x.id === this._pendingSelectId)
+    private preselectByIds(): void {
+        if (!this.rooms?.length || this._pendingSelectIds == null) return
+        const c = this.rooms.find(x => x.id === this._pendingSelectIds)
         this.runSilently(() => { this.selectedRooms = c ? [c] : [] })
         if (this.emitOnPreselectId) this.emit(this.selectedRooms, 'preselect-id', true)
     }
