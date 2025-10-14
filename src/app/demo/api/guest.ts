@@ -46,3 +46,10 @@ export interface Guest {
     idCardUploaded?: any;
     conference?: Conference[]
 }
+
+export type GuestFilter = {
+  conferenceId?: number | null;
+  enabled?: boolean;
+  onlyNotReserved?: boolean;
+  includeGuestIds?: number[];
+}

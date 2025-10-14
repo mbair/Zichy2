@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
-import { Guest } from '../api/guest';
+import { Guest, GuestFilter } from '../api/guest';
 
 type ToastMsg = {
     severity: 'success' | 'info' | 'warn' | 'error';
@@ -288,8 +288,9 @@ export class GuestService {
             })
     }
 
-    searchGuestsForSelector$(filter: any = {}) {
-        return this.getBySearchQuery$(this.buildGuestQS(filter))
+    searchGuestsForSelector$(filter: GuestFilter = {}) {
+        const qs = this.buildGuestQS(filter)
+        return this.apiService.get<ApiResponse>(`guest/searchquery?${qs}`)
             .pipe(map((data: any) => data ? (data.rows ?? []) : []))
     }
 
@@ -298,6 +299,8 @@ export class GuestService {
         if (f.conferenceId != null) parts.push(`conferenceid=${encodeURIComponent(String(f.conferenceId))}`)
         if (typeof f.minBeds === 'number') parts.push(`minBeds=${f.minBeds}`)
         if (typeof f.climate === 'boolean') parts.push(`climate=${f.climate ? 1 : 0}`)
+        if (f.onlyNotReserved) parts.push(`onlyNotReserved=true`);
+        if (f.includeGuestIds?.length) parts.push(`includeGuestIds=${f.includeGuestIds.join(',')}`);
         if (f.enabled) parts.push(`enabled=1`)
         return parts.join('&')
     }

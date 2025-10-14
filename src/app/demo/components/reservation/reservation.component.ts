@@ -12,7 +12,7 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Reservation } from '../../api/reservation';
 import { Room, RoomFilter } from '../../api/room';
-import { Guest } from '../../api/guest';
+import { Guest, GuestFilter } from '../../api/guest';
 import { dateRangeValidator } from '../../utils/date-range-validator';
 import { distinctByIds } from '../../utils/rx-ops';
 import { ChangeSource, ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
@@ -70,7 +70,7 @@ export class ReservationComponent implements OnInit {
     preselectGuestIds: number[] = [];
 
     roomFilter: RoomFilter = { enabled: true }
-    guestFilter: RoomFilter = { enabled: true }
+    guestFilter: GuestFilter = { enabled: true }
 
     suppressEmits = false;        // Guard: ignore programmatic changes
 
@@ -477,7 +477,8 @@ export class ReservationComponent implements OnInit {
 
         this.guestFilter = { 
             ...this.guestFilter, 
-            conferenceId: confObj?.id ?? null 
+            conferenceId: confObj?.id ?? null,
+            includeGuestIds: this.preselectGuestIds 
         }
 
         // A kapcsolt kontrollokat aktiváljuk (nem várunk subscriberre)

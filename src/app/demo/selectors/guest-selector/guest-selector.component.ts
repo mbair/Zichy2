@@ -1,9 +1,9 @@
-import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy, Output, EventEmitter } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { MultiSelect } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
-import { Guest } from '../../api/guest';
+import { Guest, GuestFilter } from '../../api/guest';
 import { GuestService } from '../../service/guest.service';
 import * as moment from 'moment';
 moment.locale('hu')
@@ -26,13 +26,14 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
     @ViewChild('guestSelector', { static: false })
     private guestSelectorRef?: MultiSelect
 
-    @Input() filter: any | null = null              // All Guest filters
+    @Input() filter: GuestFilter | null = null      // All Guest filters
     @Input() selectionLimit?: number                // Maximum number of selectable guests (optional)
     @Input() selectFirstOption: boolean = false     // Whether to automatically select the first available option
     @Input() placeholder: string                    // Placeholder text for the dropdown
     @Input() showClear: boolean = true              // Whether to show the clear button
     @Input() style: { [key: string]: string } = {}  // Custom style for the dropdown
-    @Input() disabledOptions: Guest[] = []           // List of disabled guest IDs
+    @Input() disabledOptions: Guest[] = []          // List of disabled guest IDs
+    @Input() showOnlyNotReserved = false            // List only guest that don't have a reservation
     @Input() emitOnSelectFirstOption = false        // only turn it on where you really need it
     @Input() emitOnPreselectId = false
     @Input() emitOnWriteValue = false
@@ -59,7 +60,8 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
     private runSilently<T>(fn: () => T): T { this.suppress++; try { return fn() } finally { this.suppress-- } }
 
     constructor(private guestService: GuestService,
-        private messageService: MessageService
+        private messageService: MessageService,
+        private cdr: ChangeDetectorRef
     ) { }
 
     /**
@@ -84,7 +86,21 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
 
     private reload() {
         this.loading = true
-        this.guestService.searchGuestsForSelector$(this.filter ?? {})
+
+        const effective: GuestFilter = {
+            ...(this.filter ?? {}),
+            onlyNotReserved: this.showOnlyNotReserved || (this.filter?.onlyNotReserved ?? false),
+        }
+
+        // If "only free guests" but no conferenceId, don't ask
+        if (effective.onlyNotReserved && !effective.conferenceId) {
+            this.guests = []
+            this.loading = false
+            this.cdr.markForCheck()
+            return
+        }
+
+        this.guestService.searchGuestsForSelector$(effective)
             .subscribe({
                 next: list => {
                     this.guests = (list ?? []).map((g: Guest) => ({
@@ -92,11 +108,14 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
                         fullName: `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim() // Create fullname
                     }))
                     this.loading = false
+                    this.syncSelectedGuests()
                     this.preselectByIds()
+                    this.cdr.markForCheck()
                 },
                 error: _ => {
                     this.guests = []
                     this.loading = false
+                    this.cdr.markForCheck()
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
