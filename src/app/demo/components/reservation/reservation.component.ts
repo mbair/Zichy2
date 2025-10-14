@@ -119,20 +119,18 @@ export class ReservationComponent implements OnInit {
 
         // Reservation form fields and validators
         this.reservationForm = this.fb.group({
-            id: [this.INITIAL_FORM_STATE_CLOSED.id],
-            room: [{ value: this.INITIAL_FORM_STATE_CLOSED.room, disabled: true }, Validators.required], // UI
+            id: this.INITIAL_FORM_STATE_CLOSED.id,
+            room: [this.INITIAL_FORM_STATE_CLOSED.room, Validators.required], // UI
             room_id: [this.INITIAL_FORM_STATE_CLOSED.room_id, Validators.required],
             conference: [this.INITIAL_FORM_STATE_CLOSED.conference, Validators.required], // UI
-            conference_id: [this.INITIAL_FORM_STATE_CLOSED.conference_id, Validators.required],                           // Backend
-            startDate: [{ value: this.INITIAL_FORM_STATE_CLOSED.startDate, disabled: true }, Validators.required],
-            endDate: [{ value: this.INITIAL_FORM_STATE_CLOSED.endDate, disabled: true }, Validators.required],
-            status: [this.INITIAL_FORM_STATE_CLOSED.status, Validators.required],
-            notes: [this.INITIAL_FORM_STATE_CLOSED.notes],
-            guests: [{ value: this.INITIAL_FORM_STATE_CLOSED.guests, disabled: true }, Validators.required], // UI
+            conference_id: [this.INITIAL_FORM_STATE_CLOSED.conference_id, Validators.required],
+            startDate: [this.INITIAL_FORM_STATE_CLOSED.startDate, Validators.required],
+            endDate: [this.INITIAL_FORM_STATE_CLOSED.endDate, Validators.required],
+            status: this.INITIAL_FORM_STATE_CLOSED.status,
+            notes: this.INITIAL_FORM_STATE_CLOSED.notes,
+            guests: [this.INITIAL_FORM_STATE_CLOSED.guests, Validators.required], // UI
             guestIds: [this.INITIAL_FORM_STATE_CLOSED.guestIds, Validators.required],
-        }, {
-            validators: dateRangeValidator('startDate', 'endDate')
-        })
+        }, { validators: dateRangeValidator('startDate', 'endDate') })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
     }
@@ -469,10 +467,18 @@ export class ReservationComponent implements OnInit {
         }, { emitEvent: false });
 
         this.preselectGuestIds = guestIdsNum;
-        
+
         // A konferencia alapján szűrők (mi állítjuk, nem a subscriber)
-        this.roomFilter = { ...this.roomFilter, conferenceId: confObj?.id ?? null };
-        this.guestFilter = { ...this.guestFilter, conferenceId: confObj?.id ?? null };
+        this.roomFilter = { 
+            ...this.roomFilter, 
+            conferenceId: confObj?.id ?? null,
+            includeRoomIds: roomObj?.id ? [roomObj.id] : []
+        }
+
+        this.guestFilter = { 
+            ...this.guestFilter, 
+            conferenceId: confObj?.id ?? null 
+        }
 
         // A kapcsolt kontrollokat aktiváljuk (nem várunk subscriberre)
         this.room?.enable({ emitEvent: false });

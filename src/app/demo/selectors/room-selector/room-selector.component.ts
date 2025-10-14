@@ -74,7 +74,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        this.reload()
+        if (changes['filter']) this.reload()
     }
 
     ngOnDestroy(): void {
@@ -89,17 +89,16 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
         const effective: RoomFilter = {
             ...(this.filter ?? {}),
             onlyNotReserved: this.showOnlyNotReserved || (this.filter?.onlyNotReserved ?? false)
-        };
+        }
 
-        // Guardrail: onlyNotReserved requires a conferenceId to be meaningful.
-        if (effective.onlyNotReserved && !effective.conferenceId) {
-            // UX-friendly warning; still proceed without the onlyNotReserved flag to avoid empty results.
-            this.messageService.add({
-                severity: 'warn',
-                summary: 'Missing conference',
-                detail: 'Filtering only unreserved rooms requires a conference to be selected.'
-            });
-            delete effective.onlyNotReserved;
+        // Guard: if we must filter by notReserved but no conference is selected yet, skip querying.
+        const mustHaveConference = !!effective.onlyNotReserved;
+        if (mustHaveConference && !effective.conferenceId) {
+            this.rooms = [];
+            this.loading = false;
+            // optional: no toast -> csak csendben várunk a konferencia választásra
+            this.cdr.markForCheck();
+            return;
         }
 
         this.roomService.searchRoomsForSelector$(effective)

@@ -228,9 +228,9 @@ export class RoomService {
         if (typeof f.climate === 'boolean') parts.push(`climate=${f.climate ? 1 : 0}`);
         if (f.enabled) parts.push(`enabled=1`);
 
-        // >>> NEW flags <<<
         if (f.onlyNotReserved) parts.push(`onlyNotReserved=true`);
         if (f.includeRoomIds?.length) parts.push(`includeRoomIds=${f.includeRoomIds.join(',')}`);
+        if (f.conferenceId != null) parts.push(`conferenceId=${encodeURIComponent(String(f.conferenceId))}`);
 
         return parts.join('&');
     }
