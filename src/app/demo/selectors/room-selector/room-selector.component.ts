@@ -3,19 +3,10 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { MultiSelect } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
-import { Room } from '../../api/room';
+import { Room, RoomFilter } from '../../api/room';
 import { RoomService } from '../../service/room.service';
 
 export type ChangeSource = 'user' | 'auto-select-first' | 'preselect-id' | 'programmatic';
-
-export type RoomFilter = {
-    conferenceId?: number | null;
-    building?: string | string[];
-    minBeds?: number;
-    climate?: boolean;
-    enabled?: boolean;
-    // (optionel) startDate?: string; endDate?: string; onlyFree?: boolean;
-}
 
 @Component({
     selector: 'app-room-selector',
@@ -40,6 +31,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
     @Input() showClear: boolean = true              // Whether to show the clear button
     @Input() style: { [key: string]: string } = {}  // Custom style for the dropdown
     @Input() disabledOptions: Room[] = []           // List of disabled room IDs
+    @Input() showOnlyNotReserved: boolean = false   // List only rooms that don't have a reservation
     @Input() emitOnSelectFirstOption = false        // only turn it on where you really need it
     @Input() emitOnPreselectId = false
     @Input() emitOnWriteValue = false
@@ -91,25 +83,45 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
 
     private reload() {
         this.loading = true;
-        this.roomService.searchRoomsForSelector$(this.filter ?? {})
+
+        // Build the effective filter passed to the backend.
+        // If showOnlyNotReserved is true, request only rooms without reservations for the given conference.
+        const effective: RoomFilter = {
+            ...(this.filter ?? {}),
+            onlyNotReserved: this.showOnlyNotReserved || (this.filter?.onlyNotReserved ?? false)
+        };
+
+        // Guardrail: onlyNotReserved requires a conferenceId to be meaningful.
+        if (effective.onlyNotReserved && !effective.conferenceId) {
+            // UX-friendly warning; still proceed without the onlyNotReserved flag to avoid empty results.
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Missing conference',
+                detail: 'Filtering only unreserved rooms requires a conference to be selected.'
+            });
+            delete effective.onlyNotReserved;
+        }
+
+        this.roomService.searchRoomsForSelector$(effective)
             .subscribe({
                 next: list => {
-                    this.rooms = list ?? []
-                    this.loading = false
-                    this.syncSelectedRooms() // Keep selection valid if options changed
-                    this.preselectByIds() // If a preselect id arrived earlier, apply it now
-                    this.cdr.markForCheck()
+                    this.rooms = list ?? [];
+                    this.originalRooms = this.rooms.slice();
+                    this.loading = false;
+                    this.syncSelectedRooms(); // Keep selection valid if options changed
+                    this.preselectByIds();    // If a preselect id arrived earlier, apply it now
+                    this.cdr.markForCheck();
                 },
                 error: _ => {
-                    this.rooms = []
-                    this.loading = false
+                    this.rooms = [];
+                    this.loading = false;
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
                         detail: 'Failed to load rooms.'
-                    })
+                    });
                 }
-            });
+            })
     }
 
     // Opcionális publikus setter programozott beállításhoz:

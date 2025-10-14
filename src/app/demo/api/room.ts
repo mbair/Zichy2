@@ -29,7 +29,8 @@ export interface RoomFilter {
     conferenceId?: number | null;
     building?: string | string[];
     minBeds?: number;
-    climate?: boolean;      // true = klímás, false = nem klímás, undefined = mindegy
-    enabled?: boolean;  // csak aktív szobák
-    // (opcionális jövőre) startDate?: string; endDate?: string; onlyFree?: boolean;
+    climate?: boolean;
+    enabled?: boolean;
+    onlyNotReserved?: boolean;
+    includeRoomIds?: number[];
 }

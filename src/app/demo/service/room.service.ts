@@ -216,7 +216,10 @@ export class RoomService {
 
     private buildRoomQS(f: RoomFilter = {}): string {
         const parts: string[] = [];
-        if (f.conferenceId != null) parts.push(`conferences=${encodeURIComponent(String(f.conferenceId))}`);
+
+        // Prefer 'conferenceId' (backended mindkettőt érti, de ez tisztább)
+        if (f.conferenceId != null) parts.push(`conferenceId=${encodeURIComponent(String(f.conferenceId))}`);
+
         if (f.building) {
             const arr = Array.isArray(f.building) ? f.building : [f.building];
             parts.push(`building=${arr.map(encodeURIComponent).join(',')}`);
@@ -224,7 +227,12 @@ export class RoomService {
         if (typeof f.minBeds === 'number') parts.push(`minBeds=${f.minBeds}`);
         if (typeof f.climate === 'boolean') parts.push(`climate=${f.climate ? 1 : 0}`);
         if (f.enabled) parts.push(`enabled=1`);
-        return parts.join('&')
+
+        // >>> NEW flags <<<
+        if (f.onlyNotReserved) parts.push(`onlyNotReserved=true`);
+        if (f.includeRoomIds?.length) parts.push(`includeRoomIds=${f.includeRoomIds.join(',')}`);
+
+        return parts.join('&');
     }
 
     // TODO: NOT USED
