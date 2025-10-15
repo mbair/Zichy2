@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { auditTime, BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject, Subscription, switchMap, filter } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
+import { ConfirmationService } from 'primeng/api';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { ReservationService } from '../../service/reservation.service';
@@ -25,7 +26,7 @@ type SortDir = 1 | -1
 @Component({
     selector: 'reservation-component',
     templateUrl: './reservation.component.html',
-    providers: [MessageService]
+    providers: [MessageService, ConfirmationService]
 })
 
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy
@@ -102,6 +103,9 @@ export class ReservationComponent implements OnInit {
         guestIds: { value: [], disabled: false }
     }
 
+    private bedFullWarned = new Set<string>()               // Keep track of already-warned states to avoid repeated popups
+    private prevGuestCountByKey = new Map<string, number>() // Remember previous guest count per (roomId|beds) key
+
     private query$ = new Subject<{ force?: boolean }>()
     private querySub?: Subscription
     private isFormValid$: Observable<boolean>
@@ -113,6 +117,7 @@ export class ReservationComponent implements OnInit {
         private reservationService: ReservationService,
         private userService: UserService,
         private conferenceService: ConferenceService,
+        private confirmationService: ConfirmationService,
         private messageService: MessageService,
         private responsiveService: ResponsiveService,
         private fb: FormBuilder) {
@@ -241,6 +246,9 @@ export class ReservationComponent implements OnInit {
                 this.reservationForm.patchValue({
                     room_id: first?.id ?? null,
                 }, { emitEvent: false })
+
+                // After room change, re-check capacity threshold
+                this.maybeWarnBedsFull()
             })
 
         // Monitor guest change
@@ -258,6 +266,9 @@ export class ReservationComponent implements OnInit {
             distinctUntilChanged((a, b) => a.length === b.length && a.every((x, i) => x === b[i]))
         ).subscribe(ids => {
             this.reservationForm.patchValue({ guestIds: ids }, { emitEvent: false })
+
+            // After guest list change, re-check capacity threshold
+            this.maybeWarnBedsFull()
         })
 
         // Monitor the changes of the window size
@@ -735,6 +746,70 @@ export class ReservationComponent implements OnInit {
             this.page, this.rowsPerPage, this.sortField, this.sortOrder,
             this.globalFilter || '', confIds, filters
         ].join('|')
+    }
+
+    // Build a stable key for the warning memory (roomId + beds)
+    private buildWarnKey(roomId: number | string | null | undefined, beds: number): string {
+        const idPart = roomId != null ? String(roomId) : 'noRoom'
+        return `${idPart}|beds:${beds}`
+    }
+
+    // Get currently selected room (first item from the MultiSelect)
+    private getSelectedRoom(): Room | null {
+        const val = this.room?.value
+        return Array.isArray(val) && val.length ? (val[0] as Room) : null
+    }
+
+    // Get current guest count from the MultiSelect
+    private getSelectedGuestsCount(): number {
+        const val = this.guests?.value
+        return Array.isArray(val) ? val.length : val ? 1 : 0
+    }
+
+    /**
+     * Show a warning only on upward crossing:
+     * previous < beds  && current === beds  => warn
+     * Do NOT warn on downward crossing (previous > beds && current === beds).
+     * Also, don't warn on the very first observation for a key.
+     */
+    private maybeWarnBedsFull(): void {
+        const room = this.getSelectedRoom()
+        const beds = room?.beds ?? 0
+        if (beds <= 0) return
+
+        const guests = this.getSelectedGuestsCount()
+        const key = this.buildWarnKey(room?.id, beds)
+        const prev = this.prevGuestCountByKey.get(key)
+
+        // First observation for this key: initialize and do not warn
+        if (prev === undefined) {
+            this.prevGuestCountByKey.set(key, guests)
+            return
+        }
+
+        const alreadyWarned = this.bedFullWarned.has(key)
+
+        // Upward crossing: we just filled the last standard bed
+        const crossedUpToFull = prev < beds && guests === beds
+
+        if (crossedUpToFull && !alreadyWarned) {
+            this.bedFullWarned.add(key);
+            this.confirmationService.confirm({
+                header: 'Figyelmeztetés',
+                message: 'A szoba ágyai beteltek. Már csak matracot vagy gyerekágyat választhatsz.',
+                icon: 'pi pi-exclamation-triangle',
+                acceptLabel: 'OK',
+                rejectVisible: false
+            })
+        }
+
+        // If we go below beds again, allow future alerts for this key
+        if (guests < beds && alreadyWarned) {
+            this.bedFullWarned.delete(key)
+        }
+
+        // Update previous count
+        this.prevGuestCountByKey.set(key, guests)
     }
 
     // Don't delete this, its needed from a performance point of view,
