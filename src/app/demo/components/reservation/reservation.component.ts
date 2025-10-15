@@ -469,16 +469,16 @@ export class ReservationComponent implements OnInit {
         this.preselectGuestIds = guestIdsNum;
 
         // A konferencia alapján szűrők (mi állítjuk, nem a subscriber)
-        this.roomFilter = { 
-            ...this.roomFilter, 
+        this.roomFilter = {
+            ...this.roomFilter,
             conferenceId: confObj?.id ?? null,
             includeRoomIds: roomObj?.id ? [roomObj.id] : []
         }
 
-        this.guestFilter = { 
-            ...this.guestFilter, 
+        this.guestFilter = {
+            ...this.guestFilter,
             conferenceId: confObj?.id ?? null,
-            includeGuestIds: this.preselectGuestIds 
+            includeGuestIds: this.preselectGuestIds
         }
 
         // A kapcsolt kontrollokat aktiváljuk (nem várunk subscriberre)
@@ -624,6 +624,33 @@ export class ReservationComponent implements OnInit {
             this.tableData = [];
             this.doQuery();
         }
+    }
+
+    // Returns free capacity (can be negative when overbooked)
+    getFreeCapacity(reservation: Reservation) {
+        const guestsNum = reservation?.guests?.length ?? 0
+        const roomCapacity = (reservation?.room?.beds ?? 0) + (reservation?.room?.extraBeds ?? 0)
+        return roomCapacity - guestsNum
+    }
+
+    // Style helper for the capacity avatar
+    capacityStyle(cap: number): { [k: string]: string } {
+        // Negative => red, Positive => green (0 won't render due to *ngIf)
+        return {
+            'background-color': cap < 0 ? '#EF4444' : '#22C55E',
+            'color': '#ffffff'
+        }
+    }
+
+    // Optional: clearer tooltip text
+    capacityTooltip(cap: number): string {
+        if (cap < 0) return `Túlfoglava ${Math.abs(cap)} fővel`
+        return `Szabad ágy ${cap} fő részére`
+    }
+
+    // Returns a signed label, e.g. "+2", "-1"
+    formatCapacityLabel(cap: number): string {
+        return cap > 0 ? `+${cap}` : `${cap}`
     }
 
     /**

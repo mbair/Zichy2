@@ -180,11 +180,16 @@
                                            pTooltip="{{guest.lastName + ' ' + guest.firstName}}" 
                                            tooltipPosition="top">
                                 </p-avatar>
-                                <p-avatar 
-                                    label="+2" 
+                                <!-- Capacity badge: hidden when 0, green if >0, red if <0 -->
+                                <p-avatar
+                                    *ngIf="getFreeCapacity(reservation) as cap"
+                                    [label]="formatCapacityLabel(cap)"
                                     shape="circle"
-                                    size="large" 
-                                    [style]="{ 'background-color': '#22C55E', color: '#ffffff' }" />
+                                    size="large"
+                                    [style]="capacityStyle(cap)"
+                                    pTooltip="{{ capacityTooltip(cap) }}"
+                                    tooltipPosition="top">
+                                </p-avatar>
                             </p-avatarGroup>
                         </td>
                         <td style="max-width: 300px;">
