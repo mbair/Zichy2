@@ -55,6 +55,7 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
     selectedGuests: Guest[] = []                       // List of currently selected guests
 
     private _pendingSelectIds?: number[]
+    private reloadSub?: Subscription
     private subscriptions: Subscription = new Subscription()
     private suppress = 0
     private runSilently<T>(fn: () => T): T { this.suppress++; try { return fn() } finally { this.suppress-- } }
@@ -70,9 +71,6 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
      */
     ngOnInit(): void {
         this.reload()
-        setTimeout(() => {
-            this.handleSelectFirstOption()
-        })
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -87,9 +85,11 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
     private reload() {
         this.loading = true
 
+        // Build the effective filter passed to the backend.
+        // If showOnlyNotReserved is true, request only guests without reservations for the given conference.
         const effective: GuestFilter = {
             ...(this.filter ?? {}),
-            onlyNotReserved: this.showOnlyNotReserved || (this.filter?.onlyNotReserved ?? false),
+            onlyNotReserved: this.showOnlyNotReserved || (this.filter?.onlyNotReserved ?? false)
         }
 
         // If "only free guests" but no conferenceId, don't ask
@@ -100,7 +100,21 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
             return
         }
 
-        this.guestService.searchGuestsForSelector$(effective)
+        // Assemble includeGuestIds from already selected + preselect IDs
+        const selectedIds = (this.selectedGuests ?? [])
+            .map(g => this.toNumId((g as any)?.id))
+            .filter((n): n is number => n != null)
+
+        const pendingIds = (this._pendingSelectIds ?? []);
+        const includeGuestIds = Array.from(new Set([...selectedIds, ...pendingIds]));
+
+        const payload: GuestFilter = {
+            ...effective,
+            ...(includeGuestIds.length ? { includeGuestIds } : {}),
+        }
+
+        this.reloadSub?.unsubscribe()
+        this.reloadSub = this.guestService.searchGuestsForSelector$(effective)
             .subscribe({
                 next: list => {
                     this.guests = (list ?? []).map((g: Guest) => ({
@@ -110,6 +124,7 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
                     this.loading = false
                     this.syncSelectedGuests()
                     this.preselectByIds()
+                    this.handleSelectFirstOption()
                     this.cdr.markForCheck()
                 },
                 error: _ => {
@@ -123,6 +138,8 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
                     })
                 }
             })
+
+        this.subscriptions.add(this.reloadSub)
     }
 
     /**

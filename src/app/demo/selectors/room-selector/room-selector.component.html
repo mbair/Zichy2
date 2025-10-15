@@ -44,13 +44,6 @@
                 </div>
             </div>
         </div>
-        <div class="color-badge cyan border-round-xl w-min ml-1 p-0">
-            <div class="flex align-items-center justify-content-center py-1 px-1">
-                <span class="text-xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Kapacitás" tooltipPosition="top">
-                    {{ option.capacity }} / {{ option.beds }}
-                </span>
-            </div>
-        </div>
     </ng-template>
   
     <ng-template pTemplate="selectedItem" let-selectedItem>
@@ -73,13 +66,6 @@
                         </span>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="color-badge cyan border-round-xl w-min ml-1 p-0">
-            <div class="flex align-items-center justify-content-center py-1 px-1">
-                <span class="text-xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Kapacitás" tooltipPosition="top">
-                    {{ selectedItem.capacity || 0 }} / {{ selectedItem.beds || 0 }}
-                </span>
             </div>
         </div>
     </ng-template>

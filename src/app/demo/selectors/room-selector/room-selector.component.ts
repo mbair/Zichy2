@@ -68,9 +68,6 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
      */
     ngOnInit(): void {
         this.reload()
-        setTimeout(() => {
-            this.handleSelectFirstOption()
-        })
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -91,36 +88,50 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
             onlyNotReserved: this.showOnlyNotReserved || (this.filter?.onlyNotReserved ?? false)
         }
 
-        // Guard: if we must filter by notReserved but no conference is selected yet, skip querying.
-        const mustHaveConference = !!effective.onlyNotReserved;
-        if (mustHaveConference && !effective.conferenceId) {
-            this.rooms = [];
-            this.loading = false;
-            // optional: no toast -> csak csendben várunk a konferencia választásra
-            this.cdr.markForCheck();
-            return;
+        // if notReserved is required, but there is no conferenceId -> don't ask for it
+        if (effective.onlyNotReserved && !effective.conferenceId) {
+            this.rooms = []
+            this.loading = false
+            this.cdr.markForCheck()
+            return
         }
 
-        this.roomService.searchRoomsForSelector$(effective)
+        // Assemble includeRoomIds from already selected + preselect IDs
+        const selectedIds = (this.selectedRooms ?? [])
+            .map(r => this.toNumId((r as any)?.id))
+            .filter((n): n is number => n != null)
+
+        const pendingIds = (this._pendingSelectIds ?? [])
+        const includeRoomIds = Array.from(new Set([...selectedIds, ...pendingIds]))
+
+        const payload: RoomFilter = {
+            ...effective,
+            ...(includeRoomIds.length ? { includeRoomIds } : {}),
+        }
+
+        const sub = this.roomService.searchRoomsForSelector$(payload)
             .subscribe({
                 next: list => {
-                    this.rooms = list ?? [];
-                    this.originalRooms = this.rooms.slice();
-                    this.loading = false;
-                    this.syncSelectedRooms(); // Keep selection valid if options changed
-                    this.preselectByIds();    // If a preselect id arrived earlier, apply it now
-                    this.cdr.markForCheck();
+                    this.rooms = list ?? []
+                    this.originalRooms = this.rooms.slice()
+                    this.loading = false
+                    this.syncSelectedRooms() // Keep selection valid if options changed
+                    this.preselectByIds()    // If a preselect id arrived earlier, apply it now
+                    this.handleSelectFirstOption()
+                    this.cdr.markForCheck()
                 },
                 error: _ => {
-                    this.rooms = [];
-                    this.loading = false;
+                    this.rooms = []
+                    this.loading = false
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
                         detail: 'Failed to load rooms.'
-                    });
+                    })
                 }
             })
+
+            this.subscriptions.add(sub)
     }
 
     // Opcionális publikus setter programozott beállításhoz:
