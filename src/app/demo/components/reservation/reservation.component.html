@@ -177,7 +177,7 @@
                                            icon="pi pi-user" 
                                            size="large" 
                                            shape="circle"
-                                           pTooltip="{{guest.lastName + ' ' + guest.firstName}}" 
+                                           pTooltip="{{guest.lastName + ' ' + guest.firstName}} ({{getAge(guest.birthDate)}})" 
                                            tooltipPosition="top">
                                 </p-avatar>
                                 <!-- Capacity badge: hidden when 0, green if >0, red if <0 -->

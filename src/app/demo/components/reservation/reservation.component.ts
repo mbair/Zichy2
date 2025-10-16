@@ -637,6 +637,14 @@ export class ReservationComponent implements OnInit {
         }
     }
 
+    // Get Age by birthdate
+    getAge(birthDate: string): string {
+        if (!birthDate) return "";
+        const birth = moment(birthDate)
+        const today = moment()
+        return today.diff(birth, 'years').toString()
+    }
+
     // Returns free capacity (can be negative when overbooked)
     getFreeCapacity(reservation: Reservation) {
         const guestsNum = reservation?.guests?.length ?? 0
