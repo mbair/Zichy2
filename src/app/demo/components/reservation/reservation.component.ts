@@ -439,7 +439,7 @@ export class ReservationComponent implements OnInit {
         // 1) Konferencia előkészítés (objektum + [objektum] a selectorhoz)
         const confObj =
             (reservation as any).conference ??
-            ((reservation as any).conference_id ? { id: reservation.conference_id } : null);
+            ((reservation as any).conference_id ? { id: reservation.conference_id } : null)
 
         // 1/a) Konferencia beállítása úgy, hogy FUSSON a valueChanges (engedi a room/guests-t és beállítja a filtereket)
         this.reservationForm.patchValue({
@@ -475,7 +475,7 @@ export class ReservationComponent implements OnInit {
             guestIds: guestIdsNum,
             startDate: reservation.startDate ?? null,   // szerkesztett foglalás dátumai
             endDate: reservation.endDate ?? null
-        }, { emitEvent: false });
+        }, { emitEvent: false })
 
         this.preselectGuestIds = guestIdsNum;
 
@@ -493,10 +493,10 @@ export class ReservationComponent implements OnInit {
         }
 
         // A kapcsolt kontrollokat aktiváljuk (nem várunk subscriberre)
-        this.room?.enable({ emitEvent: false });
-        this.guests?.enable({ emitEvent: false });
-        this.startDate?.enable({ emitEvent: false });
-        this.endDate?.enable({ emitEvent: false });
+        this.room?.enable({ emitEvent: false })
+        this.guests?.enable({ emitEvent: false })
+        this.startDate?.enable({ emitEvent: false })
+        this.endDate?.enable({ emitEvent: false })
 
         // 2/b) UI-értékek (CVA) + backend ID-k
         this.reservationForm.patchValue({
@@ -507,19 +507,16 @@ export class ReservationComponent implements OnInit {
             guestIds: Array.from(new Set(guestIdsNum)),   // backendhez ID-k
             status: (reservation as any).status ?? 'confirmed',
             notes: (reservation as any).notes ?? null,
-        }, { emitEvent: false });
+        }, { emitEvent: false })
 
         // 2/c) Gyerek selectornak átadott “pending” preselect ID-k
-        this.preselectRoomIds = roomObj?.id ?? null;
-        this.preselectGuestIds = Array.from(new Set(guestIdsNum));
-
-        console.log('preselectRoomIds', this.preselectRoomIds)
+        this.preselectRoomIds = roomObj?.id ?? null
+        this.preselectGuestIds = Array.from(new Set(guestIdsNum))
 
         // 3) Események újra engedése, állapotok
-        this.suppressEmits = false;
-
-        this.originalFormValues = this.reservationForm.getRawValue();
-        this.sidebar = true;
+        this.suppressEmits = false
+        this.originalFormValues = this.reservationForm.getRawValue()
+        this.sidebar = true
     }
 
     /**
@@ -549,9 +546,26 @@ export class ReservationComponent implements OnInit {
 
         const v = this.reservationForm.value
 
+        // Helper: extract id from CVA MultiSelect (array or object)
+        const extractId = (val: any): number | null => {
+            if (Array.isArray(val)) return val[0]?.id ?? null
+            return val?.id ?? null
+        }
+
+        // Normalize guestIds from form
+        const normalizedGuestIds: number[] = Array.isArray(v.guestIds)
+            ? Array.from(new Set(v.guestIds.map((x: any) => Number(x)).filter((n: any) => Number.isFinite(n))))
+            : Array.isArray(v.guests)
+                ? Array.from(new Set(
+                    v.guests
+                        .map((g: any) => Number(g?.id))
+                        .filter((n: any) => Number.isFinite(n))
+                ))
+                : (v.guests?.id ? [Number(v.guests.id)] : [])
+
         const formValues = {
-            room_id: v.room?.id ?? v.room_id ?? null,
-            conference_id: v.conference?.id ?? v.conference_id ?? null,
+            room_id: extractId(v.room) ?? v.room_id ?? null,
+            conference_id: extractId(v.conference) ?? v.conference_id ?? null,
             startDate: v.startDate,
             endDate: v.endDate,
             status: v.status ?? 'confirmed',
@@ -560,32 +574,13 @@ export class ReservationComponent implements OnInit {
 
         // CREATE
         if (!v.id) {
-            // we only send IDs from guests
-            const guestIds: number[] = Array.isArray(v.guestIds)
-                ? v.guestIds
-                : Array.isArray(v.guest)
-                    ? v.guest.map((g: any) => g?.id).filter((x: any) => x != null)
-                    : v.guest?.id ? [v.guest.id] : [];
-
-            const payload = { ...formValues, guestIds: Array.from(new Set(guestIds)) }
-
-            console.log('payload', payload)
-
-            // NEM küldünk: guest, guests
+            const payload = { ...formValues, guestIds: normalizedGuestIds }
             this.reservationService.create(payload)
-
-        } else {
-            // UPDATE: NE küldj vendég-listát itt
-            const payload = { id: v.id, ...formValues }
-
-            console.log('payload', payload)
-
+        } 
+        // UPDATE
+        else {
+            const payload = { id: v.id, ...formValues, guestIds: normalizedGuestIds }
             this.reservationService.update(payload)
-
-            // Vendég hozzáadás/levétel külön hívással:
-            // this.reservationService.addGuests(v.id, [{ guestId: 123, is_primary: true }]).subscribe(...)
-            // this.reservationService.removeGuest(v.id, 123).subscribe(...)
-            // (Ezekhez a backend végpontok: POST /reservation/:id/guests, DELETE /reservation/:id/guests/:guestId) 
         }
 
         this.doQuery()
