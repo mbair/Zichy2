@@ -61,7 +61,10 @@ export class ReservationComponent implements OnInit {
     isMobile: boolean = false                    // Mobile screen detection
     isOrganizer: boolean = false                 // User has organizer role
     selectedConferences: Conference[] = []       // Selected conferences
-    numberOfBeds: number = 0                     // Number of beds
+    totalBeds: number = 0                        // Number of beds
+    registeredGuests: number = 0                 // registeredGuests
+    reservedGuests: number = 0                   // reservedGuests
+    waitingForRoom: number = 0                   // waitingForRoom
 
     preselectConferenceId?: number
     conferenceStart: Date | null = null
@@ -79,7 +82,7 @@ export class ReservationComponent implements OnInit {
         id: null,
         room: null,
         room_id: null,
-        conference: null,
+        conference: [],
         conference_id: null,
         startDate: '',
         endDate: '',
@@ -182,7 +185,10 @@ export class ReservationComponent implements OnInit {
                 this.tableData = data?.rows ?? []
                 this.totalRecords = data?.totalItems ?? 0
                 this.page = data?.currentPage ?? 0
-                this.numberOfBeds = data?.numberOfBeds ?? 0
+                this.totalBeds = data?.summary?.totalBeds ?? 0
+                this.registeredGuests = data?.summary?.registeredGuests ?? 0
+                this.reservedGuests = data?.summary?.reservedGuests ?? 0
+                this.waitingForRoom = data?.summary?.waitingForRoom ?? 0
             },
             error: () => {
                 this.loading = false
@@ -395,6 +401,25 @@ export class ReservationComponent implements OnInit {
     onSidebarShow(): void {
         // Mark sidebar as visible before any reactive work
         this.sidebar = true
+
+        // If we are creating a NEW reservation (no id) and the header has a selected conference,
+        // prefill the sidebar's conference selector to match the header selection.
+        const isNew = !this.id?.value;
+        const headerConf = this.selectedConferences?.[0];
+
+        if (isNew && headerConf) {
+            // Optional: pass to child selector as well (if it uses preselectIds internally)
+            this.preselectConferenceId = headerConf.id;
+
+            // IMPORTANT: write an array (CVA MultiSelect expects an array)
+            // emitEvent: true -> triggers your existing valueChanges pipeline
+            this.reservationForm.patchValue(
+                { conference: [headerConf] },
+                { emitEvent: true }
+            );
+        } else {
+            this.preselectConferenceId = undefined;
+        }
     }
 
     // Fires when the sidebar gets hidden by user (X button or backdrop click).
@@ -424,8 +449,9 @@ export class ReservationComponent implements OnInit {
      * Create new Reservation
      */
     create() {
-        this.reservationForm.reset(this.initialFormValues)
-        this.sidebar = true
+        // keep it clean: no events on reset
+        this.reservationForm.reset(this.initialFormValues, { emitEvent: false })
+        this.sidebar = true // onSidebarShow() will prefill the conference if possible
     }
 
     /**
@@ -576,7 +602,7 @@ export class ReservationComponent implements OnInit {
         if (!v.id) {
             const payload = { ...formValues, guestIds: normalizedGuestIds }
             this.reservationService.create(payload)
-        } 
+        }
         // UPDATE
         else {
             const payload = { id: v.id, ...formValues, guestIds: normalizedGuestIds }

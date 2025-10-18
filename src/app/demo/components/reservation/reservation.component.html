@@ -34,7 +34,7 @@
                             </app-conference-selector>
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
-                            <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Ágyak száma: {{ numberOfBeds }}" tooltipPosition="top">
+                            <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Ágyak száma: {{ totalBeds }}" tooltipPosition="top">
                                 <div class="flex align-items-center justify-content-center py-1 px-1">
                                     <div class="flex align-items-center justify-content-center gap-2 px-2">
                                         <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
@@ -50,7 +50,43 @@
                                             </g>
                                         </svg>
                                         <span class="text-2xl font-normal white-space-nowrap vertical-align-middle">
-                                            {{ numberOfBeds }}
+                                            {{ totalBeds }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </span>
+                        <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Regisztrált vendégek: {{ registeredGuests }}" tooltipPosition="top">
+                                <div class="flex align-items-center justify-content-center py-1 px-1">
+                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
+                                        
+                                        <span class="text-2xl font-normal white-space-nowrap vertical-align-middle">
+                                            {{ registeredGuests }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </span>
+                        <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Vendégek foglalással: {{ reservedGuests }}" tooltipPosition="top">
+                                <div class="flex align-items-center justify-content-center py-1 px-1">
+                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
+                                        
+                                        <span class="text-2xl font-normal white-space-nowrap vertical-align-middle">
+                                            {{ reservedGuests }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </span>
+                        <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Szobára várók: {{ waitingForRoom }}" tooltipPosition="top">
+                                <div class="flex align-items-center justify-content-center py-1 px-1">
+                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
+                                        
+                                        <span class="text-2xl font-normal white-space-nowrap vertical-align-middle">
+                                            {{ waitingForRoom }}
                                         </span>
                                     </div>
                                 </div>

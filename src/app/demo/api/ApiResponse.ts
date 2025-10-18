@@ -6,4 +6,5 @@ export interface ApiResponse {
     rfidCount?: number,
     count: number,
     numberOfBeds?: number;
+    summary?: any,
 }
