@@ -53,7 +53,18 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
     guests: Guest[] = []                             // List of available guest options
     originalGuests: Guest[] = []                     // Original list of guest options
     selectedGuests: Guest[] = []                     // List of currently selected guests
-    roomTypes: any[] = []                            // Available room types
+
+    // Available room types
+    readonly roomTypes: ReadonlyArray<{ value: string; color: string }> = [
+        { value: 'Nem kérek szállást', color: 'gray' },
+        { value: 'Kastély szállás 4 ágyas szoba', color: 'teal' },
+        { value: 'Kastély szállás 6 ágyas szoba', color: 'teal' },
+        { value: 'Kastély szállás 8 ágyas szoba', color: 'teal' },
+        { value: 'Maranatha Panzióház 2 ágyas szoba (külön fürdős)', color: 'yellow' },
+        { value: 'Maranatha Panzióház franciaágyas szoba (külön fürdős)', color: 'yellow' },
+        { value: 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)', color: 'yellow' },
+        { value: 'Családi szoba (közös konyhával, fürdővel és nappalival)', color: 'orange' },
+    ]
 
     private _pendingSelectIds?: number[]
     private reloadSub?: Subscription
@@ -72,42 +83,6 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
      */
     ngOnInit(): void {
         this.reload()
-
-        // Room type colors
-        this.roomTypes = [
-            {
-                value: 'Nem kérek szállást',
-                color: 'gray'
-            },
-            {
-                value: 'Kastély szállás 4 ágyas szoba',
-                color: 'teal'
-            },
-            {
-                value: 'Kastély szállás 6 ágyas szoba',
-                color: 'teal'
-            },
-            {
-                value: 'Kastély szállás 8 ágyas szoba',
-                color: 'teal'
-            },
-            {
-                value: 'Maranatha Panzióház 2 ágyas szoba (külön fürdős)',
-                color: 'yellow'
-            },
-            {
-                value: 'Maranatha Panzióház franciaágyas szoba (külön fürdős)',
-                color: 'yellow'
-            },
-            {
-                value: 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)',
-                color: 'yellow'
-            },
-            {
-                value: 'Családi szoba (közös konyhával, fürdővel és nappalival)',
-                color: 'orange'
-            },
-        ]
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -304,11 +279,13 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
         return today.diff(birth, 'years').toString()
     }
 
+    private roomTypeColorMap = new Map<string, string>(
+        this.roomTypes.map(rt => [rt.value.toLowerCase(), rt.color])
+    )
+
     getColorByRoomType(roomType: string): string {
-        if (!roomType) return ""
-        const key = roomType.trim().toLowerCase()
-        const hit = this.roomTypes.find(rt => rt.value.toLowerCase() === key)
-        return hit?.color ?? ""
+        if (!roomType) return ''
+        return this.roomTypeColorMap.get(roomType.trim().toLowerCase()) ?? ''
     }
 
     // ===========================
