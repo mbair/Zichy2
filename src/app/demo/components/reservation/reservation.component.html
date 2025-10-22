@@ -69,7 +69,7 @@
                             </div>
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
-                            <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Vendégek foglalással: {{ reservedGuests }}" tooltipPosition="top">
+                            <div class="border-round-xl w-min p-0 bg-green-100" pTooltip="Vendégek foglalással: {{ reservedGuests }}" tooltipPosition="top">
                                 <div class="flex align-items-center justify-content-center py-1 px-1">
                                     <div class="flex align-items-center justify-content-center gap-2 px-2">
                                         <i class="pi pi-users" style="font-size: 1.5rem"></i>
@@ -81,7 +81,7 @@
                             </div>
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
-                            <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Szobára várók: {{ waitingForRoom }}" tooltipPosition="top">
+                            <div class="border-round-xl w-min p-0 bg-yellow-100" pTooltip="Szobára várók: {{ waitingForRoom }}" tooltipPosition="top">
                                 <div class="flex align-items-center justify-content-center py-1 px-1">
                                     <div class="flex align-items-center justify-content-center gap-2 px-2">
                                         <i class="pi pi-users" style="font-size: 1.5rem"></i>
@@ -103,11 +103,11 @@
                     <tr>
                         <th></th>
                         <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
-                        <th pSortableColumn="guests">Vendégek <p-sortIcon field="guests"></p-sortIcon></th>
-                        <th pSortableColumn="dateOfArrival">Érkezés <p-sortIcon field="dateOfArrival"></p-sortIcon></th>
-                        <th pSortableColumn="dateOfDeparture">Távozás <p-sortIcon field="dateOfDeparture"></p-sortIcon></th>
+                        <th>Vendégek</th>
+                        <th pSortableColumn="startDate">Érkezés <p-sortIcon field="startDate"></p-sortIcon></th>
+                        <th pSortableColumn="endDate">Távozás <p-sortIcon field="endDate"></p-sortIcon></th>
                         <th pSortableColumn="status">Státusz <p-sortIcon field="status"></p-sortIcon></th>
-                        <th pSortableColumn="comment">Megjegyzés <p-sortIcon field="comment"></p-sortIcon></th>
+                        <th pSortableColumn="notes">Megjegyzés <p-sortIcon field="notes"></p-sortIcon></th>
                         <th></th>
                     </tr>
                     <tr>
@@ -118,17 +118,17 @@
                             <input pInputText
                                    type="text"
                                    class="mr-2"
-                                   (input)="onFilter($event, 'reservationNum')"
+                                   (input)="onFilter($event, 'room.roomNum')"
                                    placeholder="Szobaszám..."
                                    style="width:8rem"/>
                            <app-building-selector
                                    class="mr-2"
-                                   (change)="onFilter($event, 'building')"
+                                   (change)="onFilter($event, 'room.building')"
                                    [showClear]="true"
                                    placeholder="Épület...">
                            </app-building-selector>
                            <app-bedtype-selector
-                                   (change)="onFilter($event, 'bedType')"
+                                   (change)="onFilter($event, 'room.bedType')"
                                    [showClear]="true"
                                    placeholder="Ágytipus...">
                            </app-bedtype-selector>
@@ -138,12 +138,12 @@
                                    type="text"
                                    (input)="onFilter($event, 'guests')"
                                    placeholder="Vendég..."
-                                   style="width: 7rem"/>
+                                   style="width: 15rem"/>
                         </th>
                         <th>
                             <p-calendar
-                                (onSelect)="onFilter($event, 'dateOfArrival')"
-                                (onClearClick)="onFilter($event, 'dateOfArrival')"
+                                (onSelect)="onFilter($event, 'startDate')"
+                                (onClearClick)="onFilter($event, 'startDate')"
                                 appendTo="body"
                                 dataType="string"
                                 placeholder="Keresés..."
@@ -152,8 +152,8 @@
                         </th>
                         <th>
                             <p-calendar
-                                (onSelect)="onFilter($event, 'dateOfDeparture')"
-                                (onClearClick)="onFilter($event, 'dateOfDeparture')"
+                                (onSelect)="onFilter($event, 'endDate')"
+                                (onClearClick)="onFilter($event, 'endDate')"
                                 appendTo="body"
                                 dataType="string"
                                 placeholder="Keresés..."
@@ -437,7 +437,7 @@
         <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <!-- <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.reservationNum}}</b> szobát?</span> -->
+                <!-- <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.roomNum}}</b> szobát?</span> -->
             </div>
             <ng-template pTemplate="footer">
                 <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="deleteDialog = false"></button>

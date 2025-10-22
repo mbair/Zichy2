@@ -333,7 +333,7 @@ export class ReservationComponent implements OnInit {
         // Organizer need select conference
         if (this.isOrganizer && this.selectedConferences.length === 0) return
 
-        const noWaitFields: string[] = ['conferenceName', 'building', 'bedType', 'spareBeds']
+        const noWaitFields: string[] = ['conferenceName', 'room.building', 'room.bedType', 'status']
         let filterValue = ''
 
         // Calendar date as String
@@ -819,13 +819,14 @@ export class ReservationComponent implements OnInit {
         const alreadyWarned = this.bedFullWarned.has(key)
 
         // Upward crossing: we just filled the last standard bed
-        const crossedUpToFull = prev < beds && guests === beds
+        // Mindenkinél figyelmeztessen, aki már nem fér ágyra
+        const crossedUpToFull = prev < beds && guests >= beds
 
         if (crossedUpToFull && !alreadyWarned) {
             this.bedFullWarned.add(key);
             this.confirmationService.confirm({
                 header: 'Figyelmeztetés',
-                message: 'A szoba ágyai beteltek. Már csak matracot vagy gyerekágyat választhatsz.',
+                message: 'A szoba ágyai beteltek, a vendég már csak matracra vagy gyerekágyra kerülhet',
                 icon: 'pi pi-exclamation-triangle',
                 acceptLabel: 'OK',
                 rejectVisible: false
