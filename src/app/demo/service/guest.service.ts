@@ -147,7 +147,7 @@ export class GuestService {
      * Updates the last tag usage of the guest identified by the given id.
      * @param guestId The id of the guest to update the last tag usage for.
      */
-    public updateLastTagUsage(guestId: string | undefined): void {
+    public updateLastTagUsage(guestId: number): void {
         this.apiService.get<ApiResponse>(`guest/updatelasttagusage/${guestId}`)
             .subscribe({
                 next: (response: ApiResponse) => { },
@@ -237,7 +237,7 @@ export class GuestService {
         }
     }
 
-    public updateGuest2(modifiedGuest: Guest): Observable<any> {
+    public updateGuest2(modifiedGuest: any): Observable<any> {
         return this.apiService.put(`guest/update/${modifiedGuest.id}`, modifiedGuest)
             .pipe(
                 tap(() => console.log(`updated guest id=${modifiedGuest.id}`)),
@@ -249,7 +249,7 @@ export class GuestService {
      * Guest delete
      * @param guest
      */
-    public delete(guest: Guest): void {
+    public delete(guest: any): void {
         this.apiService.delete(`guest/delete/${guest.id}`)
             .subscribe({
                 next: (response: any) => {

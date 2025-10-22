@@ -1,7 +1,7 @@
 import { Conference } from "./conference";
 
 export interface Guest {
-    id?: string;
+    id: number;
     firstName?: string;
     lastName?: string;
     gender?: number;

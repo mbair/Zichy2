@@ -106,8 +106,8 @@ export class ReservationComponent implements OnInit {
         guestIds: { value: [], disabled: false }
     }
 
-    private bedFullWarned = new Set<string>()               // Keep track of already-warned states to avoid repeated popups
-    private prevGuestCountByKey = new Map<string, number>() // Remember previous guest count per (roomId|beds) key
+    private lastSelectionByRoom = new Map<number, number[]>() // roomId -> last selection (guest ids, in selection order)
+    private bedFullWarnedByGuest = new Set<string>()          // roomId:guestId pairs we already warned for, to avoid duplicate prompts if user toggles UI
 
     private query$ = new Subject<{ force?: boolean }>()
     private querySub?: Subscription
@@ -253,8 +253,20 @@ export class ReservationComponent implements OnInit {
                     room_id: first?.id ?? null,
                 }, { emitEvent: false })
 
-                // After room change, re-check capacity threshold
-                this.maybeWarnBedsFull()
+                // reset per-room warning state (ne vigyük át az előző szobából)
+                if (first?.id != null) {
+                    // induláskor vegyük a mostani kiválasztást alapnak
+                    const currentGuestIds: number[] = Array.isArray(this.guestIds?.value)
+                        ? this.guestIds!.value as number[]
+                        : [];
+
+                    this.lastSelectionByRoom.set(Number(first?.id), currentGuestIds);
+
+                    // töröljük az ehhez a szobához tartozó korábbi vendég-figyelmeztetéseket
+                    [...this.bedFullWarnedByGuest]
+                        .filter(k => k.startsWith(`${first.id}:`))
+                        .forEach(k => this.bedFullWarnedByGuest.delete(k));
+                }
             })
 
         // Monitor guest change
@@ -262,19 +274,22 @@ export class ReservationComponent implements OnInit {
             // Normalization: always be an array
             map((v: Guest | Guest[] | null | undefined) => Array.isArray(v) ? v : v ? [v] : []),
             // Extract only IDs + filter out nulls
-            map(arr => arr
-                .map(g => g?.id)
-                .filter((id) => id != null)
-            ),
-            // Filter out duplicates
-            map(ids => Array.from(new Set(ids))),
+            map(arr => ({
+                guestsArr: arr,
+                ids: Array.from(new Set(
+                    arr.map(g => g?.id).filter((id): id is number => id != null)
+                ))
+            })),
             // Avoid unnecessary patching (do not rewrite the same ID sequence)
-            distinctUntilChanged((a, b) => a.length === b.length && a.every((x, i) => x === b[i]))
-        ).subscribe(ids => {
+            distinctUntilChanged((a, b) =>
+                a.ids.length === b.ids.length && a.ids.every((x, i) => x === b.ids[i])
+            )
+        ).subscribe(({ guestsArr, ids }) => {
+            const room = this.getSelectedRoom();
+            if (room) {
+                this.onGuestsSelectionChange(room, guestsArr);
+            }
             this.reservationForm.patchValue({ guestIds: ids }, { emitEvent: false })
-
-            // After guest list change, re-check capacity threshold
-            this.maybeWarnBedsFull()
         })
 
         // Monitor the changes of the window size
@@ -445,6 +460,56 @@ export class ReservationComponent implements OnInit {
         queueMicrotask(() => this.suppressEmits = false)
     }
 
+    private onGuestsSelectionChange(room: Room, nextGuests: Guest[]): void {
+        const roomId = Number(room?.id);
+        const beds = Number(room?.beds ?? 0);
+
+        const prevIds = this.lastSelectionByRoom.get(roomId) ?? [];
+        const nextIds = nextGuests.map(g => g.id);
+
+        // Determine which IDs were newly added
+        const prevSet = new Set(prevIds);
+        const addedIds = nextIds.filter(id => !prevSet.has(id));
+
+        // How many guests were already selected before this change
+        const countBefore = prevIds.length;
+
+        // For each newly added guest, compute their "position" after addition
+        // If position > beds => this guest is over capacity -> warn (once per guest)
+        let index = 0;
+        for (const addedId of addedIds) {
+            index += 1;
+            const position = countBefore + index; // 1-based position after adding this guest
+            if (position > beds) {
+                const warnKey = `${roomId}:${addedId}`;
+                if (!this.bedFullWarnedByGuest.has(warnKey)) {
+                    const g = nextGuests.find(x => x.id === addedId);
+                    const name = g ? `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim() || 'A vendég' : 'A vendég';
+                    this.bedFullWarnedByGuest.add(warnKey);
+
+                    this.confirmationService.confirm({
+                        header: 'Figyelmeztetés',
+                        message: `${name} már nem fér ágyra! Matracra,\n vagy gyerekágyra kerülhet.`,
+                        icon: 'pi pi-exclamation-triangle',
+                        acceptLabel: 'OK',
+                        rejectVisible: false
+                    });
+                }
+            }
+        }
+
+        // Persist new selection for this room
+        this.lastSelectionByRoom.set(roomId, nextIds);
+
+        // Optional: if user removed down to <= beds, clear per-guest warned set for this room
+        if (nextIds.length <= beds) {
+            // clear all warn flags for this room to allow warnings again in future
+            [...this.bedFullWarnedByGuest]
+                .filter(k => k.startsWith(`${roomId}:`))
+                .forEach(k => this.bedFullWarnedByGuest.delete(k));
+        }
+    }
+
     /**
      * Create new Reservation
      */
@@ -543,6 +608,11 @@ export class ReservationComponent implements OnInit {
         this.suppressEmits = false
         this.originalFormValues = this.reservationForm.getRawValue()
         this.sidebar = true
+
+        // populate lastSelectionByRoom for correct per-guest warnings on edit
+        if (roomObj?.id) {
+            this.lastSelectionByRoom.set(roomObj.id, this.preselectGuestIds ?? []);
+        }
     }
 
     /**
@@ -787,59 +857,6 @@ export class ReservationComponent implements OnInit {
     private getSelectedRoom(): Room | null {
         const val = this.room?.value
         return Array.isArray(val) && val.length ? (val[0] as Room) : null
-    }
-
-    // Get current guest count from the MultiSelect
-    private getSelectedGuestsCount(): number {
-        const val = this.guests?.value
-        return Array.isArray(val) ? val.length : val ? 1 : 0
-    }
-
-    /**
-     * Show a warning only on upward crossing:
-     * previous < beds  && current === beds  => warn
-     * Do NOT warn on downward crossing (previous > beds && current === beds).
-     * Also, don't warn on the very first observation for a key.
-     */
-    private maybeWarnBedsFull(): void {
-        const room = this.getSelectedRoom()
-        const beds = room?.beds ?? 0
-        if (beds <= 0) return
-
-        const guests = this.getSelectedGuestsCount()
-        const key = this.buildWarnKey(room?.id, beds)
-        const prev = this.prevGuestCountByKey.get(key)
-
-        // First observation for this key: initialize and do not warn
-        if (prev === undefined) {
-            this.prevGuestCountByKey.set(key, guests)
-            return
-        }
-
-        const alreadyWarned = this.bedFullWarned.has(key)
-
-        // Upward crossing: we just filled the last standard bed
-        // Mindenkinél figyelmeztessen, aki már nem fér ágyra
-        const crossedUpToFull = prev < beds && guests >= beds
-
-        if (crossedUpToFull && !alreadyWarned) {
-            this.bedFullWarned.add(key);
-            this.confirmationService.confirm({
-                header: 'Figyelmeztetés',
-                message: 'A szoba ágyai beteltek, a vendég már csak matracra vagy gyerekágyra kerülhet',
-                icon: 'pi pi-exclamation-triangle',
-                acceptLabel: 'OK',
-                rejectVisible: false
-            })
-        }
-
-        // If we go below beds again, allow future alerts for this key
-        if (guests < beds && alreadyWarned) {
-            this.bedFullWarned.delete(key)
-        }
-
-        // Update previous count
-        this.prevGuestCountByKey.set(key, guests)
     }
 
     // Don't delete this, its needed from a performance point of view,

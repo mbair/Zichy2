@@ -42,7 +42,7 @@ export class GuestComponent implements OnInit {
 
     apiURL: string                               // API URL depending on whether we are working on test or production
     loading: boolean = true                      // Loading overlay trigger value
-    tableItem: Guest = {}                        // One guest object
+    tableItem: Guest | null = null               // One guest object
     tableData: Guest[] = []                      // Data set displayed in a table
     rowsPerPageOptions = [20, 50, 100, 9999]     // Possible rows per page
     rowsPerPage: number = 20                     // Default rows per page
@@ -74,7 +74,7 @@ export class GuestComponent implements OnInit {
     tagDialog: boolean = false                   // Tag assignment popup
     conferences: any[] = []                      // Optional conferences
     selectedConferences: Conference[] = []       // Conference chosen by user
-    guest: Guest = {}                            // One guest object
+    guest: Guest | null = null                   // One guest object
     guestDialog: boolean = false                 // Guests maintenance popup
     filtersDialog: boolean = false               // Guests table filters popup
     cols: any[] = []                             // Table columns
@@ -621,6 +621,7 @@ export class GuestComponent implements OnInit {
      * Delete the Guest
      */
     delete() {
+        if (!this.tableItem) return
         this.loading = true
         this.deleteDialog = false
         this.guestService.delete(this.tableItem)
@@ -713,7 +714,7 @@ export class GuestComponent implements OnInit {
         this.doQuery()
     }
 
-    findIndexById(id: string | undefined): number {
+    findIndexById(id: number | undefined): number {
         let index = -1;
         for (let i = 0; i < this.tableData.length; i++) {
             if (this.tableData[i].id === id) {
@@ -728,7 +729,7 @@ export class GuestComponent implements OnInit {
     assignTag(guest: any) {
         // Empty previous scanned codes
         this.scanTemp = '';
-        this.scannedCode = this.guest.rfid || '';
+        this.scannedCode = this.guest?.rfid || '';
         this.guest = { ...guest };
         this.messages = [
             { severity: 'info', summary: '', detail: 'Tartsa a ' + guest.diet + ' étrendhez tartozó NFC címkét az olvasóhoz...' },
@@ -737,27 +738,48 @@ export class GuestComponent implements OnInit {
     }
 
     unAssignTag() {
-        this.guest.rfid = null;
-        this.guest.lastRfidUsage = null;
-        this.guestService.update(this.guest);
-        let guestsClone = JSON.parse(JSON.stringify(this.tableData))
-        guestsClone[this.findIndexById(this.guest.id)] = this.guest;
-        this.tableData = guestsClone
+        // guard: ha nincs kiválasztott vendég, nincs teendő
+        const g = this.guest
+        if (!g) return
+
+        // 1) backend update – csak azt küldjük, ami változik
+        const payload: Pick<Guest, 'id'> & Partial<Guest> = {
+            id: g.id,
+            rfid: null,
+            lastRfidUsage: null
+        };
+        this.guestService.update(payload)
+
+        // Refresh local state (immutable)
+        const idx = this.findIndexById(g.id);
+        if (idx !== -1) {
+            const updated: Guest = { ...g, rfid: null, lastRfidUsage: null };
+            this.tableData = [
+            ...this.tableData.slice(0, idx),
+            updated,
+            ...this.tableData.slice(idx + 1)
+            ];
+            this.guest = updated;
+        }
+
+        // UI feedback
         this.successfulMessage = [{
             severity: 'success',
             summary: '',
             detail: 'A címkét eltávolítottuk a vendégtől!'
-        }]
+        }];
+
         this.totalTaggedGuests--;
         setTimeout(() => {
             this.tagDialog = false
         }, 200)
 
         // Logging
+        const name = `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim()
         this.logService.create({
             action_type: "unassign",
             table_name: "guest",
-            original_data: "Unassign Tag from " + this.guest.lastName + " " + this.guest.firstName,
+            original_data: `Unassign Tag from ${name || 'ismeretlen vendég'}`
         })
     }
 
@@ -770,7 +792,7 @@ export class GuestComponent implements OnInit {
                 if (data.rows && data.rows.length > 0) {
                     // Check if tag color is the same as the guest diet color
                     let tagColor = data.rows[0].color
-                    let guestDietColor = this.diets.find(d => d.name === this.guest.diet)?.color
+                    let guestDietColor = this.diets.find(d => d.name === this.guest?.diet)?.color
 
                     if (tagColor === 'gray') {
                         tagColor = 'black'
@@ -810,7 +832,7 @@ export class GuestComponent implements OnInit {
                         error: () => {
                             // RFID is free, proceed with update
                             const updateData = {
-                                id: this.guest.id,
+                                id: this.guest?.id,
                                 rfid: this.scannedCode
                             }
 
@@ -818,7 +840,7 @@ export class GuestComponent implements OnInit {
                                 next: () => {
                                     // Update local table data
                                     let guestsClone = JSON.parse(JSON.stringify(this.tableData))
-                                    const guestIndex = this.findIndexById(this.guest.id);
+                                    const guestIndex = this.findIndexById(this.guest?.id);
                                     guestsClone[guestIndex] = { ...guestsClone[guestIndex], rfid: this.scannedCode }
                                     this.tableData = guestsClone
 
@@ -838,11 +860,11 @@ export class GuestComponent implements OnInit {
                                     this.logService.create({
                                         action_type: 'assign Tag',
                                         table_name: 'guest',
-                                        original_data: `Assign Tag ${this.scannedCode} to ${this.guest.lastName} ${this.guest.firstName}`
+                                        original_data: `Assign Tag ${this.scannedCode} to ${this.guest?.lastName} ${this.guest?.firstName}`
                                     })
 
                                     this.scannedCode = ''
-                                    this.guest = {}
+                                    this.guest = null
                                 },
                                 error: (error) => {
                                     console.error('Hiba az RFID frissítése közben:', error)
@@ -1249,7 +1271,7 @@ export class GuestComponent implements OnInit {
             })
 
             // Delete unnecessary columns
-            data.forEach((row: Guest) => {
+            data.forEach((row: any) => {
                 delete row.is_test
                 delete row.userid
                 delete row.rfid_id

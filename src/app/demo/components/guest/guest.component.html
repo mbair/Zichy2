@@ -800,7 +800,7 @@
                     </div>
                 </div>
                 <div class="text-center">
-                    <button pButton pRipple label="Címke visszavétel" icon="pi pi-trash" class="p-button-danger" (click)="unAssignTag()" [disabled]="!guest.rfid?.length"></button>
+                    <button pButton pRipple label="Címke visszavétel" icon="pi pi-trash" class="p-button-danger" (click)="unAssignTag()" [disabled]="!guest?.rfid?.length"></button>
                 </div>
             </ng-template>
             <ng-template pTemplate="footer">
