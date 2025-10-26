@@ -98,6 +98,7 @@ export class GuestComponent implements OnInit {
     showUploadBlock: boolean = false             // Upload block visibility in edit form  
     guestConference: Conference                  // Guest's conference
     prepaidOptions: any[] = []                   // Possible prepaid options
+    guestReservedRoom: string | null = null      // Guest room reservation
 
     private initialFormValues = {
         id: null,
@@ -582,6 +583,9 @@ export class GuestComponent implements OnInit {
         if (this.currentIdCardUrl) {
             this.getIdCardImage(guest)
         }
+
+        // Guest room reservation
+        this.guestReservedRoom = guest.displayRoomNum || guest.roomNum || null
 
         this.sidebar = true
 

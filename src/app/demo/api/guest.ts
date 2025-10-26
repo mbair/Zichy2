@@ -21,6 +21,7 @@ export interface Guest {
     conferenceid?: number;
     diet?: string;
     dietColor?: string;
+    displayRoomNum?: string;
     advancePaid?: boolean;
     email?: string;
     telephone?: string;

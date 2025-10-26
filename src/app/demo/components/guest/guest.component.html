@@ -513,8 +513,12 @@
 
                     <!-- roomNum -->
                     <div class="field mb-4 col-12 lg:col-4">
-                        <label for="roomNum" class="font-medium text-900">Szoba</label>
-                        <input id="roomNum" type="text" pInputText formControlName="roomNum">
+                        <label class="font-medium text-900">Szoba</label>
+                        <div class="mt-2">
+                            <p-tag
+                                [value]="guestReservedRoom || 'nincs beállítva'">
+                            </p-tag>
+                        </div>
                     </div>
 
                     <!-- dateOfArrival -->
