@@ -1391,7 +1391,6 @@ export class GuestComponent implements OnInit {
         })
     }
 
-
     private pickActualReservation(g: any): any | null {
         const resArr = Array.isArray(g?.reservations) ? g.reservations : []
         if (!resArr.length) return null
