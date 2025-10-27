@@ -188,14 +188,35 @@
                         </td>
                         <td class="text-center" style="white-space: break-spaces">
                             <span class="p-column-title">Szoba</span>
-                            <span *ngIf="guest.displayRoomNum" [ngClass]="'color-badge cyan'">
-                                {{guest.displayRoomNum}}
-                            </span>
+                            <ng-container *ngIf="guest.actualReservation as res; else noReservation">
+                                <button
+                                pButton
+                                type="button"
+                                class="p-button p-1"
+                                [label]="res?.room?.roomNum || guest.displayRoomNum || guest.roomNum || 'nincs beállítva'"
+                                [routerLink]="['/reservation']"
+                                [queryParams]="{
+                                    reservation_id: res?.id,
+                                    conference_id: res?.conference_id,
+                                    open: 1
+                                }"
+                                pTooltip="Ugrás a vendég foglalásához"
+                                tooltipPosition="top"
+                                [disabled]="!res?.id">
+                                </button>
+                            </ng-container>
 
-                            <span *ngIf="!guest.displayRoomNum">
-                                {{guest.roomNum}}
-                            </span>
-                        </td>
+                            <ng-template #noReservation>
+                                <!-- Ha nincs actualReservation, de tudunk szobaszámot mutatni, jelenítsük meg szövegként -->
+                                <span *ngIf="guest.displayRoomNum || guest.roomNum; else noRoom">
+                                {{ guest.displayRoomNum || guest.roomNum }}
+                                </span>
+                                <ng-template #noRoom>
+                                <span class="text-500">nincs beállítva</span>
+                                </ng-template>
+                            </ng-template>
+                            </td>
+
                         <td>
                             <span *ngIf="hasDietName(guest.diet)" [ngClass]="'color-badge ' + guest?.dietDetails?.color">
                                 {{guest.diet}}
@@ -515,9 +536,23 @@
                     <div class="field mb-4 col-12 lg:col-4">
                         <label class="font-medium text-900">Szoba</label>
                         <div class="mt-2">
-                            <p-tag
-                                [value]="guestReservedRoom || 'nincs beállítva'">
-                            </p-tag>
+                            <button
+                                pButton
+                                pRipple
+                                type="button"
+                                class="p-button p-1"
+                                icon="pi pi-external-link"
+                                [label]="guestReservations[0]?.room?.roomNum || 'nincs beállítva'"
+                                [routerLink]="['/reservation']"
+                                [queryParams]="{
+                                    reservation_id: guestReservations[0]?.id,
+                                    conference_id: guestReservations[0]?.conference_id,
+                                    open: 1
+                                }"
+                                pTooltip="Ugrás a vendég foglalásaihoz"
+                                tooltipPosition="top"
+                                [disabled]="!(guestReservations?.length && guestReservations[0]?.id)">
+                            </button>
                         </div>
                     </div>
 

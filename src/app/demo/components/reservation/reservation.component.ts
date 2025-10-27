@@ -1,6 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { auditTime, BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject, Subscription, switchMap, filter } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { ConfirmationService } from 'primeng/api';
 import { MessageService } from 'primeng/api';
@@ -123,6 +125,7 @@ export class ReservationComponent implements OnInit {
         private confirmationService: ConfirmationService,
         private messageService: MessageService,
         private responsiveService: ResponsiveService,
+        private route: ActivatedRoute,
         private fb: FormBuilder) {
 
         // Reservation form fields and validators
@@ -309,6 +312,92 @@ export class ReservationComponent implements OnInit {
         this.conferenceMessageObs$ = this.conferenceService.messageObs
         this.serviceMessageObs$.subscribe(message => this.handleMessage(message))
         this.conferenceMessageObs$.subscribe(message => this.handleMessage(message))
+
+        // Navigated with reservation ID
+        this.initDeepLinkFromReservationId()
+    }
+
+    /**
+     * Deep link: /reservation?reservation_id=123&conference_id=45&open=1
+     * - Preselect conference (to pass the guard)
+     * - Filter table ONLY to that reservation
+     * - Optionally open sidebar for editing
+     * - Reacts to later param changes too
+     */
+    private initDeepLinkFromReservationId(): void {
+        // Listen to param changes (also supports navigating to another reservation without full reload)
+        this.route.queryParamMap.pipe(
+            map(params => {
+                const confIdRaw = params.get('conference_id');
+                const resIdRaw = params.get('reservation_id');
+                const openRaw = params.get('open');  // '1' to auto-open, anything else => no
+
+                const conferenceId = confIdRaw != null ? Number(confIdRaw) : null;
+                const reservationId = resIdRaw != null ? Number(resIdRaw) : null;
+                const autoOpen = openRaw === '1' || openRaw === 'true' || openRaw === 'yes';
+
+                return {
+                    conferenceId: Number.isFinite(conferenceId as number) ? (conferenceId as number) : null,
+                    reservationId: Number.isFinite(reservationId as number) ? (reservationId as number) : null,
+                    autoOpen
+                };
+            }),
+            distinctUntilChanged((a, b) =>
+                a.conferenceId === b.conferenceId &&
+                a.reservationId === b.reservationId &&
+                a.autoOpen === b.autoOpen
+            )
+        ).subscribe(({ conferenceId, reservationId, autoOpen }) => {
+            // 1) Ha nincs param, takarítsunk: töröljük az előző "id" szűrőt és zárjuk a sidebart
+            if (!reservationId) {
+                if (this.filterValues['id']) {
+                    delete this.filterValues['id'];
+                    this.doQuery(true);
+                }
+                if (this.sidebar) {
+                    this.onSidebarHide();
+                }
+                return;
+            }
+
+            // 2) Konferencia előválasztása (ha jött a param)
+            if (conferenceId) {
+                this.selectedConferences = [{ id: conferenceId } as Conference];
+            }
+
+            // 3) Kérjük le CSAK azt az 1 foglalást (nem kell megvárni a táblás lekérdezést)
+            const sortArg: { sortField: string; sortOrder: SortDir } = { sortField: 'id', sortOrder: 1 };
+            this.reservationService.get$(0, 1, sortArg, `id=${reservationId}`).pipe(
+                map((resp: ApiResponse) => (resp?.rows?.[0] as Reservation) || null),
+                take(1)
+            ).subscribe({
+                next: (res) => {
+                    if (!res) {
+                        this.messageService.add({ severity: 'warn', summary: 'Figyelem', detail: 'A megadott foglalás nem található.' });
+                        return;
+                    }
+
+                    // 3/a) Ha nem jött conference_id, vegyük a foglalásból
+                    const confFromRes = (res as any).conference_id ?? (res as any).conference?.id ?? null;
+                    if (!conferenceId && confFromRes) {
+                        this.selectedConferences = [{ id: confFromRes } as Conference];
+                    }
+
+                    // 4) Táblát szűrjük csak erre az egy id-re
+                    this.filterValues = { ...this.filterValues, id: String(res.id) };
+                    this.page = 0;
+                    this.doQuery(true); // guard most már átmegy (van selectedConferences)
+
+                    // 5) Opcionálisan nyissuk is meg szerkesztésre
+                    if (autoOpen) {
+                        this.edit(res);
+                    }
+                },
+                error: () => {
+                    this.messageService.add({ severity: 'warn', summary: 'Figyelem', detail: 'A megadott foglalás nem található.' });
+                }
+            });
+        });
     }
 
     // Getters for form validation

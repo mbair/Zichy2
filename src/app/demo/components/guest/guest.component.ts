@@ -15,6 +15,7 @@ import { DietService } from '../../service/diet.service';
 import { CountryService } from '../../service/country.service';
 import { LogService } from '../../service/log.service';
 import { ApiResponse } from '../../api/ApiResponse';
+import { Reservation } from '../../api/reservation';
 import { Conference } from '../../api/conference';
 import { Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
@@ -98,7 +99,8 @@ export class GuestComponent implements OnInit {
     showUploadBlock: boolean = false             // Upload block visibility in edit form  
     guestConference: Conference                  // Guest's conference
     prepaidOptions: any[] = []                   // Possible prepaid options
-    guestReservedRoom: string | null = null      // Guest room reservation
+    guestReservations: Reservation[] = []        // Guest reservations
+    acutalReservation: any | null = null        // Actual guest reservation
 
     private initialFormValues = {
         id: null,
@@ -259,7 +261,7 @@ export class GuestComponent implements OnInit {
 
         this.selectionChanges$
             .pipe(
-                map(v => (v ?? []).map(x => x.id).sort().join(',')), 
+                map(v => (v ?? []).map(x => x.id).sort().join(',')),
                 distinctUntilChanged()
             )
             .subscribe(() => this.doQuery())
@@ -269,43 +271,63 @@ export class GuestComponent implements OnInit {
         this.guestObs$.subscribe((data: ApiResponse) => {
             this.loading = false
             if (data && data.rows) {
-                this.tableData = (data.rows || []).map((guest: any) => ({
-                    ...guest,
-                    answers: Array.isArray(guest.answers)
-                        ? guest.answers.map((answer: any) => ({
-                            ...answer,
-                            translations: Array.isArray(answer.translations)
-                                ? answer.translations
-                                : answer.translations
-                                    ? [answer.translations]
-                                    : []
-                        }))
-                        : guest.answers
-                            ? [{
-                                ...guest.answers,
-                                translations: Array.isArray(guest.answers.translations)
-                                    ? guest.answers.translations
-                                    : guest.answers.translations
-                                        ? [guest.answers.translations]
-                                        : []
-                            }]
-                            : []
-                }))
-                this.totalRecords = data.totalItems || 0
-                this.page = data.currentPage || 0
-
                 // Filter out test users on production
+                let rows = data.rows || []
                 if (!isDevMode()) {
-                    this.tableData = data.rows?.filter((guest: any) => guest.is_test !== true) || []
+                    rows = rows.filter((guest: any) => guest.is_test !== true)
                 }
 
-                // Define tagged users number
+                this.tableData = rows.map((guest: any) => {
+                    // answers -> mindig egységes tömb/tömb-of-translation
+                    const normalizedAnswers =
+                        Array.isArray(guest.answers)
+                            ? guest.answers.map((answer: any) => ({
+                                ...answer,
+                                translations: Array.isArray(answer.translations)
+                                    ? answer.translations
+                                    : answer.translations
+                                        ? [answer.translations]
+                                        : []
+                            }))
+                            : guest.answers
+                                ? [{
+                                    ...guest.answers,
+                                    translations: Array.isArray(guest.answers.translations)
+                                        ? guest.answers.translations
+                                        : guest.answers.translations
+                                            ? [guest.answers.translations]
+                                            : []
+                                }]
+                                : []
+
+                    const reservations = Array.isArray(guest.reservations) ? guest.reservations : []
+                    // FONTOS: a pickActualReservation a selectedConferences-t is figyelembe veheti
+                    const actualReservation = this.pickActualReservation({ ...guest, reservations })
+
+                    const computedRoomNum =
+                        actualReservation?.room?.roomNum ??
+                        guest.displayRoomNum ??
+                        guest.roomNum ??
+                        null
+
+                    return {
+                        ...guest,
+                        answers: normalizedAnswers,
+                        reservations,
+                        actualReservation,         // <<< ezt használd a template-ben a linkhez/címkéhez
+                        displayRoomNum: computedRoomNum,
+                        roomNum: computedRoomNum
+                    }
+                })
+
+                this.totalRecords = data.totalItems || 0
+                this.page = data.currentPage || 0
                 this.totalTaggedGuests = data.rfidCount || 0
             }
         })
 
         // Genders
-        this.genderObs$ = this.genderService.genderObs;
+        this.genderObs$ = this.genderService.genderObs
         this.genderObs$.subscribe((data: any) => {
             this.genders = data
         })
@@ -359,9 +381,9 @@ export class GuestComponent implements OnInit {
         )
 
         // Monitor the changes of the form
-        this.guestForm.valueChanges.pipe(
-            debounceTime(300)
-        ).subscribe(() => this.formChanges$.next())
+        this.guestForm.valueChanges
+            .pipe(debounceTime(300))
+            .subscribe(() => this.formChanges$.next())
 
         // On dateOfArrival change, update the firstMeal
         this.guestForm.get('dateOfArrival')?.valueChanges.subscribe(() => {
@@ -585,7 +607,7 @@ export class GuestComponent implements OnInit {
         }
 
         // Guest room reservation
-        this.guestReservedRoom = guest.displayRoomNum || guest.roomNum || null
+        this.guestReservations = guest.reservations ?? []
 
         this.sidebar = true
 
@@ -759,9 +781,9 @@ export class GuestComponent implements OnInit {
         if (idx !== -1) {
             const updated: Guest = { ...g, rfid: null, lastRfidUsage: null };
             this.tableData = [
-            ...this.tableData.slice(0, idx),
-            updated,
-            ...this.tableData.slice(idx + 1)
+                ...this.tableData.slice(0, idx),
+                updated,
+                ...this.tableData.slice(idx + 1)
             ];
             this.guest = updated;
         }
@@ -1367,6 +1389,26 @@ export class GuestComponent implements OnInit {
             const data = new Blob([excelBuffer], { type: EXCEL_TYPE })
             FileSaver.saveAs(data, 'NFCReserve_import_template' + EXCEL_EXTENSION)
         })
+    }
+
+
+    private pickActualReservation(g: any): any | null {
+        const resArr = Array.isArray(g?.reservations) ? g.reservations : []
+        if (!resArr.length) return null
+
+        const confId = this.selectedConferences?.[0]?.id ?? null
+        const inConf = confId
+            ? resArr.filter((r: any) => Number(r?.conference_id) === Number(confId))
+            : resArr
+
+        const pool = inConf.length ? inConf : resArr
+
+        // legnagyobb reservation.id
+        return pool.reduce((best: { id: any }, cur: { id: any }) => {
+            const a = Number(best?.id ?? -Infinity)
+            const b = Number(cur?.id ?? -Infinity)
+            return b > a ? cur : best
+        }, null as any)
     }
 
     isImage(url: string) {

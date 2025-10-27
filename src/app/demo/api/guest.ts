@@ -1,4 +1,5 @@
 import { Conference } from "./conference";
+import { Reservation } from "./reservation";
 
 export interface Guest {
     id: number;
@@ -46,6 +47,7 @@ export interface Guest {
     dietDetails?: string;
     idCardUploaded?: any;
     conference?: Conference[]
+    reservations?: Reservation[]
 }
 
 export type GuestFilter = {
