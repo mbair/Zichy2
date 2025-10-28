@@ -46,9 +46,9 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
 
     loading: boolean = true                          // Loading state indicator
     disabled: boolean = false                        // Whether the selector is disabled
-    conferences: Conference[] = []                   // List of available conference options
-    originalConferences: Conference[] = []           // Original list of conference options
-    selectedConferences: Conference[] = []           // List of currently selected conferences
+    conferences: any[] = []                   // List of available conference options
+    originalConferences: any[] = []           // Original list of conference options
+    selectedConferences: any[] = []           // List of currently selected conferences
 
     private _pendingSelectIds?: number[]
     private subscriptions: Subscription = new Subscription()
@@ -65,7 +65,8 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * Fetches the list of conferences and selects the first option if required.
      */
     ngOnInit(): void {
-        const sub = this.conferenceService.getConferencesForSelector()
+        const sub = this.conferenceService
+            .getSelector$({ sort: 'beginDate', order: 'asc', enabled: 1 })
             .subscribe({
                 next: conferences => {
                     this.conferences = conferences ?? []
