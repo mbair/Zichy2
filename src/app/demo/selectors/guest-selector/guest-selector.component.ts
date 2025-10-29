@@ -288,6 +288,30 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
         return this.roomTypeColorMap.get(roomType.trim().toLowerCase()) ?? ''
     }
 
+    // Remove a single guest from selection (works with OnPush because we replace the array reference)
+removeGuest(guest: Guest): void {
+    const next = (this.selectedGuests ?? []).filter(g => g.id !== guest.id);
+    this.selectedGuests = next;
+    // If this component is a ControlValueAccessor, notify the form as well:
+    if (typeof this.onChange === 'function') {
+        this.onChange(this.selectedGuests);
+    }
+}
+
+// Optional: clear all selected guests
+clearAllGuests(): void {
+    this.selectedGuests = [];
+    if (typeof this.onChange === 'function') {
+        this.onChange(this.selectedGuests);
+    }
+}
+
+// TrackBy for better performance
+trackByGuestId(_index: number, g: Guest): number {
+    return g.id;
+}
+
+
     // ===========================
     // ControlValueAccessor Methods
     // ===========================
