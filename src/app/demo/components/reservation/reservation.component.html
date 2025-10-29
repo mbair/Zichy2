@@ -312,24 +312,6 @@
                         </div>
                     </div>
 
-                    <!-- Room ID -->
-                    <div class="field mb-4 col-12">
-                        <label for="room_id" class="font-medium text-900">Szoba</label>
-                        <app-room-selector
-                            formControlName="room"
-                            [filter]="roomFilter"
-                            [selectionLimit]="1"
-                            [preselectIds]="preselectRoomIds"
-                            [emitOnPreselectId]="true"
-                            [showOnlyNotReserved]="true"
-                            [showClear]="true"
-                            placeholder="Szoba...">
-                        </app-room-selector>
-                        <div *ngIf="room?.dirty && room?.errors?.['required']" class="block p-error">
-                            Kötelező kitölteni
-                        </div>
-                    </div>
-
                     <!-- Guests -->
                     <div class="field mb-4 col-12">
                         <label for="guest" class="font-medium text-900">Vendég</label>
@@ -343,6 +325,24 @@
                             placeholder="Vendég...">
                         </app-guest-selector>
                         <div *ngIf="guests?.dirty && guests?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
+                    </div>
+
+                    <!-- Room -->
+                    <div class="field mb-4 col-12">
+                        <label for="room_id" class="font-medium text-900">Szoba</label>
+                        <app-room-selector
+                            formControlName="room"
+                            [filter]="roomFilter"
+                            [selectionLimit]="1"
+                            [preselectIds]="preselectRoomIds"
+                            [emitOnPreselectId]="true"
+                            [showOnlyNotReserved]="true"
+                            [showClear]="true"
+                            placeholder="Szoba...">
+                        </app-room-selector>
+                        <div *ngIf="room?.dirty && room?.errors?.['required']" class="block p-error">
                             Kötelező kitölteni
                         </div>
                     </div>
