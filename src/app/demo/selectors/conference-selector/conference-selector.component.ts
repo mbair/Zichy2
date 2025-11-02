@@ -7,6 +7,13 @@ import { Conference } from '../../api/conference';
 import { ConferenceService } from '../../service/conference.service';
 
 export type ChangeSource = 'user' | 'auto-select-first' | 'preselect-id' | 'programmatic';
+export type ExtendedConference = Conference & { __none__?: boolean }
+
+const NONE_OPTION: ExtendedConference = {
+    id: -1,
+    name: '— Nincs, vagy nincs engedélyezett konferenciája —',
+    __none__: true
+}
 
 @Component({
     selector: 'app-conference-selector',
@@ -69,8 +76,9 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
             .getSelector$({ sort: 'beginDate', order: 'asc', enabled: 1 })
             .subscribe({
                 next: conferences => {
-                    this.conferences = conferences ?? []
-                    this.originalConferences = [...(conferences ?? [])]   // clone
+                    const withNone = [NONE_OPTION, ...conferences]
+                    this.conferences = withNone
+                    this.originalConferences = [...withNone]   // clone
                     this.syncSelectedConferences()
                     this.handleSelectFirstOption()
                     this.updateDisabledFlags()
@@ -111,7 +119,9 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
         const disabledList = Array.isArray(this.disabledOptions) ? this.disabledOptions : []
         this.conferences = this.originalConferences.map((conference: Conference) => ({
             ...conference,
-            disabled: disabledList.some(disabledConf => disabledConf?.id === conference.id)
+            disabled: this.isNone(conference)
+                ? false
+                : disabledList.some(disabledConf => disabledConf?.id === conference.id)
         }))
         this.cdr.markForCheck()
     }
@@ -119,14 +129,9 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
     // Opcionális publikus setter programozott beállításhoz:
     public setSelection(value: Conference[], opts?: { emit?: boolean; source?: ChangeSource }) {
         const source = opts?.source ?? 'programmatic'
-        this.runSilently(() => {
-            this.selectedConferences = value?.slice(0, this.selectionLimit ?? value.length) ?? []
-        })
-        if (opts?.emit) {
-            this.emit(this.selectedConferences, source, true)
-        } else {
-            this.cdr.markForCheck() // no emit -> manual mark
-        }
+        this.runSilently(() => { this.selectedConferences = this.normalizeSelection(value) })
+        if (opts?.emit) this.emit(this.selectedConferences, source, true)
+        else this.cdr.markForCheck()
     }
 
     /**
@@ -134,16 +139,18 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * This ensures that the component has an initial selection when loaded.
      */
     private handleSelectFirstOption(): void {
-        if (this.selectFirstOption && this.selectedConferences.length === 0 && this.conferences.length) {
-            this.runSilently(() => {
-                this.selectedConferences = this.conferences.slice(0, this.selectionLimit ?? 1)
-            })
-            // if you specifically want this to trigger filtering:
-            if (this.emitOnSelectFirstOption) {
-                this.emit(this.selectedConferences, 'auto-select-first', true)
-            } else {
-                this.cdr.markForCheck()
-            }
+        if (!this.selectFirstOption || this.selectedConferences.length || !this.conferences.length) return
+
+        const firstReal = this.conferences.find(c => !this.isNone(c) && !c.disabled)
+        if (!firstReal) { this.cdr.markForCheck(); return }
+
+        this.runSilently(() => { this.selectedConferences = [firstReal] })
+
+        // if you specifically want this to trigger filtering:
+        if (this.emitOnSelectFirstOption) {
+            this.emit(this.selectedConferences, 'auto-select-first', true)
+        } else {
+            this.cdr.markForCheck()
         }
     }
 
@@ -161,24 +168,21 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * - Selection is ID-based (use `dataKey="id"` on the MultiSelect), not by object reference.
      */
     private preselectByIds(): void {
-        if (!this.conferences?.length || !this._pendingSelectIds?.length) return;
+        if (!this.conferences?.length || !this._pendingSelectIds?.length) return
 
-        const idSet = new Set(this._pendingSelectIds);
-        const found = this.conferences.filter(c => {
-            const cid = typeof c.id === 'string' ? Number(c.id) : c.id;
-            return idSet.has(cid as number);
-        });
+        const idSet = new Set(this._pendingSelectIds)
+        const found = this.conferences.filter(c => !this.isNone(c) && idSet.has(Number(c.id)))
 
         this.runSilently(() => {
-            const limit = this.selectionLimit ?? found.length;
-            this.selectedConferences = found.slice(0, limit);
-            this.conferenceSelectorRef?.writeValue(this.selectedConferences);
-        });
+            const limit = this.selectionLimit ?? found.length
+            this.selectedConferences = found.slice(0, limit)
+            this.conferenceSelectorRef?.writeValue(this.selectedConferences)
+        })
 
         if (this.emitOnPreselectId) {
-            this.emit(this.selectedConferences, 'preselect-id', true);
+            this.emit(this.selectedConferences, 'preselect-id', true)
         } else {
-            this.cdr.markForCheck();
+            this.cdr.markForCheck()
         }
     }
 
@@ -212,7 +216,8 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * @param event - The selection change event containing the selected values.
      */
     onSelectionChange(event: any): void {
-        this.selectedConferences = Array.isArray(event?.value) ? event.value : []
+        const raw = Array.isArray(event?.value) ? event.value : []
+        this.selectedConferences = this.normalizeSelection(raw)
         this.emit(this.selectedConferences, 'user')
 
         // Auto-close if max 1 can be selected and there is already a selection
@@ -233,6 +238,18 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
         })
         // Emit so parent form & listeners see the clear as well
         this.emit(this.selectedConferences, 'user', true)
+    }
+
+    // Helpers for none
+    private isNone = (c: any) => !!c?.__none__ || c?.id === -1
+    private getNone = (): ExtendedConference => NONE_OPTION
+
+    private normalizeSelection(list: Conference[]): Conference[] {
+        const arr = Array.isArray(list) ? list : []
+        const hasNone = arr.some(c => this.isNone(c))
+        if (hasNone) return [this.getNone()]
+        const limit = this.selectionLimit ?? arr.length
+        return arr.slice(0, limit)
     }
 
     private emit(value: Conference[], source: ChangeSource, force = false) {
@@ -260,20 +277,10 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * @param value - The selected conferences coming from the form.
      */
     writeValue(value: Conference[] | Conference | null | undefined): void {
-        const arr: Conference[] = Array.isArray(value) ? value : (value ? [value] : []);
-        const limit = Number.isFinite(this.selectionLimit as number) && (this.selectionLimit as number) > 0
-            ? (this.selectionLimit as number)
-            : arr.length;
-
-        this.runSilently(() => {
-            this.selectedConferences = arr.slice(0, limit)
-        });
-
-        if (this.emitOnWriteValue) {
-            this.emit(this.selectedConferences, 'programmatic', true)
-        } else {
-            this.cdr.markForCheck()
-        }
+        const arr: Conference[] = Array.isArray(value) ? value : (value ? [value] : [])
+        this.runSilently(() => { this.selectedConferences = this.normalizeSelection(arr) })
+        if (this.emitOnWriteValue) this.emit(this.selectedConferences, 'programmatic', true)
+        else this.cdr.markForCheck()
     }
 
     /**

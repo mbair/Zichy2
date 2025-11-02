@@ -102,6 +102,9 @@ export class GuestComponent implements OnInit {
     guestReservations: Reservation[] = []        // Guest reservations
     acutalReservation: any | null = null        // Actual guest reservation
 
+    private static readonly NONE_CONF_ID = -1
+    noConferenceMode: boolean = false
+
     private initialFormValues = {
         id: null,
         firstName: '',
@@ -439,14 +442,34 @@ export class GuestComponent implements OnInit {
 
             // Conditions met, perform the search
             this.loading = true
-            const conferenceIds = this.selectedConferences
-                .map(c => c.id)
-                .filter((id): id is number => id !== undefined)
 
-            this.guestService.getBySearch(
+            // same ID handling as in doQuery
+            const ids = this.selectedConferences
+                .map(c => Number(c.id))
+                .filter(n => Number.isFinite(n) && n !== GuestComponent.NONE_CONF_ID) as number[]
+
+            if (this.noConferenceMode) {
+                // build search + noConference query and use get()
+                const qp: string[] = [`search=${encodeURIComponent(searchValue)}`, 'noConference=1']
+                // include any other active table filters
+                const extraFilters = Object.keys(this.filterValues)
+                    .map(key => this.filterValues[key]?.length > 0 ? `${key}=${this.filterValues[key]}` : '')
+                    .filter(x => x.length > 0)
+                qp.push(...extraFilters)
+
+                return this.guestService.get(
+                    0,
+                    this.rowsPerPage,
+                    { sortField: this.sortField, sortOrder: this.sortOrder },
+                    qp.join('&')
+                )
+            }
+
+            // normal search path (keeps your existing behavior)
+            return this.guestService.getBySearch(
                 searchValue,
                 { sortField: this.sortField, sortOrder: this.sortOrder },
-                conferenceIds
+                ids
             )
         })
     }
@@ -492,16 +515,53 @@ export class GuestComponent implements OnInit {
 
         this.loading = true
 
+        // build base filters from table filters
         const filters = Object.keys(this.filterValues)
-            .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
-        const queryParams = filters.filter(x => x.length > 0).join('&')
+            .map(key => this.filterValues[key]?.length > 0 ? `${key}=${this.filterValues[key]}` : '')
+            .filter(x => x.length > 0)
 
-        if (this.globalFilter !== '') {
-            const conferenceIds = this.selectedConferences.map(c => c.id).filter((id): id is number => id !== undefined)
-            return this.guestService.getBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder }, conferenceIds)
+        // translate conference selection to API params
+        const ids = this.selectedConferences
+            .map(c => Number(c.id))
+            .filter(n => Number.isFinite(n) && n !== GuestComponent.NONE_CONF_ID) as number[]
+
+        if (this.noConferenceMode) {
+            filters.push('noConference=1')
+        } else if (ids.length) {
+            filters.push(`conferenceIds=${ids.join(',')}`)
         }
 
-        return this.guestService.get(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
+        const queryParams = filters.join('&')
+
+        // global search path
+        if (this.globalFilter !== '') {
+            // if "no conference" mode, use get() with search param
+            if (this.noConferenceMode) {
+                const qp = [`search=${encodeURIComponent(this.globalFilter)}`]
+                if (queryParams) qp.push(queryParams);
+                return this.guestService.get(
+                    this.page,
+                    this.rowsPerPage,
+                    { sortField: this.sortField, sortOrder: this.sortOrder },
+                    qp.join('&')
+                )
+            }
+
+            // normal path (has real conference IDs or none selected): keep using getBySearch
+            return this.guestService.getBySearch(
+                this.globalFilter,
+                { sortField: this.sortField, sortOrder: this.sortOrder },
+                ids
+            )
+        }
+
+        // default list path
+        return this.guestService.get(
+            this.page,
+            this.rowsPerPage,
+            { sortField: this.sortField, sortOrder: this.sortOrder },
+            queryParams
+        )
     }
 
     onFilter(event: any, field: string) {
@@ -1183,7 +1243,11 @@ export class GuestComponent implements OnInit {
      */
     onConferenceSelectionChange(selectedConferences: Conference[]): void {
         this.selectedConferences = selectedConferences || []
-        this.filterValues['conferenceName'] = this.selectedConferences.map(conf => conf.name).join(', ') || ''
+        this.noConferenceMode = this.isNoneConferenceSelected(this.selectedConferences)
+
+        // Do NOT push the sentinel text into query params
+        // We control conference filtering via noConference / conferenceIds
+        delete this.filterValues['conferenceName']
 
         // Check if the user can edit the selected conferences
         if (this.isOrganizer && this.selectedConferences.length > 0) {
@@ -1191,7 +1255,8 @@ export class GuestComponent implements OnInit {
                 conf.guestEditEndDate && moment().isSameOrBefore(moment(conf.guestEditEndDate), 'day')
             )
         } else {
-            this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo']).subscribe(canEdit => this.canEdit = canEdit)
+            this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo'])
+                .subscribe(canEdit => this.canEdit = canEdit)
         }
 
         this.selectionChanges$.next(this.selectedConferences)
@@ -1408,6 +1473,10 @@ export class GuestComponent implements OnInit {
             const b = Number(cur?.id ?? -Infinity)
             return b > a ? cur : best
         }, null as any)
+    }
+
+    private isNoneConferenceSelected(confs: Conference[] | null | undefined): boolean {
+        return !!confs?.some(c => (c as any)?.__none__ === true || Number(c?.id) === GuestComponent.NONE_CONF_ID)
     }
 
     isImage(url: string) {
