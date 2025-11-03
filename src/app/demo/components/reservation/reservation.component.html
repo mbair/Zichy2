@@ -437,7 +437,7 @@
         <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <!-- <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.roomNum}}</b> szobát?</span> -->
+                <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.room?.roomNum}}</b> szoba foglalását?</span>
             </div>
             <ng-template pTemplate="footer">
                 <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="deleteDialog = false"></button>
