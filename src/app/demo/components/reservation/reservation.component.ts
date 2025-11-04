@@ -319,19 +319,19 @@ export class ReservationComponent implements OnInit {
         // Listen to param changes (also supports navigating to another reservation without full reload)
         this.route.queryParamMap.pipe(
             map(params => {
-                const confIdRaw = params.get('conference_id');
-                const resIdRaw = params.get('reservation_id');
-                const openRaw = params.get('open');  // '1' to auto-open, anything else => no
+                const confIdRaw = params.get('conference_id')
+                const resIdRaw = params.get('reservation_id')
+                const openRaw = params.get('open')  // '1' to auto-open, anything else => no
 
-                const conferenceId = confIdRaw != null ? Number(confIdRaw) : null;
-                const reservationId = resIdRaw != null ? Number(resIdRaw) : null;
-                const autoOpen = openRaw === '1' || openRaw === 'true' || openRaw === 'yes';
+                const conferenceId = confIdRaw != null ? Number(confIdRaw) : null
+                const reservationId = resIdRaw != null ? Number(resIdRaw) : null
+                const autoOpen = openRaw === '1' || openRaw === 'true' || openRaw === 'yes'
 
                 return {
                     conferenceId: Number.isFinite(conferenceId as number) ? (conferenceId as number) : null,
                     reservationId: Number.isFinite(reservationId as number) ? (reservationId as number) : null,
                     autoOpen
-                };
+                }
             }),
             distinctUntilChanged((a, b) =>
                 a.conferenceId === b.conferenceId &&
@@ -342,22 +342,22 @@ export class ReservationComponent implements OnInit {
             // 1) Ha nincs param, takarítsunk: töröljük az előző "id" szűrőt és zárjuk a sidebart
             if (!reservationId) {
                 if (this.filterValues['id']) {
-                    delete this.filterValues['id'];
-                    this.doQuery(true);
+                    delete this.filterValues['id']
+                    this.doQuery(true)
                 }
                 if (this.sidebar) {
-                    this.onSidebarHide();
+                    this.closeSidebar()
                 }
-                return;
+                return
             }
 
             // 2) Konferencia előválasztása (ha jött a param)
             if (conferenceId) {
-                this.selectedConferences = [{ id: conferenceId } as Conference];
+                this.selectedConferences = [{ id: conferenceId } as Conference]
             }
 
             // 3) Kérjük le CSAK azt az 1 foglalást (nem kell megvárni a táblás lekérdezést)
-            const sortArg: { sortField: string; sortOrder: SortDir } = { sortField: 'id', sortOrder: 1 };
+            const sortArg: { sortField: string; sortOrder: SortDir } = { sortField: 'id', sortOrder: 1 }
             this.reservationService.get$(0, 1, sortArg, `id=${reservationId}`).pipe(
                 map((resp: ApiResponse) => (resp?.rows?.[0] as Reservation) || null),
                 take(1)
@@ -365,30 +365,30 @@ export class ReservationComponent implements OnInit {
                 next: (res) => {
                     if (!res) {
                         this.messageService.add({ severity: 'warn', summary: 'Figyelem', detail: 'A megadott foglalás nem található.' });
-                        return;
+                        return
                     }
 
                     // 3/a) Ha nem jött conference_id, vegyük a foglalásból
-                    const confFromRes = (res as any).conference_id ?? (res as any).conference?.id ?? null;
+                    const confFromRes = (res as any).conference_id ?? (res as any).conference?.id ?? null
                     if (!conferenceId && confFromRes) {
-                        this.selectedConferences = [{ id: confFromRes } as Conference];
+                        this.selectedConferences = [{ id: confFromRes } as Conference]
                     }
 
                     // 4) Táblát szűrjük csak erre az egy id-re
-                    this.filterValues = { ...this.filterValues, id: String(res.id) };
-                    this.page = 0;
-                    this.doQuery(true); // guard most már átmegy (van selectedConferences)
+                    this.filterValues = { ...this.filterValues, id: String(res.id) }
+                    this.page = 0
+                    this.doQuery(true) // guard most már átmegy (van selectedConferences)
 
                     // 5) Opcionálisan nyissuk is meg szerkesztésre
                     if (autoOpen) {
-                        this.edit(res);
+                        this.edit(res)
                     }
                 },
                 error: () => {
                     this.messageService.add({ severity: 'warn', summary: 'Figyelem', detail: 'A megadott foglalás nem található.' });
                 }
-            });
-        });
+            })
+        })
     }
 
     // Getters for form validation
@@ -499,21 +499,21 @@ export class ReservationComponent implements OnInit {
 
         // If we are creating a NEW reservation (no id) and the header has a selected conference,
         // prefill the sidebar's conference selector to match the header selection.
-        const isNew = !this.id?.value;
-        const headerConf = this.selectedConferences?.[0];
+        const isNew = !this.id?.value
+        const headerConf = this.selectedConferences?.[0]
 
         if (isNew && headerConf) {
             // Optional: pass to child selector as well (if it uses preselectIds internally)
-            this.preselectConferenceId = headerConf.id;
+            this.preselectConferenceId = headerConf.id
 
             // IMPORTANT: write an array (CVA MultiSelect expects an array)
             // emitEvent: true -> triggers your existing valueChanges pipeline
             this.reservationForm.patchValue(
                 { conference: [headerConf] },
                 { emitEvent: true }
-            );
+            )
         } else {
-            this.preselectConferenceId = undefined;
+            this.preselectConferenceId = undefined
         }
     }
 
@@ -531,6 +531,9 @@ export class ReservationComponent implements OnInit {
         this.preselectRoomIds = undefined
         this.preselectGuestIds = []
 
+        // don't let next "cancel" resurrect an old edit state
+        this.originalFormValues = undefined
+
         // Clean form state
         this.preselectConferenceId = undefined
         this.reservationForm.markAsPristine()
@@ -538,6 +541,11 @@ export class ReservationComponent implements OnInit {
 
         // Re-enable emissions on the next tick (after hide finishes)
         queueMicrotask(() => this.suppressEmits = false)
+    }
+
+    private closeSidebar(): void {
+        // Only toggle; p-sidebar (onHide) will call onSidebarHide()
+        this.sidebar = false
     }
 
     private onGuestsSelectionChange(room: Room, nextGuests: Guest[]): void {
@@ -607,9 +615,30 @@ export class ReservationComponent implements OnInit {
      * Create new Reservation
      */
     create() {
-        // keep it clean: no events on reset
-        this.reservationForm.reset(this.initialFormValues, { emitEvent: false })
-        this.sidebar = true // onSidebarShow() will prefill the conference if possible
+        // Hard reset to the CLOSED state so nothing leaks from a previous edit
+        this.suppressEmits = true
+
+        // Clear any preselects/state from last edit
+        this.preselectConferenceId = undefined
+        this.preselectRoomIds = undefined
+        this.preselectGuestIds = []
+        this.bedFullWarnedByGuest.clear()
+        this.lastSelectionByRoom.clear()
+
+        // Reset filters that depend on the last edit
+        this.roomFilter = { enabled: true }
+        this.guestFilter = { enabled: true }
+
+        // Reset the form to the CLOSED baseline (includes disabled controls)
+        this.reservationForm.reset(this.INITIAL_FORM_STATE_CLOSED, { emitEvent: false })
+        this.reservationForm.markAsPristine()
+        this.reservationForm.markAsUntouched()
+
+        // baseline for Cancel in "create" flow
+        this.originalFormValues = this.reservationForm.getRawValue()
+
+        this.suppressEmits = false
+        this.sidebar = true // (onShow) prefill will run
     }
 
     /**
@@ -773,7 +802,6 @@ export class ReservationComponent implements OnInit {
         }
 
         this.doQuery()
-        this.sidebar = false
     }
 
     /**
@@ -790,7 +818,6 @@ export class ReservationComponent implements OnInit {
      */
     handleMessage(message: any) {
         if (!message) return
-
         this.loading = false
 
         if (message == 'ERROR' || message?.severity === 'error') {
@@ -799,6 +826,7 @@ export class ReservationComponent implements OnInit {
                 summary: message?.summary ?? 'Error',
                 detail: message?.detail ?? 'Hiba történt!'
             })
+            return // keep sidebar open for fixing
         } else {
             // Show service response message
             this.messageService.add(message)
@@ -809,6 +837,9 @@ export class ReservationComponent implements OnInit {
 
             // Forced Query after data changes
             this.doQuery(true)
+
+            // Close only on success:
+            this.closeSidebar()
         }
     }
 
@@ -847,7 +878,7 @@ export class ReservationComponent implements OnInit {
 
     // Optional: clearer tooltip text
     capacityTooltip(cap: number): string {
-        if (cap < 0) return `Túlfoglava ${Math.abs(cap)} fővel`
+        if (cap < 0) return `Túlfoglalva ${Math.abs(cap)} fővel`
         return `Szabad ágy ${cap} fő részére`
     }
 
