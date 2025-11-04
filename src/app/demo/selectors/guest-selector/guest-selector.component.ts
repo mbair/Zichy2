@@ -254,10 +254,10 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
      */
     onSelectionClear(): void {
         this.runSilently(() => {
-            this.selectedGuests = [];
-            this.guestSelectorRef?.writeValue([]);
+            this.selectedGuests = []
+            this.guestSelectorRef?.writeValue([])
         });
-        this.emit(this.selectedGuests, 'user', true);
+        this.emit(this.selectedGuests, 'user', true)
     }
 
     private emit(value: Guest[], source: ChangeSource, force = false) {
@@ -267,9 +267,9 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
     }
 
     private toNumId(v: unknown): number | null {
-        if (typeof v === 'number' && Number.isFinite(v)) return v;
-        if (typeof v === 'string' && v.trim() !== '' && Number.isFinite(+v)) return +v;
-        return null;
+        if (typeof v === 'number' && Number.isFinite(v)) return v
+        if (typeof v === 'string' && v.trim() !== '' && Number.isFinite(+v)) return +v
+        return null
     }
 
     getAge(birthDate: string): string {
@@ -289,27 +289,27 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
     }
 
     // Remove a single guest from selection (works with OnPush because we replace the array reference)
-removeGuest(guest: Guest): void {
-    const next = (this.selectedGuests ?? []).filter(g => g.id !== guest.id);
-    this.selectedGuests = next;
-    // If this component is a ControlValueAccessor, notify the form as well:
-    if (typeof this.onChange === 'function') {
-        this.onChange(this.selectedGuests);
+    removeGuest(guest: Guest): void {
+        const next = (this.selectedGuests ?? []).filter(g => g.id !== guest.id)
+        this.selectedGuests = next;
+        // If this component is a ControlValueAccessor, notify the form as well:
+        if (typeof this.onChange === 'function') {
+            this.onChange(this.selectedGuests)
+        }
     }
-}
 
-// Optional: clear all selected guests
-clearAllGuests(): void {
-    this.selectedGuests = [];
-    if (typeof this.onChange === 'function') {
-        this.onChange(this.selectedGuests);
+    // Optional: clear all selected guests
+    clearAllGuests(): void {
+        this.selectedGuests = [];
+        if (typeof this.onChange === 'function') {
+            this.onChange(this.selectedGuests)
+        }
     }
-}
 
-// TrackBy for better performance
-trackByGuestId(_index: number, g: Guest): number {
-    return g.id;
-}
+    // TrackBy for better performance
+    trackByGuestId(_index: number, g: Guest): number {
+        return g.id
+    }
 
 
     // ===========================

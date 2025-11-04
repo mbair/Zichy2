@@ -208,43 +208,7 @@ export class ReservationComponent implements OnInit {
             )
             .subscribe(conf => {
                 const first = conf?.[0]
-
-                // Set form values by selected conference
-                this.reservationForm.patchValue({
-                    conference_id: first?.id ?? null,
-                    startDate: first?.beginDate ?? null,
-                    endDate: first?.endDate ?? null
-                }, { emitEvent: false })
-
-                // Filter rooms by selected conference
-                this.roomFilter = { ...this.roomFilter, conferenceId: first?.id ?? null }
-
-                // Filter guests by selected conference
-                this.guestFilter = { ...this.guestFilter, conferenceId: first?.id ?? null }
-
-                if (first) {
-                    this.room?.reset(null, { emitEvent: false })
-                    this.room_id?.reset(null, { emitEvent: false })
-                    this.room?.enable({ emitEvent: false })
-
-                    this.guests?.reset(null, { emitEvent: false })
-                    this.guestIds?.reset(null, { emitEvent: false })
-                    this.guests?.enable({ emitEvent: false })
-
-                    this.startDate?.enable({ emitEvent: false })
-                    this.endDate?.enable({ emitEvent: false })
-                } else {
-                    this.room?.reset(null, { emitEvent: false })
-                    this.room_id?.reset(null, { emitEvent: false })
-                    this.room?.disable({ emitEvent: false })
-
-                    this.guests?.reset(null, { emitEvent: false })
-                    this.guestIds?.reset(null, { emitEvent: false })
-                    this.guests?.disable({ emitEvent: false })
-
-                    this.startDate?.disable({ emitEvent: false })
-                    this.endDate?.disable({ emitEvent: false })
-                }
+                this.applyConferenceSideEffects(first)
             })
 
         // Monitor room change
@@ -512,8 +476,14 @@ export class ReservationComponent implements OnInit {
                 { conference: [headerConf] },
                 { emitEvent: true }
             )
+
+            // Fallback: force side-effects even if valueChanges didn't fire
+            queueMicrotask(() => this.applyConferenceSideEffects(headerConf))
         } else {
             this.preselectConferenceId = undefined
+            
+            // If there is already a value selected manually, also align state
+            queueMicrotask(() => this.applyConferenceSideEffects())
         }
     }
 
@@ -526,7 +496,8 @@ export class ReservationComponent implements OnInit {
         this.sidebar = false
 
         // One-shot reset to initial closed state: clears room/guests/dates, disables where needed
-        this.reservationForm.reset(this.INITIAL_FORM_STATE_CLOSED, { emitEvent: false })
+        // IMPORTANT: emit so distinctByIds sees [] before the next open
+        this.reservationForm.reset(this.INITIAL_FORM_STATE_CLOSED, { emitEvent: true })
         this.preselectConferenceId = undefined
         this.preselectRoomIds = undefined
         this.preselectGuestIds = []
@@ -1068,6 +1039,61 @@ export class ReservationComponent implements OnInit {
 
         // Persist selection snapshot for this room
         this.lastSelectionByRoom.set(roomId, ids);
+    }
+
+    private applyConferenceSideEffects(conf?: Conference | null): void {
+        const current =
+            conf ??
+            (Array.isArray(this.conference?.value) && this.conference!.value.length
+                ? (this.conference!.value as Conference[])[0]
+                : null)
+
+        const isNew = !this.id?.value
+        const norm = (v: any) => (v ? moment(v).format('YYYY-MM-DD') : null)
+
+        // Always keep conference_id and filters in sync
+        this.reservationForm.patchValue({
+            conference_id: current?.id ?? null
+        }, { emitEvent: false })
+
+        this.roomFilter = { ...this.roomFilter, conferenceId: current?.id ?? null }
+        this.guestFilter = { ...this.guestFilter, conferenceId: current?.id ?? null }
+
+        // Prefill dates only when creating or when the field is empty
+        const curStart = this.startDate?.value
+        const curEnd   = this.endDate?.value
+        const datePatch: any = {}
+
+        if (current) {
+            if (isNew || !curStart) {
+                datePatch.startDate = norm((current as any).beginDate)
+            }
+            if (isNew || !curEnd) {
+                datePatch.endDate = norm((current as any).endDate)
+            }
+            if (Object.keys(datePatch).length) {
+                this.reservationForm.patchValue(datePatch, { emitEvent: false })
+            }
+            
+            // Enable dependent controls
+            this.room?.enable({ emitEvent: false })
+            this.guests?.enable({ emitEvent: false })
+            this.startDate?.enable({ emitEvent: false })
+            this.endDate?.enable({ emitEvent: false })
+        } else {
+            // When there is no conference:
+            // - in edit mode keep existing dates,
+            // - in create mode clear dates.
+            if (isNew) {
+                this.reservationForm.patchValue({ startDate: null, endDate: null }, { emitEvent: false })
+            }
+            
+            // Disable if no conference
+            this.room?.disable({ emitEvent: false })
+            this.guests?.disable({ emitEvent: false })
+            this.startDate?.disable({ emitEvent: false })
+            this.endDate?.disable({ emitEvent: false })
+        }
     }
 
     // Don't delete this, its needed from a performance point of view,
