@@ -258,17 +258,8 @@ export class ReservationComponent implements OnInit {
 
                 // reset per-room warning state (ne vigyük át az előző szobából)
                 if (first?.id != null) {
-                    // induláskor vegyük a mostani kiválasztást alapnak
-                    const currentGuestIds: number[] = Array.isArray(this.guestIds?.value)
-                        ? this.guestIds!.value as number[]
-                        : [];
-
-                    this.lastSelectionByRoom.set(Number(first?.id), currentGuestIds);
-
-                    // töröljük az ehhez a szobához tartozó korábbi vendég-figyelmeztetéseket
-                    [...this.bedFullWarnedByGuest]
-                        .filter(k => k.startsWith(`${first.id}:`))
-                        .forEach(k => this.bedFullWarnedByGuest.delete(k));
+                    // Validate current guest selection against the newly chosen room
+                    this.validateCapacityForCurrentSelection(first)
                 }
             })
 
@@ -551,52 +542,65 @@ export class ReservationComponent implements OnInit {
 
     private onGuestsSelectionChange(room: Room, nextGuests: Guest[]): void {
         const roomId = Number(room?.id);
-        const beds = Number(room?.beds ?? 0);
+        const beds = Number(room?.beds ?? 0); // hard beds only
 
         const prevIds = this.lastSelectionByRoom.get(roomId) ?? [];
         const nextIds = nextGuests.map(g => g.id);
 
-        // Determine which IDs were newly added
+        // Determine newly added ids to detect "last added"
         const prevSet = new Set(prevIds);
-        const addedIds = nextIds.filter(id => !prevSet.has(id));
+        const addedIds: number[] = nextIds.filter(id => !prevSet.has(id));
+        const lastAddedId: number | null =
+            addedIds.length ? addedIds[addedIds.length - 1] : null;
 
-        // How many guests were already selected before this change
-        const countBefore = prevIds.length;
+        // Total number of guests currently exceeding hard-bed capacity
+        const overNow = Math.max(0, nextIds.length - beds);
 
-        // For each newly added guest, compute their "position" after addition
-        // If position > beds => this guest is over capacity -> warn (once per guest)
-        let index = 0;
-        for (const addedId of addedIds) {
-            index += 1;
-            const position = countBefore + index; // 1-based position after adding this guest
-            if (position > beds) {
-                const warnKey = `${roomId}:${addedId}`;
-                if (!this.bedFullWarnedByGuest.has(warnKey)) {
-                    const g = nextGuests.find(x => x.id === addedId);
-                    const name = g ? `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim() || 'A vendég' : 'A vendég';
-                    this.bedFullWarnedByGuest.add(warnKey);
+        // Mark newly added guests that are over the bed count to avoid duplicate prompts
+        const newlyOverAdded = addedIds
+            .map((id, idx) => ({ id, pos: prevIds.length + idx + 1 })) // 1-based pos after add
+            .filter(x => x.pos > beds)
+            .map(x => x.id)
+            .filter(id => !this.bedFullWarnedByGuest.has(`${roomId}:${id}`));
+        newlyOverAdded.forEach(id => this.bedFullWarnedByGuest.add(`${roomId}:${id}`));
 
-                    this.confirmationService.confirm({
-                        header: 'Figyelmeztetés',
-                        message: `${name} már nem fér ágyra! Matracra,\n vagy gyerekágyra kerülhet.`,
-                        icon: 'pi pi-exclamation-triangle',
-                        acceptLabel: 'OK',
-                        rejectVisible: false
-                    });
-                }
+        // Show a single message:
+        //  - if exactly 1 over-bed -> show the LAST added person's name
+        //  - if 2+ over-bed       -> show count only (e.g., "2 fő már nem fér ágyra!")
+        if (overNow > 0) {
+            if (overNow === 1 && lastAddedId != null) {
+                const g = nextGuests.find(x => x.id === lastAddedId);
+                const name = g ? `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim() || 'A vendég' : 'A vendég';
+                this.confirmationService.confirm({
+                    header: 'Figyelmeztetés',
+                    message: `${name} már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
+                    icon: 'pi pi-exclamation-triangle',
+                    acceptLabel: 'OK',
+                    rejectVisible: false
+                });
+            } else {
+                this.confirmationService.confirm({
+                    header: 'Figyelmeztetés',
+                    message: `${overNow} fő már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
+                    icon: 'pi pi-exclamation-triangle',
+                    acceptLabel: 'OK',
+                    rejectVisible: false
+                });
             }
         }
 
-        // Persist new selection for this room
+        // Persist selection order for this room
         this.lastSelectionByRoom.set(roomId, nextIds);
 
-        // Optional: if user removed down to <= beds, clear per-guest warned set for this room
+        // If selection returns to <= beds, clear warn flags for this room
         if (nextIds.length <= beds) {
-            // clear all warn flags for this room to allow warnings again in future
             [...this.bedFullWarnedByGuest]
                 .filter(k => k.startsWith(`${roomId}:`))
                 .forEach(k => this.bedFullWarnedByGuest.delete(k));
         }
+
+        // Keep form model in sync (IDs only)
+        this.reservationForm.patchValue({ guestIds: nextIds }, { emitEvent: false });
     }
 
     /**
@@ -922,7 +926,20 @@ export class ReservationComponent implements OnInit {
     }
 
     /**
-     * 
+     * Builds a deterministic “query signature” for the current table state.
+     * Used by the reactive pipeline (distinctUntilChanged) to avoid redundant fetches.
+     *
+     * Encoded segments, in order:
+     *  - page, rowsPerPage, sortField, sortOrder
+     *  - globalFilter (empty string if not set)
+     *  - selected conference IDs (sorted, then joined with “,” so order doesn’t matter)
+     *  - column filters as k=v pairs joined with “&” (falsy/empty filters are omitted)
+     *
+     * The segments are joined with “|”, producing the same key for logically identical states.
+     * NOTE: If you ever allow “|” inside segment values, make sure to escape it before joining.
+     *
+     * Example:
+     *   "0|50|id|1||12,20|status=confirmed&room.building=A"
      */
     private buildQueryKey(): string {
         const confIds = (this.selectedConferences ?? []).map(c => c.id).sort().join(',')
@@ -936,16 +953,90 @@ export class ReservationComponent implements OnInit {
         ].join('|')
     }
 
-    // Build a stable key for the warning memory (roomId + beds)
-    private buildWarnKey(roomId: number | string | null | undefined, beds: number): string {
-        const idPart = roomId != null ? String(roomId) : 'noRoom'
-        return `${idPart}|beds:${beds}`
-    }
-
     // Get currently selected room (first item from the MultiSelect)
     private getSelectedRoom(): Room | null {
         const val = this.room?.value
         return Array.isArray(val) && val.length ? (val[0] as Room) : null
+    }
+
+    // Warn after a room change if current selection does not fit
+    private validateCapacityForCurrentSelection(room: Room): void {
+        const roomId = Number(room?.id);
+        const beds = Number(room?.beds ?? 0);       // hard beds
+        const extra = Number(room?.extraBeds ?? 0); // mattresses / baby beds
+
+        // Current guest selection
+        const guestsArr: Guest[] = Array.isArray(this.guests?.value) ? (this.guests!.value as Guest[]) : [];
+        const ids: number[] = guestsArr.map(g => g?.id).filter((x): x is number => x != null);
+
+        // Reset warn flags for this room (new room -> new context)
+        [...this.bedFullWarnedByGuest]
+            .filter(k => k.startsWith(`${roomId}:`))
+            .forEach(k => this.bedFullWarnedByGuest.delete(k));
+
+        // How many guests are over HARD beds right now?
+        const overNow = Math.max(0, ids.length - beds);
+        if (overNow <= 0) {
+            this.lastSelectionByRoom.set(roomId, ids);
+            return;
+        }
+
+        // Mark all over-bed guests as warned to avoid future duplicates
+        for (let i = beds; i < ids.length; i++) {
+            this.bedFullWarnedByGuest.add(`${roomId}:${ids[i]}`);
+        }
+
+        // If exactly 1 is over -> show that person's name (first over-bed at index 'beds').
+        // If 2 or more are over -> show count-only message.
+        if (overNow === 1) {
+            const gid = ids[beds];
+            const g = guestsArr.find(x => x.id === gid);
+            const name = g ? `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim() || 'A vendég' : 'A vendég';
+
+            this.confirmationService.confirm({
+                header: 'Figyelmeztetés',
+                message: `${name} már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
+                icon: 'pi pi-exclamation-triangle',
+                acceptLabel: 'OK',
+                rejectVisible: false,
+                accept: () => {
+                    // Optional toast for exceeding TOTAL capacity (beds + extra)
+                    const totalCap = beds + extra;
+                    if (ids.length > totalCap) {
+                        const over = ids.length - totalCap;
+                        this.messageService.add({
+                            severity: 'warn',
+                            summary: 'Kevés férőhely',
+                            detail: `Összes kapacitás: ${totalCap} (ágy + matrac/gyerekágy), kijelölve: ${ids.length}. ${over} fő ténylegesen nem fér be.`,
+                            life: 15000 // or key: 'capacityWarn' if you set a dedicated <p-toast>
+                        });
+                    }
+                }
+            });
+        } else {
+            this.confirmationService.confirm({
+                header: 'Figyelmeztetés',
+                message: `${overNow} fő már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
+                icon: 'pi pi-exclamation-triangle',
+                acceptLabel: 'OK',
+                rejectVisible: false,
+                accept: () => {
+                    const totalCap = beds + extra;
+                    if (ids.length > totalCap) {
+                        const over = ids.length - totalCap;
+                        this.messageService.add({
+                            severity: 'warn',
+                            summary: 'Kevés férőhely',
+                            detail: `Összes kapacitás: ${totalCap} (ágy + matrac/gyerekágy), kijelölve: ${ids.length}. ${over} fő ténylegesen nem fér be.`,
+                            life: 15000
+                        });
+                    }
+                }
+            })
+        }
+
+        // Persist selection snapshot for this room
+        this.lastSelectionByRoom.set(roomId, ids);
     }
 
     // Don't delete this, its needed from a performance point of view,
