@@ -245,21 +245,20 @@
                             <td>
                                 <span class="p-column-title">Konferenciák</span>
                                 <div class="flex flex-column gap-2">
-                                    <div *ngFor="let conference of room.conferences; trackBy: trackById" class="flex align-items-left">
-                                        <!-- Show only enabled conferences -->
-                                        <ng-container *ngIf="conference?.enabled">
-                                            <p-chip 
-                                                [styleClass]="isConferenceOverlapping(conference) ? 'bg-red-100' : ''"
-                                                [label]="conference.name" 
-                                                icon="pi pi-calendar" 
-                                                [removable]="true" 
-                                                (onRemove)="onRemove(conference, room)"
-                                                [pTooltip]="isConferenceOverlapping(conference) ? 'Átfedés van a konferenciával, amihez szobát rendelne' : undefined"
-                                                tooltipStyleClass="min-w-max"
-                                                tooltipPosition="top">
-                                            </p-chip>
-                                        </ng-container>
-                                    </div>
+                                    <!-- Show only enabled conferences -->
+                                    <ng-container *ngFor="let conference of (room.conferences || []); trackBy: trackById">
+                                        <p-chip
+                                            *ngIf="conference?.enabled"
+                                            [styleClass]="isConferenceOverlapping(conference) ? 'bg-red-100' : ''"
+                                            [label]="conference.name"
+                                            icon="pi pi-calendar"
+                                            [removable]="true"
+                                            (onRemove)="onRemove(conference, room)"
+                                            [pTooltip]="isConferenceOverlapping(conference) ? 'Átfedés van a konferenciával, amihez szobát rendelne' : undefined"
+                                            tooltipStyleClass="min-w-max"
+                                            tooltipPosition="top">
+                                        </p-chip>
+                                    </ng-container>
                                 </div>
                             </td>
                         </tr>
