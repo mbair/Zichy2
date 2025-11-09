@@ -248,7 +248,7 @@
                                     <!-- Show only enabled conferences -->
                                     <ng-container *ngFor="let conference of (room.conferences || []); trackBy: trackById">
                                         <p-chip
-                                            *ngIf="conference?.enabled"
+                                            *ngIf="conference?.enabled && (selectedConferences.length < 1 || isConferenceOverlapping(conference))"
                                             [styleClass]="isConferenceOverlapping(conference) ? 'bg-red-100' : ''"
                                             [label]="conference.name"
                                             icon="pi pi-calendar"
