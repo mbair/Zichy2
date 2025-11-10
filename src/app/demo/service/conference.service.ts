@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, map, Observable, of } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, of, shareReplay } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { Conference } from '../api/conference';
+import { HttpClient, HttpParams } from '@angular/common/http';
 
 @Injectable({
     providedIn: 'root',
@@ -14,7 +15,10 @@ export class ConferenceService {
     private data$: BehaviorSubject<any>
     private message$: BehaviorSubject<any>
 
-    constructor(private apiService: ApiService) {
+    // In-memory cache for the selector list
+    private selectorCache$?: Observable<any[]>;
+
+    constructor(private apiService: ApiService, private http: HttpClient) {
         this.apiURL = apiService.apiURL
         this.data$ = new BehaviorSubject<any>(null)
         this.message$ = new BehaviorSubject<any>(null)
@@ -207,18 +211,18 @@ export class ConferenceService {
      * Get conferences for selector
      * @returns
      */
-    public getConferencesForSelector(): Observable<Conference[]> {
+    // public getConferencesForSelector(): Observable<Conference[]> {
 
-        let queryParams = ''
+    //     let queryParams = ''
 
-        this.get(0, 999, { sortField: 'beginDate', sortOrder: 1 }, queryParams)
-        return this.data$.asObservable().pipe(
-            map((data: any) => {
-                const conferences = data ? data.rows : []
-                return conferences
-            })
-        )
-    }
+    //     this.get(0, 999, { sortField: 'beginDate', sortOrder: 1 }, queryParams)
+    //     return this.data$.asObservable().pipe(
+    //         map((data: any) => {
+    //             const conferences = data ? data.rows : []
+    //             return conferences
+    //         })
+    //     )
+    // }
 
     /**
      * Retrieves a conference by its unique identifier.
@@ -253,7 +257,7 @@ export class ConferenceService {
      * @param roomIds 
      */
     public assignRoomsToConference(conferenceId: any, roomIds: number[]): Observable<any> {
-        return this.apiService.post(`conferencesroom/addroom/${conferenceId.id}`, { roomIds });
+        return this.apiService.post(`conferencesroom/addroom/${conferenceId.id}`, { roomIds })
     }
 
     /**
@@ -261,20 +265,8 @@ export class ConferenceService {
      * @param conferenceId 
      * @param roomIds 
      */
-    public removeRoomsFromConference(conferenceId: number, roomIds: number[]): void {
-        this.apiService.post(`conferencesroom/removeroom/${conferenceId}`, { roomIds })
-            .subscribe({
-                next: (response: any) => {
-                    this.message$.next({
-                        severity: 'success',
-                        summary: 'Összerendelés törölve',
-                        detail: `Szoba-konferencia összerendelés törölve`,
-                    })
-                },
-                error: (error: any) => {
-                    this.message$.next(error)
-                }
-            })
+    public removeRoomsFromConference(conferenceId: number, roomIds: number[]): Observable<any> {
+        return this.apiService.post(`conferencesroom/removeroom/${conferenceId}`, { roomIds })
     }
 
     /**
@@ -300,4 +292,94 @@ export class ConferenceService {
                 }
             })
     }
-}   
+
+    /**
+     * Lightweight conference list for UI selectors.
+     * Calls GET /api/conference/selector with optional filters.
+     * Uses shareReplay(1) to cache the latest successful response.
+     */
+    getSelector$(opts: SelectorQuery = {}): Observable<ConferenceSelectorItem[]> {
+        const params = this.buildSelectorParams(opts)
+        const qs = params.toString()
+        return this.apiService
+            .get<ConferenceSelectorItem[]>(`conference/selector${qs ? `?${qs}` : ''}`)
+            .pipe(shareReplay(1))
+    }
+
+    /** Clears the in-memory selector cache */
+    clearSelectorCache(): void {
+        this.selectorCache$ = undefined;
+    }
+
+    /** Build query params for the selector endpoint */
+    private buildSelectorParams(opts: SelectorQuery): HttpParams {
+        let p = new HttpParams();
+
+        // enabled defaults to 1 (true) if not provided
+        if (opts.enabled !== undefined) {
+            const val = typeof opts.enabled === 'boolean' ? (opts.enabled ? '1' : '0') : String(opts.enabled);
+            p = p.set('enabled', val);
+        } else {
+            p = p.set('enabled', '1');
+        }
+
+        if (opts.sort) p = p.set('sort', opts.sort);
+        if (opts.order) p = p.set('order', opts.order);
+
+        return p;
+    }
+
+    /**
+     * Fetch aggregated stats (guests, beds) for one or more conferences.
+     * GET /api/conference/stats?ids=1,2,3
+     */
+    public getConferenceStatsByIds(ids: Array<number | string>): Observable<ConferenceStatsMap> {
+        if (!ids || ids.length === 0) {
+            // Return empty map to keep consumer code simple
+            return of({})
+        }
+        const params = new HttpParams().set('ids', ids.join(','))
+        const qs = params.toString()
+        // Using ApiService to keep base URL and interceptors consistent
+        return this.apiService.get<ConferenceStatsMap>(`conference/stats?${qs}`)
+    }
+
+    /**
+     * Convenience wrapper for a single conference id.
+     * Resolves to { guests, beds } or {0,0} if not found.
+     */
+    public getConferenceStat(id: number | string): Observable<ConferenceStats> {
+        return this.getConferenceStatsByIds([id]).pipe(
+            map((m: ConferenceStatsMap) => m[id as any] ?? m[String(id)] ?? { guests: 0, beds: 0 })
+        )
+    }
+}
+
+/** Minimal item used by the selector UI (matches the new endpoint schema) */
+export interface ConferenceSelectorItem {
+    id: number;
+    name: string;
+    beginDate: string;             // yyyy-mm-dd
+    endDate: string;               // yyyy-mm-dd
+    registrationEndDate?: string | null;
+    enabled: boolean | 0 | 1;
+}
+
+/** Optional filters for the selector request */
+export interface SelectorQuery {
+    enabled?: boolean | 0 | 1;     // default true
+    date_from?: string;            // yyyy-mm-dd
+    date_to?: string;              // yyyy-mm-dd
+    sort?: string;                 // e.g. 'beginDate'
+    order?: 'ASC' | 'DESC' | 'asc' | 'desc';
+    forceRefresh?: boolean;        // bypass cache if true
+}
+
+// Add these near the other interfaces at the bottom of the file
+export interface ConferenceStats {
+    guests: number;
+    beds: number;
+}
+
+/** Server returns a map keyed by conference id: e.g. { "151": { guests: 150, beds: 171 } } */
+export type ConferenceStatsMap = Record<string, ConferenceStats>;

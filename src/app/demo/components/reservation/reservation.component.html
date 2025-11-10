@@ -26,6 +26,7 @@
                             <app-conference-selector
                                 [(ngModel)]="selectedConferences"
                                 [emitOnSelectFirstOption]="true"
+                                [selectionLimit]="1"
                                 [showClear]="true"
                                 [style]="{'minWidth': '35rem'}"
                                 placeholder="Válasszon konferenciát..."
@@ -33,7 +34,7 @@
                             </app-conference-selector>
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
-                            <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Ágyak száma: {{ numberOfBeds }}" tooltipPosition="top">
+                            <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Ágyak száma: {{ totalBeds }}" tooltipPosition="top">
                                 <div class="flex align-items-center justify-content-center py-1 px-1">
                                     <div class="flex align-items-center justify-content-center gap-2 px-2">
                                         <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
@@ -49,7 +50,43 @@
                                             </g>
                                         </svg>
                                         <span class="text-2xl font-normal white-space-nowrap vertical-align-middle">
-                                            {{ numberOfBeds }}
+                                            {{ totalBeds }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </span>
+                        <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Regisztrált vendégek: {{ registeredGuests }}" tooltipPosition="top">
+                                <div class="flex align-items-center justify-content-center py-1 px-1">
+                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
+                                        <i class="pi pi-users" style="font-size: 1.5rem"></i>
+                                        <span class="text-2xl font-normal white-space-nowrap vertical-align-middle">
+                                            {{ registeredGuests }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </span>
+                        <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <div class="border-round-xl w-min p-0 bg-green-100" pTooltip="Vendégek foglalással: {{ reservedGuests }}" tooltipPosition="top">
+                                <div class="flex align-items-center justify-content-center py-1 px-1">
+                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
+                                        <i class="pi pi-users" style="font-size: 1.5rem"></i>
+                                        <span class="text-2xl font-normal white-space-nowrap vertical-align-middle">
+                                            {{ reservedGuests }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </span>
+                        <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <div class="border-round-xl w-min p-0 bg-yellow-100" pTooltip="Szobára várók: {{ waitingForRoom }}" tooltipPosition="top">
+                                <div class="flex align-items-center justify-content-center py-1 px-1">
+                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
+                                        <i class="pi pi-users" style="font-size: 1.5rem"></i>
+                                        <span class="text-2xl font-normal white-space-nowrap vertical-align-middle">
+                                            {{ waitingForRoom }}
                                         </span>
                                     </div>
                                 </div>
@@ -66,11 +103,11 @@
                     <tr>
                         <th></th>
                         <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
-                        <th pSortableColumn="guests">Vendégek <p-sortIcon field="guests"></p-sortIcon></th>
-                        <th pSortableColumn="dateOfArrival">Érkezés <p-sortIcon field="dateOfArrival"></p-sortIcon></th>
-                        <th pSortableColumn="dateOfDeparture">Távozás <p-sortIcon field="dateOfDeparture"></p-sortIcon></th>
+                        <th>Vendégek</th>
+                        <th pSortableColumn="startDate">Érkezés <p-sortIcon field="startDate"></p-sortIcon></th>
+                        <th pSortableColumn="endDate">Távozás <p-sortIcon field="endDate"></p-sortIcon></th>
                         <th pSortableColumn="status">Státusz <p-sortIcon field="status"></p-sortIcon></th>
-                        <th pSortableColumn="comment">Megjegyzés <p-sortIcon field="comment"></p-sortIcon></th>
+                        <th pSortableColumn="notes">Megjegyzés <p-sortIcon field="notes"></p-sortIcon></th>
                         <th></th>
                     </tr>
                     <tr>
@@ -81,17 +118,17 @@
                             <input pInputText
                                    type="text"
                                    class="mr-2"
-                                   (input)="onFilter($event, 'reservationNum')"
+                                   (input)="onFilter($event, 'room.roomNum')"
                                    placeholder="Szobaszám..."
                                    style="width:8rem"/>
                            <app-building-selector
                                    class="mr-2"
-                                   (change)="onFilter($event, 'building')"
+                                   (change)="onFilter($event, 'room.building')"
                                    [showClear]="true"
                                    placeholder="Épület...">
                            </app-building-selector>
                            <app-bedtype-selector
-                                   (change)="onFilter($event, 'bedType')"
+                                   (change)="onFilter($event, 'room.bedType')"
                                    [showClear]="true"
                                    placeholder="Ágytipus...">
                            </app-bedtype-selector>
@@ -101,12 +138,12 @@
                                    type="text"
                                    (input)="onFilter($event, 'guests')"
                                    placeholder="Vendég..."
-                                   style="width: 7rem"/>
+                                   style="width: 15rem"/>
                         </th>
                         <th>
                             <p-calendar
-                                (onSelect)="onFilter($event, 'dateOfArrival')"
-                                (onClearClick)="onFilter($event, 'dateOfArrival')"
+                                (onSelect)="onFilter($event, 'startDate')"
+                                (onClearClick)="onFilter($event, 'startDate')"
                                 appendTo="body"
                                 dataType="string"
                                 placeholder="Keresés..."
@@ -115,8 +152,8 @@
                         </th>
                         <th>
                             <p-calendar
-                                (onSelect)="onFilter($event, 'dateOfDeparture')"
-                                (onClearClick)="onFilter($event, 'dateOfDeparture')"
+                                (onSelect)="onFilter($event, 'endDate')"
+                                (onClearClick)="onFilter($event, 'endDate')"
                                 appendTo="body"
                                 dataType="string"
                                 placeholder="Keresés..."
@@ -176,8 +213,18 @@
                                            icon="pi pi-user" 
                                            size="large" 
                                            shape="circle"
-                                           pTooltip="{{guest.lastName + ' ' + guest.firstName}}" 
+                                           pTooltip="{{guest.lastName + ' ' + guest.firstName}} ({{getAge(guest.birthDate)}})" 
                                            tooltipPosition="top">
+                                </p-avatar>
+                                <!-- Capacity badge: hidden when 0, green if >0, red if <0 -->
+                                <p-avatar
+                                    *ngIf="getFreeCapacity(reservation) as cap"
+                                    [label]="formatCapacityLabel(cap)"
+                                    shape="circle"
+                                    size="large"
+                                    [style]="capacityStyle(cap)"
+                                    pTooltip="{{ capacityTooltip(cap) }}"
+                                    tooltipPosition="top">
                                 </p-avatar>
                             </p-avatarGroup>
                         </td>
@@ -194,16 +241,6 @@
                                 <i class="pi pi-calendar mr-1"></i>
                                 {{ reservation.endDate | date:'yyyy.MM.dd' }}
                             </span>
-                        </td>
-                        <td *ngIf="selectedConferences.length">
-                            <span class="p-column-title">Telítettség</span>
-                            <p-progressBar 
-                                [value]="(reservation.guests?.length / reservation.beds) * 100" 
-                                [showValue]="false" 
-                                [style]="{'height':'.5rem'}"
-                                pTooltip="Ágy/vendég: {{reservation.beds}}/{{reservation.guests?.length}}" 
-                                tooltipPosition="top">
-                            </p-progressBar>
                         </td>
                         <td style="max-width: 300px;">
                             <span class="p-column-title">Státusz</span>
@@ -239,8 +276,10 @@
             styleClass="p-sidebar-md"
             [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
             [fullScreen]="isMobile"
-            [blockScroll]="true">
-            
+            [blockScroll]="true"
+            (onHide)="onSidebarHide()"
+            (onShow)="onSidebarShow()">
+
             <!-- Sidebar header -->
             <ng-template pTemplate="header">
                 <span class="font-semibold text-xl">
@@ -248,120 +287,129 @@
                 </span>
             </ng-template>
 
-            <form [formGroup]="reservationForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
-                
-                <!-- Reservation Id -->
-                <input formControlName="id" type="hidden">
-                <input formControlName="conference_id" type="hidden">
-                <input formControlName="room_id" type="hidden">
-                <input formControlName="guestIds" type="hidden">
+            <!-- Render content only after first open -->
+            <ng-container *ngIf="sidebar">
+                <form [formGroup]="reservationForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
+                    
+                    <!-- Reservation Id -->
+                    <input formControlName="id" type="hidden">
+                    <input formControlName="conference_id" type="hidden">
+                    <input formControlName="room_id" type="hidden">
+                    <input formControlName="guestIds" type="hidden">
 
-                <!-- Conference -->
-                <div class="field mb-4 col-12">
-                    <label for="conference" class="font-medium text-900">Konferencia</label>
-                    <app-conference-selector
-                        formControlName="conference"
-                        [preselectConferenceId]="preselectConferenceId"
-                        [selectionLimit]="1"
-                        [showClear]="true"
-                        placeholder="Válasszon konferenciát...">
-                    </app-conference-selector>
-                    <div *ngIf="conference?.dirty && conference?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- Room ID -->
-                <div class="field mb-4 col-12">
-                    <label for="room_id" class="font-medium text-900">Szoba</label>
-                    <app-room-selector
-                        formControlName="room"
-                        [filter]="roomFilter"
-                        [selectionLimit]="1"
-                        [showClear]="true"
-                        placeholder="Szoba...">
-                    </app-room-selector>
-                    <div *ngIf="room?.dirty && room?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- Guests -->
-                <div class="field mb-4 col-12">
-                    <label for="guest" class="font-medium text-900">Vendég</label>
-                    <app-guest-selector
-                        formControlName="guests"
-                        [filter]="guestFilter"
-                        [showClear]="true"
-                        placeholder="Vendég...">
-                    </app-guest-selector>
-                    <div *ngIf="guests?.dirty && guests?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- startDate -->
-                <div class="field mb-4 col-6">
-                    <label for="startDate" class="font-medium text-900">
-                        {{'Érkezés dátuma' | translate }}
-                    </label>
-                    <p-calendar id="startDate"
-                                formControlName="startDate"
-                                [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
-                                dateFormat="yy-mm-dd"
-                                dataType="string"
-                                appendTo="body">
-                    </p-calendar>
-                    <div *ngIf="startDate?.dirty && startDate?.errors?.['required']" class="p-error">
-                        {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
-                    </div>
-                    <div *ngIf="reservationForm.errors?.['dateRangeInvalid']" class="p-error">
-                        {{'Az érkezés dátumának korábbinak kell lennie, mint a távozási dátum' | translate }}!
-                    </div>
-                </div>
-
-                <!-- endDate -->
-                <div class="field mb-4 col-6">
-                    <label for="endDate" class="font-medium text-900">
-                        {{'Távozás dátuma' | translate }}
-                    </label>
-                    <p-calendar id="endDate"
-                                formControlName="endDate"
-                                [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
-                                dateFormat="yy-mm-dd"
-                                dataType="string"
-                                appendTo="body">
-                    </p-calendar>
-                    <div *ngIf="endDate?.dirty && endDate?.errors?.['required']" class="p-error">
-                        {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
-                    </div>
-                    <div *ngIf="reservationForm.errors?.['dateRangeInvalid']" class="p-error">
-                        {{'Az érkezés dátumának korábbinak kell lennie, mint a távozási dátum' | translate }}!
-                    </div>
-                </div>
-
-                <!-- Status -->
-                <div class="field mb-4 col-12">
-                    <label for="status" class="font-medium text-900">Státusz</label>
-                    <app-reservation-status-selector
-                            formControlName="status"
+                    <!-- Conference -->
+                    <div class="field mb-4 col-12">
+                        <label for="conference" class="font-medium text-900">Konferencia</label>
+                        <app-conference-selector
+                            formControlName="conference"
+                            [preselectIds]="preselectConferenceId"
+                            [selectionLimit]="1"
                             [showClear]="true"
-                            placeholder="Státusz...">
-                    </app-reservation-status-selector>
-                    <div *ngIf="status?.dirty && status?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
+                            placeholder="Válasszon konferenciát...">
+                        </app-conference-selector>
+                        <div *ngIf="conference?.dirty && conference?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
                     </div>
-                </div>
 
-                <!-- notes -->
-                <div class="field mb-4 col-12">
-                    <label for="notes" class="font-medium text-900">Megjegyzés</label>
-                    <textarea id="notes" type="text" formControlName="notes" pInputTextarea rows="5"></textarea>
-                    <div *ngIf="notes?.dirty && notes?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
+                    <!-- Guests -->
+                    <div class="field mb-4 col-12">
+                        <label for="guest" class="font-medium text-900">Vendég</label>
+                        <app-guest-selector
+                            formControlName="guests"
+                            [filter]="guestFilter"
+                            [preselectIds]="preselectGuestIds"
+                            [emitOnPreselectId]="true"
+                            [showOnlyNotReserved]="true"
+                            [showClear]="true"
+                            placeholder="Vendég...">
+                        </app-guest-selector>
+                        <div *ngIf="guests?.dirty && guests?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
                     </div>
-                </div>
-            </form>
+
+                    <!-- Room -->
+                    <div class="field mb-4 col-12">
+                        <label for="room_id" class="font-medium text-900">Szoba</label>
+                        <app-room-selector
+                            formControlName="room"
+                            [filter]="roomFilter"
+                            [selectionLimit]="1"
+                            [preselectIds]="preselectRoomIds"
+                            [emitOnPreselectId]="true"
+                            [showOnlyNotReserved]="true"
+                            [showClear]="true"
+                            placeholder="Szoba...">
+                        </app-room-selector>
+                        <div *ngIf="room?.dirty && room?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
+                    </div>
+
+                    <!-- startDate -->
+                    <div class="field mb-4 col-6">
+                        <label for="startDate" class="font-medium text-900">
+                            {{'Érkezés dátuma' | translate }}
+                        </label>
+                        <p-calendar id="startDate"
+                                    formControlName="startDate"
+                                    [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
+                                    dateFormat="yy-mm-dd"
+                                    dataType="string"
+                                    appendTo="body">
+                        </p-calendar>
+                        <div *ngIf="startDate?.dirty && startDate?.errors?.['required']" class="p-error">
+                            {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
+                        </div>
+                        <div *ngIf="reservationForm.errors?.['dateRangeInvalid']" class="p-error">
+                            {{'Az érkezés dátumának korábbinak kell lennie, mint a távozási dátum' | translate }}!
+                        </div>
+                    </div>
+
+                    <!-- endDate -->
+                    <div class="field mb-4 col-6">
+                        <label for="endDate" class="font-medium text-900">
+                            {{'Távozás dátuma' | translate }}
+                        </label>
+                        <p-calendar id="endDate"
+                                    formControlName="endDate"
+                                    [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
+                                    dateFormat="yy-mm-dd"
+                                    dataType="string"
+                                    appendTo="body">
+                        </p-calendar>
+                        <div *ngIf="endDate?.dirty && endDate?.errors?.['required']" class="p-error">
+                            {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
+                        </div>
+                        <div *ngIf="reservationForm.errors?.['dateRangeInvalid']" class="p-error">
+                            {{'Az érkezés dátumának korábbinak kell lennie, mint a távozási dátum' | translate }}!
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="field mb-4 col-12">
+                        <label for="status" class="font-medium text-900">Státusz</label>
+                        <app-reservation-status-selector
+                                formControlName="status"
+                                [showClear]="true"
+                                placeholder="Státusz...">
+                        </app-reservation-status-selector>
+                        <div *ngIf="status?.dirty && status?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
+                    </div>
+
+                    <!-- notes -->
+                    <div class="field mb-4 col-12">
+                        <label for="notes" class="font-medium text-900">Megjegyzés</label>
+                        <textarea id="notes" type="text" formControlName="notes" pInputTextarea rows="5"></textarea>
+                        <div *ngIf="notes?.dirty && notes?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
+                    </div>
+                </form>
+            </ng-container>
 
             <ng-template pTemplate="footer">
                 <div class="flex justify-content-end ap-2">
@@ -389,7 +437,7 @@
         <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <!-- <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.reservationNum}}</b> szobát?</span> -->
+                <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.room?.roomNum}}</b> szoba foglalását?</span>
             </div>
             <ng-template pTemplate="footer">
                 <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="deleteDialog = false"></button>
@@ -418,3 +466,7 @@
 
 <!-- Notifications -->
 <p-toast></p-toast>
+
+<!-- Confirm Dialog -->
+<p-confirmDialog [closable]="false" [style]="{ width: '28rem' }"></p-confirmDialog>
+

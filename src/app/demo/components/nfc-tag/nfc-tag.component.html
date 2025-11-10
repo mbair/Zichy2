@@ -195,52 +195,55 @@
                 </span>
             </ng-template>
 
-            <form [formGroup]="tagForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
+            <!-- Render content only after first open -->
+            <ng-container *ngIf="sidebar">
+                <form [formGroup]="tagForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
 
-                <!-- Tag Id -->
-                <input formControlName="id" type="hidden">
+                    <!-- Tag Id -->
+                    <input formControlName="id" type="hidden">
 
-                <!-- Color -->
-                <div class="field mb-4 col-12">
-                    <label for="color" class="font-medium text-900">Szín</label>
-                    <app-color-selector [parentForm]="tagForm" controlName="color"></app-color-selector>
-                    <div *ngIf="color?.dirty && color?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
+                    <!-- Color -->
+                    <div class="field mb-4 col-12">
+                        <label for="color" class="font-medium text-900">Szín</label>
+                        <app-color-selector [parentForm]="tagForm" controlName="color"></app-color-selector>
+                        <div *ngIf="color?.dirty && color?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
                     </div>
-                </div>
 
-                <!-- Identifier -->
-                <div class="field mb-4 col-12">
-                    <label for="rfid" class="font-medium text-900">Azonosító</label>
-                    <input 
-                        id="rfid" 
-                        type="text" 
-                        pInputText 
-                        formControlName="rfid" 
-                        pTooltip="Érintse a kártyaolvasóhoz az NFC címkét"
-                        tooltipPosition="top"
-                        readonly>
-                    <div *ngIf="rfid?.dirty && rfid?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
+                    <!-- Identifier -->
+                    <div class="field mb-4 col-12">
+                        <label for="rfid" class="font-medium text-900">Azonosító</label>
+                        <input 
+                            id="rfid" 
+                            type="text" 
+                            pInputText 
+                            formControlName="rfid" 
+                            pTooltip="Érintse a kártyaolvasóhoz az NFC címkét"
+                            tooltipPosition="top"
+                            readonly>
+                        <div *ngIf="rfid?.dirty && rfid?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
                     </div>
-                </div>
 
-                <!-- Enabled -->
-                <div class="field mb-4 col-12">
-                    <label for="enabled" class="font-medium text-900">Engedélyezve</label>
-                    <app-yes-no-selector 
-                        formControlName="enabled"
-                        [yesText]="'Igen'"
-                        [noText]="'Nem'"
-                        [minHeight]="'44px'"
-                        [lineHeight]="'44px'"
-                        styleClass="vertical-align-middle">
-                    </app-yes-no-selector>
-                    <div *ngIf="enabled?.dirty && enabled?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
+                    <!-- Enabled -->
+                    <div class="field mb-4 col-12">
+                        <label for="enabled" class="font-medium text-900">Engedélyezve</label>
+                        <app-yes-no-selector 
+                            formControlName="enabled"
+                            [yesText]="'Igen'"
+                            [noText]="'Nem'"
+                            [minHeight]="'44px'"
+                            [lineHeight]="'44px'"
+                            styleClass="vertical-align-middle">
+                        </app-yes-no-selector>
+                        <div *ngIf="enabled?.dirty && enabled?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
+            </ng-container>
 
             <ng-template pTemplate="footer">
                 <div class="flex justify-content-end ap-2">

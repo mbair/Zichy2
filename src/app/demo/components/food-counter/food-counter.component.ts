@@ -26,7 +26,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     isOpen: boolean;
     currentMeal: string;
     mealsNumber: number = 0;
-    guest: Guest;
+    guest: Guest | null = null;
     loading: boolean = false;
     alreadyReceivedFood: boolean = false;
     canEat: boolean = false;
@@ -148,6 +148,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
      */
     resetGuest() {
         this.guest = {
+            id: 0,
             lastName: '',
             firstName: '',
             diet: '',
@@ -176,7 +177,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.logService.create({
                     action_type: "same code",
                     table_name: "food_counter",
-                    original_data: `${this.guest.lastName} ${this.guest.firstName} (${this.scannedCode})`,
+                    original_data: `${this.guest?.lastName} ${this.guest?.firstName} (${this.scannedCode})`,
                 })
 
                 this.scanTemp = ''
@@ -238,16 +239,16 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.guest = data
 
                 // Define AgeGroup
-                this.setAgeGroup(this.guest.birthDate)
+                this.setAgeGroup(this.guest?.birthDate)
 
                 // Set background color
-                this.backgroundColor = this.getDietColor(this.guest.diet)
+                this.backgroundColor = this.getDietColor(this.guest?.diet)
 
                 // Logging scannedCode
                 this.logService.create({
                     action_type: "scanned code",
                     table_name: "food_counter",
-                    original_data: `${this.guest.lastName} ${this.guest.firstName} (${this.guest.rfid})`,
+                    original_data: `${this.guest?.lastName} ${this.guest?.firstName} (${this.guest?.rfid})`,
                 })
 
                 // Check whether the guest has already received food in the given meal cycle
@@ -369,7 +370,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                         this.logService.create({
                             action_type: "already received food",
                             table_name: "food_counter",
-                            original_data: `${this.guest.lastName} ${this.guest.firstName} (${this.guest.rfid})`,
+                            original_data: `${this.guest?.lastName} ${this.guest?.firstName} (${this.guest?.rfid})`,
                         })
 
                         return
@@ -383,14 +384,16 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 // Insert Timestamp to lastRfidUsage
                 // this.guest.lastRfidUsage = moment().format('YYYY-MM-DD HH:mm:ss')
                 // this.guestService.update(this.guest)
-                this.guestService.updateLastTagUsage(this.guest.id)
-
+                if (this.guest) {
+                    this.guestService.updateLastTagUsage(this.guest?.id)
+                }
             },
             error: (error) => {
                 console.error('Error:', error)
                 console.log('error status', error.status)
                 // if (error.status === 404) {
                 this.guest = {
+                    id: 0,
                     lastName: 'ISMERETLEN',
                     firstName: 'ESZKÖZ'
                 }

@@ -1,7 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { auditTime, BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject, Subscription, switchMap } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { auditTime, BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject, Subscription, switchMap, filter } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
+import { ConfirmationService } from 'primeng/api';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { ReservationService } from '../../service/reservation.service';
@@ -12,7 +15,7 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Reservation } from '../../api/reservation';
 import { Room, RoomFilter } from '../../api/room';
-import { Guest } from '../../api/guest';
+import { Guest, GuestFilter } from '../../api/guest';
 import { dateRangeValidator } from '../../utils/date-range-validator';
 import { distinctByIds } from '../../utils/rx-ops';
 import { ChangeSource, ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
@@ -25,7 +28,7 @@ type SortDir = 1 | -1
 @Component({
     selector: 'reservation-component',
     templateUrl: './reservation.component.html',
-    providers: [MessageService]
+    providers: [MessageService, ConfirmationService]
 })
 
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy
@@ -60,20 +63,28 @@ export class ReservationComponent implements OnInit {
     isMobile: boolean = false                    // Mobile screen detection
     isOrganizer: boolean = false                 // User has organizer role
     selectedConferences: Conference[] = []       // Selected conferences
-    numberOfBeds: number = 0                     // Number of beds
+    totalBeds: number = 0                        // Number of beds
+    registeredGuests: number = 0                 // registeredGuests
+    reservedGuests: number = 0                   // reservedGuests
+    waitingForRoom: number = 0                   // waitingForRoom
 
     preselectConferenceId?: number
     conferenceStart: Date | null = null
     conferenceEnd: Date | null = null
 
+    preselectRoomIds?: number | undefined;
+    preselectGuestIds: number[] = [];
+
     roomFilter: RoomFilter = { enabled: true }
-    guestFilter: RoomFilter = { enabled: true }
+    guestFilter: GuestFilter = { enabled: true }
+
+    suppressEmits = false;        // Guard: ignore programmatic changes
 
     private initialFormValues = {
         id: null,
         room: null,
         room_id: null,
-        conference: null,
+        conference: [],
         conference_id: null,
         startDate: '',
         endDate: '',
@@ -83,7 +94,24 @@ export class ReservationComponent implements OnInit {
         guestIds: [],
     }
 
-    private query$ = new Subject<void>()
+    private readonly INITIAL_FORM_STATE_CLOSED = {
+        id: { value: null, disabled: false },
+        room: { value: null, disabled: true },              // UI control (MultiSelect)
+        room_id: { value: null, disabled: false },          // backend id
+        conference: { value: [], disabled: false },         // UI control (MultiSelect)
+        conference_id: { value: null, disabled: false },
+        startDate: { value: null, disabled: true },
+        endDate: { value: null, disabled: true },
+        status: { value: 'confirmed', disabled: false },
+        notes: { value: '', disabled: false },
+        guests: { value: [], disabled: true },              // UI control (MultiSelect)
+        guestIds: { value: [], disabled: false }
+    }
+
+    private lastSelectionByRoom = new Map<number, number[]>() // roomId -> last selection (guest ids, in selection order)
+    private bedFullWarnedByGuest = new Set<string>()          // roomId:guestId pairs we already warned for, to avoid duplicate prompts if user toggles UI
+
+    private query$ = new Subject<{ force?: boolean }>()
     private querySub?: Subscription
     private isFormValid$: Observable<boolean>
     private formChanges$: Subject<void> = new Subject()
@@ -94,35 +122,35 @@ export class ReservationComponent implements OnInit {
         private reservationService: ReservationService,
         private userService: UserService,
         private conferenceService: ConferenceService,
+        private confirmationService: ConfirmationService,
         private messageService: MessageService,
         private responsiveService: ResponsiveService,
+        private route: ActivatedRoute,
         private fb: FormBuilder) {
 
         // Reservation form fields and validators
         this.reservationForm = this.fb.group({
-            id: [this.initialFormValues.id],
-            room: [{ value: this.initialFormValues.room, disabled: true }, Validators.required], // UI
-            room_id: [this.initialFormValues.room_id, Validators.required],
-            conference: [this.initialFormValues.conference, Validators.required], // UI
-            conference_id: [this.initialFormValues.conference_id, Validators.required],                           // Backend
-            startDate: [{ value: this.initialFormValues.startDate, disabled: true }, Validators.required],
-            endDate: [{ value: this.initialFormValues.endDate, disabled: true }, Validators.required],
-            status: [this.initialFormValues.status, Validators.required],
-            notes: [this.initialFormValues.notes],
-            guests: [{ value: this.initialFormValues.guests, disabled: true }, Validators.required], // UI
-            guestIds: [this.initialFormValues.guestIds, Validators.required],
-        }, {
-            validators: dateRangeValidator('startDate', 'endDate')
-        })
+            id: this.INITIAL_FORM_STATE_CLOSED.id,
+            room: [this.INITIAL_FORM_STATE_CLOSED.room, Validators.required], // UI
+            room_id: [this.INITIAL_FORM_STATE_CLOSED.room_id, Validators.required],
+            conference: [this.INITIAL_FORM_STATE_CLOSED.conference, Validators.required], // UI
+            conference_id: [this.INITIAL_FORM_STATE_CLOSED.conference_id, Validators.required],
+            startDate: [this.INITIAL_FORM_STATE_CLOSED.startDate, Validators.required],
+            endDate: [this.INITIAL_FORM_STATE_CLOSED.endDate, Validators.required],
+            status: this.INITIAL_FORM_STATE_CLOSED.status,
+            notes: this.INITIAL_FORM_STATE_CLOSED.notes,
+            guests: [this.INITIAL_FORM_STATE_CLOSED.guests, Validators.required], // UI
+            guestIds: [this.INITIAL_FORM_STATE_CLOSED.guestIds, Validators.required],
+        }, { validators: dateRangeValidator('startDate', 'endDate') })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
     }
 
     ngOnInit() {
         // Permissions
-        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canCreate => this.canCreate = canCreate)
-        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canEdit => this.canEdit = canEdit)
-        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
+        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo']).subscribe(canCreate => this.canCreate = canCreate)
+        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo']).subscribe(canEdit => this.canEdit = canEdit)
+        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo']).subscribe(canDelete => this.canDelete = canDelete)
         this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => this.isOrganizer = isOrganizer)
 
         // while there is no conference
@@ -130,8 +158,10 @@ export class ReservationComponent implements OnInit {
 
         // Reservations
         this.querySub = this.query$.pipe(
-            map(() => this.buildQueryKey()),
-            distinctUntilChanged(),
+            // DO NOT query if there is no conference selected
+            filter(() => (this.selectedConferences?.length ?? 0) > 0),
+            map(tr => ({ key: this.buildQueryKey(), force: !!tr?.force })),
+            distinctUntilChanged((prev, curr) => !curr.force && prev.key === curr.key),
             auditTime(50),
             switchMap(() => {
                 this.loading = true
@@ -158,7 +188,10 @@ export class ReservationComponent implements OnInit {
                 this.tableData = data?.rows ?? []
                 this.totalRecords = data?.totalItems ?? 0
                 this.page = data?.currentPage ?? 0
-                this.numberOfBeds = data?.numberOfBeds ?? 0
+                this.totalBeds = data?.summary?.totalBeds ?? 0
+                this.registeredGuests = data?.summary?.registeredGuests ?? 0
+                this.reservedGuests = data?.summary?.reservedGuests ?? 0
+                this.waitingForRoom = data?.summary?.waitingForRoom ?? 0
             },
             error: () => {
                 this.loading = false
@@ -168,46 +201,14 @@ export class ReservationComponent implements OnInit {
 
         // Monitor conference change
         this.conference?.valueChanges
-            .pipe(distinctByIds<Conference>())
+            .pipe(
+                distinctByIds<Conference>(),
+                // Do nothing if change is programmatic OR sidebar is closed
+                filter(() => !this.suppressEmits && this.sidebar)
+            )
             .subscribe(conf => {
                 const first = conf?.[0]
-
-                // Set form values by selected conference
-                this.reservationForm.patchValue({
-                    conference_id: first?.id ?? null,
-                    startDate: first?.beginDate ?? null,
-                    endDate: first?.endDate ?? null
-                }, { emitEvent: false })
-
-                // Filter rooms by selected conference
-                this.roomFilter = { ...this.roomFilter, conferenceId: first?.id ?? null }
-
-                // Filter guests by selected conference
-                this.guestFilter = { ...this.guestFilter, conferenceId: first?.id ?? null }
-
-                if (first) {
-                    this.room?.reset(null, { emitEvent: false })
-                    this.room_id?.reset(null, { emitEvent: false })
-                    this.room?.enable({ emitEvent: false })
-
-                    this.guests?.reset(null, { emitEvent: false })
-                    this.guestIds?.reset(null, { emitEvent: false })
-                    this.guests?.enable({ emitEvent: false })
-
-                    this.startDate?.enable({ emitEvent: false })
-                    this.endDate?.enable({ emitEvent: false })
-                } else {
-                    this.room?.reset(null, { emitEvent: false })
-                    this.room_id?.reset(null, { emitEvent: false })
-                    this.room?.disable({ emitEvent: false })
-
-                    this.guests?.reset(null, { emitEvent: false })
-                    this.guestIds?.reset(null, { emitEvent: false })
-                    this.guests?.disable({ emitEvent: false })
-
-                    this.startDate?.disable({ emitEvent: false })
-                    this.endDate?.disable({ emitEvent: false })
-                }
+                this.applyConferenceSideEffects(first)
             })
 
         // Monitor room change
@@ -218,6 +219,12 @@ export class ReservationComponent implements OnInit {
                 this.reservationForm.patchValue({
                     room_id: first?.id ?? null,
                 }, { emitEvent: false })
+
+                // reset per-room warning state (ne vigyük át az előző szobából)
+                if (first?.id != null) {
+                    // Validate current guest selection against the newly chosen room
+                    this.validateCapacityForCurrentSelection(first)
+                }
             })
 
         // Monitor guest change
@@ -225,15 +232,21 @@ export class ReservationComponent implements OnInit {
             // Normalization: always be an array
             map((v: Guest | Guest[] | null | undefined) => Array.isArray(v) ? v : v ? [v] : []),
             // Extract only IDs + filter out nulls
-            map(arr => arr
-                .map(g => g?.id)
-                .filter((id) => id != null)
-            ),
-            // Filter out duplicates
-            map(ids => Array.from(new Set(ids))),
+            map(arr => ({
+                guestsArr: arr,
+                ids: Array.from(new Set(
+                    arr.map(g => g?.id).filter((id): id is number => id != null)
+                ))
+            })),
             // Avoid unnecessary patching (do not rewrite the same ID sequence)
-            distinctUntilChanged((a, b) => a.length === b.length && a.every((x, i) => x === b[i]))
-        ).subscribe(ids => {
+            distinctUntilChanged((a, b) =>
+                a.ids.length === b.ids.length && a.ids.every((x, i) => x === b.ids[i])
+            )
+        ).subscribe(({ guestsArr, ids }) => {
+            const room = this.getSelectedRoom();
+            if (room) {
+                this.onGuestsSelectionChange(room, guestsArr);
+            }
             this.reservationForm.patchValue({ guestIds: ids }, { emitEvent: false })
         })
 
@@ -254,6 +267,92 @@ export class ReservationComponent implements OnInit {
         this.conferenceMessageObs$ = this.conferenceService.messageObs
         this.serviceMessageObs$.subscribe(message => this.handleMessage(message))
         this.conferenceMessageObs$.subscribe(message => this.handleMessage(message))
+
+        // Navigated with reservation ID
+        this.initDeepLinkFromReservationId()
+    }
+
+    /**
+     * Deep link: /reservation?reservation_id=123&conference_id=45&open=1
+     * - Preselect conference (to pass the guard)
+     * - Filter table ONLY to that reservation
+     * - Optionally open sidebar for editing
+     * - Reacts to later param changes too
+     */
+    private initDeepLinkFromReservationId(): void {
+        // Listen to param changes (also supports navigating to another reservation without full reload)
+        this.route.queryParamMap.pipe(
+            map(params => {
+                const confIdRaw = params.get('conference_id')
+                const resIdRaw = params.get('reservation_id')
+                const openRaw = params.get('open')  // '1' to auto-open, anything else => no
+
+                const conferenceId = confIdRaw != null ? Number(confIdRaw) : null
+                const reservationId = resIdRaw != null ? Number(resIdRaw) : null
+                const autoOpen = openRaw === '1' || openRaw === 'true' || openRaw === 'yes'
+
+                return {
+                    conferenceId: Number.isFinite(conferenceId as number) ? (conferenceId as number) : null,
+                    reservationId: Number.isFinite(reservationId as number) ? (reservationId as number) : null,
+                    autoOpen
+                }
+            }),
+            distinctUntilChanged((a, b) =>
+                a.conferenceId === b.conferenceId &&
+                a.reservationId === b.reservationId &&
+                a.autoOpen === b.autoOpen
+            )
+        ).subscribe(({ conferenceId, reservationId, autoOpen }) => {
+            // 1) Ha nincs param, takarítsunk: töröljük az előző "id" szűrőt és zárjuk a sidebart
+            if (!reservationId) {
+                if (this.filterValues['id']) {
+                    delete this.filterValues['id']
+                    this.doQuery(true)
+                }
+                if (this.sidebar) {
+                    this.closeSidebar()
+                }
+                return
+            }
+
+            // 2) Konferencia előválasztása (ha jött a param)
+            if (conferenceId) {
+                this.selectedConferences = [{ id: conferenceId } as Conference]
+            }
+
+            // 3) Kérjük le CSAK azt az 1 foglalást (nem kell megvárni a táblás lekérdezést)
+            const sortArg: { sortField: string; sortOrder: SortDir } = { sortField: 'id', sortOrder: 1 }
+            this.reservationService.get$(0, 1, sortArg, `id=${reservationId}`).pipe(
+                map((resp: ApiResponse) => (resp?.rows?.[0] as Reservation) || null),
+                take(1)
+            ).subscribe({
+                next: (res) => {
+                    if (!res) {
+                        this.messageService.add({ severity: 'warn', summary: 'Figyelem', detail: 'A megadott foglalás nem található.' });
+                        return
+                    }
+
+                    // 3/a) Ha nem jött conference_id, vegyük a foglalásból
+                    const confFromRes = (res as any).conference_id ?? (res as any).conference?.id ?? null
+                    if (!conferenceId && confFromRes) {
+                        this.selectedConferences = [{ id: confFromRes } as Conference]
+                    }
+
+                    // 4) Táblát szűrjük csak erre az egy id-re
+                    this.filterValues = { ...this.filterValues, id: String(res.id) }
+                    this.page = 0
+                    this.doQuery(true) // guard most már átmegy (van selectedConferences)
+
+                    // 5) Opcionálisan nyissuk is meg szerkesztésre
+                    if (autoOpen) {
+                        this.edit(res)
+                    }
+                },
+                error: () => {
+                    this.messageService.add({ severity: 'warn', summary: 'Figyelem', detail: 'A megadott foglalás nem található.' });
+                }
+            })
+        })
     }
 
     // Getters for form validation
@@ -273,8 +372,15 @@ export class ReservationComponent implements OnInit {
      * Load filtered data into the Table
      * @returns
      */
-    doQuery() {
-        this.query$.next()
+    doQuery(force: boolean = false) {
+        // Don't query if there is no conference selected
+        if (!this.selectedConferences?.length) {
+            this.tableData = []
+            this.totalRecords = 0
+            this.loading = false
+            return
+        }
+        this.query$.next({ force })
     }
 
     /**
@@ -286,7 +392,7 @@ export class ReservationComponent implements OnInit {
         // Organizer need select conference
         if (this.isOrganizer && this.selectedConferences.length === 0) return
 
-        const noWaitFields: string[] = ['conferenceName', 'building', 'bedType', 'spareBeds']
+        const noWaitFields: string[] = ['conferenceName', 'room.building', 'room.bedType', 'status']
         let filterValue = ''
 
         // Calendar date as String
@@ -349,11 +455,161 @@ export class ReservationComponent implements OnInit {
     }
 
     /**
+     * Sidebar visibility
+     */
+    onSidebarShow(): void {
+        // Mark sidebar as visible before any reactive work
+        this.sidebar = true
+
+        // If we are creating a NEW reservation (no id) and the header has a selected conference,
+        // prefill the sidebar's conference selector to match the header selection.
+        const isNew = !this.id?.value
+        const headerConf = this.selectedConferences?.[0]
+
+        if (isNew && headerConf) {
+            // Optional: pass to child selector as well (if it uses preselectIds internally)
+            this.preselectConferenceId = headerConf.id
+
+            // IMPORTANT: write an array (CVA MultiSelect expects an array)
+            // emitEvent: true -> triggers your existing valueChanges pipeline
+            this.reservationForm.patchValue(
+                { conference: [headerConf] },
+                { emitEvent: true }
+            )
+
+            // Fallback: force side-effects even if valueChanges didn't fire
+            queueMicrotask(() => this.applyConferenceSideEffects(headerConf))
+        } else {
+            this.preselectConferenceId = undefined
+            
+            // If there is already a value selected manually, also align state
+            queueMicrotask(() => this.applyConferenceSideEffects())
+        }
+    }
+
+    // Fires when the sidebar gets hidden by user (X button or backdrop click).
+    // We clear the form-level conference selector and disable dependent controls,
+    // so the next open starts from a clean, consistent state.
+    onSidebarHide(): void {
+        // Prevent subscribers from reacting to programmatic resets
+        this.suppressEmits = true
+        this.sidebar = false
+
+        // One-shot reset to initial closed state: clears room/guests/dates, disables where needed
+        // IMPORTANT: emit so distinctByIds sees [] before the next open
+        this.reservationForm.reset(this.INITIAL_FORM_STATE_CLOSED, { emitEvent: true })
+        this.preselectConferenceId = undefined
+        this.preselectRoomIds = undefined
+        this.preselectGuestIds = []
+
+        // don't let next "cancel" resurrect an old edit state
+        this.originalFormValues = undefined
+
+        // Clean form state
+        this.preselectConferenceId = undefined
+        this.reservationForm.markAsPristine()
+        this.reservationForm.markAsUntouched()
+
+        // Re-enable emissions on the next tick (after hide finishes)
+        queueMicrotask(() => this.suppressEmits = false)
+    }
+
+    private closeSidebar(): void {
+        // Only toggle; p-sidebar (onHide) will call onSidebarHide()
+        this.sidebar = false
+    }
+
+    private onGuestsSelectionChange(room: Room, nextGuests: Guest[]): void {
+        const roomId = Number(room?.id);
+        const beds = Number(room?.beds ?? 0); // hard beds only
+
+        const prevIds = this.lastSelectionByRoom.get(roomId) ?? [];
+        const nextIds = nextGuests.map(g => g.id);
+
+        // Determine newly added ids to detect "last added"
+        const prevSet = new Set(prevIds);
+        const addedIds: number[] = nextIds.filter(id => !prevSet.has(id));
+        const lastAddedId: number | null =
+            addedIds.length ? addedIds[addedIds.length - 1] : null;
+
+        // Total number of guests currently exceeding hard-bed capacity
+        const overNow = Math.max(0, nextIds.length - beds);
+
+        // Mark newly added guests that are over the bed count to avoid duplicate prompts
+        const newlyOverAdded = addedIds
+            .map((id, idx) => ({ id, pos: prevIds.length + idx + 1 })) // 1-based pos after add
+            .filter(x => x.pos > beds)
+            .map(x => x.id)
+            .filter(id => !this.bedFullWarnedByGuest.has(`${roomId}:${id}`));
+        newlyOverAdded.forEach(id => this.bedFullWarnedByGuest.add(`${roomId}:${id}`));
+
+        // Show a single message:
+        //  - if exactly 1 over-bed -> show the LAST added person's name
+        //  - if 2+ over-bed       -> show count only (e.g., "2 fő már nem fér ágyra!")
+        if (overNow > 0) {
+            if (overNow === 1 && lastAddedId != null) {
+                const g = nextGuests.find(x => x.id === lastAddedId);
+                const name = g ? `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim() || 'A vendég' : 'A vendég';
+                this.confirmationService.confirm({
+                    header: 'Figyelmeztetés',
+                    message: `${name} már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
+                    icon: 'pi pi-exclamation-triangle',
+                    acceptLabel: 'OK',
+                    rejectVisible: false
+                });
+            } else {
+                this.confirmationService.confirm({
+                    header: 'Figyelmeztetés',
+                    message: `${overNow} fő már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
+                    icon: 'pi pi-exclamation-triangle',
+                    acceptLabel: 'OK',
+                    rejectVisible: false
+                });
+            }
+        }
+
+        // Persist selection order for this room
+        this.lastSelectionByRoom.set(roomId, nextIds);
+
+        // If selection returns to <= beds, clear warn flags for this room
+        if (nextIds.length <= beds) {
+            [...this.bedFullWarnedByGuest]
+                .filter(k => k.startsWith(`${roomId}:`))
+                .forEach(k => this.bedFullWarnedByGuest.delete(k));
+        }
+
+        // Keep form model in sync (IDs only)
+        this.reservationForm.patchValue({ guestIds: nextIds }, { emitEvent: false });
+    }
+
+    /**
      * Create new Reservation
      */
     create() {
-        this.reservationForm.reset(this.initialFormValues)
-        this.sidebar = true
+        // Hard reset to the CLOSED state so nothing leaks from a previous edit
+        this.suppressEmits = true
+
+        // Clear any preselects/state from last edit
+        this.preselectConferenceId = undefined
+        this.preselectRoomIds = undefined
+        this.preselectGuestIds = []
+        this.bedFullWarnedByGuest.clear()
+        this.lastSelectionByRoom.clear()
+
+        // Reset filters that depend on the last edit
+        this.roomFilter = { enabled: true }
+        this.guestFilter = { enabled: true }
+
+        // Reset the form to the CLOSED baseline (includes disabled controls)
+        this.reservationForm.reset(this.INITIAL_FORM_STATE_CLOSED, { emitEvent: false })
+        this.reservationForm.markAsPristine()
+        this.reservationForm.markAsUntouched()
+
+        // baseline for Cancel in "create" flow
+        this.originalFormValues = this.reservationForm.getRawValue()
+
+        this.suppressEmits = false
+        this.sidebar = true // (onShow) prefill will run
     }
 
     /**
@@ -362,58 +618,95 @@ export class ReservationComponent implements OnInit {
      */
     edit(reservation: Reservation) {
         // 0) Reset tisztán, események nélkül
-        this.reservationForm.reset(this.initialFormValues, { emitEvent: false });
+        this.reservationForm.reset(this.initialFormValues, { emitEvent: false })
 
         // 1) Konferencia előkészítés (objektum + [objektum] a selectorhoz)
         const confObj =
             (reservation as any).conference ??
-            ((reservation as any).conference_id ? { id: (reservation as any).conference_id } : null);
+            ((reservation as any).conference_id ? { id: reservation.conference_id } : null)
 
         // 1/a) Konferencia beállítása úgy, hogy FUSSON a valueChanges (engedi a room/guests-t és beállítja a filtereket)
         this.reservationForm.patchValue({
             conference: confObj ? [confObj] : [],
             conference_id: confObj?.id ?? null,
-        }, { emitEvent: true });
+        }, { emitEvent: true })
 
         // 2) Szoba és vendégek előkészítése
         const roomObj =
             reservation.room ??
-            ((reservation as any).room_id ? { id: (reservation as any).room_id } : null);
+            ((reservation as any).room_id ? { id: (reservation as any).room_id } : null)
 
         const guestObjs: Guest[] = Array.isArray((reservation as any).guests)
             ? (reservation as any).guests
             : [];
 
-        const guestIds = guestObjs
-            .map(g => g?.id)
-            .filter((id) => id != null);
+        const guestIdsNum = Array.from(
+            new Set(
+                guestObjs
+                    .map(g => (typeof g?.id === 'string' ? Number(g.id) : g?.id))
+                    .filter((x): x is number => Number.isFinite(x as number))
+            )
+        )
 
-        // 3) A konferencia-change utáni ciklusba időzítve patcheljük a room/guests-t és a REZERVÁCIÓ dátumait,
-        //    mert a konferencia-subscriber különben felülírja/üríti őket.
-        Promise.resolve().then(() => {
-            // Gondoskodj róla, hogy a selectorokhoz TÖMB menjen (selectionLimit=1 esetén is)
-            this.reservationForm.patchValue({
-                id: reservation.id ?? null,
-                room: roomObj ? [roomObj] : [],
-                room_id: roomObj?.id ?? null,
-                guests: guestObjs,            // UI-hoz teljes objektumok tömbje
-                guestIds: Array.from(new Set(guestIds)), // backendhez csak ID-k
-                startDate: reservation.startDate,        // konferencia-subscriber által kitöltött értékek felülírása
-                endDate: reservation.endDate,
-                status: (reservation as any).status ?? 'confirmed',
-                notes: (reservation as any).notes ?? null,
-            }, { emitEvent: false });
+        // 2) BLOKK: mindent programból állítunk be, nem engedünk subscriber-t futni
+        this.suppressEmits = true
 
-            // ha használsz preselectet, itt állítsd
-            this.preselectConferenceId = confObj?.id ?? undefined;
+        // 2/a) Konferencia + belőle származtatott mezők, filterek, enable
+        this.reservationForm.patchValue({
+            conference: confObj ? [confObj] : [],
+            conference_id: confObj?.id ?? null,
+            guests: guestObjs,
+            guestIds: guestIdsNum,
+            startDate: reservation.startDate ?? null,   // szerkesztett foglalás dátumai
+            endDate: reservation.endDate ?? null
+        }, { emitEvent: false })
 
-            // eredeti állapot és panel megnyitása
-            this.originalFormValues = this.reservationForm.getRawValue();
-            this.sidebar = true;
-            this.doQuery()
-        })
+        this.preselectGuestIds = guestIdsNum;
+
+        // A konferencia alapján szűrők (mi állítjuk, nem a subscriber)
+        this.roomFilter = {
+            ...this.roomFilter,
+            conferenceId: confObj?.id ?? null,
+            includeRoomIds: roomObj?.id ? [roomObj.id] : []
+        }
+
+        this.guestFilter = {
+            ...this.guestFilter,
+            conferenceId: confObj?.id ?? null,
+            includeGuestIds: this.preselectGuestIds
+        }
+
+        // A kapcsolt kontrollokat aktiváljuk (nem várunk subscriberre)
+        this.room?.enable({ emitEvent: false })
+        this.guests?.enable({ emitEvent: false })
+        this.startDate?.enable({ emitEvent: false })
+        this.endDate?.enable({ emitEvent: false })
+
+        // 2/b) UI-értékek (CVA) + backend ID-k
+        this.reservationForm.patchValue({
+            id: reservation.id ?? null,
+            room: roomObj ? [roomObj] : [],
+            room_id: roomObj?.id ?? null,
+            guests: guestObjs,                         // UI-hoz objektumok
+            guestIds: Array.from(new Set(guestIdsNum)),   // backendhez ID-k
+            status: (reservation as any).status ?? 'confirmed',
+            notes: (reservation as any).notes ?? null,
+        }, { emitEvent: false })
+
+        // 2/c) Gyerek selectornak átadott “pending” preselect ID-k
+        this.preselectRoomIds = roomObj?.id ?? null
+        this.preselectGuestIds = Array.from(new Set(guestIdsNum))
+
+        // 3) Események újra engedése, állapotok
+        this.suppressEmits = false
+        this.originalFormValues = this.reservationForm.getRawValue()
+        this.sidebar = true
+
+        // populate lastSelectionByRoom for correct per-guest warnings on edit
+        if (roomObj?.id) {
+            this.lastSelectionByRoom.set(roomObj.id, this.preselectGuestIds ?? []);
+        }
     }
-
 
     /**
      * Delete the Reservation
@@ -442,9 +735,26 @@ export class ReservationComponent implements OnInit {
 
         const v = this.reservationForm.value
 
+        // Helper: extract id from CVA MultiSelect (array or object)
+        const extractId = (val: any): number | null => {
+            if (Array.isArray(val)) return val[0]?.id ?? null
+            return val?.id ?? null
+        }
+
+        // Normalize guestIds from form
+        const normalizedGuestIds: number[] = Array.isArray(v.guestIds)
+            ? Array.from(new Set(v.guestIds.map((x: any) => Number(x)).filter((n: any) => Number.isFinite(n))))
+            : Array.isArray(v.guests)
+                ? Array.from(new Set(
+                    v.guests
+                        .map((g: any) => Number(g?.id))
+                        .filter((n: any) => Number.isFinite(n))
+                ))
+                : (v.guests?.id ? [Number(v.guests.id)] : [])
+
         const formValues = {
-            room_id: v.room?.id ?? v.room_id ?? null,
-            conference_id: v.conference?.id ?? v.conference_id ?? null,
+            room_id: extractId(v.room) ?? v.room_id ?? null,
+            conference_id: extractId(v.conference) ?? v.conference_id ?? null,
             startDate: v.startDate,
             endDate: v.endDate,
             status: v.status ?? 'confirmed',
@@ -453,35 +763,16 @@ export class ReservationComponent implements OnInit {
 
         // CREATE
         if (!v.id) {
-            // we only send IDs from guests
-            const guestIds: number[] = Array.isArray(v.guestIds)
-                ? v.guestIds
-                : Array.isArray(v.guest)
-                    ? v.guest.map((g: any) => g?.id).filter((x: any) => x != null)
-                    : v.guest?.id ? [v.guest.id] : [];
-
-            const payload = { ...formValues, guestIds: Array.from(new Set(guestIds)) }
-
-            console.log('payload', payload)
-
-            // NEM küldünk: guest, guests
+            const payload = { ...formValues, guestIds: normalizedGuestIds }
             this.reservationService.create(payload)
-
-        } else {
-            // UPDATE: NE küldj vendég-listát itt
-            const payload = { id: v.id, ...formValues }
-
-            console.log('payload', payload)
-
+        }
+        // UPDATE
+        else {
+            const payload = { id: v.id, ...formValues, guestIds: normalizedGuestIds }
             this.reservationService.update(payload)
-
-            // Vendég hozzáadás/levétel külön hívással:
-            // this.reservationService.addGuests(v.id, [{ guestId: 123, is_primary: true }]).subscribe(...)
-            // this.reservationService.removeGuest(v.id, 123).subscribe(...)
-            // (Ezekhez a backend végpontok: POST /reservation/:id/guests, DELETE /reservation/:id/guests/:guestId) 
         }
 
-        this.sidebar = false
+        this.doQuery()
     }
 
     /**
@@ -498,15 +789,15 @@ export class ReservationComponent implements OnInit {
      */
     handleMessage(message: any) {
         if (!message) return
-
         this.loading = false
 
-        if (message == 'ERROR') {
+        if (message == 'ERROR' || message?.severity === 'error') {
             this.messageService.add({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'Hiba történt!'
+                summary: message?.summary ?? 'Error',
+                detail: message?.detail ?? 'Hiba történt!'
             })
+            return // keep sidebar open for fixing
         } else {
             // Show service response message
             this.messageService.add(message)
@@ -515,8 +806,11 @@ export class ReservationComponent implements OnInit {
             this.tableItem = {}
             this.selected = []
 
-            // Query for data changes
-            this.doQuery()
+            // Forced Query after data changes
+            this.doQuery(true)
+
+            // Close only on success:
+            this.closeSidebar()
         }
     }
 
@@ -527,6 +821,41 @@ export class ReservationComponent implements OnInit {
             this.tableData = [];
             this.doQuery();
         }
+    }
+
+    // Get Age by birthdate
+    getAge(birthDate: string): string {
+        if (!birthDate) return "";
+        const birth = moment(birthDate)
+        const today = moment()
+        return today.diff(birth, 'years').toString()
+    }
+
+    // Returns free capacity (can be negative when overbooked)
+    getFreeCapacity(reservation: Reservation) {
+        const guestsNum = reservation?.guests?.length ?? 0
+        const roomCapacity = (reservation?.room?.beds ?? 0) + (reservation?.room?.extraBeds ?? 0)
+        return roomCapacity - guestsNum
+    }
+
+    // Style helper for the capacity avatar
+    capacityStyle(cap: number): { [k: string]: string } {
+        // Negative => red, Positive => green (0 won't render due to *ngIf)
+        return {
+            'background-color': cap < 0 ? '#EF4444' : '#22C55E',
+            'color': '#ffffff'
+        }
+    }
+
+    // Optional: clearer tooltip text
+    capacityTooltip(cap: number): string {
+        if (cap < 0) return `Túlfoglalva ${Math.abs(cap)} fővel`
+        return `Szabad ágy ${cap} fő részére`
+    }
+
+    // Returns a signed label, e.g. "+2", "-1"
+    formatCapacityLabel(cap: number): string {
+        return cap > 0 ? `+${cap}` : `${cap}`
     }
 
     /**
@@ -599,7 +928,20 @@ export class ReservationComponent implements OnInit {
     }
 
     /**
-     * 
+     * Builds a deterministic “query signature” for the current table state.
+     * Used by the reactive pipeline (distinctUntilChanged) to avoid redundant fetches.
+     *
+     * Encoded segments, in order:
+     *  - page, rowsPerPage, sortField, sortOrder
+     *  - globalFilter (empty string if not set)
+     *  - selected conference IDs (sorted, then joined with “,” so order doesn’t matter)
+     *  - column filters as k=v pairs joined with “&” (falsy/empty filters are omitted)
+     *
+     * The segments are joined with “|”, producing the same key for logically identical states.
+     * NOTE: If you ever allow “|” inside segment values, make sure to escape it before joining.
+     *
+     * Example:
+     *   "0|50|id|1||12,20|status=confirmed&room.building=A"
      */
     private buildQueryKey(): string {
         const confIds = (this.selectedConferences ?? []).map(c => c.id).sort().join(',')
@@ -611,6 +953,147 @@ export class ReservationComponent implements OnInit {
             this.page, this.rowsPerPage, this.sortField, this.sortOrder,
             this.globalFilter || '', confIds, filters
         ].join('|')
+    }
+
+    // Get currently selected room (first item from the MultiSelect)
+    private getSelectedRoom(): Room | null {
+        const val = this.room?.value
+        return Array.isArray(val) && val.length ? (val[0] as Room) : null
+    }
+
+    // Warn after a room change if current selection does not fit
+    private validateCapacityForCurrentSelection(room: Room): void {
+        const roomId = Number(room?.id);
+        const beds = Number(room?.beds ?? 0);       // hard beds
+        const extra = Number(room?.extraBeds ?? 0); // mattresses / baby beds
+
+        // Current guest selection
+        const guestsArr: Guest[] = Array.isArray(this.guests?.value) ? (this.guests!.value as Guest[]) : [];
+        const ids: number[] = guestsArr.map(g => g?.id).filter((x): x is number => x != null);
+
+        // Reset warn flags for this room (new room -> new context)
+        [...this.bedFullWarnedByGuest]
+            .filter(k => k.startsWith(`${roomId}:`))
+            .forEach(k => this.bedFullWarnedByGuest.delete(k));
+
+        // How many guests are over HARD beds right now?
+        const overNow = Math.max(0, ids.length - beds);
+        if (overNow <= 0) {
+            this.lastSelectionByRoom.set(roomId, ids);
+            return;
+        }
+
+        // Mark all over-bed guests as warned to avoid future duplicates
+        for (let i = beds; i < ids.length; i++) {
+            this.bedFullWarnedByGuest.add(`${roomId}:${ids[i]}`);
+        }
+
+        // If exactly 1 is over -> show that person's name (first over-bed at index 'beds').
+        // If 2 or more are over -> show count-only message.
+        if (overNow === 1) {
+            const gid = ids[beds];
+            const g = guestsArr.find(x => x.id === gid);
+            const name = g ? `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim() || 'A vendég' : 'A vendég';
+
+            this.confirmationService.confirm({
+                header: 'Figyelmeztetés',
+                message: `${name} már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
+                icon: 'pi pi-exclamation-triangle',
+                acceptLabel: 'OK',
+                rejectVisible: false,
+                accept: () => {
+                    // Optional toast for exceeding TOTAL capacity (beds + extra)
+                    const totalCap = beds + extra;
+                    if (ids.length > totalCap) {
+                        const over = ids.length - totalCap;
+                        this.messageService.add({
+                            severity: 'warn',
+                            summary: 'Kevés férőhely',
+                            detail: `Összes kapacitás: ${totalCap} (ágy + matrac/gyerekágy), kijelölve: ${ids.length}. ${over} fő ténylegesen nem fér be.`,
+                            life: 15000 // or key: 'capacityWarn' if you set a dedicated <p-toast>
+                        });
+                    }
+                }
+            });
+        } else {
+            this.confirmationService.confirm({
+                header: 'Figyelmeztetés',
+                message: `${overNow} fő már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
+                icon: 'pi pi-exclamation-triangle',
+                acceptLabel: 'OK',
+                rejectVisible: false,
+                accept: () => {
+                    const totalCap = beds + extra;
+                    if (ids.length > totalCap) {
+                        const over = ids.length - totalCap;
+                        this.messageService.add({
+                            severity: 'warn',
+                            summary: 'Kevés férőhely',
+                            detail: `Összes kapacitás: ${totalCap} (ágy + matrac/gyerekágy), kijelölve: ${ids.length}. ${over} fő ténylegesen nem fér be.`,
+                            life: 15000
+                        });
+                    }
+                }
+            })
+        }
+
+        // Persist selection snapshot for this room
+        this.lastSelectionByRoom.set(roomId, ids);
+    }
+
+    private applyConferenceSideEffects(conf?: Conference | null): void {
+        const current =
+            conf ??
+            (Array.isArray(this.conference?.value) && this.conference!.value.length
+                ? (this.conference!.value as Conference[])[0]
+                : null)
+
+        const isNew = !this.id?.value
+        const norm = (v: any) => (v ? moment(v).format('YYYY-MM-DD') : null)
+
+        // Always keep conference_id and filters in sync
+        this.reservationForm.patchValue({
+            conference_id: current?.id ?? null
+        }, { emitEvent: false })
+
+        this.roomFilter = { ...this.roomFilter, conferenceId: current?.id ?? null }
+        this.guestFilter = { ...this.guestFilter, conferenceId: current?.id ?? null }
+
+        // Prefill dates only when creating or when the field is empty
+        const curStart = this.startDate?.value
+        const curEnd   = this.endDate?.value
+        const datePatch: any = {}
+
+        if (current) {
+            if (isNew || !curStart) {
+                datePatch.startDate = norm((current as any).beginDate)
+            }
+            if (isNew || !curEnd) {
+                datePatch.endDate = norm((current as any).endDate)
+            }
+            if (Object.keys(datePatch).length) {
+                this.reservationForm.patchValue(datePatch, { emitEvent: false })
+            }
+            
+            // Enable dependent controls
+            this.room?.enable({ emitEvent: false })
+            this.guests?.enable({ emitEvent: false })
+            this.startDate?.enable({ emitEvent: false })
+            this.endDate?.enable({ emitEvent: false })
+        } else {
+            // When there is no conference:
+            // - in edit mode keep existing dates,
+            // - in create mode clear dates.
+            if (isNew) {
+                this.reservationForm.patchValue({ startDate: null, endDate: null }, { emitEvent: false })
+            }
+            
+            // Disable if no conference
+            this.room?.disable({ emitEvent: false })
+            this.guests?.disable({ emitEvent: false })
+            this.startDate?.disable({ emitEvent: false })
+            this.endDate?.disable({ emitEvent: false })
+        }
     }
 
     // Don't delete this, its needed from a performance point of view,

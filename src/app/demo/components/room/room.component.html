@@ -242,138 +242,141 @@
                     {{ id?.value ? 'Szoba adatai' : 'Új szoba' }}
                 </span>
             </ng-template>
-            
-            <form [formGroup]="roomForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
-                
-                <!-- Room Id -->
-                <input formControlName="id" type="hidden">
 
-                <!-- roomNum -->
-                <div class="field mb-4 col-6">
-                    <label for="roomNum" class="font-medium text-900">Szoba szám</label>
-                    <input id="roomNum" type="text" pInputText formControlName="roomNum">
-                    <div *ngIf="roomNum?.dirty && roomNum?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-                
-                <!-- roomCode -->
-                <div class="field mb-4 col-6">
-                    <label for="roomCode" class="font-medium text-900">Szoba kód</label>
-                    <input id="roomCode" type="text" pInputText formControlName="roomCode">
-                    <div *ngIf="roomCode?.dirty && roomCode?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
+            <!-- Render content only after first open -->
+            <ng-container *ngIf="sidebar">
+                <form [formGroup]="roomForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
+                    
+                    <!-- Room Id -->
+                    <input formControlName="id" type="hidden">
 
-                <!-- beds -->
-                <div class="field mb-4 col-6">
-                    <label for="beds" class="font-medium text-900">Ágyak száma</label>
-                    <input id="beds" type="text" pInputText formControlName="beds">
-                    <div *ngIf="beds?.dirty && beds?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- bedType -->
-                <div class="field mb-4 col-6">
-                    <label for="bedType" class="font-medium text-900">Ágytípus</label>
-                    <app-bedtype-selector [parentForm]="roomForm" controlName="bedType" [showClear]="true"></app-bedtype-selector>
-                    <div *ngIf="bedType?.dirty && bedType?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- spareBeds -->
-                <div class="field mb-4 col-6">
-                    <label for="spareBeds" class="font-medium text-900">Pótágy</label>
-                    <app-sparebed-selector [parentForm]="roomForm" controlName="spareBeds" [showClear]="true"></app-sparebed-selector>
-                    <div *ngIf="spareBeds?.dirty && spareBeds?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- bathroom -->
-                <div class="field mb-4 col-6">
-                    <label for="bathroom" class="font-medium text-900">Fürdőszoba</label>
-                    <app-bathroom-selector [parentForm]="roomForm" controlName="bathroom" [showClear]="true"></app-bathroom-selector>
-                    <div *ngIf="bathroom?.dirty && bathroom?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- building -->
-                <div class="field mb-4 col-6">
-                    <label for="building" class="font-medium text-900">Épület</label>
-                    <app-building-selector [parentForm]="roomForm" controlName="building" [showClear]="true"></app-building-selector>
-                    <div *ngIf="building?.dirty && building?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- floor -->
-                <div class="field mb-4 col-6">
-                    <label for="floor" class="font-medium text-900">Emelet</label>
-                    <app-floor-selector [parentForm]="roomForm" controlName="floor" [showClear]="true"></app-floor-selector>
-                    <div *ngIf="floor?.dirty && floor?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- comment -->
-                <div class="field mb-4 col-6">
-                    <label for="comment" class="font-medium text-900">Megjegyzés</label>
-                    <input id="comment" type="text" pInputText formControlName="comment">
-                    <div *ngIf="comment?.dirty && comment?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- extraBeds -->
-                <div class="field mb-4 col-6">
-                    <label for="extraBeds" class="font-medium text-900">Extra férőhely</label>
-                    <input id="extraBeds" type="text" pInputText formControlName="extraBeds">
-                    <div *ngIf="extraBeds?.dirty && extraBeds?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- climate -->
-                <div class="field mb-4 col-6">
-                    <label for="climate" class="font-medium text-900">Klimatizált?</label>
-                    <div class="flex flex-wrap gap-3 my-3">
-                        <div class="flex align-items-center">
-                            <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes"></p-radioButton>
-                            <label for="climate-yes" class="ml-2">Igen</label>
-                        </div>
-                        <div class="flex align-items-center">
-                            <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no"></p-radioButton>
-                            <label for="climate-no" class="ml-2">Nem</label>
+                    <!-- roomNum -->
+                    <div class="field mb-4 col-6">
+                        <label for="roomNum" class="font-medium text-900">Szoba szám</label>
+                        <input id="roomNum" type="text" pInputText formControlName="roomNum">
+                        <div *ngIf="roomNum?.dirty && roomNum?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
                         </div>
                     </div>
-                    <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
-                        Kérjük válassza ki, hogy klimatizált e a szoba!
+                    
+                    <!-- roomCode -->
+                    <div class="field mb-4 col-6">
+                        <label for="roomCode" class="font-medium text-900">Szoba kód</label>
+                        <input id="roomCode" type="text" pInputText formControlName="roomCode">
+                        <div *ngIf="roomCode?.dirty && roomCode?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
                     </div>
-                </div>
 
-                <!-- familyRoom -->
-                <div class="field mb-4 col-6">
-                    <label for="familyRoom" class="font-medium text-900">Családi szoba?</label>
-                    <div class="flex flex-wrap gap-3 my-3">
-                        <div class="flex align-items-center">
-                            <p-radioButton name="familyRoom" value="1" formControlName="familyRoom" inputId="familyRoom-yes"></p-radioButton>
-                            <label for="familyRoom-yes" class="ml-2">Igen</label>
-                        </div>
-                        <div class="flex align-items-center">
-                            <p-radioButton name="familyRoom" value="0" formControlName="familyRoom" inputId="familyRoom-no"></p-radioButton>
-                            <label for="familyRoom-no" class="ml-2">Nem</label>
+                    <!-- beds -->
+                    <div class="field mb-4 col-6">
+                        <label for="beds" class="font-medium text-900">Ágyak száma</label>
+                        <input id="beds" type="text" pInputText formControlName="beds">
+                        <div *ngIf="beds?.dirty && beds?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
                         </div>
                     </div>
-                    <div *ngIf="familyRoom?.dirty && familyRoom?.errors?.['required']" class="p-error">
-                        Kérjük válassza ki, hogy a szoba családi szoba e!
+
+                    <!-- bedType -->
+                    <div class="field mb-4 col-6">
+                        <label for="bedType" class="font-medium text-900">Ágytípus</label>
+                        <app-bedtype-selector [parentForm]="roomForm" controlName="bedType" [showClear]="true"></app-bedtype-selector>
+                        <div *ngIf="bedType?.dirty && bedType?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
                     </div>
-                </div>
-            </form>
+
+                    <!-- spareBeds -->
+                    <div class="field mb-4 col-6">
+                        <label for="spareBeds" class="font-medium text-900">Pótágy</label>
+                        <app-sparebed-selector [parentForm]="roomForm" controlName="spareBeds" [showClear]="true"></app-sparebed-selector>
+                        <div *ngIf="spareBeds?.dirty && spareBeds?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
+                    </div>
+
+                    <!-- bathroom -->
+                    <div class="field mb-4 col-6">
+                        <label for="bathroom" class="font-medium text-900">Fürdőszoba</label>
+                        <app-bathroom-selector [parentForm]="roomForm" controlName="bathroom" [showClear]="true"></app-bathroom-selector>
+                        <div *ngIf="bathroom?.dirty && bathroom?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
+                    </div>
+
+                    <!-- building -->
+                    <div class="field mb-4 col-6">
+                        <label for="building" class="font-medium text-900">Épület</label>
+                        <app-building-selector [parentForm]="roomForm" controlName="building" [showClear]="true"></app-building-selector>
+                        <div *ngIf="building?.dirty && building?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
+                    </div>
+
+                    <!-- floor -->
+                    <div class="field mb-4 col-6">
+                        <label for="floor" class="font-medium text-900">Emelet</label>
+                        <app-floor-selector [parentForm]="roomForm" controlName="floor" [showClear]="true"></app-floor-selector>
+                        <div *ngIf="floor?.dirty && floor?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
+                    </div>
+
+                    <!-- comment -->
+                    <div class="field mb-4 col-6">
+                        <label for="comment" class="font-medium text-900">Megjegyzés</label>
+                        <input id="comment" type="text" pInputText formControlName="comment">
+                        <div *ngIf="comment?.dirty && comment?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
+                    </div>
+
+                    <!-- extraBeds -->
+                    <div class="field mb-4 col-6">
+                        <label for="extraBeds" class="font-medium text-900">Extra férőhely</label>
+                        <input id="extraBeds" type="text" pInputText formControlName="extraBeds">
+                        <div *ngIf="extraBeds?.dirty && extraBeds?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
+                    </div>
+
+                    <!-- climate -->
+                    <div class="field mb-4 col-6">
+                        <label for="climate" class="font-medium text-900">Klimatizált?</label>
+                        <div class="flex flex-wrap gap-3 my-3">
+                            <div class="flex align-items-center">
+                                <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes"></p-radioButton>
+                                <label for="climate-yes" class="ml-2">Igen</label>
+                            </div>
+                            <div class="flex align-items-center">
+                                <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no"></p-radioButton>
+                                <label for="climate-no" class="ml-2">Nem</label>
+                            </div>
+                        </div>
+                        <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
+                            Kérjük válassza ki, hogy klimatizált e a szoba!
+                        </div>
+                    </div>
+
+                    <!-- familyRoom -->
+                    <div class="field mb-4 col-6">
+                        <label for="familyRoom" class="font-medium text-900">Családi szoba?</label>
+                        <div class="flex flex-wrap gap-3 my-3">
+                            <div class="flex align-items-center">
+                                <p-radioButton name="familyRoom" value="1" formControlName="familyRoom" inputId="familyRoom-yes"></p-radioButton>
+                                <label for="familyRoom-yes" class="ml-2">Igen</label>
+                            </div>
+                            <div class="flex align-items-center">
+                                <p-radioButton name="familyRoom" value="0" formControlName="familyRoom" inputId="familyRoom-no"></p-radioButton>
+                                <label for="familyRoom-no" class="ml-2">Nem</label>
+                            </div>
+                        </div>
+                        <div *ngIf="familyRoom?.dirty && familyRoom?.errors?.['required']" class="p-error">
+                            Kérjük válassza ki, hogy a szoba családi szoba e!
+                        </div>
+                    </div>
+                </form>
+            </ng-container>
 
             <ng-template pTemplate="footer">
                 <div class="flex justify-content-end ap-2">

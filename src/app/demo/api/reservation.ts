@@ -1,3 +1,4 @@
+import { Guest } from "./guest";
 import { Room } from "./room";
 
 // Reservation statuses
@@ -14,6 +15,7 @@ export interface Reservation {
     status?: ReservationStatus;
     notes?: string | null;
     guestIds?: number[];
+    guests?: Guest[];
     createdAt?: string;
     updatedAt?: string;
 }

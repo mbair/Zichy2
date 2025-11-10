@@ -65,10 +65,10 @@ export class ProfileComponent implements OnInit {
             username: [this.initialFormValues.username],
             fullname: [this.initialFormValues.fullname, Validators.required],
             user_rolesid: [{ value: this.initialFormValues.user_rolesid, disabled: true }, Validators.required],
-            email: [this.initialFormValues.id, [Validators.required, emailDomainValidator()]],
-            phone: [this.initialFormValues.id, [Validators.required]],
-            password: [this.initialFormValues.id],
-            password_again: [this.initialFormValues.id],
+            email: [this.initialFormValues.email, [Validators.required, emailDomainValidator()]],
+            phone: [this.initialFormValues.phone, [Validators.required]],
+            password: ['', Validators.required],
+            password_again: ['', Validators.required],
         }, { validators: passwordMatchValidator() })
 
         // Enabling/Disabling userrole dropdown by actual user role

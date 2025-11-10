@@ -98,7 +98,7 @@ export class ApiService {
     }
 
     private handleError(error: HttpErrorResponse) {
-        console.error('An error occurred:', error.message);
-        return throwError('ERROR')
+        console.error('An error occurred:', error);
+        return throwError(() => error)
     }
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
-import { Guest } from '../api/guest';
+import { Guest, GuestFilter } from '../api/guest';
 
 type ToastMsg = {
     severity: 'success' | 'info' | 'warn' | 'error';
@@ -147,7 +147,7 @@ export class GuestService {
      * Updates the last tag usage of the guest identified by the given id.
      * @param guestId The id of the guest to update the last tag usage for.
      */
-    public updateLastTagUsage(guestId: string | undefined): void {
+    public updateLastTagUsage(guestId: number): void {
         this.apiService.get<ApiResponse>(`guest/updatelasttagusage/${guestId}`)
             .subscribe({
                 next: (response: ApiResponse) => { },
@@ -237,7 +237,7 @@ export class GuestService {
         }
     }
 
-    public updateGuest2(modifiedGuest: Guest): Observable<any> {
+    public updateGuest2(modifiedGuest: any): Observable<any> {
         return this.apiService.put(`guest/update/${modifiedGuest.id}`, modifiedGuest)
             .pipe(
                 tap(() => console.log(`updated guest id=${modifiedGuest.id}`)),
@@ -249,7 +249,7 @@ export class GuestService {
      * Guest delete
      * @param guest
      */
-    public delete(guest: Guest): void {
+    public delete(guest: any): void {
         this.apiService.delete(`guest/delete/${guest.id}`)
             .subscribe({
                 next: (response: any) => {
@@ -288,8 +288,9 @@ export class GuestService {
             })
     }
 
-    searchGuestsForSelector$(filter: any = {}) {
-        return this.getBySearchQuery$(this.buildGuestQS(filter))
+    searchGuestsForSelector$(filter: GuestFilter = {}) {
+        const qs = this.buildGuestQS(filter)
+        return this.apiService.get<ApiResponse>(`guest/searchquery?${qs}`)
             .pipe(map((data: any) => data ? (data.rows ?? []) : []))
     }
 
@@ -298,6 +299,8 @@ export class GuestService {
         if (f.conferenceId != null) parts.push(`conferenceid=${encodeURIComponent(String(f.conferenceId))}`)
         if (typeof f.minBeds === 'number') parts.push(`minBeds=${f.minBeds}`)
         if (typeof f.climate === 'boolean') parts.push(`climate=${f.climate ? 1 : 0}`)
+        if (f.onlyNotReserved) parts.push(`onlyNotReserved=true`);
+        if (f.includeGuestIds?.length) parts.push(`includeGuestIds=${f.includeGuestIds.join(',')}`);
         if (f.enabled) parts.push(`enabled=1`)
         return parts.join('&')
     }

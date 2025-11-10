@@ -1,4 +1,4 @@
-import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy, Output, EventEmitter } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { MultiSelect } from 'primeng/multiselect';
@@ -7,6 +7,13 @@ import { Conference } from '../../api/conference';
 import { ConferenceService } from '../../service/conference.service';
 
 export type ChangeSource = 'user' | 'auto-select-first' | 'preselect-id' | 'programmatic';
+export type ExtendedConference = Conference & { __none__?: boolean }
+
+const NONE_OPTION: ExtendedConference = {
+    id: -1,
+    name: '— Nincs, vagy nincs engedélyezett konferenciája —',
+    __none__: true
+}
 
 @Component({
     selector: 'app-conference-selector',
@@ -22,7 +29,7 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
 
     // static: false ensures that the ViewChild is dynamically updated when the template changes
     @ViewChild('conferenceSelector', { static: false })
-    private readonly conferenceSelectorRef: MultiSelect
+    private conferenceSelectorRef: MultiSelect
 
     @Input() selectionLimit?: number                // Maximum number of selectable conferences (optional)
     @Input() selectFirstOption: boolean = false     // Whether to automatically select the first available option
@@ -34,26 +41,30 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
     @Input() emitOnPreselectId = false
     @Input() emitOnWriteValue = false
     @Input()
-    set preselectConferenceId(value: number | undefined) {
-        this._pendingSelectId = value
-        this.tryPreselectById()                      // Select predefined conference by Id
+    set preselectIds(value: number | string | Array<number | string> | null | undefined) {
+        const arr = Array.isArray(value) ? value : (value != null ? [value] : [])
+        const nums = arr.map(v => typeof v === 'string' ? Number(v) : v)
+            .filter((n): n is number => Number.isFinite(n))
+        this._pendingSelectIds = nums.length ? nums : undefined
+        this.preselectByIds()    // try to apply immediately if data already loaded
     }
 
     @Output() change = new EventEmitter<{ value: Conference[]; source: ChangeSource }>()
 
     loading: boolean = true                          // Loading state indicator
     disabled: boolean = false                        // Whether the selector is disabled
-    conferences: Conference[] = []                   // List of available conference options
-    originalConferences: Conference[] = []           // Original list of conference options
-    selectedConferences: Conference[] = []           // List of currently selected conferences
+    conferences: any[] = []                   // List of available conference options
+    originalConferences: any[] = []           // Original list of conference options
+    selectedConferences: any[] = []           // List of currently selected conferences
 
-    private _pendingSelectId?: number
+    private _pendingSelectIds?: number[]
     private subscriptions: Subscription = new Subscription()
     private suppress = 0
     private runSilently<T>(fn: () => T): T { this.suppress++; try { return fn() } finally { this.suppress-- } }
 
     constructor(private conferenceService: ConferenceService,
-        private messageService: MessageService
+        private messageService: MessageService,
+        private cdr: ChangeDetectorRef
     ) { }
 
     /**
@@ -61,15 +72,17 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * Fetches the list of conferences and selects the first option if required.
      */
     ngOnInit(): void {
-        const sub = this.conferenceService.getConferencesForSelector()
+        const sub = this.conferenceService
+            .getSelector$({ sort: 'beginDate', order: 'asc', enabled: 1 })
             .subscribe({
                 next: conferences => {
-                    this.conferences = conferences ?? []
-                    this.originalConferences = [...(conferences ?? [])]   // clone
+                    const withNone = [NONE_OPTION, ...conferences]
+                    this.conferences = withNone
+                    this.originalConferences = [...withNone]   // clone
                     this.syncSelectedConferences()
                     this.handleSelectFirstOption()
                     this.updateDisabledFlags()
-                    this.tryPreselectById()
+                    this.preselectByIds()
                     this.loading = false
                 },
                 error: () => {
@@ -90,8 +103,8 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
         if (changes['disabledOptions'] && this.originalConferences.length > 0) {
             this.updateDisabledFlags()
         }
-        if (changes['preselectConferenceId']) {
-            this.tryPreselectById()
+        if (changes['preselectIds']) {
+            this.preselectByIds()
         }
     }
 
@@ -103,17 +116,22 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * Update the conferences list by assigning the disabled field to each option
      */
     updateDisabledFlags(): void {
+        const disabledList = Array.isArray(this.disabledOptions) ? this.disabledOptions : []
         this.conferences = this.originalConferences.map((conference: Conference) => ({
             ...conference,
-            disabled: this.disabledOptions.some(disabledConf => disabledConf.id === conference.id)
+            disabled: this.isNone(conference)
+                ? false
+                : disabledList.some(disabledConf => disabledConf?.id === conference.id)
         }))
+        this.cdr.markForCheck()
     }
 
     // Opcionális publikus setter programozott beállításhoz:
     public setSelection(value: Conference[], opts?: { emit?: boolean; source?: ChangeSource }) {
-        const source = opts?.source ?? 'programmatic';
-        this.runSilently(() => { this.selectedConferences = value?.slice(0, this.selectionLimit ?? value.length) ?? []; });
-        if (opts?.emit) this.emit(this.selectedConferences, source, true);
+        const source = opts?.source ?? 'programmatic'
+        this.runSilently(() => { this.selectedConferences = this.normalizeSelection(value) })
+        if (opts?.emit) this.emit(this.selectedConferences, source, true)
+        else this.cdr.markForCheck()
     }
 
     /**
@@ -121,19 +139,25 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * This ensures that the component has an initial selection when loaded.
      */
     private handleSelectFirstOption(): void {
-        if (this.selectFirstOption && this.selectedConferences.length === 0 && this.conferences.length) {
-            this.runSilently(() => {
-                this.selectedConferences = this.conferences.slice(0, this.selectionLimit ?? 1);
-            })
-            // if you specifically want this to trigger filtering:
-            if (this.emitOnSelectFirstOption) this.emit(this.selectedConferences, 'auto-select-first', /*force*/ true);
+        if (!this.selectFirstOption || this.selectedConferences.length || !this.conferences.length) return
+
+        const firstReal = this.conferences.find(c => !this.isNone(c) && !c.disabled)
+        if (!firstReal) { this.cdr.markForCheck(); return }
+
+        this.runSilently(() => { this.selectedConferences = [firstReal] })
+
+        // if you specifically want this to trigger filtering:
+        if (this.emitOnSelectFirstOption) {
+            this.emit(this.selectedConferences, 'auto-select-first', true)
+        } else {
+            this.cdr.markForCheck()
         }
     }
 
     /**
      * Applies any pending preselection once the options list is available.
      *
-     * Finds the conference matching `_pendingSelectId` in `conferences` and updates
+     * Finds the conference matching `_pendingSelectIds` in `conferences` and updates
      * `selectedConferences` accordingly (single-item array or empty). Idempotent:
      * safe to call multiple times, even with the same ID.
      *
@@ -143,11 +167,23 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * Notes:
      * - Selection is ID-based (use `dataKey="id"` on the MultiSelect), not by object reference.
      */
-    private tryPreselectById(): void {
-        if (!this.conferences?.length || this._pendingSelectId == null) return;
-        const c = this.conferences.find(x => x.id === this._pendingSelectId);
-        this.runSilently(() => { this.selectedConferences = c ? [c] : []; });
-        if (this.emitOnPreselectId) this.emit(this.selectedConferences, 'preselect-id', true);
+    private preselectByIds(): void {
+        if (!this.conferences?.length || !this._pendingSelectIds?.length) return
+
+        const idSet = new Set(this._pendingSelectIds)
+        const found = this.conferences.filter(c => !this.isNone(c) && idSet.has(Number(c.id)))
+
+        this.runSilently(() => {
+            const limit = this.selectionLimit ?? found.length
+            this.selectedConferences = found.slice(0, limit)
+            this.conferenceSelectorRef?.writeValue(this.selectedConferences)
+        })
+
+        if (this.emitOnPreselectId) {
+            this.emit(this.selectedConferences, 'preselect-id', true)
+        } else {
+            this.cdr.markForCheck()
+        }
     }
 
     /**
@@ -165,10 +201,12 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * Ensures that the selected values remain valid if the list of conferences updates.
      */
     private syncSelectedConferences(): void {
+        const current = Array.isArray(this.selectedConferences) ? this.selectedConferences : [];
         this.selectedConferences = this.conferences.filter(conf =>
-            this.selectedConferences.some(sel => sel.id === conf.id)
-        )
+            current.some(sel => sel?.id === conf?.id)
+        );
         this.onChange(this.selectedConferences)
+        this.cdr.markForCheck()
     }
 
     /**
@@ -178,11 +216,12 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * @param event - The selection change event containing the selected values.
      */
     onSelectionChange(event: any): void {
-        this.selectedConferences = event.value
+        const raw = Array.isArray(event?.value) ? event.value : []
+        this.selectedConferences = this.normalizeSelection(raw)
         this.emit(this.selectedConferences, 'user')
 
         // Auto-close if max 1 can be selected and there is already a selection
-        if ((this.selectionLimit ?? 1) === 1 && this.selectedConferences?.length >= 1) {
+        if (this.selectionLimit == 1 && this.selectedConferences?.length >= 1) {
             // small delay to let MultiSelect update its own state first
             setTimeout(() => this.conferenceSelectorRef?.hide())
         }
@@ -193,15 +232,38 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * Resets the selected conferences and notifies the parent component.
      */
     onSelectionClear(): void {
-        this.selectedConferences = []
-        this.onChange(this.selectedConferences)
-        this.onTouched()
+        this.runSilently(() => {
+            this.selectedConferences = []
+            this.conferenceSelectorRef?.writeValue([])
+        })
+        // Emit so parent form & listeners see the clear as well
+        this.emit(this.selectedConferences, 'user', true)
+    }
+
+    // Helpers for none
+    private isNone = (c: any) => !!c?.__none__ || c?.id === -1
+    private getNone = (): ExtendedConference => NONE_OPTION
+
+    private normalizeSelection(list: Conference[]): Conference[] {
+        const arr = Array.isArray(list) ? list : []
+        const hasNone = arr.some(c => this.isNone(c))
+        if (hasNone) return [this.getNone()]
+        const limit = this.selectionLimit ?? arr.length
+        return arr.slice(0, limit)
     }
 
     private emit(value: Conference[], source: ChangeSource, force = false) {
-        if (this.suppress && !force) return;   // némítás alatt csak force esetén engedünk
-        this.onChange(value); this.onTouched();
-        this.change.emit({ value, source });
+        // during mute we only allow it in case of force
+        if (this.suppress && !force) {
+            return
+        }
+
+        this.onChange(value)
+        this.onTouched()
+        this.change.emit({ value, source })
+
+        // Ensure UI updates after every emission under OnPush
+        this.cdr.markForCheck()
     }
 
     // ===========================
@@ -214,11 +276,11 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * 
      * @param value - The selected conferences coming from the form.
      */
-    writeValue(value: Conference[]): void {
-        this.runSilently(() => {
-            this.selectedConferences = value?.slice(0, this.selectionLimit ?? value.length) ?? [];
-        });
-        if (this.emitOnWriteValue) this.emit(this.selectedConferences, 'programmatic', true);
+    writeValue(value: Conference[] | Conference | null | undefined): void {
+        const arr: Conference[] = Array.isArray(value) ? value : (value ? [value] : [])
+        this.runSilently(() => { this.selectedConferences = this.normalizeSelection(arr) })
+        if (this.emitOnWriteValue) this.emit(this.selectedConferences, 'programmatic', true)
+        else this.cdr.markForCheck()
     }
 
     /**

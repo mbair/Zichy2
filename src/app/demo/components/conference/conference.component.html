@@ -313,173 +313,177 @@
                 </span>
             </ng-template>
 
-            <form [formGroup]="conferenceForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
+            <!-- Render content only after first open -->
+            <ng-container *ngIf="sidebar">
 
-                <!-- Konferencia Id -->
-                <input formControlName="id" type="hidden">
+                <form [formGroup]="conferenceForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
 
-                <!-- Konferencia neve -->
-                <div class="field mb-4 col-12">
-                    <label for="name" class="font-medium text-900">Konferencia neve</label>
-                    <input id="name" type="text" pInputText formControlName="name">
-                    <div *ngIf="name?.dirty && name?.errors?.['required']" class="block p-error">Kötelező kitölteni
+                    <!-- Konferencia Id -->
+                    <input formControlName="id" type="hidden">
+
+                    <!-- Konferencia neve -->
+                    <div class="field mb-4 col-12">
+                        <label for="name" class="font-medium text-900">Konferencia neve</label>
+                        <input id="name" type="text" pInputText formControlName="name">
+                        <div *ngIf="name?.dirty && name?.errors?.['required']" class="block p-error">Kötelező kitölteni
+                        </div>
                     </div>
-                </div>
 
-                <!-- Űrlap URL -->
-                <div class="field mb-4 col-12">
-                    <label for="formUrl" class="font-medium text-900">Regisztrációs űrlap link</label>
-                    <span class="block mt-2 md:mt-0 p-input-icon-right">
-                        <i class="pi pi-copy cursor-pointer hover:text-blue-500" (click)="copyUrl(formUrl?.value)"></i>
-                        <input id="formUrl" type="text" pInputText formControlName="formUrl" readonly>
-                    </span>
-                    <div *ngIf="formUrl?.dirty && formUrl?.errors?.['required']" class="block p-error">Kötelező
-                        kitölteni</div>
-                </div>
-
-                <!-- Kezdete -->
-                <div class="field mb-4 col-12 lg:col-6">
-                    <label for="beginDate" class="font-medium text-900">Kezdete</label>
-                    <p-calendar formControlName="beginDate" appendTo="body" dataType="string" dateFormat="yy-mm-dd"
-                        [showButtonBar]="true">
-                    </p-calendar>
-                    <div *ngIf="beginDate?.dirty && beginDate?.errors?.['required']" class="block p-error">Kötelező
-                        kitölteni</div>
-                </div>
-
-                <!-- Első étkezés -->
-                <div class="field mb-4 col-12 lg:col-6">
-                    <label for="firstMeal" class="font-medium text-900">Első étkezés</label>
-                    <app-meal-selector [parentForm]="conferenceForm" controlName="firstMeal"></app-meal-selector>
-                    <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="block p-error">Kötelező
-                        kitölteni</div>
-                </div>
-
-                <!-- Vége -->
-                <div class="field mb-4 col-12 lg:col-6">
-                    <label for="endDate" class="font-medium text-900">Vége</label>
-                    <p-calendar formControlName="endDate" appendTo="body" dataType="string" dateFormat="yy-mm-dd"
-                        [showButtonBar]="true">
-                    </p-calendar>
-                    <div *ngIf="endDate?.dirty && endDate?.errors?.['required']" class="block p-error">Kötelező
-                        kitölteni</div>
-                </div>
-
-                <!-- Utolsó étkezés -->
-                <div class="field mb-4 col-12 lg:col-6">
-                    <label for="lastMeal" class="font-medium text-900">Utolsó étkezés</label>
-                    <app-meal-selector [parentForm]="conferenceForm" controlName="lastMeal"></app-meal-selector>
-                    <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="block p-error">Kötelező
-                        kitölteni</div>
-                </div>
-
-                <!-- Szerződő neve -->
-                <div class="field mb-4 col-12 lg:col-6">
-                    <label for="contractorName" class="font-medium text-900">Szerződő neve</label>
-                    <input id="contractorName" type="text" pInputText formControlName="contractorName">
-                    <div *ngIf="contractorName?.dirty && contractorName?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni</div>
-                </div>
-
-                <!-- Szerződő adószáma -->
-                <div class="field mb-4 col-12 lg:col-6">
-                    <label for="contractorTaxNumber" class="font-medium text-900">Szerződő adószáma</label>
-                    <input id="contractorTaxNumber" type="text" pInputText formControlName="contractorTaxNumber">
-                    <div *ngIf="contractorTaxNumber?.dirty && contractorTaxNumber?.errors?.['required']"
-                        class="block p-error">Kötelező kitölteni</div>
-                </div>
-
-                <!-- Szerződő címe -->
-                <div class="field mb-4 col-12 lg:col-6">
-                    <label for="contractorAdress" class="font-medium text-900">Szerződő címe</label>
-                    <input id="contractorAdress" type="text" pInputText formControlName="contractorAdress">
-                    <div *ngIf="contractorAdress?.dirty && contractorAdress?.errors?.['required']"
-                        class="block p-error">Kötelező kitölteni</div>
-                </div>
-
-                <!-- Szervező -->
-                <div class="field mb-4 col-12 lg:col-6">
-                    <label for="organizer" class="font-medium text-900">Szervező</label>
-                    <app-user-selector [parentForm]="conferenceForm" controlName="organizer_user_id" [user_rolesid]="4"></app-user-selector>
-                </div>
-
-                <!-- Kapcsolattartó neve -->
-                <div class="field mb-4 col-12 lg:col-6">
-                    <label for="contactName" class="font-medium text-900">Kapcsolattartó neve</label>
-                    <input id="contactName" type="text" pInputText formControlName="contactName">
-                    <div *ngIf="contactName?.dirty && contactName?.errors?.['required']" class="block p-error">Kötelező
-                        kitölteni</div>
-                </div>
-
-                <!-- Kapcsolattartó telefon -->
-                <div class="field mb-4 col-12 lg:col-6">
-                    <label for="contactPhone" class="font-medium text-900">Kapcsolattartó telefonszáma</label>
-                    <input id="contactPhone" type="text" pInputText formControlName="contactPhone">
-                    <div *ngIf="contactPhone?.dirty && contactPhone?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni</div>
-                </div>
-
-                <!-- Kapcsolattartó e-mail -->
-                <div class="field mb-4 col-12 lg:col-6">
-                    <label for="contactEmail" class="font-medium text-900">Kapcsolattartó e-mail címe</label>
-                    <input id="contactEmail" type="text" pInputText formControlName="contactEmail">
-                    <div *ngIf="contactEmail?.dirty && contactEmail?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni</div>
-                    <div *ngIf="contactEmail?.dirty && contactEmail?.errors?.['invalidEmail']" class="block p-error">Nem
-                        megfelelő email formátum</div>
-                </div>
-
-                <!-- Regisztráció vége -->
-                <div class="field mb-4 col-12 lg:col-6">
-                    <label for="registrationEndDate" class="font-medium text-900">Regisztráció vége</label>
-                    <p-calendar formControlName="registrationEndDate" appendTo="body" dataType="string"
-                        dateFormat="yy-mm-dd" [showButtonBar]="true">
-                    </p-calendar>
-                    <div *ngIf="registrationEndDate?.dirty && registrationEndDate?.errors?.['required']"
-                        class="block p-error">Kötelező kitölteni</div>
-                </div>
-
-                <!-- Vendég módosítás határideje -->
-                <div class="field mb-4 col-12 lg:col-6">
-                    <label for="guestEditEndDate" class="font-medium text-900">Vendég módosítás határideje</label>
-                    <p-calendar formControlName="guestEditEndDate" 
-                                appendTo="body" 
-                                dataType="string" 
-                                dateFormat="yy-mm-dd" 
-                                [showButtonBar]="true">
-                    </p-calendar>
-                    <div *ngIf="guestEditEndDate?.dirty && guestEditEndDate?.errors?.['required']"
-                        class="block p-error">Kötelező kitölteni</div>
-                </div>
-
-                <!-- Enabled -->
-                <div class="field mb-4 col-12 lg:col-6">
-                    <label for="enabled" class="font-medium text-900">Engedélyezve</label>
-                    <app-yes-no-selector 
-                        formControlName="enabled"
-                        [yesText]="'Igen'"
-                        [noText]="'Nem'"
-                        [minHeight]="'44px'"
-                        [lineHeight]="'44px'"
-                        styleClass="vertical-align-middle">
-                    </app-yes-no-selector>
-                    <div *ngIf="enabled?.dirty && enabled?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
+                    <!-- Űrlap URL -->
+                    <div class="field mb-4 col-12">
+                        <label for="formUrl" class="font-medium text-900">Regisztrációs űrlap link</label>
+                        <span class="block mt-2 md:mt-0 p-input-icon-right">
+                            <i class="pi pi-copy cursor-pointer hover:text-blue-500" (click)="copyUrl(formUrl?.value)"></i>
+                            <input id="formUrl" type="text" pInputText formControlName="formUrl" readonly>
+                        </span>
+                        <div *ngIf="formUrl?.dirty && formUrl?.errors?.['required']" class="block p-error">Kötelező
+                            kitölteni</div>
                     </div>
-                </div>
 
-                <!-- Adatvédelmi nyilatkozat URL -->
-                <div class="field mb-4 col-12">
-                    <label for="acceptanceCriteriaUrl" class="font-medium text-900">Adatvédelmi nyilatkozat URL</label>
-                    <span class="block mt-2 md:mt-0 p-input-icon-right">
-                        <i class="pi pi-copy cursor-pointer hover:text-blue-500" (click)="copyUrl(acceptanceCriteriaUrl?.value)"></i>
-                        <input id="acceptanceCriteriaUrl" type="text" pInputText formControlName="acceptanceCriteriaUrl">
-                    </span>
-                    <div *ngIf="acceptanceCriteriaUrl?.dirty && acceptanceCriteriaUrl?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
+                    <!-- Kezdete -->
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="beginDate" class="font-medium text-900">Kezdete</label>
+                        <p-calendar formControlName="beginDate" appendTo="body" dataType="string" dateFormat="yy-mm-dd"
+                            [showButtonBar]="true">
+                        </p-calendar>
+                        <div *ngIf="beginDate?.dirty && beginDate?.errors?.['required']" class="block p-error">Kötelező
+                            kitölteni</div>
                     </div>
-                </div>
-            </form>
+
+                    <!-- Első étkezés -->
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="firstMeal" class="font-medium text-900">Első étkezés</label>
+                        <app-meal-selector [parentForm]="conferenceForm" controlName="firstMeal"></app-meal-selector>
+                        <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="block p-error">Kötelező
+                            kitölteni</div>
+                    </div>
+
+                    <!-- Vége -->
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="endDate" class="font-medium text-900">Vége</label>
+                        <p-calendar formControlName="endDate" appendTo="body" dataType="string" dateFormat="yy-mm-dd"
+                            [showButtonBar]="true">
+                        </p-calendar>
+                        <div *ngIf="endDate?.dirty && endDate?.errors?.['required']" class="block p-error">Kötelező
+                            kitölteni</div>
+                    </div>
+
+                    <!-- Utolsó étkezés -->
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="lastMeal" class="font-medium text-900">Utolsó étkezés</label>
+                        <app-meal-selector [parentForm]="conferenceForm" controlName="lastMeal"></app-meal-selector>
+                        <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="block p-error">Kötelező
+                            kitölteni</div>
+                    </div>
+
+                    <!-- Szerződő neve -->
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="contractorName" class="font-medium text-900">Szerződő neve</label>
+                        <input id="contractorName" type="text" pInputText formControlName="contractorName">
+                        <div *ngIf="contractorName?.dirty && contractorName?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni</div>
+                    </div>
+
+                    <!-- Szerződő adószáma -->
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="contractorTaxNumber" class="font-medium text-900">Szerződő adószáma</label>
+                        <input id="contractorTaxNumber" type="text" pInputText formControlName="contractorTaxNumber">
+                        <div *ngIf="contractorTaxNumber?.dirty && contractorTaxNumber?.errors?.['required']"
+                            class="block p-error">Kötelező kitölteni</div>
+                    </div>
+
+                    <!-- Szerződő címe -->
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="contractorAdress" class="font-medium text-900">Szerződő címe</label>
+                        <input id="contractorAdress" type="text" pInputText formControlName="contractorAdress">
+                        <div *ngIf="contractorAdress?.dirty && contractorAdress?.errors?.['required']"
+                            class="block p-error">Kötelező kitölteni</div>
+                    </div>
+
+                    <!-- Szervező -->
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="organizer" class="font-medium text-900">Szervező</label>
+                        <app-user-selector [parentForm]="conferenceForm" controlName="organizer_user_id" [user_rolesid]="4"></app-user-selector>
+                    </div>
+
+                    <!-- Kapcsolattartó neve -->
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="contactName" class="font-medium text-900">Kapcsolattartó neve</label>
+                        <input id="contactName" type="text" pInputText formControlName="contactName">
+                        <div *ngIf="contactName?.dirty && contactName?.errors?.['required']" class="block p-error">Kötelező
+                            kitölteni</div>
+                    </div>
+
+                    <!-- Kapcsolattartó telefon -->
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="contactPhone" class="font-medium text-900">Kapcsolattartó telefonszáma</label>
+                        <input id="contactPhone" type="text" pInputText formControlName="contactPhone">
+                        <div *ngIf="contactPhone?.dirty && contactPhone?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni</div>
+                    </div>
+
+                    <!-- Kapcsolattartó e-mail -->
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="contactEmail" class="font-medium text-900">Kapcsolattartó e-mail címe</label>
+                        <input id="contactEmail" type="text" pInputText formControlName="contactEmail">
+                        <div *ngIf="contactEmail?.dirty && contactEmail?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni</div>
+                        <div *ngIf="contactEmail?.dirty && contactEmail?.errors?.['invalidEmail']" class="block p-error">Nem
+                            megfelelő email formátum</div>
+                    </div>
+
+                    <!-- Regisztráció vége -->
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="registrationEndDate" class="font-medium text-900">Regisztráció vége</label>
+                        <p-calendar formControlName="registrationEndDate" appendTo="body" dataType="string"
+                            dateFormat="yy-mm-dd" [showButtonBar]="true">
+                        </p-calendar>
+                        <div *ngIf="registrationEndDate?.dirty && registrationEndDate?.errors?.['required']"
+                            class="block p-error">Kötelező kitölteni</div>
+                    </div>
+
+                    <!-- Vendég módosítás határideje -->
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="guestEditEndDate" class="font-medium text-900">Vendég módosítás határideje</label>
+                        <p-calendar formControlName="guestEditEndDate" 
+                                    appendTo="body" 
+                                    dataType="string" 
+                                    dateFormat="yy-mm-dd" 
+                                    [showButtonBar]="true">
+                        </p-calendar>
+                        <div *ngIf="guestEditEndDate?.dirty && guestEditEndDate?.errors?.['required']"
+                            class="block p-error">Kötelező kitölteni</div>
+                    </div>
+
+                    <!-- Enabled -->
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="enabled" class="font-medium text-900">Engedélyezve</label>
+                        <app-yes-no-selector 
+                            formControlName="enabled"
+                            [yesText]="'Igen'"
+                            [noText]="'Nem'"
+                            [minHeight]="'44px'"
+                            [lineHeight]="'44px'"
+                            styleClass="vertical-align-middle">
+                        </app-yes-no-selector>
+                        <div *ngIf="enabled?.dirty && enabled?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
+                    </div>
+
+                    <!-- Adatvédelmi nyilatkozat URL -->
+                    <div class="field mb-4 col-12">
+                        <label for="acceptanceCriteriaUrl" class="font-medium text-900">Adatvédelmi nyilatkozat URL</label>
+                        <span class="block mt-2 md:mt-0 p-input-icon-right">
+                            <i class="pi pi-copy cursor-pointer hover:text-blue-500" (click)="copyUrl(acceptanceCriteriaUrl?.value)"></i>
+                            <input id="acceptanceCriteriaUrl" type="text" pInputText formControlName="acceptanceCriteriaUrl">
+                        </span>
+                        <div *ngIf="acceptanceCriteriaUrl?.dirty && acceptanceCriteriaUrl?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
+                    </div>
+                </form>
+            </ng-container>
             <ng-template pTemplate="footer">
                 <div class="flex justify-content-end ap-2">
                     <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-outlined"

@@ -15,6 +15,7 @@ import { DietService } from '../../service/diet.service';
 import { CountryService } from '../../service/country.service';
 import { LogService } from '../../service/log.service';
 import { ApiResponse } from '../../api/ApiResponse';
+import { Reservation } from '../../api/reservation';
 import { Conference } from '../../api/conference';
 import { Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
@@ -42,7 +43,7 @@ export class GuestComponent implements OnInit {
 
     apiURL: string                               // API URL depending on whether we are working on test or production
     loading: boolean = true                      // Loading overlay trigger value
-    tableItem: Guest = {}                        // One guest object
+    tableItem: Guest | null = null               // One guest object
     tableData: Guest[] = []                      // Data set displayed in a table
     rowsPerPageOptions = [20, 50, 100, 9999]     // Possible rows per page
     rowsPerPage: number = 20                     // Default rows per page
@@ -74,7 +75,7 @@ export class GuestComponent implements OnInit {
     tagDialog: boolean = false                   // Tag assignment popup
     conferences: any[] = []                      // Optional conferences
     selectedConferences: Conference[] = []       // Conference chosen by user
-    guest: Guest = {}                            // One guest object
+    guest: Guest | null = null                   // One guest object
     guestDialog: boolean = false                 // Guests maintenance popup
     filtersDialog: boolean = false               // Guests table filters popup
     cols: any[] = []                             // Table columns
@@ -98,6 +99,11 @@ export class GuestComponent implements OnInit {
     showUploadBlock: boolean = false             // Upload block visibility in edit form  
     guestConference: Conference                  // Guest's conference
     prepaidOptions: any[] = []                   // Possible prepaid options
+    guestReservations: Reservation[] = []        // Guest reservations
+    acutalReservation: any | null = null        // Actual guest reservation
+
+    private static readonly NONE_CONF_ID = -1
+    noConferenceMode: boolean = false
 
     private initialFormValues = {
         id: null,
@@ -258,7 +264,7 @@ export class GuestComponent implements OnInit {
 
         this.selectionChanges$
             .pipe(
-                map(v => (v ?? []).map(x => x.id).sort().join(',')), 
+                map(v => (v ?? []).map(x => x.id).sort().join(',')),
                 distinctUntilChanged()
             )
             .subscribe(() => this.doQuery())
@@ -268,43 +274,63 @@ export class GuestComponent implements OnInit {
         this.guestObs$.subscribe((data: ApiResponse) => {
             this.loading = false
             if (data && data.rows) {
-                this.tableData = (data.rows || []).map((guest: any) => ({
-                    ...guest,
-                    answers: Array.isArray(guest.answers)
-                        ? guest.answers.map((answer: any) => ({
-                            ...answer,
-                            translations: Array.isArray(answer.translations)
-                                ? answer.translations
-                                : answer.translations
-                                    ? [answer.translations]
-                                    : []
-                        }))
-                        : guest.answers
-                            ? [{
-                                ...guest.answers,
-                                translations: Array.isArray(guest.answers.translations)
-                                    ? guest.answers.translations
-                                    : guest.answers.translations
-                                        ? [guest.answers.translations]
-                                        : []
-                            }]
-                            : []
-                }))
-                this.totalRecords = data.totalItems || 0
-                this.page = data.currentPage || 0
-
                 // Filter out test users on production
+                let rows = data.rows || []
                 if (!isDevMode()) {
-                    this.tableData = data.rows?.filter((guest: any) => guest.is_test !== true) || []
+                    rows = rows.filter((guest: any) => guest.is_test !== true)
                 }
 
-                // Define tagged users number
+                this.tableData = rows.map((guest: any) => {
+                    // answers -> mindig egységes tömb/tömb-of-translation
+                    const normalizedAnswers =
+                        Array.isArray(guest.answers)
+                            ? guest.answers.map((answer: any) => ({
+                                ...answer,
+                                translations: Array.isArray(answer.translations)
+                                    ? answer.translations
+                                    : answer.translations
+                                        ? [answer.translations]
+                                        : []
+                            }))
+                            : guest.answers
+                                ? [{
+                                    ...guest.answers,
+                                    translations: Array.isArray(guest.answers.translations)
+                                        ? guest.answers.translations
+                                        : guest.answers.translations
+                                            ? [guest.answers.translations]
+                                            : []
+                                }]
+                                : []
+
+                    const reservations = Array.isArray(guest.reservations) ? guest.reservations : []
+                    // FONTOS: a pickActualReservation a selectedConferences-t is figyelembe veheti
+                    const actualReservation = this.pickActualReservation({ ...guest, reservations })
+
+                    const computedRoomNum =
+                        actualReservation?.room?.roomNum ??
+                        guest.displayRoomNum ??
+                        guest.roomNum ??
+                        null
+
+                    return {
+                        ...guest,
+                        answers: normalizedAnswers,
+                        reservations,
+                        actualReservation,         // <<< ezt használd a template-ben a linkhez/címkéhez
+                        displayRoomNum: computedRoomNum,
+                        roomNum: computedRoomNum
+                    }
+                })
+
+                this.totalRecords = data.totalItems || 0
+                this.page = data.currentPage || 0
                 this.totalTaggedGuests = data.rfidCount || 0
             }
         })
 
         // Genders
-        this.genderObs$ = this.genderService.genderObs;
+        this.genderObs$ = this.genderService.genderObs
         this.genderObs$.subscribe((data: any) => {
             this.genders = data
         })
@@ -358,9 +384,9 @@ export class GuestComponent implements OnInit {
         )
 
         // Monitor the changes of the form
-        this.guestForm.valueChanges.pipe(
-            debounceTime(300)
-        ).subscribe(() => this.formChanges$.next())
+        this.guestForm.valueChanges
+            .pipe(debounceTime(300))
+            .subscribe(() => this.formChanges$.next())
 
         // On dateOfArrival change, update the firstMeal
         this.guestForm.get('dateOfArrival')?.valueChanges.subscribe(() => {
@@ -416,14 +442,34 @@ export class GuestComponent implements OnInit {
 
             // Conditions met, perform the search
             this.loading = true
-            const conferenceIds = this.selectedConferences
-                .map(c => c.id)
-                .filter((id): id is number => id !== undefined)
 
-            this.guestService.getBySearch(
+            // same ID handling as in doQuery
+            const ids = this.selectedConferences
+                .map(c => Number(c.id))
+                .filter(n => Number.isFinite(n) && n !== GuestComponent.NONE_CONF_ID) as number[]
+
+            if (this.noConferenceMode) {
+                // build search + noConference query and use get()
+                const qp: string[] = [`search=${encodeURIComponent(searchValue)}`, 'noConference=1']
+                // include any other active table filters
+                const extraFilters = Object.keys(this.filterValues)
+                    .map(key => this.filterValues[key]?.length > 0 ? `${key}=${this.filterValues[key]}` : '')
+                    .filter(x => x.length > 0)
+                qp.push(...extraFilters)
+
+                return this.guestService.get(
+                    0,
+                    this.rowsPerPage,
+                    { sortField: this.sortField, sortOrder: this.sortOrder },
+                    qp.join('&')
+                )
+            }
+
+            // normal search path (keeps your existing behavior)
+            return this.guestService.getBySearch(
                 searchValue,
                 { sortField: this.sortField, sortOrder: this.sortOrder },
-                conferenceIds
+                ids
             )
         })
     }
@@ -469,16 +515,53 @@ export class GuestComponent implements OnInit {
 
         this.loading = true
 
+        // build base filters from table filters
         const filters = Object.keys(this.filterValues)
-            .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
-        const queryParams = filters.filter(x => x.length > 0).join('&')
+            .map(key => this.filterValues[key]?.length > 0 ? `${key}=${this.filterValues[key]}` : '')
+            .filter(x => x.length > 0)
 
-        if (this.globalFilter !== '') {
-            const conferenceIds = this.selectedConferences.map(c => c.id).filter((id): id is number => id !== undefined)
-            return this.guestService.getBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder }, conferenceIds)
+        // translate conference selection to API params
+        const ids = this.selectedConferences
+            .map(c => Number(c.id))
+            .filter(n => Number.isFinite(n) && n !== GuestComponent.NONE_CONF_ID) as number[]
+
+        if (this.noConferenceMode) {
+            filters.push('noConference=1')
+        } else if (ids.length) {
+            filters.push(`conferenceIds=${ids.join(',')}`)
         }
 
-        return this.guestService.get(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
+        const queryParams = filters.join('&')
+
+        // global search path
+        if (this.globalFilter !== '') {
+            // if "no conference" mode, use get() with search param
+            if (this.noConferenceMode) {
+                const qp = [`search=${encodeURIComponent(this.globalFilter)}`]
+                if (queryParams) qp.push(queryParams);
+                return this.guestService.get(
+                    this.page,
+                    this.rowsPerPage,
+                    { sortField: this.sortField, sortOrder: this.sortOrder },
+                    qp.join('&')
+                )
+            }
+
+            // normal path (has real conference IDs or none selected): keep using getBySearch
+            return this.guestService.getBySearch(
+                this.globalFilter,
+                { sortField: this.sortField, sortOrder: this.sortOrder },
+                ids
+            )
+        }
+
+        // default list path
+        return this.guestService.get(
+            this.page,
+            this.rowsPerPage,
+            { sortField: this.sortField, sortOrder: this.sortOrder },
+            queryParams
+        )
     }
 
     onFilter(event: any, field: string) {
@@ -583,6 +666,9 @@ export class GuestComponent implements OnInit {
             this.getIdCardImage(guest)
         }
 
+        // Guest room reservation
+        this.guestReservations = guest.reservations ?? []
+
         this.sidebar = true
 
         // Get guest conference details
@@ -621,6 +707,7 @@ export class GuestComponent implements OnInit {
      * Delete the Guest
      */
     delete() {
+        if (!this.tableItem) return
         this.loading = true
         this.deleteDialog = false
         this.guestService.delete(this.tableItem)
@@ -713,7 +800,7 @@ export class GuestComponent implements OnInit {
         this.doQuery()
     }
 
-    findIndexById(id: string | undefined): number {
+    findIndexById(id: number | undefined): number {
         let index = -1;
         for (let i = 0; i < this.tableData.length; i++) {
             if (this.tableData[i].id === id) {
@@ -728,7 +815,7 @@ export class GuestComponent implements OnInit {
     assignTag(guest: any) {
         // Empty previous scanned codes
         this.scanTemp = '';
-        this.scannedCode = this.guest.rfid || '';
+        this.scannedCode = this.guest?.rfid || '';
         this.guest = { ...guest };
         this.messages = [
             { severity: 'info', summary: '', detail: 'Tartsa a ' + guest.diet + ' étrendhez tartozó NFC címkét az olvasóhoz...' },
@@ -737,27 +824,48 @@ export class GuestComponent implements OnInit {
     }
 
     unAssignTag() {
-        this.guest.rfid = null;
-        this.guest.lastRfidUsage = null;
-        this.guestService.update(this.guest);
-        let guestsClone = JSON.parse(JSON.stringify(this.tableData))
-        guestsClone[this.findIndexById(this.guest.id)] = this.guest;
-        this.tableData = guestsClone
+        // guard: ha nincs kiválasztott vendég, nincs teendő
+        const g = this.guest
+        if (!g) return
+
+        // 1) backend update – csak azt küldjük, ami változik
+        const payload: Pick<Guest, 'id'> & Partial<Guest> = {
+            id: g.id,
+            rfid: null,
+            lastRfidUsage: null
+        };
+        this.guestService.update(payload)
+
+        // Refresh local state (immutable)
+        const idx = this.findIndexById(g.id);
+        if (idx !== -1) {
+            const updated: Guest = { ...g, rfid: null, lastRfidUsage: null };
+            this.tableData = [
+                ...this.tableData.slice(0, idx),
+                updated,
+                ...this.tableData.slice(idx + 1)
+            ];
+            this.guest = updated;
+        }
+
+        // UI feedback
         this.successfulMessage = [{
             severity: 'success',
             summary: '',
             detail: 'A címkét eltávolítottuk a vendégtől!'
-        }]
+        }];
+
         this.totalTaggedGuests--;
         setTimeout(() => {
             this.tagDialog = false
         }, 200)
 
         // Logging
+        const name = `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim()
         this.logService.create({
             action_type: "unassign",
             table_name: "guest",
-            original_data: "Unassign Tag from " + this.guest.lastName + " " + this.guest.firstName,
+            original_data: `Unassign Tag from ${name || 'ismeretlen vendég'}`
         })
     }
 
@@ -770,7 +878,7 @@ export class GuestComponent implements OnInit {
                 if (data.rows && data.rows.length > 0) {
                     // Check if tag color is the same as the guest diet color
                     let tagColor = data.rows[0].color
-                    let guestDietColor = this.diets.find(d => d.name === this.guest.diet)?.color
+                    let guestDietColor = this.diets.find(d => d.name === this.guest?.diet)?.color
 
                     if (tagColor === 'gray') {
                         tagColor = 'black'
@@ -810,7 +918,7 @@ export class GuestComponent implements OnInit {
                         error: () => {
                             // RFID is free, proceed with update
                             const updateData = {
-                                id: this.guest.id,
+                                id: this.guest?.id,
                                 rfid: this.scannedCode
                             }
 
@@ -818,7 +926,7 @@ export class GuestComponent implements OnInit {
                                 next: () => {
                                     // Update local table data
                                     let guestsClone = JSON.parse(JSON.stringify(this.tableData))
-                                    const guestIndex = this.findIndexById(this.guest.id);
+                                    const guestIndex = this.findIndexById(this.guest?.id);
                                     guestsClone[guestIndex] = { ...guestsClone[guestIndex], rfid: this.scannedCode }
                                     this.tableData = guestsClone
 
@@ -838,11 +946,11 @@ export class GuestComponent implements OnInit {
                                     this.logService.create({
                                         action_type: 'assign Tag',
                                         table_name: 'guest',
-                                        original_data: `Assign Tag ${this.scannedCode} to ${this.guest.lastName} ${this.guest.firstName}`
+                                        original_data: `Assign Tag ${this.scannedCode} to ${this.guest?.lastName} ${this.guest?.firstName}`
                                     })
 
                                     this.scannedCode = ''
-                                    this.guest = {}
+                                    this.guest = null
                                 },
                                 error: (error) => {
                                     console.error('Hiba az RFID frissítése közben:', error)
@@ -1135,7 +1243,11 @@ export class GuestComponent implements OnInit {
      */
     onConferenceSelectionChange(selectedConferences: Conference[]): void {
         this.selectedConferences = selectedConferences || []
-        this.filterValues['conferenceName'] = this.selectedConferences.map(conf => conf.name).join(', ') || ''
+        this.noConferenceMode = this.isNoneConferenceSelected(this.selectedConferences)
+
+        // Do NOT push the sentinel text into query params
+        // We control conference filtering via noConference / conferenceIds
+        delete this.filterValues['conferenceName']
 
         // Check if the user can edit the selected conferences
         if (this.isOrganizer && this.selectedConferences.length > 0) {
@@ -1143,7 +1255,8 @@ export class GuestComponent implements OnInit {
                 conf.guestEditEndDate && moment().isSameOrBefore(moment(conf.guestEditEndDate), 'day')
             )
         } else {
-            this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo']).subscribe(canEdit => this.canEdit = canEdit)
+            this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo'])
+                .subscribe(canEdit => this.canEdit = canEdit)
         }
 
         this.selectionChanges$.next(this.selectedConferences)
@@ -1249,7 +1362,7 @@ export class GuestComponent implements OnInit {
             })
 
             // Delete unnecessary columns
-            data.forEach((row: Guest) => {
+            data.forEach((row: any) => {
                 delete row.is_test
                 delete row.userid
                 delete row.rfid_id
@@ -1341,6 +1454,29 @@ export class GuestComponent implements OnInit {
             const data = new Blob([excelBuffer], { type: EXCEL_TYPE })
             FileSaver.saveAs(data, 'NFCReserve_import_template' + EXCEL_EXTENSION)
         })
+    }
+
+    private pickActualReservation(g: any): any | null {
+        const resArr = Array.isArray(g?.reservations) ? g.reservations : []
+        if (!resArr.length) return null
+
+        const confId = this.selectedConferences?.[0]?.id ?? null
+        const inConf = confId
+            ? resArr.filter((r: any) => Number(r?.conference_id) === Number(confId))
+            : resArr
+
+        const pool = inConf.length ? inConf : resArr
+
+        // legnagyobb reservation.id
+        return pool.reduce((best: { id: any }, cur: { id: any }) => {
+            const a = Number(best?.id ?? -Infinity)
+            const b = Number(cur?.id ?? -Infinity)
+            return b > a ? cur : best
+        }, null as any)
+    }
+
+    private isNoneConferenceSelected(confs: Conference[] | null | undefined): boolean {
+        return !!confs?.some(c => (c as any)?.__none__ === true || Number(c?.id) === GuestComponent.NONE_CONF_ID)
     }
 
     isImage(url: string) {

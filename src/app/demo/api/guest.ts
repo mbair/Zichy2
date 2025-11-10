@@ -1,7 +1,8 @@
 import { Conference } from "./conference";
+import { Reservation } from "./reservation";
 
 export interface Guest {
-    id?: string;
+    id: number;
     firstName?: string;
     lastName?: string;
     gender?: number;
@@ -21,6 +22,7 @@ export interface Guest {
     conferenceid?: number;
     diet?: string;
     dietColor?: string;
+    displayRoomNum?: string;
     advancePaid?: boolean;
     email?: string;
     telephone?: string;
@@ -45,4 +47,12 @@ export interface Guest {
     dietDetails?: string;
     idCardUploaded?: any;
     conference?: Conference[]
+    reservations?: Reservation[]
+}
+
+export type GuestFilter = {
+  conferenceId?: number | null;
+  enabled?: boolean;
+  onlyNotReserved?: boolean;
+  includeGuestIds?: number[];
 }

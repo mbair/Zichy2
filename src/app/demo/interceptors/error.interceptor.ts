@@ -19,17 +19,15 @@ export class ErrorInterceptor implements HttpInterceptor {
                      this.router.navigate(['/auth/login'])
                 }
 
-                let errorMessage = '';
-                if (error.error instanceof ErrorEvent) {
-                    // Client-side error
-                    errorMessage = `Error: ${error.error.message}`;
-                } else {
-                    // Server-side error
-                    errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
-                }
+                // Log whatever you want here, but DO NOT return a string
+                // (Keep backend body so downstream can read error.error.message)
+                const backendMsg =
+                    (error?.error && typeof error.error === 'object' && (error.error as any).message)
+                        ? (error.error as any).message
+                        : (typeof error?.error === 'string' ? error.error : error.message);
 
-                console.error(errorMessage)
-                return throwError(errorMessage)
+                // IMPORTANT: rethrow the original HttpErrorResponse
+                return throwError(() => error)
             })
         )
     }

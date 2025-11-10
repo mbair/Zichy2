@@ -48,7 +48,7 @@ const routes: Routes = [
                 path: 'reservation', 
                 data: { 
                     breadcrumb: 'Foglalás',
-                    requiredRoles: ['Super Admin', 'Nagy Admin']
+                    // requiredRoles: ['Super Admin', 'Nagy Admin']
                 }, 
                 loadChildren: () => import('./demo/components/reservation/reservation.module').then(m => m.ReservationModule), 
                 canActivate: [AuthGuard] 

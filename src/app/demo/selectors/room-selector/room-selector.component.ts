@@ -1,21 +1,12 @@
-import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy, Output, EventEmitter } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { MultiSelect } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
-import { Room } from '../../api/room';
+import { Room, RoomFilter } from '../../api/room';
 import { RoomService } from '../../service/room.service';
 
 export type ChangeSource = 'user' | 'auto-select-first' | 'preselect-id' | 'programmatic';
-
-export type RoomFilter = {
-    conferenceId?: number | null;
-    building?: string | string[];
-    minBeds?: number;
-    climate?: boolean;   
-    enabled?: boolean;
-    // (optionel) startDate?: string; endDate?: string; onlyFree?: boolean;
-}
 
 @Component({
     selector: 'app-room-selector',
@@ -31,7 +22,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
 
     // static: false ensures that the ViewChild is dynamically updated when the template changes
     @ViewChild('roomSelector', { static: false })
-    private readonly roomSelectorRef: MultiSelect
+    private roomSelectorRef?: MultiSelect           // not readonly; it can be undefined before view init
 
     @Input() filter: RoomFilter | null = null       // All Room filters
     @Input() selectionLimit?: number                // Maximum number of selectable rooms (optional)
@@ -40,13 +31,17 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
     @Input() showClear: boolean = true              // Whether to show the clear button
     @Input() style: { [key: string]: string } = {}  // Custom style for the dropdown
     @Input() disabledOptions: Room[] = []           // List of disabled room IDs
+    @Input() showOnlyNotReserved: boolean = false   // List only rooms that don't have a reservation
     @Input() emitOnSelectFirstOption = false        // only turn it on where you really need it
     @Input() emitOnPreselectId = false
     @Input() emitOnWriteValue = false
     @Input()
-    set preselectRoomId(value: number | undefined) {
-        this._pendingSelectId = value
-        this.tryPreselectById()                      // Select predefined room by Id
+    set preselectIds(value: number | string | Array<number | string> | null | undefined) {
+        const arr = Array.isArray(value) ? value : (value != null ? [value] : [])
+        const nums = arr.map(v => typeof v === 'string' ? Number(v) : v)
+            .filter((n): n is number => Number.isFinite(n))
+        this._pendingSelectIds = nums.length ? nums : undefined
+        this.preselectByIds()    // try to apply immediately if data already loaded
     }
 
     @Output() change = new EventEmitter<{ value: Room[]; source: ChangeSource }>()
@@ -57,13 +52,14 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
     originalRooms: Room[] = []                       // Original list of room options
     selectedRooms: Room[] = []                       // List of currently selected rooms
 
-    private _pendingSelectId?: number
+    private _pendingSelectIds?: number[]
     private subscriptions: Subscription = new Subscription()
     private suppress = 0
     private runSilently<T>(fn: () => T): T { this.suppress++; try { return fn() } finally { this.suppress-- } }
 
     constructor(private roomService: RoomService,
-        private messageService: MessageService
+        private messageService: MessageService,
+        private cdr: ChangeDetectorRef
     ) { }
 
     /**
@@ -72,13 +68,10 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
      */
     ngOnInit(): void {
         this.reload()
-        setTimeout(() => {
-            this.handleSelectFirstOption()
-        })
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        this.reload()
+        if (changes['filter']) this.reload()
     }
 
     ngOnDestroy(): void {
@@ -87,13 +80,47 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
 
     private reload() {
         this.loading = true;
-        this.roomService.searchRoomsForSelector$(this.filter ?? {})
+
+        // Build the effective filter passed to the backend.
+        // If showOnlyNotReserved is true, request only rooms without reservations for the given conference.
+        const effective: RoomFilter = {
+            ...(this.filter ?? {}),
+            onlyNotReserved: this.showOnlyNotReserved || (this.filter?.onlyNotReserved ?? false)
+        }
+
+        // if notReserved is required, but there is no conferenceId -> don't ask for it
+        if (effective.onlyNotReserved && !effective.conferenceId) {
+            this.rooms = []
+            this.loading = false
+            this.cdr.markForCheck()
+            return
+        }
+
+        // Assemble includeRoomIds from already selected + preselect IDs
+        const selectedIds = (this.selectedRooms ?? [])
+            .map(r => this.toNumId((r as any)?.id))
+            .filter((n): n is number => n != null)
+
+        const pendingIds = (this._pendingSelectIds ?? [])
+        const includeRoomIds = Array.from(new Set([...selectedIds, ...pendingIds]))
+
+        const payload: RoomFilter = {
+            ...effective,
+            ...(includeRoomIds.length ? { includeRoomIds } : {}),
+        }
+
+        const sub = this.roomService.searchRoomsForSelector$(payload)
             .subscribe({
-                next: list => { 
+                next: list => {
                     this.rooms = list ?? []
+                    this.originalRooms = this.rooms.slice()
                     this.loading = false
+                    this.syncSelectedRooms() // Keep selection valid if options changed
+                    this.preselectByIds()    // If a preselect id arrived earlier, apply it now
+                    this.handleSelectFirstOption()
+                    this.cdr.markForCheck()
                 },
-                error: _ => { 
+                error: _ => {
                     this.rooms = []
                     this.loading = false
                     this.messageService.add({
@@ -102,7 +129,9 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
                         detail: 'Failed to load rooms.'
                     })
                 }
-            });
+            })
+
+            this.subscriptions.add(sub)
     }
 
     // Opcionális publikus setter programozott beállításhoz:
@@ -129,7 +158,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
     /**
      * Applies any pending preselection once the options list is available.
      *
-     * Finds the room matching `_pendingSelectId` in `rooms` and updates
+     * Finds the room matching `_pendingSelectIds` in `rooms` and updates
      * `selectedRooms` accordingly (single-item array or empty). Idempotent:
      * safe to call multiple times, even with the same ID.
      *
@@ -139,11 +168,31 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
      * Notes:
      * - Selection is ID-based (use `dataKey="id"` on the MultiSelect), not by object reference.
      */
-    private tryPreselectById(): void {
-        if (!this.rooms?.length || this._pendingSelectId == null) return
-        const c = this.rooms.find(x => x.id === this._pendingSelectId)
-        this.runSilently(() => { this.selectedRooms = c ? [c] : [] })
-        if (this.emitOnPreselectId) this.emit(this.selectedRooms, 'preselect-id', true)
+    private preselectByIds(): void {
+        if (!this.rooms?.length || !this._pendingSelectIds?.length) return;
+
+        const byId = new Set(this._pendingSelectIds); // already number[]
+
+        // Use normalized numeric ids for comparison
+        const resolved = this.rooms.filter(r => {
+            const id = this.toNumId((r as any)?.id);
+            return id != null && byId.has(id);
+        });
+
+        const limitIsSet = Number.isFinite(this.selectionLimit as number) && (this.selectionLimit as number) > 0;
+        const limit = limitIsSet ? (this.selectionLimit as number) : resolved.length;
+        const nextSelection = resolved.slice(0, limit);
+
+        this.runSilently(() => {
+            this.selectedRooms = nextSelection;
+            this.roomSelectorRef?.writeValue(this.selectedRooms);
+        });
+
+        this.onChange(this.selectedRooms);
+        this.onTouched();
+        if (this.emitOnPreselectId) this.emit(this.selectedRooms, 'preselect-id', true);
+
+        this._pendingSelectIds = undefined;
     }
 
     /**
@@ -154,6 +203,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
      */
     setDisabledState?(isDisabled: boolean): void {
         this.disabled = isDisabled
+        if (this.roomSelectorRef) this.roomSelectorRef.disabled = isDisabled
     }
 
     /**
@@ -161,9 +211,12 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
      * Ensures that the selected values remain valid if the list of rooms updates.
      */
     private syncSelectedRooms(): void {
-        this.selectedRooms = this.rooms.filter(conf =>
-            this.selectedRooms.some(sel => sel.id === conf.id)
-        )
+        // Keep selection only for options that still exist (id match in numeric form)
+        this.selectedRooms = this.rooms.filter(opt => {
+            const optId = this.toNumId((opt as any)?.id);
+            if (optId == null) return false;
+            return this.selectedRooms.some(sel => this.toNumId((sel as any)?.id) === optId);
+        })
         this.onChange(this.selectedRooms)
     }
 
@@ -178,7 +231,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
         this.emit(this.selectedRooms, 'user')
 
         // Auto-close if max 1 can be selected and there is already a selection
-        if ((this.selectionLimit ?? 1) === 1 && this.selectedRooms?.length >= 1) {
+        if (this.selectionLimit == 1 && this.selectedRooms?.length >= 1) {
             // small delay to let MultiSelect update its own state first
             setTimeout(() => this.roomSelectorRef?.hide())
         }
@@ -189,15 +242,24 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
      * Resets the selected rooms and notifies the parent component.
      */
     onSelectionClear(): void {
-        this.selectedRooms = []
-        this.onChange(this.selectedRooms)
-        this.onTouched()
+        this.runSilently(() => {
+            this.selectedRooms = []
+            if (this.roomSelectorRef) this.roomSelectorRef.writeValue([])
+        })
+        this.emit(this.selectedRooms, 'user', true)
     }
 
     private emit(value: Room[], source: ChangeSource, force = false) {
         if (this.suppress && !force) return   // during mute we only allow it in case of force
         this.onChange(value); this.onTouched()
         this.change.emit({ value, source })
+    }
+
+    // Normalize incoming ids (number | string | undefined) -> number | null
+    private toNumId(v: unknown): number | null {
+        if (typeof v === 'number' && Number.isFinite(v)) return v;
+        if (typeof v === 'string' && v.trim() !== '' && Number.isFinite(+v)) return +v;
+        return null;
     }
 
     // ===========================
@@ -210,13 +272,22 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
      * 
      * @param value - The selected rooms coming from the form.
      */
-    writeValue(value: Room[]): void {
-        const arr = Array.isArray(value) ? value : (value ? [value] : [])
-        this.selectedRooms = arr
+    writeValue(value: Room[] | Room | null | undefined): void {
+        const arr: Room[] = Array.isArray(value) ? value : (value ? [value] : [])
+        const hasLimit = Number.isFinite(this.selectionLimit as number) && (this.selectionLimit as number) > 0
+        const limit = hasLimit ? (this.selectionLimit as number) : arr.length
+
         this.runSilently(() => {
-            this.selectedRooms = arr?.slice(0, this.selectionLimit ?? arr.length) ?? []
+            this.selectedRooms = arr.slice(0, limit)
+            // Keep PrimeNG UI in sync (clears the chip visually too)
+            if (this.roomSelectorRef) {
+                this.roomSelectorRef.writeValue(this.selectedRooms)
+            }
         })
-        if (this.emitOnWriteValue) this.emit(this.selectedRooms, 'programmatic', true)
+
+        if (this.emitOnWriteValue) {
+            this.emit(this.selectedRooms, 'programmatic', true)
+        }
     }
 
     /**

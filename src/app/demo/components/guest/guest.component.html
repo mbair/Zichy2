@@ -188,8 +188,35 @@
                         </td>
                         <td class="text-center" style="white-space: break-spaces">
                             <span class="p-column-title">Szoba</span>
-                            {{guest.roomNum}}
-                        </td>
+                            <ng-container *ngIf="guest.actualReservation as res; else noReservation">
+                                <button
+                                pButton
+                                type="button"
+                                class="p-button p-1"
+                                [label]="res?.room?.roomNum || guest.displayRoomNum || guest.roomNum || 'nincs beállítva'"
+                                [routerLink]="['/reservation']"
+                                [queryParams]="{
+                                    reservation_id: res?.id,
+                                    conference_id: res?.conference_id,
+                                    open: 1
+                                }"
+                                pTooltip="Ugrás a vendég foglalásához"
+                                tooltipPosition="top"
+                                [disabled]="!res?.id">
+                                </button>
+                            </ng-container>
+
+                            <ng-template #noReservation>
+                                <!-- Ha nincs actualReservation, de tudunk szobaszámot mutatni, jelenítsük meg szövegként -->
+                                <span *ngIf="guest.displayRoomNum || guest.roomNum; else noRoom">
+                                {{ guest.displayRoomNum || guest.roomNum }}
+                                </span>
+                                <ng-template #noRoom>
+                                <span class="text-500">nincs beállítva</span>
+                                </ng-template>
+                            </ng-template>
+                            </td>
+
                         <td>
                             <span *ngIf="hasDietName(guest.diet)" [ngClass]="'color-badge ' + guest?.dietDetails?.color">
                                 {{guest.diet}}
@@ -380,358 +407,379 @@
                 </span>
             </ng-template>
 
-            <form [formGroup]="guestForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
-                
-                <!-- Guest Id -->
-                <input formControlName="id" type="hidden">
+            <!-- Render content only after first open -->
+            <ng-container *ngIf="sidebar">
+                <form [formGroup]="guestForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
+                    
+                    <!-- Guest Id -->
+                    <input formControlName="id" type="hidden">
 
-                <!-- lastName -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="lastName" class="font-medium text-900">Vezetéknév</label>
-                    <input id="lastName" type="text" pInputText formControlName="lastName">
-                    <div *ngIf="lastName?.dirty && lastName?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- firstName -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="firstName" class="font-medium text-900">Keresztnév</label>
-                    <input id="firstName" type="text" pInputText formControlName="firstName">
-                    <div *ngIf="firstName?.dirty && firstName?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- gender -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="gender" class="font-medium text-900">Neme</label>
-                    <div class="flex flex-wrap gap-3 my-3">
-                        <div class="flex align-items-center">
-                            <p-radioButton name="gender" value="1" formControlName="gender" inputId="gender1"></p-radioButton>
-                            <label for="gender1" class="ml-2">Férfi</label>
-                        </div>
-
-                        <div class="flex align-items-center">
-                            <p-radioButton name="gender" value="2" formControlName="gender" inputId="gender2"></p-radioButton>
-                            <label for="gender2" class="ml-2">Nő</label>
+                    <!-- lastName -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="lastName" class="font-medium text-900">Vezetéknév</label>
+                        <input id="lastName" type="text" pInputText formControlName="lastName">
+                        <div *ngIf="lastName?.dirty && lastName?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
                         </div>
                     </div>
-                    <div *ngIf="gender?.dirty && gender?.errors?.['required']" class="p-error">
-                        Neme kötelező
-                    </div>
-                </div>
 
-                <!-- birthDate -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="birthDate" class="font-medium text-900">Születési dátum</label>
-                    <p-calendar id="birthDate"
-                                formControlName="birthDate"
-                                [defaultDate]="birthDateMax"
-                                [minDate]="birthDateMin" 
-                                [maxDate]="birthDateMax" 
-                                dateFormat="yy-mm-dd" 
-                                dataType="string"
-                                appendTo="body">
-                    </p-calendar>
-                    <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
-                        Születési dátum kötelező
-                    </div>
-                </div>
-
-                <!-- nationality -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="nationality" class="font-medium text-900">Állampolgárság</label>
-                    <app-nationality-selector [parentForm]="guestForm" controlName="nationality"></app-nationality-selector>
-                    <div *ngIf="nationality?.dirty && nationality?.errors?.['required']" class="p-error">
-                        Állampolgárság kötelező
-                    </div>
-                </div>
-
-                <!-- country -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="country" class="font-medium text-900">Lakóhely - ország</label>
-                    <app-country-selector [parentForm]="guestForm" controlName="country"></app-country-selector>
-                    <div *ngIf="country?.dirty && country?.errors?.['required']" class="p-error">
-                        Ország kötelező
-                    </div>
-                </div>
-
-                <!-- zipCode -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="zipCode" class="font-medium text-900">Lakóhely - irányítószám</label>
-                    <input id="zipCode" type="text" pInputText formControlName="zipCode">
-                    <div *ngIf="zipCode?.dirty && zipCode?.errors?.['required']" class="p-error">
-                        Irányítószám kötelező
-                    </div>
-                </div>
-
-                <!-- email -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="email" class="font-medium text-900">Email</label>
-                    <input id="email" type="email" pInputText formControlName="email" autocomplete="email">
-                    <div *ngIf="email?.dirty" class="p-error">
-                        <div *ngIf="email?.errors?.['required']">
-                            Email kötelező
-                        </div>
-                        <div *ngIf="email?.errors?.['email']">
-                            Nem megfelelő email formátum
+                    <!-- firstName -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="firstName" class="font-medium text-900">Keresztnév</label>
+                        <input id="firstName" type="text" pInputText formControlName="firstName">
+                        <div *ngIf="firstName?.dirty && firstName?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
                         </div>
                     </div>
-                </div>
 
-                <!-- telephone -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="telephone" class="font-medium text-900">Telefon</label>
-                    <input id="telephone" type="text" pInputText formControlName="telephone">
-                    <div *ngIf="telephone?.dirty && telephone?.errors?.['required']" class="p-error">
-                        Telefon kötelező
-                    </div>
-                </div>
+                    <!-- gender -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="gender" class="font-medium text-900">Neme</label>
+                        <div class="flex flex-wrap gap-3 my-3">
+                            <div class="flex align-items-center">
+                                <p-radioButton name="gender" value="1" formControlName="gender" inputId="gender1"></p-radioButton>
+                                <label for="gender1" class="ml-2">Férfi</label>
+                            </div>
 
-                <!-- conference -->
-                <div class="field mb-4 col-8">
-                    <label for="conference" class="font-medium text-900">Konferencia</label>
-                    <app-conference-selector
-                        formControlName="conference"
-                        [selectionLimit]="1"
-                        [showClear]="true"
-                        placeholder="Válasszon konferenciát...">
-                    </app-conference-selector>
-                    <div *ngIf="conference?.dirty && conference?.errors?.['required']" class="block p-error">
-                        Kötelező kitölteni
-                    </div>
-                </div>
-
-                <!-- roomNum -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="roomNum" class="font-medium text-900">Szoba</label>
-                    <input id="roomNum" type="text" pInputText formControlName="roomNum">
-                </div>
-
-                <!-- dateOfArrival -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="dateOfArrival" class="font-medium text-900">Érkezés dátuma</label>
-                    <p-calendar id="dateOfArrival"
-                                formControlName="dateOfArrival"
-                                [ngClass]="{'ng-invalid': guestForm.errors?.['dateRangeInvalid']}"
-                                [defaultDate]="beginDate"
-                                [minDate]="beginDate" 
-                                [maxDate]="endDate"
-                                dateFormat="yy-mm-dd"
-                                dataType="string"
-                                appendTo="body">
-                    </p-calendar>
-                    <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['required']" class="p-error">
-                        Kérjük, adja meg az érkezés dátumát!
-                    </div>
-                    <div *ngIf="guestForm.errors?.['dateRangeInvalid']" class="p-error">
-                        Az érkezés dátumának korábbinak kell lennie, mint a távozási dátum!
-                    </div>
-                </div>
-
-                <!-- firstMeal -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="firstMeal" class="font-medium text-900">Első étkezés</label>
-                    <app-meal-selector 
-                        [parentForm]="guestForm" 
-                        controlName="firstMeal"
-                        [earliestMeal]="getEarliestFirstMeal()"
-                        [latestMeal]="getLatestFirstMeal()"  
-                        [showNothing]="true">
-                    </app-meal-selector>
-                    <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
-                        Kérjük, válassza ki az első étkezését!
-                    </div>
-                </div>
-
-                <!-- diet -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="diet" class="font-medium text-900">Étrend</label>
-                    <app-diet-selector [parentForm]="guestForm" controlName="diet"></app-diet-selector>
-                    <div *ngIf="diet?.dirty && diet?.errors?.['required']" class="p-error">
-                        Kérjük, válassza ki az étrendjét!
-                    </div>
-                </div>
-
-                <!-- dateOfDeparture -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="dateOfDeparture" class="font-medium text-900">Távozás dátuma</label>
-                    <p-calendar id="dateOfDeparture"
-                                formControlName="dateOfDeparture"
-                                [ngClass]="{'ng-invalid': guestForm.errors?.['dateRangeInvalid']}"
-                                [defaultDate]="beginDate"
-                                [minDate]="beginDate" 
-                                [maxDate]="endDate"
-                                dateFormat="yy-mm-dd"
-                                dataType="string"
-                                appendTo="body">
-                    </p-calendar>
-                    <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['required']" class="p-error">
-                        Kérjük, adja meg a távozás dátumát!
-                    </div>
-                    <div *ngIf="guestForm.errors?.['dateRangeInvalid']" class="p-error">
-                        A távozás dátumának későbbinek kell lennie, mint az érkezési dátum!
-                    </div>
-                </div>
-                
-                <!-- lastMeal -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="lastMeal" class="font-medium text-900">Utolsó étkezés</label>
-                    <app-meal-selector 
-                        [parentForm]="guestForm" 
-                        controlName="lastMeal" 
-                        [earliestMeal]="getEarliestLastMeal()" 
-                        [latestMeal]="getLatestLastMeal()" 
-                        [showNothing]="true">
-                    </app-meal-selector>
-                    <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="p-error">
-                        Kérjük, válassza ki az utolsó étkezését!
-                    </div>
-                </div>
-
-                <!-- babyBed -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="babyBed" class="font-medium text-900">Babaágyat kérsz?</label>
-                    <div class="flex flex-wrap gap-3 my-3">
-                        <div class="flex align-items-center">
-                            <p-radioButton name="babyBed" value="1" formControlName="babyBed" inputId="baby-bed-yes"></p-radioButton>
-                            <label for="baby-bed-yes" class="ml-2">Igen</label>
+                            <div class="flex align-items-center">
+                                <p-radioButton name="gender" value="2" formControlName="gender" inputId="gender2"></p-radioButton>
+                                <label for="gender2" class="ml-2">Nő</label>
+                            </div>
                         </div>
-                        <div class="flex align-items-center">
-                            <p-radioButton name="babyBed" value="0" formControlName="babyBed" inputId="baby-bed-no"></p-radioButton>
-                            <label for="baby-bed-no" class="ml-2">Nem</label>
+                        <div *ngIf="gender?.dirty && gender?.errors?.['required']" class="p-error">
+                            Neme kötelező
                         </div>
                     </div>
-                    <div *ngIf="babyBed?.dirty && babyBed?.errors?.['required']" class="p-error">
-                        Kérjük válassza ki, hogy kér-e babaágyat!
-                    </div>
-                </div>
 
-                <!-- roomType -->
-                <div class="field mb-4 col-12 lg:col-8">
-                    <label for="roomType" class="font-medium text-900">Szállástípus</label>
-                    <app-roomtype-selector 
-                        [parentForm]="guestForm" 
-                        controlName="roomType">
-                    </app-roomtype-selector>
-                    <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
-                        Kérjük válassza ki a szállástípust!
+                    <!-- birthDate -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="birthDate" class="font-medium text-900">Születési dátum</label>
+                        <p-calendar id="birthDate"
+                                    formControlName="birthDate"
+                                    [defaultDate]="birthDateMax"
+                                    [minDate]="birthDateMin" 
+                                    [maxDate]="birthDateMax" 
+                                    dateFormat="yy-mm-dd" 
+                                    dataType="string"
+                                    appendTo="body">
+                        </p-calendar>
+                        <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
+                            Születési dátum kötelező
+                        </div>
                     </div>
-                </div>
 
-                <!-- payment -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="payment" class="font-medium text-900">Fizetési mód</label>
-                    <app-payment-selector 
-                        [parentForm]="guestForm" 
-                        controlName="payment">
-                    </app-payment-selector>
-                    <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
-                        Kérjük válassza ki a fizetési módot!
+                    <!-- nationality -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="nationality" class="font-medium text-900">Állampolgárság</label>
+                        <app-nationality-selector [parentForm]="guestForm" controlName="nationality"></app-nationality-selector>
+                        <div *ngIf="nationality?.dirty && nationality?.errors?.['required']" class="p-error">
+                            Állampolgárság kötelező
+                        </div>
                     </div>
-                </div>
 
-                <!-- idCard -->
-                <div class="field mb-4 col-12 lg:col-8">
-                    <label for="idCard" class="font-medium text-900">Személyi igazolvány</label>
-                    <ng-container *ngIf="currentIdCardUrl; else uploadBlock">
-                        <div class="mb-2 flex flex-row gap-2">
-                            <button pButton
-                                    type="button"
-                                    icon="pi pi-download"
-                                    class="p-button-rounded p-button-outlined"
-                                    pTooltip="Személyi igazolvány letöltése"
-                                    tooltipPosition="bottom"
-                                    (click)="downloadIdCard(currentIdCardUrl)">
-                            </button>
-                            <button pButton
-                                    type="button"
-                                    icon="pi pi-trash"
-                                    class="p-button-rounded p-button-danger"
-                                    pTooltip="Törlés"
-                                    tooltipPosition="bottom"
-                                    (click)="deleteIdCard()">
-                            </button>
-                            <button pButton
-                                    type="button"
-                                    icon="pi pi-upload"
-                                    class="p-button-rounded p-button-success"
-                                    pTooltip="Új igazolvány feltöltése"
-                                    tooltipPosition="bottom"
-                                    (click)="showUploadBlock = true">
+                    <!-- country -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="country" class="font-medium text-900">Lakóhely - ország</label>
+                        <app-country-selector [parentForm]="guestForm" controlName="country"></app-country-selector>
+                        <div *ngIf="country?.dirty && country?.errors?.['required']" class="p-error">
+                            Ország kötelező
+                        </div>
+                    </div>
+
+                    <!-- zipCode -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="zipCode" class="font-medium text-900">Lakóhely - irányítószám</label>
+                        <input id="zipCode" type="text" pInputText formControlName="zipCode">
+                        <div *ngIf="zipCode?.dirty && zipCode?.errors?.['required']" class="p-error">
+                            Irányítószám kötelező
+                        </div>
+                    </div>
+
+                    <!-- email -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="email" class="font-medium text-900">Email</label>
+                        <input id="email" type="email" pInputText formControlName="email" autocomplete="email">
+                        <div *ngIf="email?.dirty" class="p-error">
+                            <div *ngIf="email?.errors?.['required']">
+                                Email kötelező
+                            </div>
+                            <div *ngIf="email?.errors?.['email']">
+                                Nem megfelelő email formátum
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- telephone -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="telephone" class="font-medium text-900">Telefon</label>
+                        <input id="telephone" type="text" pInputText formControlName="telephone">
+                        <div *ngIf="telephone?.dirty && telephone?.errors?.['required']" class="p-error">
+                            Telefon kötelező
+                        </div>
+                    </div>
+
+                    <!-- conference -->
+                    <div class="field mb-4 col-8">
+                        <label for="conference" class="font-medium text-900">Konferencia</label>
+                        <app-conference-selector
+                            formControlName="conference"
+                            [selectionLimit]="1"
+                            [showClear]="true"
+                            placeholder="Válasszon konferenciát...">
+                        </app-conference-selector>
+                        <div *ngIf="conference?.dirty && conference?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
+                    </div>
+
+                    <!-- roomNum -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label class="font-medium text-900">Szoba</label>
+                        <div class="mt-2">
+                            <button
+                                pButton
+                                pRipple
+                                type="button"
+                                class="p-button p-1"
+                                icon="pi pi-external-link"
+                                [label]="guestReservations.length ? (guestReservations[0].room?.roomNum || 'nincs beállítva') : 'nincs beállítva'"
+                                [routerLink]="['/reservation']"
+                                [queryParams]="{
+                                    reservation_id: guestReservations[0].id,
+                                    conference_id: guestReservations[0].conference_id,
+                                    open: 1
+                                }"
+                                pTooltip="Ugrás a vendég foglalásaihoz"
+                                tooltipPosition="top"
+                                [disabled]="!(guestReservations.length && guestReservations[0].id)">
                             </button>
                         </div>
-                        <!-- ID card preview for edit -->
-                        <div *ngIf="guestForm.get('id')?.value && idCardImageUrls[guestForm.get('id')?.value] && !showUploadBlock" class="mt-3">
-                            <p-image 
-                                [src]="idCardImageUrls[guestForm.get('id')?.value]" 
-                                alt="idcard" 
-                                width="250"
-                                [preview]="true">
-                            </p-image>
+                    </div>
+
+                    <!-- dateOfArrival -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="dateOfArrival" class="font-medium text-900">Érkezés dátuma</label>
+                        <p-calendar id="dateOfArrival"
+                                    formControlName="dateOfArrival"
+                                    [ngClass]="{'ng-invalid': guestForm.errors?.['dateRangeInvalid']}"
+                                    [defaultDate]="beginDate"
+                                    [minDate]="beginDate" 
+                                    [maxDate]="endDate"
+                                    dateFormat="yy-mm-dd"
+                                    dataType="string"
+                                    appendTo="body">
+                        </p-calendar>
+                        <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['required']" class="p-error">
+                            Kérjük, adja meg az érkezés dátumát!
                         </div>
-                        <!-- Feltöltő komponens csak ha kéri a cserét -->
-                        <div *ngIf="showUploadBlock" class="mt-2">
+                        <div *ngIf="guestForm.errors?.['dateRangeInvalid']" class="p-error">
+                            Az érkezés dátumának korábbinak kell lennie, mint a távozási dátum!
+                        </div>
+                    </div>
+
+                    <!-- firstMeal -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="firstMeal" class="font-medium text-900">Első étkezés</label>
+                        <app-meal-selector 
+                            [parentForm]="guestForm" 
+                            controlName="firstMeal"
+                            [earliestMeal]="getEarliestFirstMeal()"
+                            [latestMeal]="getLatestFirstMeal()"  
+                            [showNothing]="true">
+                        </app-meal-selector>
+                        <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
+                            Kérjük, válassza ki az első étkezését!
+                        </div>
+                    </div>
+
+                    <!-- diet -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="diet" class="font-medium text-900">Étrend</label>
+                        <app-diet-selector [parentForm]="guestForm" controlName="diet"></app-diet-selector>
+                        <div *ngIf="diet?.dirty && diet?.errors?.['required']" class="p-error">
+                            Kérjük, válassza ki az étrendjét!
+                        </div>
+                    </div>
+
+                    <!-- dateOfDeparture -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="dateOfDeparture" class="font-medium text-900">Távozás dátuma</label>
+                        <p-calendar id="dateOfDeparture"
+                                    formControlName="dateOfDeparture"
+                                    [ngClass]="{'ng-invalid': guestForm.errors?.['dateRangeInvalid']}"
+                                    [defaultDate]="beginDate"
+                                    [minDate]="beginDate" 
+                                    [maxDate]="endDate"
+                                    dateFormat="yy-mm-dd"
+                                    dataType="string"
+                                    appendTo="body">
+                        </p-calendar>
+                        <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['required']" class="p-error">
+                            Kérjük, adja meg a távozás dátumát!
+                        </div>
+                        <div *ngIf="guestForm.errors?.['dateRangeInvalid']" class="p-error">
+                            A távozás dátumának későbbinek kell lennie, mint az érkezési dátum!
+                        </div>
+                    </div>
+                    
+                    <!-- lastMeal -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="lastMeal" class="font-medium text-900">Utolsó étkezés</label>
+                        <app-meal-selector 
+                            [parentForm]="guestForm" 
+                            controlName="lastMeal" 
+                            [earliestMeal]="getEarliestLastMeal()" 
+                            [latestMeal]="getLatestLastMeal()" 
+                            [showNothing]="true">
+                        </app-meal-selector>
+                        <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="p-error">
+                            Kérjük, válassza ki az utolsó étkezését!
+                        </div>
+                    </div>
+
+                    <!-- babyBed -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="babyBed" class="font-medium text-900">Babaágyat kérsz?</label>
+                        <div class="flex flex-wrap gap-3 my-3">
+                            <div class="flex align-items-center">
+                                <p-radioButton name="babyBed" value="1" formControlName="babyBed" inputId="baby-bed-yes"></p-radioButton>
+                                <label for="baby-bed-yes" class="ml-2">Igen</label>
+                            </div>
+                            <div class="flex align-items-center">
+                                <p-radioButton name="babyBed" value="0" formControlName="babyBed" inputId="baby-bed-no"></p-radioButton>
+                                <label for="baby-bed-no" class="ml-2">Nem</label>
+                            </div>
+                        </div>
+                        <div *ngIf="babyBed?.dirty && babyBed?.errors?.['required']" class="p-error">
+                            Kérjük válassza ki, hogy kér-e babaágyat!
+                        </div>
+                    </div>
+
+                    <!-- roomType -->
+                    <div class="field mb-4 col-12 lg:col-8">
+                        <label for="roomType" class="font-medium text-900">Szállástípus</label>
+                        <app-roomtype-selector 
+                            [parentForm]="guestForm" 
+                            controlName="roomType">
+                        </app-roomtype-selector>
+                        <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
+                            Kérjük válassza ki a szállástípust!
+                        </div>
+                    </div>
+
+                    <!-- payment -->
+                    <div class="field mb-4 col-12 lg:col-4">
+                        <label for="payment" class="font-medium text-900">Fizetési mód</label>
+                        <app-payment-selector 
+                            [parentForm]="guestForm" 
+                            controlName="payment">
+                        </app-payment-selector>
+                        <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
+                            Kérjük válassza ki a fizetési módot!
+                        </div>
+                    </div>
+
+                    <!-- idCard -->
+                    <div class="field mb-4 col-12 lg:col-8">
+                        <label for="idCard" class="font-medium text-900">Személyi igazolvány</label>
+                        <ng-container *ngIf="currentIdCardUrl; else uploadBlock">
+                            <div class="mb-2 flex flex-row gap-2">
+                                <button pButton
+                                        type="button"
+                                        icon="pi pi-download"
+                                        class="p-button-rounded p-button-outlined"
+                                        pTooltip="Személyi igazolvány letöltése"
+                                        tooltipPosition="bottom"
+                                        (click)="downloadIdCard(currentIdCardUrl)">
+                                </button>
+                                <button pButton
+                                        type="button"
+                                        icon="pi pi-trash"
+                                        class="p-button-rounded p-button-danger"
+                                        pTooltip="Törlés"
+                                        tooltipPosition="bottom"
+                                        (click)="deleteIdCard()">
+                                </button>
+                                <button pButton
+                                        type="button"
+                                        icon="pi pi-upload"
+                                        class="p-button-rounded p-button-success"
+                                        pTooltip="Új igazolvány feltöltése"
+                                        tooltipPosition="bottom"
+                                        (click)="showUploadBlock = true">
+                                </button>
+                            </div>
+                            <!-- ID card preview for edit -->
+                            <div *ngIf="guestForm.get('id')?.value && idCardImageUrls[guestForm.get('id')?.value] && !showUploadBlock" class="mt-3">
+                                <p-image 
+                                    [src]="idCardImageUrls[guestForm.get('id')?.value]" 
+                                    alt="idcard" 
+                                    width="250"
+                                    [preview]="true">
+                                </p-image>
+                            </div>
+                            <!-- Feltöltő komponens csak ha kéri a cserét -->
+                            <div *ngIf="showUploadBlock" class="mt-2">
+                                <app-reactive-file-upload
+                                    name="idCard"
+                                    formControlName="idCard"
+                                    accept=".jpg,.jpeg,.png"
+                                    chooseLabel="Tallózás"
+                                    cancelLabel="Mégsem"
+                                    (cancel)="showUploadBlock = false">
+                                </app-reactive-file-upload>
+                            </div>
+                        </ng-container>
+                        <ng-template #uploadBlock>
                             <app-reactive-file-upload
                                 name="idCard"
                                 formControlName="idCard"
                                 accept=".jpg,.jpeg,.png"
                                 chooseLabel="Tallózás"
-                                cancelLabel="Mégsem"
-                                (cancel)="showUploadBlock = false">
+                                cancelLabel="Mégsem">
                             </app-reactive-file-upload>
-                        </div>
-                    </ng-container>
-                    <ng-template #uploadBlock>
-                        <app-reactive-file-upload
-                            name="idCard"
-                            formControlName="idCard"
-                            accept=".jpg,.jpeg,.png"
-                            chooseLabel="Tallózás"
-                            cancelLabel="Mégsem">
-                        </app-reactive-file-upload>
-                        <div *ngIf="idCard?.dirty && idCard?.errors?.['required']" class="p-error">
-                            Kérjük, töltse fel a személyi igazolványának másolatát!
-                        </div>
-                    </ng-template>
-                </div>
-
-                <div class="field mb-4 col-12 lg:col-4">
-                    
-                    <!-- climate -->
-                    <label for="climate" class="font-medium text-900">Klímát kérsz?</label>
-                    <div class="flex flex-wrap gap-3 my-3">
-                        <div class="flex align-items-center">
-                            <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes"></p-radioButton>
-                            <label for="climate-yes" class="ml-2">Igen</label>
-                        </div>
-                        <div class="flex align-items-center">
-                            <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no"></p-radioButton>
-                            <label for="climate-no" class="ml-2">Nem</label>
-                        </div>
-                    </div>
-                    <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
-                        Kérjük válassza ki, hogy kér-e babaágyat!
+                            <div *ngIf="idCard?.dirty && idCard?.errors?.['required']" class="p-error">
+                                Kérjük, töltse fel a személyi igazolványának másolatát!
+                            </div>
+                        </ng-template>
                     </div>
 
-                    <!-- prepaid -->
-                    <label for="prepaid" class="font-medium text-900">Előleget fizetett?</label>
-                    <div class="flex flex-wrap gap-3 my-3">
-                        <div class="flex align-items-center">
-                            <p-radioButton name="prepaid" value="1" formControlName="prepaid" inputId="prepaid-yes"></p-radioButton>
-                            <label for="prepaid-yes" class="ml-2">Igen</label>
+                    <div class="field mb-4 col-12 lg:col-4">
+                        
+                        <!-- climate -->
+                        <label for="climate" class="font-medium text-900">Klímát kérsz?</label>
+                        <div class="flex flex-wrap gap-3 my-3">
+                            <div class="flex align-items-center">
+                                <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes"></p-radioButton>
+                                <label for="climate-yes" class="ml-2">Igen</label>
+                            </div>
+                            <div class="flex align-items-center">
+                                <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no"></p-radioButton>
+                                <label for="climate-no" class="ml-2">Nem</label>
+                            </div>
                         </div>
-                        <div class="flex align-items-center">
-                            <p-radioButton name="prepaid" value="0" formControlName="prepaid" inputId="prepaid-no"></p-radioButton>
-                            <label for="prepaid-no" class="ml-2">Nem</label>
+                        <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
+                            Kérjük válassza ki, hogy kér-e babaágyat!
+                        </div>
+
+                        <!-- prepaid -->
+                        <label for="prepaid" class="font-medium text-900">Előleget fizetett?</label>
+                        <div class="flex flex-wrap gap-3 my-3">
+                            <div class="flex align-items-center">
+                                <p-radioButton name="prepaid" value="1" formControlName="prepaid" inputId="prepaid-yes"></p-radioButton>
+                                <label for="prepaid-yes" class="ml-2">Igen</label>
+                            </div>
+                            <div class="flex align-items-center">
+                                <p-radioButton name="prepaid" value="0" formControlName="prepaid" inputId="prepaid-no"></p-radioButton>
+                                <label for="prepaid-no" class="ml-2">Nem</label>
+                            </div>
+                        </div>
+                        <div *ngIf="prepaid?.dirty && prepaid?.errors?.['required']" class="p-error">
+                            Kérjük válassza ki, hogy kér-e babaágyat!
                         </div>
                     </div>
-                    <div *ngIf="prepaid?.dirty && prepaid?.errors?.['required']" class="p-error">
-                        Kérjük válassza ki, hogy kér-e babaágyat!
-                    </div>
-                </div>
-            </form>
+                </form>
+            </ng-container>
 
             <ng-template pTemplate="footer">
                 <div class="flex justify-content-end ap-2">
@@ -791,7 +839,7 @@
                     </div>
                 </div>
                 <div class="text-center">
-                    <button pButton pRipple label="Címke visszavétel" icon="pi pi-trash" class="p-button-danger" (click)="unAssignTag()" [disabled]="!guest.rfid?.length"></button>
+                    <button pButton pRipple label="Címke visszavétel" icon="pi pi-trash" class="p-button-danger" (click)="unAssignTag()" [disabled]="!guest?.rfid?.length"></button>
                 </div>
             </ng-template>
             <ng-template pTemplate="footer">

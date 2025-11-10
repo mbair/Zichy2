@@ -15,6 +15,7 @@ import { ChipModule } from 'primeng/chip';
 import { BlockUIModule } from 'primeng/blockui';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
+import { ToggleButtonModule } from 'primeng/togglebutton';
 import { ReactiveFileUploadComponent } from './reactive-file-upload/reactive-file-upload.component';
 import { RoomConferenceBinderComponent } from './room-conference-binder/room-conference-binder.component';
 import { SelectorsModule } from "../selectors/selectors.module";
@@ -42,6 +43,7 @@ import { SelectorsModule } from "../selectors/selectors.module";
         BlockUIModule,
         ProgressSpinnerModule,
         ToastModule,
+        ToggleButtonModule,
     ],
     exports: [
         ReactiveFileUploadComponent,

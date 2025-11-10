@@ -7,13 +7,14 @@ import { Conference } from '../../api/conference';
 import { ApiResponse } from '../../api/ApiResponse';
 import { RoomService } from '../../service/room.service';
 import { UserService } from '../../service/user.service';
-import { ConferenceService } from '../../service/conference.service';
+import { ConferenceService, ConferenceStatsMap } from '../../service/conference.service';
 import * as moment from 'moment';
 moment.locale('hu')
 
 @Component({
     selector: 'app-room-conference-binder',
     templateUrl: './room-conference-binder.component.html',
+    styleUrls: ['./room-conference-binder.component.scss'],
     providers: [MessageService]
 })
 export class RoomConferenceBinderComponent {
@@ -44,7 +45,7 @@ export class RoomConferenceBinderComponent {
     numberOfGuests: number = 0                   // Number of guests
     numberOfFilteredBeds: number = 0             // Number of filtered beds
     numberOfFilteredGuests: number = 0           // Number of filtered guests
-
+    showOnlyFreeRooms: boolean = false           // Toggle: show only rooms which are free (no overlap with selected conferences)
 
     private roomObs$: Observable<any> | undefined
 
@@ -54,6 +55,12 @@ export class RoomConferenceBinderComponent {
         private userService: UserService,
         private messageService: MessageService
     ) { }
+
+    /** The array actually shown in the table (original or filtered by "free") */
+    get displayedRooms(): Room[] {
+        if (!this.showOnlyFreeRooms || !this.selectedConferences?.length) return this.tableData;
+        return this.tableData.filter(room => !this.roomHasOverlapWithSelected(room));
+    }
 
     ngOnInit() {
         // Permissions
@@ -165,16 +172,12 @@ export class RoomConferenceBinderComponent {
     }
 
     onConferenceSelection(selectedConferences: Conference[]) {
-        const calculations = this.calculateConferenceGuestsAndBeds(selectedConferences)
-        this.numberOfGuests = calculations.guests
-        this.numberOfBeds = calculations.beds
+        this.loadConferenceStats(selectedConferences, 'selected')
         this.doQuery()
     }
 
     onConferenceFilterSelection(selectedConferences: Conference[]) {
-        const calculations = this.calculateConferenceGuestsAndBeds(selectedConferences)
-        this.numberOfFilteredGuests = calculations.guests
-        this.numberOfFilteredBeds = calculations.beds
+        this.loadConferenceStats(selectedConferences, 'filter')
     }
 
     /**
@@ -188,7 +191,7 @@ export class RoomConferenceBinderComponent {
 
         const conferenceId = this.selectedConferences[0]
         const roomIds = this.selectedRooms.map((r: any) => Number(r.id))
-        
+
         this.conferenceService.assignRoomsToConference(conferenceId, roomIds).subscribe({
             next: (response: any) => {
                 this.messageService.add({
@@ -205,6 +208,7 @@ export class RoomConferenceBinderComponent {
 
                 this.numberOfBeds += additionalBeds;
                 this.selectedRooms = []
+                this.refreshSelectedConferenceStats()
                 this.doQuery()
             },
             error: (error: any) => {
@@ -223,7 +227,24 @@ export class RoomConferenceBinderComponent {
      * @param room 
      */
     onRemove(conference: any, room: any) {
-        this.conferenceService.removeRoomsFromConference(conference.id, [room.id])
+        this.conferenceService.removeRoomsFromConference(conference.id, [room.id]).subscribe({
+            next: () => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Összerendelés törölve',
+                    detail: `Szoba-konferencia összerendelés törölve`,
+                })
+                this.refreshSelectedConferenceStats() // update Guests/Beds from /stats
+                this.doQuery()                        // reload table
+            },
+            error: (error: any) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Eltávolítás sikertelen',
+                    detail: `Hiba: ${error}`,
+                })
+            }
+        })
     }
 
     /**
@@ -249,6 +270,60 @@ export class RoomConferenceBinderComponent {
         }, 0)
 
         return { guests, beds }
+    }
+
+    /** Sum stats coming from /conference/stats for the given ids */
+    private applyStatsToTarget(stats: ConferenceStatsMap, ids: number[], target: 'selected' | 'filter'): void {
+        const totals = ids.reduce((acc, id) => {
+            const s = stats[id] ?? stats[String(id)];
+            acc.guests += s?.guests ?? 0;
+            acc.beds += s?.beds ?? 0;
+            return acc;
+        }, { guests: 0, beds: 0 });
+
+        if (target === 'selected') {
+            this.numberOfGuests = totals.guests;
+            this.numberOfBeds = totals.beds;
+        } else {
+            this.numberOfFilteredGuests = totals.guests;
+            this.numberOfFilteredBeds = totals.beds;
+        }
+    }
+
+    /** Load stats from backend for conference list and write into the proper target fields. */
+    private loadConferenceStats(confs: Conference[] | null | undefined, target: 'selected' | 'filter'): void {
+        const ids = (confs ?? []).map(c => Number(c?.id)).filter(Boolean);
+
+        if (!ids.length) {
+            if (target === 'selected') {
+                this.numberOfGuests = 0;
+                this.numberOfBeds = 0;
+            } else {
+                this.numberOfFilteredGuests = 0;
+                this.numberOfFilteredBeds = 0;
+            }
+            return;
+        }
+
+        this.conferenceService.getConferenceStatsByIds(ids).subscribe({
+            next: (stats) => this.applyStatsToTarget(stats, ids, target),
+            error: () => {
+                // Safe fallback: keep old client-side calc if API fails for any reason
+                const calc = this.calculateConferenceGuestsAndBeds(confs as Conference[]);
+                if (target === 'selected') {
+                    this.numberOfGuests = calc.guests;
+                    this.numberOfBeds = calc.beds;
+                } else {
+                    this.numberOfFilteredGuests = calc.guests;
+                    this.numberOfFilteredBeds = calc.beds;
+                }
+            }
+        });
+    }
+
+    /** Convenience refresher for currently selected conference(s) */
+    private refreshSelectedConferenceStats(): void {
+        this.loadConferenceStats(this.selectedConferences, 'selected');
     }
 
     /**
@@ -278,4 +353,27 @@ export class RoomConferenceBinderComponent {
             return conferenceBegin < selectedEnd && conferenceEnd > selectedBegin
         })
     }
+
+    /** Date overlap helper (zárt, lokális segédfv.) */
+    private overlaps(a: Conference, b: Conference): boolean {
+        if (!a?.beginDate || !a?.endDate || !b?.beginDate || !b?.endDate) return false;
+        const aStart = new Date(a.beginDate);
+        const aEnd = new Date(a.endDate);
+        const bStart = new Date(b.beginDate);
+        const bEnd = new Date(b.endDate);
+        return aStart < bEnd && aEnd > bStart; // strict overlap
+    }
+
+    /** Room has ANY enabled conference overlapping with ANY selected conference? */
+    private roomHasOverlapWithSelected(room: Room): boolean {
+        if (!this.selectedConferences?.length) return false;
+        const enabledConfs = (room?.conferences ?? []).filter((c: any) => c?.enabled);
+        return enabledConfs.some((rc: any) => this.selectedConferences.some(sc => this.overlaps(rc, sc)));
+    }
+
+    // Used by Angular *ngFor to efficiently track list items by their unique ID.
+    // This function handles both object and primitive (number/string) values safely.
+    // If the item is an object, it returns its 'id'; otherwise, it returns the value itself.
+    trackById = (_: number, item: { id?: number | string } | number | string) =>
+        typeof item === 'object' ? (item as any)?.id ?? _ : item;
 }
