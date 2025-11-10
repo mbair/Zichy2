@@ -7,7 +7,7 @@ import { Conference } from '../../api/conference';
 import { ApiResponse } from '../../api/ApiResponse';
 import { RoomService } from '../../service/room.service';
 import { UserService } from '../../service/user.service';
-import { ConferenceService } from '../../service/conference.service';
+import { ConferenceService, ConferenceStatsMap } from '../../service/conference.service';
 import * as moment from 'moment';
 moment.locale('hu')
 
@@ -172,16 +172,12 @@ export class RoomConferenceBinderComponent {
     }
 
     onConferenceSelection(selectedConferences: Conference[]) {
-        const calculations = this.calculateConferenceGuestsAndBeds(selectedConferences)
-        this.numberOfGuests = calculations.guests
-        this.numberOfBeds = calculations.beds
+        this.loadConferenceStats(selectedConferences, 'selected')
         this.doQuery()
     }
 
     onConferenceFilterSelection(selectedConferences: Conference[]) {
-        const calculations = this.calculateConferenceGuestsAndBeds(selectedConferences)
-        this.numberOfFilteredGuests = calculations.guests
-        this.numberOfFilteredBeds = calculations.beds
+        this.loadConferenceStats(selectedConferences, 'filter')
     }
 
     /**
@@ -212,6 +208,7 @@ export class RoomConferenceBinderComponent {
 
                 this.numberOfBeds += additionalBeds;
                 this.selectedRooms = []
+                this.refreshSelectedConferenceStats()
                 this.doQuery()
             },
             error: (error: any) => {
@@ -230,7 +227,24 @@ export class RoomConferenceBinderComponent {
      * @param room 
      */
     onRemove(conference: any, room: any) {
-        this.conferenceService.removeRoomsFromConference(conference.id, [room.id])
+        this.conferenceService.removeRoomsFromConference(conference.id, [room.id]).subscribe({
+            next: () => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Összerendelés törölve',
+                    detail: `Szoba-konferencia összerendelés törölve`,
+                })
+                this.refreshSelectedConferenceStats() // update Guests/Beds from /stats
+                this.doQuery()                        // reload table
+            },
+            error: (error: any) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Eltávolítás sikertelen',
+                    detail: `Hiba: ${error}`,
+                })
+            }
+        })
     }
 
     /**
@@ -256,6 +270,60 @@ export class RoomConferenceBinderComponent {
         }, 0)
 
         return { guests, beds }
+    }
+
+    /** Sum stats coming from /conference/stats for the given ids */
+    private applyStatsToTarget(stats: ConferenceStatsMap, ids: number[], target: 'selected' | 'filter'): void {
+        const totals = ids.reduce((acc, id) => {
+            const s = stats[id] ?? stats[String(id)];
+            acc.guests += s?.guests ?? 0;
+            acc.beds += s?.beds ?? 0;
+            return acc;
+        }, { guests: 0, beds: 0 });
+
+        if (target === 'selected') {
+            this.numberOfGuests = totals.guests;
+            this.numberOfBeds = totals.beds;
+        } else {
+            this.numberOfFilteredGuests = totals.guests;
+            this.numberOfFilteredBeds = totals.beds;
+        }
+    }
+
+    /** Load stats from backend for conference list and write into the proper target fields. */
+    private loadConferenceStats(confs: Conference[] | null | undefined, target: 'selected' | 'filter'): void {
+        const ids = (confs ?? []).map(c => Number(c?.id)).filter(Boolean);
+
+        if (!ids.length) {
+            if (target === 'selected') {
+                this.numberOfGuests = 0;
+                this.numberOfBeds = 0;
+            } else {
+                this.numberOfFilteredGuests = 0;
+                this.numberOfFilteredBeds = 0;
+            }
+            return;
+        }
+
+        this.conferenceService.getConferenceStatsByIds(ids).subscribe({
+            next: (stats) => this.applyStatsToTarget(stats, ids, target),
+            error: () => {
+                // Safe fallback: keep old client-side calc if API fails for any reason
+                const calc = this.calculateConferenceGuestsAndBeds(confs as Conference[]);
+                if (target === 'selected') {
+                    this.numberOfGuests = calc.guests;
+                    this.numberOfBeds = calc.beds;
+                } else {
+                    this.numberOfFilteredGuests = calc.guests;
+                    this.numberOfFilteredBeds = calc.beds;
+                }
+            }
+        });
+    }
+
+    /** Convenience refresher for currently selected conference(s) */
+    private refreshSelectedConferenceStats(): void {
+        this.loadConferenceStats(this.selectedConferences, 'selected');
     }
 
     /**

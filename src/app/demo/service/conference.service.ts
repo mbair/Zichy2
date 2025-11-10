@@ -257,7 +257,7 @@ export class ConferenceService {
      * @param roomIds 
      */
     public assignRoomsToConference(conferenceId: any, roomIds: number[]): Observable<any> {
-        return this.apiService.post(`conferencesroom/addroom/${conferenceId.id}`, { roomIds });
+        return this.apiService.post(`conferencesroom/addroom/${conferenceId.id}`, { roomIds })
     }
 
     /**
@@ -265,20 +265,8 @@ export class ConferenceService {
      * @param conferenceId 
      * @param roomIds 
      */
-    public removeRoomsFromConference(conferenceId: number, roomIds: number[]): void {
-        this.apiService.post(`conferencesroom/removeroom/${conferenceId}`, { roomIds })
-            .subscribe({
-                next: (response: any) => {
-                    this.message$.next({
-                        severity: 'success',
-                        summary: 'Összerendelés törölve',
-                        detail: `Szoba-konferencia összerendelés törölve`,
-                    })
-                },
-                error: (error: any) => {
-                    this.message$.next(error)
-                }
-            })
+    public removeRoomsFromConference(conferenceId: number, roomIds: number[]): Observable<any> {
+        return this.apiService.post(`conferencesroom/removeroom/${conferenceId}`, { roomIds })
     }
 
     /**
@@ -340,7 +328,32 @@ export class ConferenceService {
 
         return p;
     }
-}   
+
+    /**
+     * Fetch aggregated stats (guests, beds) for one or more conferences.
+     * GET /api/conference/stats?ids=1,2,3
+     */
+    public getConferenceStatsByIds(ids: Array<number | string>): Observable<ConferenceStatsMap> {
+        if (!ids || ids.length === 0) {
+            // Return empty map to keep consumer code simple
+            return of({})
+        }
+        const params = new HttpParams().set('ids', ids.join(','))
+        const qs = params.toString()
+        // Using ApiService to keep base URL and interceptors consistent
+        return this.apiService.get<ConferenceStatsMap>(`conference/stats?${qs}`)
+    }
+
+    /**
+     * Convenience wrapper for a single conference id.
+     * Resolves to { guests, beds } or {0,0} if not found.
+     */
+    public getConferenceStat(id: number | string): Observable<ConferenceStats> {
+        return this.getConferenceStatsByIds([id]).pipe(
+            map((m: ConferenceStatsMap) => m[id as any] ?? m[String(id)] ?? { guests: 0, beds: 0 })
+        )
+    }
+}
 
 /** Minimal item used by the selector UI (matches the new endpoint schema) */
 export interface ConferenceSelectorItem {
@@ -361,3 +374,12 @@ export interface SelectorQuery {
     order?: 'ASC' | 'DESC' | 'asc' | 'desc';
     forceRefresh?: boolean;        // bypass cache if true
 }
+
+// Add these near the other interfaces at the bottom of the file
+export interface ConferenceStats {
+    guests: number;
+    beds: number;
+}
+
+/** Server returns a map keyed by conference id: e.g. { "151": { guests: 150, beds: 171 } } */
+export type ConferenceStatsMap = Record<string, ConferenceStats>;

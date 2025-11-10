@@ -345,7 +345,22 @@ export class RoomComponent implements OnInit {
     }
 
     onConferenceRemove(conference: any, room: any) {
-        this.conferenceService.removeRoomsFromConference(conference.id, [room.id])
+        this.conferenceService.removeRoomsFromConference(conference.id, [room.id]).subscribe({
+            next: () => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Összerendelés törölve',
+                    detail: `Szoba-konferencia összerendelés törölve`,
+                });
+            },
+            error: (error: any) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Eltávolítás sikertelen',
+                    detail: `Hiba: ${error}`,
+                })
+            }
+        })
     }
 
     /**
@@ -369,7 +384,7 @@ export class RoomComponent implements OnInit {
             ]
 
             let rows = this.selected.length > 0 ? this.selected : this.tableData
-        
+
             // Extract only the desired fields and Hungarian headers
             const data = rows.map((row: any) => {
                 let obj: any = {}
