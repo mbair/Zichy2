@@ -26,6 +26,7 @@
                             <app-conference-selector
                                 [(ngModel)]="selectedConferences"
                                 [emitOnSelectFirstOption]="true"
+                                [showNoneOption]="false"
                                 [selectionLimit]="1"
                                 [showClear]="true"
                                 [style]="{'minWidth': '35rem'}"
@@ -303,6 +304,7 @@
                         <app-conference-selector
                             formControlName="conference"
                             [preselectIds]="preselectConferenceId"
+                            [showNoneOption]="false"
                             [selectionLimit]="1"
                             [showClear]="true"
                             placeholder="Válasszon konferenciát...">
