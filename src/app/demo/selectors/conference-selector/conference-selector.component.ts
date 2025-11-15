@@ -35,9 +35,10 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
     @Input() selectFirstOption: boolean = false     // Whether to automatically select the first available option
     @Input() placeholder: string                    // Placeholder text for the dropdown
     @Input() showClear: boolean = true              // Whether to show the clear button
+    @Input() showNoneOption: boolean = true         // whether to show the "none" option
     @Input() style: { [key: string]: string } = {}  // Custom style for the dropdown
     @Input() disabledOptions: Conference[] = []     // List of disabled conference IDs
-    @Input() emitOnSelectFirstOption = false         // only turn it on where you really need it
+    @Input() emitOnSelectFirstOption = false        // only turn it on where you really need it
     @Input() emitOnPreselectId = false
     @Input() emitOnWriteValue = false
     @Input()
@@ -76,7 +77,12 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
             .getSelector$({ sort: 'beginDate', order: 'asc', enabled: 1 })
             .subscribe({
                 next: conferences => {
-                    const withNone = [NONE_OPTION, ...conferences]
+                    // Decide whether to include NONE_OPTION based on showNoneOption
+                    const base = conferences ?? []
+                    const withNone = this.showNoneOption
+                        ? [NONE_OPTION, ...base]
+                        : [...base]
+
                     this.conferences = withNone
                     this.originalConferences = [...withNone]   // clone
                     this.syncSelectedConferences()

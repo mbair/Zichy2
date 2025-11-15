@@ -38,6 +38,7 @@
                     [(ngModel)]="selectedConferences"
                     (ngModelChange)="onConferenceSelection($event)"
                     [disabledOptions]="selectedFilterConferences"
+                    [showNoneOption]="false"
                     [selectionLimit]="1"
                     [showClear]="true"
                     [style]="{'minWidth': '50rem'}"
@@ -198,6 +199,7 @@
                                     [(ngModel)]="selectedFilterConferences"
                                     [disabledOptions]="selectedConferences"
                                     placeholder="Konferencia..."
+                                    [showNoneOption]="false"
                                     [showClear]="true"
                                     [style]="{'minWidth': '40rem', 'maxWidth' : '60rem'}"
                                     (ngModelChange)="onFilter($event, 'conferences'); onConferenceFilterSelection($event)">

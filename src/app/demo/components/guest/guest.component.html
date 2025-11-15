@@ -542,16 +542,16 @@
                                 type="button"
                                 class="p-button p-1"
                                 icon="pi pi-external-link"
-                                [label]="guestReservations.length ? (guestReservations[0].room?.roomNum || 'nincs beállítva') : 'nincs beállítva'"
+                                [label]="primaryReservation?.room?.roomNum || 'nincs beállítva'"
                                 [routerLink]="['/reservation']"
-                                [queryParams]="{
-                                    reservation_id: guestReservations[0].id,
-                                    conference_id: guestReservations[0].conference_id,
+                                [queryParams]="primaryReservation ? {
+                                    reservation_id: primaryReservation.id,
+                                    conference_id: primaryReservation.conference_id,
                                     open: 1
-                                }"
+                                } : null"
                                 pTooltip="Ugrás a vendég foglalásaihoz"
                                 tooltipPosition="top"
-                                [disabled]="!(guestReservations.length && guestReservations[0].id)">
+                                [disabled]="!primaryReservation?.id">
                             </button>
                         </div>
                     </div>

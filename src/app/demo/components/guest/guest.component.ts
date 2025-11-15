@@ -504,6 +504,13 @@ export class GuestComponent implements OnInit {
     get roomMate() { return this.guestForm.get('roomMate') }
     get idCard() { return this.guestForm.get('idCard') }
     get climate() { return this.guestForm.get('climate') }
+    
+    // Helper for Guests primary reservation
+    get primaryReservation(): Reservation | null {
+        return this.guestReservations && this.guestReservations.length
+            ? this.guestReservations[0]
+            : null
+    }
 
     /**
      * Load filtered data into the Table
