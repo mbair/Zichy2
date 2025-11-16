@@ -8,6 +8,8 @@
             placeholder="{{ 'Válasszon...' | translate }}"
             emptyMessage="{{ 'Nincs találat...' | translate }}"
             [showClear]="showClear"
+            [ngStyle]="inputStyle"
+            [styleClass]="inputStyleClass"
             appendTo="body">
 
     <ng-template pTemplate="item" let-option>
@@ -32,6 +34,8 @@
                 placeholder="{{ 'Válasszon...' | translate }}"
                 emptyMessage="{{ 'Nincs találat...' | translate }}"
                 [showClear]="showClear"
+                [ngStyle]="inputStyle"
+                [styleClass]="inputStyleClass"
                 appendTo="body">
 
         <ng-template pTemplate="item" let-option>

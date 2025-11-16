@@ -139,7 +139,7 @@
                                    type="text"
                                    (input)="onFilter($event, 'guests')"
                                    placeholder="Vendég..."
-                                   style="width: 15rem"/>
+                                   style="width: 10rem"/>
                         </th>
                         <th>
                             <p-calendar
@@ -148,7 +148,8 @@
                                 appendTo="body"
                                 dataType="string"
                                 placeholder="Keresés..."
-                                [showButtonBar]="true">
+                                [showButtonBar]="true"
+                                inputStyleClass="w-6rem">
                             </p-calendar>
                         </th>
                         <th>
@@ -158,7 +159,8 @@
                                 appendTo="body"
                                 dataType="string"
                                 placeholder="Keresés..."
-                                [showButtonBar]="true">
+                                [showButtonBar]="true"
+                                inputStyleClass="w-6rem">
                             </p-calendar>
                         </th>
                         <th>
@@ -173,7 +175,7 @@
                                    type="text"
                                    (input)="onFilter($event, 'notes')"
                                    placeholder="Keresés..."
-                                   style="width:10rem"/>
+                                   style="width:8rem"/>
                         </th>
                         <th></th>
                     </tr>

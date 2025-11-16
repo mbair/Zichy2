@@ -14,24 +14,26 @@ import { RatingModule } from 'primeng/rating';
 import { RippleModule } from 'primeng/ripple';
 import { CardModule } from 'primeng/card';
 import { SelectorsModule } from '../../../selectors/selectors.module';
+import { StyleClassModule } from "primeng/styleclass";
 
 @NgModule({
 	imports: [
-		CommonModule,
-		EcommerceDashboardRoutigModule,
-		ButtonModule,
-		RippleModule,
-		DropdownModule,
-		FormsModule,
-		TableModule,
-		InputTextModule,
-		InputTextareaModule,
-		ChartModule,
-		RatingModule,
-		KnobModule,
-		CardModule,
-		SelectorsModule
-	],
+    CommonModule,
+    EcommerceDashboardRoutigModule,
+    ButtonModule,
+    RippleModule,
+    DropdownModule,
+    FormsModule,
+    TableModule,
+    InputTextModule,
+    InputTextareaModule,
+    ChartModule,
+    RatingModule,
+    KnobModule,
+    CardModule,
+    SelectorsModule,
+    StyleClassModule
+],
 	declarations: [EcommerceDashboardComponent]
 })
 export class EcommerceDashboardModule { }
