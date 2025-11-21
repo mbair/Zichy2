@@ -5,6 +5,7 @@ import { MultiSelect } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
 import { Conference } from '../../api/conference';
 import { ConferenceService } from '../../service/conference.service';
+import { UserService } from '../../service/user.service';
 
 export type ChangeSource = 'user' | 'auto-select-first' | 'preselect-id' | 'programmatic';
 export type ExtendedConference = Conference & { __none__?: boolean }
@@ -36,11 +37,15 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
     @Input() placeholder: string                    // Placeholder text for the dropdown
     @Input() showClear: boolean = true              // Whether to show the clear button
     @Input() showNoneOption: boolean = true         // whether to show the "none" option
-    @Input() style: { [key: string]: string } = {}  // Custom style for the dropdown
+    @Input() style: { [key: string]: string } = {}  // outer style for the dropdown
+    @Input() styleClass: string = ''                // extra css classes for wrapper
+    @Input() panelStyle: { [key: string]: string }  // style for the overlay panel
+    @Input() panelStyleClass: string = ''           // css class for the overlay panel
     @Input() disabledOptions: Conference[] = []     // List of disabled conference IDs
     @Input() emitOnSelectFirstOption = false        // only turn it on where you really need it
     @Input() emitOnPreselectId = false
     @Input() emitOnWriteValue = false
+
     @Input()
     set preselectIds(value: number | string | Array<number | string> | null | undefined) {
         const arr = Array.isArray(value) ? value : (value != null ? [value] : [])
@@ -52,11 +57,13 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
 
     @Output() change = new EventEmitter<{ value: Conference[]; source: ChangeSource }>()
 
-    loading: boolean = true                          // Loading state indicator
-    disabled: boolean = false                        // Whether the selector is disabled
+    loading: boolean = true                   // Loading state indicator
+    disabled: boolean = false                 // Whether the selector is disabled
     conferences: any[] = []                   // List of available conference options
     originalConferences: any[] = []           // Original list of conference options
     selectedConferences: any[] = []           // List of currently selected conferences
+    isOrganizer: boolean = false              // User has organizer role
+    currentUserId: number | null = null       // Logged in user id
 
     private _pendingSelectIds?: number[]
     private subscriptions: Subscription = new Subscription()
@@ -64,6 +71,7 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
     private runSilently<T>(fn: () => T): T { this.suppress++; try { return fn() } finally { this.suppress-- } }
 
     constructor(private conferenceService: ConferenceService,
+        private userService: UserService,
         private messageService: MessageService,
         private cdr: ChangeDetectorRef
     ) { }
@@ -73,36 +81,17 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      * Fetches the list of conferences and selects the first option if required.
      */
     ngOnInit(): void {
-        const sub = this.conferenceService
-            .getSelector$({ sort: 'beginDate', order: 'asc', enabled: 1 })
-            .subscribe({
-                next: conferences => {
-                    // Decide whether to include NONE_OPTION based on showNoneOption
-                    const base = conferences ?? []
-                    const withNone = this.showNoneOption
-                        ? [NONE_OPTION, ...base]
-                        : [...base]
+        // Get logged in user id from local storage
+        this.currentUserId = this.userService.getLoggedInUserId() || null
 
-                    this.conferences = withNone
-                    this.originalConferences = [...withNone]   // clone
-                    this.syncSelectedConferences()
-                    this.handleSelectFirstOption()
-                    this.updateDisabledFlags()
-                    this.preselectByIds()
-                    this.loading = false
-                },
-                error: () => {
-                    this.conferences = []
-                    this.originalConferences = []
-                    this.loading = false
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: 'Failed to load conferences. Please try again later.'
-                    })
-                }
+        // Check if user is Organizer, then load conferences
+        const roleSub = this.userService.hasRole(['Szervezo'])
+            .subscribe(isOrganizer => {
+                this.isOrganizer = isOrganizer
+                this.loadConferences()
             })
-        this.subscriptions.add(sub)
+
+        this.subscriptions.add(roleSub)
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -116,6 +105,63 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
 
     ngOnDestroy(): void {
         this.subscriptions.unsubscribe()
+    }
+
+    /**
+     * Loads conferences from the backend.
+     * Organizer users see only their own conferences,
+     * other users see all enabled conferences.
+     */
+    private loadConferences(): void {
+        this.loading = true
+
+        const params: any = {
+            sort: 'beginDate',
+            order: 'asc',
+            enabled: 1
+        }
+
+        // Global rule:
+        // - If user is Organizer and we know the logged in user id,
+        //   filter by organizer_user_id.
+        console.log('this.isOrganizer', this.isOrganizer)
+        console.log('this.currentUserId', this.currentUserId)
+        if (this.isOrganizer && this.currentUserId != null) {
+            params.organizer_user_id = this.currentUserId
+        }
+
+        const sub = this.conferenceService
+            .getSelector$(params)
+            .subscribe({
+                next: conferences => {
+                    const base = conferences ?? []
+                    const withNone = this.showNoneOption
+                        ? [NONE_OPTION, ...base]
+                        : [...base]
+
+                    this.conferences = withNone
+                    this.originalConferences = [...withNone] // clone
+                    this.syncSelectedConferences()
+                    this.handleSelectFirstOption()
+                    this.updateDisabledFlags()
+                    this.preselectByIds()
+                    this.loading = false
+                    this.cdr.markForCheck()
+                },
+                error: () => {
+                    this.conferences = []
+                    this.originalConferences = []
+                    this.loading = false
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Failed to load conferences. Please try again later.'
+                    })
+                    this.cdr.markForCheck()
+                }
+            })
+
+        this.subscriptions.add(sub)
     }
 
     /**

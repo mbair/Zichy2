@@ -26,6 +26,8 @@ export class MealSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() showNothing: boolean
     @Input() earliestMeal: string | undefined
     @Input() latestMeal: string | undefined
+    @Input() inputStyle: { [klass: string]: any } | undefined
+    @Input() inputStyleClass: string | undefined
     @Output() change = new EventEmitter<changeEvent>()
 
     meals: any[] = []           // Available meals

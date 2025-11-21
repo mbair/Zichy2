@@ -308,25 +308,28 @@ export class ConferenceService {
 
     /** Clears the in-memory selector cache */
     clearSelectorCache(): void {
-        this.selectorCache$ = undefined;
+        this.selectorCache$ = undefined
     }
 
     /** Build query params for the selector endpoint */
     private buildSelectorParams(opts: SelectorQuery): HttpParams {
-        let p = new HttpParams();
+        let p = new HttpParams()
 
         // enabled defaults to 1 (true) if not provided
         if (opts.enabled !== undefined) {
-            const val = typeof opts.enabled === 'boolean' ? (opts.enabled ? '1' : '0') : String(opts.enabled);
-            p = p.set('enabled', val);
+            const val = typeof opts.enabled === 'boolean' ? (opts.enabled ? '1' : '0') : String(opts.enabled)
+            p = p.set('enabled', val)
         } else {
-            p = p.set('enabled', '1');
+            p = p.set('enabled', '1')
         }
 
-        if (opts.sort) p = p.set('sort', opts.sort);
-        if (opts.order) p = p.set('order', opts.order);
+        if (opts.sort) p = p.set('sort', opts.sort)
+        if (opts.order) p = p.set('order', opts.order)
+        if (opts.date_from) p = p.set('date_from', opts.date_from)
+        if (opts.date_to) p = p.set('date_to', opts.date_to)
+        if (opts.organizer_user_id != null) p = p.set('organizer_user_id', String(opts.organizer_user_id))
 
-        return p;
+        return p
     }
 
     /**
@@ -372,6 +375,7 @@ export interface SelectorQuery {
     date_to?: string;              // yyyy-mm-dd
     sort?: string;                 // e.g. 'beginDate'
     order?: 'ASC' | 'DESC' | 'asc' | 'desc';
+    organizer_user_id?: number | string;
     forceRefresh?: boolean;        // bypass cache if true
 }
 
