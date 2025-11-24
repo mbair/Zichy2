@@ -187,26 +187,49 @@
                         </td>
                         <td>
                             <span class="p-column-title">Szoba</span>
-                            <div class="building-badge {{reservation.room.building}} border-round-xl w-min p-0">
-                                <div class="flex align-items-center justify-content-center py-1 px-1">
-                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
-                                        <i class="pi pi-key vertical-align-middle"></i>
-                                        <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ reservation.room.roomNum }}" tooltipPosition="top">
-                                            {{ reservation.room.roomNum }}
-                                        </span>
-                                    </div>
-                                    <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ reservation.room.roomCode }}" tooltipPosition="top">
-                                        <div class="flex flex-column align-items-left justify-content-center">
-                                            <span class="text-base font-semibold uppercase">
-                                                {{ 'BUILDINGS.' + reservation.room.building.toUpperCase() | translate }} <span *ngIf="reservation.room.floor" class="font-normal text-sm uppercase">({{ reservation.room.floor }})</span>
-                                                <span *ngIf="reservation.room.climate" class="pl-1">❄️</span>
+
+                            <div class="flex align-items-center gap-2">
+                                <!-- Szoba badge -->
+                                <div class="building-badge {{reservation.room.building}} border-round-xl w-min p-0">
+                                    <div class="flex align-items-center justify-content-center py-1 px-1">
+                                        <div class="flex align-items-center justify-content-center gap-2 px-2">
+                                            <i class="pi pi-key vertical-align-middle"></i>
+                                            <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ reservation.room.roomNum }}" tooltipPosition="top">
+                                                {{ reservation.room.roomNum }}
                                             </span>
-                                            <span class="font-light text-xs uppercase">
-                                                {{ reservation.room.beds }} SZEMÉLYES ({{ reservation.room.bedType }}<span *ngIf="reservation.room.bathroom">, {{ reservation.room.bathroom }}</span>)
-                                            </span>
+                                        </div>
+                                        <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ reservation.room.roomCode }}" tooltipPosition="top">
+                                            <div class="flex flex-column align-items-left justify-content-center">
+                                                <span class="text-base font-semibold uppercase">
+                                                    {{ 'BUILDINGS.' + reservation.room.building.toUpperCase() | translate }} <span *ngIf="reservation.room.floor" class="font-normal text-sm uppercase">({{ reservation.room.floor }})</span>
+                                                    <span *ngIf="reservation.room.climate" class="pl-1">❄️</span>
+                                                </span>
+                                                <span class="font-light text-xs uppercase">
+                                                    {{ reservation.room.beds }} SZEMÉLYES ({{ reservation.room.bedType }}<span *ngIf="reservation.room.bathroom">, {{ reservation.room.bathroom }}</span>)
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Babybed badge – only if there are 0–3 years old -->
+                                <ng-container *ngIf="getBabyBedCount(reservation) as babyBeds">
+                                    <div *ngIf="babyBeds > 0"
+                                        class="border-round-xl w-min p-0 bg-purple-100"
+                                        pTooltip="Gyerekágy {{ babyBeds }} fő (0-3 éves korig)"
+                                        tooltipPosition="top">
+                                        <div class="flex align-items-center justify-content-center py-1 px-1">
+                                            <div class="flex align-items-center justify-content-center gap-2 px-2">
+                                                <img src="/assets/demo/images/baby-bed.svg"
+                                                    alt="Baby bed"
+                                                    style="max-width: 20px;" />
+                                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle">
+                                                    {{ babyBeds }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ng-container>
                             </div>
                         </td>
                         <td>

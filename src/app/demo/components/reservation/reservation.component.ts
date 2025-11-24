@@ -831,6 +831,23 @@ export class ReservationComponent implements OnInit {
         return today.diff(birth, 'years').toString()
     }
 
+    // Returns how many guests are between 0–3 years old (need baby bed)
+    getBabyBedCount(reservation: Reservation): number {
+        if (!reservation?.guests || !reservation.guests.length) return 0;
+
+        const today = moment();
+        return reservation.guests.reduce((count, guest) => {
+            if (!guest?.birthDate) return count;
+
+            const ageYears = today.diff(moment(guest.birthDate), 'years');
+            // 0–3 év közöttiek (3 év alatti / max 3 éves)
+            if (ageYears >= 0 && ageYears < 3) {
+                return count + 1;
+            }
+            return count;
+        }, 0);
+    }
+
     // Returns free capacity (can be negative when overbooked)
     getFreeCapacity(reservation: Reservation) {
         const guestsNum = reservation?.guests?.length ?? 0
