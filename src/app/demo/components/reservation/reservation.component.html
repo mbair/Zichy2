@@ -212,20 +212,19 @@
                                     </div>
                                 </div>
 
-                                <!-- Babybed badge – only if there are 0–3 years old -->
-                                <ng-container *ngIf="getBabyBedCount(reservation) as babyBeds">
-                                    <div *ngIf="babyBeds > 0"
-                                        class="border-round-xl w-min p-0 bg-purple-100"
-                                        pTooltip="Gyerekágy {{ babyBeds }} fő (0-3 éves korig)"
-                                        tooltipPosition="top">
+                                <!-- Babybed icons – one icon per 0–3 years old guest -->
+                                <ng-container *ngIf="getBabyBedGuests(reservation) as babyGuests">
+                                    <div *ngIf="babyGuests.length > 0"
+                                        class="border-round-xl w-min p-0 bg-purple-100">
                                         <div class="flex align-items-center justify-content-center py-1 px-1">
-                                            <div class="flex align-items-center justify-content-center gap-2 px-2">
-                                                <img src="/assets/demo/images/baby-bed.svg"
-                                                    alt="Baby bed"
-                                                    style="max-width: 20px;" />
-                                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle">
-                                                    {{ babyBeds }}
-                                                </span>
+                                            <div class="flex align-items-center justify-content-center gap-1 px-2">
+                                                <ng-container *ngFor="let baby of babyGuests">
+                                                    <img src="/assets/demo/images/baby-bed.svg"
+                                                        alt="Baby bed"
+                                                        style="max-width: 20px;"
+                                                        pTooltip="{{ baby.lastName }} {{ baby.firstName }} ({{ getAge(baby.birthDate) }})"
+                                                        tooltipPosition="top">
+                                                </ng-container>
                                             </div>
                                         </div>
                                     </div>

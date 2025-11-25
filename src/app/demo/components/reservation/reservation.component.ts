@@ -824,8 +824,8 @@ export class ReservationComponent implements OnInit {
     }
 
     // Get Age by birthdate
-    getAge(birthDate: string): string {
-        if (!birthDate) return "";
+    getAge(birthDate?: string | null): string {
+        if (!birthDate) return ""
         const birth = moment(birthDate)
         const today = moment()
         return today.diff(birth, 'years').toString()
@@ -833,19 +833,33 @@ export class ReservationComponent implements OnInit {
 
     // Returns how many guests are between 0–3 years old (need baby bed)
     getBabyBedCount(reservation: Reservation): number {
-        if (!reservation?.guests || !reservation.guests.length) return 0;
+        if (!reservation?.guests || !reservation.guests.length) return 0
 
         const today = moment();
         return reservation.guests.reduce((count, guest) => {
-            if (!guest?.birthDate) return count;
+            if (!guest?.birthDate) return count
 
-            const ageYears = today.diff(moment(guest.birthDate), 'years');
+            const ageYears = today.diff(moment(guest.birthDate), 'years')
             // 0–3 év közöttiek (3 év alatti / max 3 éves)
             if (ageYears >= 0 && ageYears < 3) {
-                return count + 1;
+                return count + 1
             }
             return count;
-        }, 0);
+        }, 0)
+    }
+
+    // Returns guests between 0–3 years old (need baby bed)
+    getBabyBedGuests(reservation: Reservation): Guest[] {
+        if (!reservation?.guests || !reservation.guests.length) return []
+
+        const today = moment();
+        return reservation.guests.filter(guest => {
+            if (!guest?.birthDate) return false
+
+            const ageYears = today.diff(moment(guest.birthDate), 'years')
+            // 0–3 years old
+            return ageYears >= 0 && ageYears < 3
+        })
     }
 
     // Returns free capacity (can be negative when overbooked)
