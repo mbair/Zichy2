@@ -15,26 +15,46 @@
 <p-multiSelect
     #guestSelector
     class="multiselect-custom-virtual-scroll"
+    panelStyleClass="guest-multiselect-panel"
     dataKey="id"
-    [options]="guests"
+    [options]="groupByRoomMate ? groupedGuests : guests"
+    [group]="groupByRoomMate"
     [(ngModel)]="selectedGuests"
     (onChange)="onSelectionChange($event)"
     (onClear)="onSelectionClear()"
     [disabled]="disabled"
     optionLabel="fullName"
     optionDisabled="disabled"
+    optionGroupChildren="items"
     filterBy="lastName,firstName,roomMate"
     [selectionLimit]="selectionLimit"
     [placeholder]="placeholder"
     emptyMessage="{{ 'Nincs találat...' | translate }}"
-    [virtualScroll]="true"
-    [virtualScrollItemSize]="65"
+    [virtualScroll]="!groupByRoomMate"
+    [virtualScrollItemSize]="groupByRoomMate ? 0 : 65"
     [showClear]="showClear"
     [style]="style"
     styleClass="height:53px"
     scrollHeight="400px"
     appendTo="body"
     display="chip">
+
+    <ng-template let-group pTemplate="group">
+        <div class="flex align-items-center px-1 cursor-pointer bg-surface-100"
+            (click)="toggleGroupSelection(group, $event)">
+
+            <i class="pi mr-2"
+            [ngClass]="{
+                'pi-check-square': isGroupFullySelected(group),
+                'pi-minus-square': isGroupPartiallySelected(group),
+                'pi-square': !isGroupFullySelected(group) && !isGroupPartiallySelected(group)
+            }"
+            style="font-size: 1.3rem"></i>
+
+            <span class="font-semibold">{{ group.label }}</span>
+            <span class="ml-2 text-xs text-500">({{ group.items.length }} fő)</span>
+        </div>
+    </ng-template>
 
     <ng-template pTemplate="item" let-option>
         <div class="building-badge {{getColorByRoomType(option.roomType)}} border-round-xl w-min p-0">

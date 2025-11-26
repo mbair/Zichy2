@@ -1,0 +1,9 @@
+/* Options között kisebb távolság */
+:host ::ng-deep .guest-multiselect-panel .p-multiselect-items .p-multiselect-item {
+    padding: 0.15rem 0.5rem !important;
+}
+
+/* Csoport fejlécek (pl. "Gábris Balázs csoport") */
+:host ::ng-deep .guest-multiselect-panel .p-multiselect-item-group {
+    padding: 0.2rem 0.5rem !important;
+}

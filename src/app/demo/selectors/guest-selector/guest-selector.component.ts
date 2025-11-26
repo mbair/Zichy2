@@ -10,9 +10,16 @@ moment.locale('hu')
 
 export type ChangeSource = 'user' | 'auto-select-first' | 'preselect-id' | 'programmatic';
 
+type GuestGroup = {
+    label: string      // group header text
+    groupId: number    // internal id
+    items: Guest[]     // guests in this group
+}
+
 @Component({
     selector: 'app-guest-selector',
     templateUrl: './guest-selector.component.html',
+    styleUrls: ['./guest-selector.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [{
         provide: NG_VALUE_ACCESSOR,
@@ -34,6 +41,7 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
     @Input() style: { [key: string]: string } = {}  // Custom style for the dropdown
     @Input() disabledOptions: Guest[] = []          // List of disabled guest IDs
     @Input() showOnlyNotReserved = false            // List only guest that don't have a reservation
+    @Input() groupByRoomMate: boolean = false       // Optional grouping by roomMate chains
     @Input() emitOnSelectFirstOption = false        // only turn it on where you really need it
     @Input() emitOnPreselectId = false
     @Input() emitOnWriteValue = false
@@ -48,11 +56,12 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
 
     @Output() change = new EventEmitter<{ value: Guest[]; source: ChangeSource }>()
 
-    loading: boolean = true                          // Loading state indicator
-    disabled: boolean = false                        // Whether the selector is disabled
-    guests: Guest[] = []                             // List of available guest options
-    originalGuests: Guest[] = []                     // Original list of guest options
-    selectedGuests: Guest[] = []                     // List of currently selected guests
+    loading: boolean = true                 // Loading state indicator
+    disabled: boolean = false               // Whether the selector is disabled
+    guests: Guest[] = []                    // List of available guest options
+    originalGuests: Guest[] = []            // Original list of guest options
+    selectedGuests: Guest[] = []            // List of currently selected guests
+    groupedGuests: GuestGroup[] = []        // Groups for MultiSelect when grouping is enabled
 
     // Available room types
     readonly roomTypes: ReadonlyArray<{ value: string; color: string }> = [
@@ -126,13 +135,23 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
         }
 
         this.reloadSub?.unsubscribe()
-        this.reloadSub = this.guestService.searchGuestsForSelector$(effective)
+        this.reloadSub = this.guestService.searchGuestsForSelector$(payload)
             .subscribe({
                 next: list => {
-                    this.guests = (list ?? []).map((g: Guest) => ({
+                    let plainGuests = (list ?? []).map((g: Guest) => ({
                         ...g,
                         fullName: `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim() // Create fullname
                     }))
+
+                    this.guests = plainGuests
+
+                    // OPTIONAL: smart grouping by roomMate chains
+                    if (this.groupByRoomMate) {
+                        this.groupedGuests = this.buildRoomMateGroups(plainGuests)
+                    } else {
+                        this.groupedGuests = []
+                    }
+                    
                     this.loading = false
                     this.syncSelectedGuests()
                     this.preselectByIds()
@@ -185,6 +204,275 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
         this._pendingSelectIds = undefined;
     }
 
+    // Build visible groups from guests based on roomMate chains
+    private buildRoomMateGroups(guests: Guest[]): GuestGroup[] {
+        interface NodeData {
+            id: number;
+            name: string;      // normalized full name
+            mates: string;     // normalized roomMate text
+            guest: Guest;
+        }
+
+        const normalize = (raw: string | null | undefined): string =>
+            (raw ?? '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/\s+/g, ' ')
+                .trim();
+
+        const getDisplayName = (g: Guest): string =>
+            (`${g.lastName ?? ''} ${g.firstName ?? ''}`.trim()) ||
+            ((g as any).fullName ?? '');
+
+        const nodes: NodeData[] = [];
+
+        for (const g of guests) {
+            const id = this.toNumId((g as any)?.id);
+            if (id == null) {
+                continue;
+            }
+            nodes.push({
+                id,
+                name: normalize(`${g.lastName ?? ''} ${g.firstName ?? ''}`),
+                mates: normalize((g as any).roomMate),
+                guest: g
+            });
+        }
+
+        const graph = new Map<number, Set<number>>();
+        const nodesById = new Map<number, NodeData>();
+        nodes.forEach(n => nodesById.set(n.id, n));
+
+        const ensureNode = (id: number): Set<number> => {
+            let s = graph.get(id);
+            if (!s) {
+                s = new Set<number>();
+                graph.set(id, s);
+            }
+            return s;
+        };
+
+        // Undirected graph: edge if either side mentions the other's name in roomMate
+        for (let i = 0; i < nodes.length; i++) {
+            const a = nodes[i];
+            for (let j = i + 1; j < nodes.length; j++) {
+                const b = nodes[j];
+
+                if (!a.name || !b.name) {
+                    continue;
+                }
+
+                const linked =
+                    (!!a.mates && a.mates.includes(b.name)) ||
+                    (!!b.mates && b.mates.includes(a.name));
+
+                if (linked) {
+                    ensureNode(a.id).add(b.id);
+                    ensureNode(b.id).add(a.id);
+                }
+            }
+        }
+
+        const visited = new Set<number>();
+        const inComponent = new Set<number>();
+        const groups: GuestGroup[] = [];
+
+        const dfs = (startId: number): number[] => {
+            const stack = [startId];
+            const component: number[] = [];
+            visited.add(startId);
+
+            while (stack.length) {
+                const id = stack.pop() as number;
+                component.push(id);
+                const neighbors = graph.get(id);
+                if (!neighbors) {
+                    continue;
+                }
+                for (const n of neighbors) {
+                    if (!visited.has(n)) {
+                        visited.add(n);
+                        stack.push(n);
+                    }
+                }
+            }
+
+            component.forEach(id => inComponent.add(id));
+            return component;
+        };
+
+        // Components with edges (graph nodes)
+        for (const id of graph.keys()) {
+            if (visited.has(id)) {
+                continue;
+            }
+            const comp = dfs(id);
+            if (comp.length >= 2) {
+                const compNodes = comp
+                    .map(cid => nodesById.get(cid))
+                    .filter((n): n is NodeData => !!n);
+
+                // Find "leader" whose name appears most often in others' roomMate text
+                let leader: NodeData | undefined;
+                let bestScore = -1;
+
+                for (const nd of compNodes) {
+                    let score = 0;
+                    for (const other of compNodes) {
+                        if (other.id === nd.id) {
+                            continue;
+                        }
+                        if (other.mates && other.mates.includes(nd.name)) {
+                            score++;
+                        }
+                    }
+                    if (
+                        score > bestScore ||
+                        (score === bestScore && leader && nd.id < leader.id)
+                    ) {
+                        bestScore = score;
+                        leader = nd;
+                    }
+                }
+
+                const leaderName = leader
+                    ? getDisplayName(leader.guest)
+                    : getDisplayName(compNodes[0].guest);
+
+                const items = compNodes
+                    .map(n => n.guest)
+                    .sort((g1, g2) =>
+                        normalize(getDisplayName(g1))
+                            .localeCompare(normalize(getDisplayName(g2)))
+                    );
+
+                groups.push({
+                    groupId: groups.length,
+                    label: leaderName ? `${leaderName} csoport` : 'Szobatárs csoport',
+                    items
+                });
+            }
+        }
+
+        // Singles: everyone not in a multi-person component
+        const singles: Guest[] = [];
+
+        nodes.forEach(n => {
+            if (!inComponent.has(n.id)) {
+                singles.push(n.guest);
+            }
+        });
+
+        if (singles.length) {
+            singles.sort((g1, g2) =>
+                normalize(getDisplayName(g1))
+                    .localeCompare(normalize(getDisplayName(g2)))
+            );
+            groups.push({
+                groupId: groups.length,
+                label: 'Nincs megadott szobatárs / egyedül lakna',
+                items: singles
+            });
+        }
+
+        // Sort groups: bigger first, then label
+        groups.sort((a, b) => {
+            const diff = b.items.length - a.items.length;
+            if (diff !== 0) {
+                return diff;
+            }
+            return a.label.localeCompare(b.label);
+        });
+
+        return groups;
+    }
+
+    private getGroupIds(group: GuestGroup): number[] {
+        return (group.items ?? [])
+            .map(g => this.toNumId((g as any)?.id))
+            .filter((id): id is number => id != null)
+    }
+
+    isGroupFullySelected(group: GuestGroup): boolean {
+        const groupIds = this.getGroupIds(group)
+        if (!groupIds.length || !this.selectedGuests?.length) {
+            return false
+        }
+        const selectedIds = new Set(
+            (this.selectedGuests ?? [])
+                .map(g => this.toNumId((g as any)?.id))
+                .filter((id): id is number => id != null)
+        )
+        return groupIds.every(id => selectedIds.has(id))
+    }
+
+    isGroupPartiallySelected(group: GuestGroup): boolean {
+        const groupIds = this.getGroupIds(group)
+        if (!groupIds.length || !this.selectedGuests?.length) {
+            return false
+        }
+        const selectedIds = new Set(
+            (this.selectedGuests ?? [])
+                .map(g => this.toNumId((g as any)?.id))
+                .filter((id): id is number => id != null)
+        )
+        const selectedCount = groupIds.filter(id => selectedIds.has(id)).length
+        return selectedCount > 0 && selectedCount < groupIds.length
+    }
+
+    // Click on group header: toggle all guests in that group
+    toggleGroupSelection(group: GuestGroup, event?: MouseEvent): void {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+
+        const groupItems = group.items ?? [];
+
+        const current = this.selectedGuests ?? [];
+        const selectedIds = new Set(
+            current
+                .map(g => this.toNumId((g as any)?.id))
+                .filter((id): id is number => id != null)
+        );
+        const groupIds = this.getGroupIds(group);
+
+        const allSelected = groupIds.length > 0 && groupIds.every(id => selectedIds.has(id));
+
+        let next = current.slice();
+
+        if (allSelected) {
+            // Remove all guests from this group
+            next = next.filter(g => {
+                const id = this.toNumId((g as any)?.id);
+                return id == null || !groupIds.includes(id);
+            });
+        } else {
+            // Add all missing guests from this group
+            for (const g of groupItems) {
+                const id = this.toNumId((g as any)?.id);
+                if (id != null && !selectedIds.has(id)) {
+                    next.push(g);
+                }
+            }
+
+            // Respect selectionLimit if present
+            const hasLimit = Number.isFinite(this.selectionLimit as number) && (this.selectionLimit as number) > 0;
+            const limit = hasLimit ? (this.selectionLimit as number) : next.length;
+            if (next.length > limit) {
+                next = next.slice(0, limit);
+            }
+        }
+
+        this.runSilently(() => {
+            this.selectedGuests = next;
+            this.guestSelectorRef?.writeValue(this.selectedGuests);
+        });
+
+        this.emit(this.selectedGuests, 'user', true);
+        this.cdr.markForCheck();
+    }
 
     // Opcionális publikus setter programozott beállításhoz:
     public setSelection(value: Guest[], opts?: { emit?: boolean; source?: ChangeSource }) {
