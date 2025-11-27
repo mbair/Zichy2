@@ -14,6 +14,7 @@ type GuestGroup = {
     label: string      // group header text
     groupId: number    // internal id
     items: Guest[]     // guests in this group
+    explanation?: string // explanation of why these guests are grouped
 }
 
 @Component({
@@ -151,7 +152,7 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
                     } else {
                         this.groupedGuests = []
                     }
-                    
+
                     this.loading = false
                     this.syncSelectedGuests()
                     this.preselectByIds()
@@ -347,10 +348,24 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
                             .localeCompare(normalize(getDisplayName(g2)))
                     );
 
+                // Generate explanation
+                const reasons: string[] = [];
+                for (const node of compNodes) {
+                    const rawMates = (node.guest as any).roomMate;
+                    if (rawMates && typeof rawMates === 'string' && rawMates.trim().length > 0) {
+                        const name = getDisplayName(node.guest);
+                        reasons.push(`${name}: "${rawMates.trim()}"`);
+                    }
+                }
+                const explanation = reasons.length > 0
+                    ? reasons.join('\n')
+                    : 'Közvetett kapcsolat révén';
+
                 groups.push({
                     groupId: groups.length,
                     label: leaderName ? `${leaderName} csoport` : 'Szobatárs csoport',
-                    items
+                    items,
+                    explanation
                 });
             }
         }

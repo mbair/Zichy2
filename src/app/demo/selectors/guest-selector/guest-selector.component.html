@@ -41,7 +41,9 @@
 
     <ng-template let-group pTemplate="group">
         <div class="flex align-items-center px-1 cursor-pointer bg-surface-100"
-            (click)="toggleGroupSelection(group, $event)">
+            (click)="toggleGroupSelection(group, $event)"
+            [pTooltip]="group.explanation"
+            tooltipPosition="top">
 
             <i class="pi mr-2"
             [ngClass]="{
