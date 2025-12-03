@@ -67,6 +67,7 @@ export class ReservationComponent implements OnInit {
     registeredGuests: number = 0                 // registeredGuests
     reservedGuests: number = 0                   // reservedGuests
     waitingForRoom: number = 0                   // waitingForRoom
+    datesTouchedByUser = false                   // Track if user manually changed start/end dates
 
     preselectConferenceId?: number
     conferenceStart: Date | null = null
@@ -245,10 +246,76 @@ export class ReservationComponent implements OnInit {
         ).subscribe(({ guestsArr, ids }) => {
             const room = this.getSelectedRoom();
             if (room) {
-                this.onGuestsSelectionChange(room, guestsArr);
+                this.onGuestsSelectionChange(room, guestsArr)
             }
+            // Keep guestIds in sync (IDs only)
             this.reservationForm.patchValue({ guestIds: ids }, { emitEvent: false })
+
+            // Auto-adjust dates for NEW reservations based on selected guests
+            if (!this.sidebar || this.suppressEmits || this.id?.value) {
+                return // only auto-adjust on new reservations with open sidebar
+            }
+
+            // User already changed dates manually, do not overwrite
+            if (this.datesTouchedByUser) {
+                return
+            }
+
+            const range = this.computeGuestDateRange(guestsArr)
+            const hasRange = !!range.minArrival && !!range.maxDeparture
+
+            if (hasRange) {
+                const nextStart = range.minArrival!.format('YYYY-MM-DD')
+                const nextEnd = range.maxDeparture!.format('YYYY-MM-DD')
+
+                const currentStart = this.startDate?.value
+                const currentEnd = this.endDate?.value
+
+                if (currentStart !== nextStart || currentEnd !== nextEnd) {
+                    this.reservationForm.patchValue(
+                        { startDate: nextStart, endDate: nextEnd },
+                        { emitEvent: false }
+                    )
+                }
+            } else {
+                // No guests selected -> fall back to conference dates (if any)
+                const confArr = Array.isArray(this.conference?.value)
+                    ? (this.conference!.value as Conference[])
+                    : [];
+                const currentConf = confArr.length ? confArr[0] : null
+
+                if (currentConf) {
+                    const begin = (currentConf as any).beginDate
+                        ? moment((currentConf as any).beginDate).format('YYYY-MM-DD')
+                        : null;
+                    const end = (currentConf as any).endDate
+                        ? moment((currentConf as any).endDate).format('YYYY-MM-DD')
+                        : null;
+
+                    this.reservationForm.patchValue(
+                        { startDate: begin, endDate: end },
+                        { emitEvent: false }
+                    )
+                }
+            }
         })
+
+        // Track manual changes of start/end dates (only matters for new reservations)
+        this.startDate?.valueChanges
+            .pipe(filter(() => !this.suppressEmits && this.sidebar))
+            .subscribe(() => {
+                if (!this.id?.value) {
+                    this.datesTouchedByUser = true
+                }
+            })
+
+        this.endDate?.valueChanges
+            .pipe(filter(() => !this.suppressEmits && this.sidebar))
+            .subscribe(() => {
+                if (!this.id?.value) {
+                    this.datesTouchedByUser = true
+                }
+            })
 
         // Monitor the changes of the window size
         this.responsiveService.isMobile$.subscribe((isMobile) => {
@@ -481,7 +548,7 @@ export class ReservationComponent implements OnInit {
             queueMicrotask(() => this.applyConferenceSideEffects(headerConf))
         } else {
             this.preselectConferenceId = undefined
-            
+
             // If there is already a value selected manually, also align state
             queueMicrotask(() => this.applyConferenceSideEffects())
         }
@@ -497,6 +564,7 @@ export class ReservationComponent implements OnInit {
 
         // One-shot reset to initial closed state: clears room/guests/dates, disables where needed
         // IMPORTANT: emit so distinctByIds sees [] before the next open
+        this.datesTouchedByUser = false
         this.reservationForm.reset(this.INITIAL_FORM_STATE_CLOSED, { emitEvent: true })
         this.preselectConferenceId = undefined
         this.preselectRoomIds = undefined
@@ -590,6 +658,7 @@ export class ReservationComponent implements OnInit {
         this.suppressEmits = true
 
         // Clear any preselects/state from last edit
+        this.datesTouchedByUser = false
         this.preselectConferenceId = undefined
         this.preselectRoomIds = undefined
         this.preselectGuestIds = []
@@ -1092,7 +1161,7 @@ export class ReservationComponent implements OnInit {
 
         // Prefill dates only when creating or when the field is empty
         const curStart = this.startDate?.value
-        const curEnd   = this.endDate?.value
+        const curEnd = this.endDate?.value
         const datePatch: any = {}
 
         if (current) {
@@ -1105,7 +1174,7 @@ export class ReservationComponent implements OnInit {
             if (Object.keys(datePatch).length) {
                 this.reservationForm.patchValue(datePatch, { emitEvent: false })
             }
-            
+
             // Enable dependent controls
             this.room?.enable({ emitEvent: false })
             this.guests?.enable({ emitEvent: false })
@@ -1118,13 +1187,47 @@ export class ReservationComponent implements OnInit {
             if (isNew) {
                 this.reservationForm.patchValue({ startDate: null, endDate: null }, { emitEvent: false })
             }
-            
+
             // Disable if no conference
             this.room?.disable({ emitEvent: false })
             this.guests?.disable({ emitEvent: false })
             this.startDate?.disable({ emitEvent: false })
             this.endDate?.disable({ emitEvent: false })
         }
+    }
+
+    // Calculates the earliest arrival and latest departure among the selected guests
+    private computeGuestDateRange(
+        guests: Guest[]
+    ): { minArrival: moment.Moment | null; maxDeparture: moment.Moment | null } {
+        let minArrival: moment.Moment | null = null
+        let maxDeparture: moment.Moment | null = null
+
+        for (const g of guests ?? []) {
+            const rawArrival = (g as any).dateOfArrival
+            const rawDeparture = (g as any).dateOfDeparture
+
+            const arrival = rawArrival
+                ? moment(rawArrival, 'YYYY-MM-DD', true)
+                : null
+            const departure = rawDeparture
+                ? moment(rawDeparture, 'YYYY-MM-DD', true)
+                : null
+
+            if (arrival && arrival.isValid()) {
+                if (!minArrival || arrival.isBefore(minArrival)) {
+                    minArrival = arrival
+                }
+            }
+
+            if (departure && departure.isValid()) {
+                if (!maxDeparture || departure.isAfter(maxDeparture)) {
+                    maxDeparture = departure
+                }
+            }
+        }
+
+        return { minArrival, maxDeparture }
     }
 
     // Don't delete this, its needed from a performance point of view,
