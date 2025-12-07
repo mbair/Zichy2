@@ -1022,9 +1022,17 @@ export class ReservationComponent implements OnInit {
         return `Szabad ágy ${cap} fő részére`
     }
 
-    // Returns a signed label, e.g. "+2", "-1"
+    // Returns a signed label for the capacity avatar.
+    //  - Positive capacity -> "+2" (free beds)
+    //  - Zero capacity     -> ""  (not shown because of *ngIf, but kept for safety)
+    //  - Negative capacity -> "2" (overbooked by 2 persons, red background and tooltip explain it)
     formatCapacityLabel(cap: number): string {
-        return cap > 0 ? `+${cap}` : `${cap}`
+        if (cap > 0) {
+            return `+${cap}`
+        } else if (cap < 0) {
+            return `${Math.abs(cap)}`
+        }
+        return ''
     }
 
     /**
