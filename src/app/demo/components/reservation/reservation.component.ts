@@ -1215,7 +1215,7 @@ export class ReservationComponent implements OnInit {
         }
 
         // Persist selection snapshot for this room
-        this.lastSelectionByRoom.set(roomId, ids);
+        this.lastSelectionByRoom.set(roomId, ids)
     }
 
     private applyConferenceSideEffects(conf?: Conference | null): void {
@@ -1305,6 +1305,19 @@ export class ReservationComponent implements OnInit {
         }
 
         return { minArrival, maxDeparture }
+    }
+
+    // Builds a tooltip text for multiple baby-bed guests (0–3 years old)
+    getBabyBedTooltip(babyGuests: Guest[]): string {
+        if (!babyGuests?.length) return ''
+
+        return babyGuests
+            .map(baby => {
+                const name = `${baby.lastName ?? ''} ${baby.firstName ?? ''}`.trim()
+                const age = this.getAge(baby.birthDate)
+                return age ? `${name} (${age})` : name
+            })
+            .join(', ')
     }
 
     // Don't delete this, its needed from a performance point of view,
