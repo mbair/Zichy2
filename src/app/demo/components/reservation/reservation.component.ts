@@ -244,9 +244,14 @@ export class ReservationComponent implements OnInit {
                 a.ids.length === b.ids.length && a.ids.every((x, i) => x === b.ids[i])
             )
         ).subscribe(({ guestsArr, ids }) => {
-            const room = this.getSelectedRoom();
+            const room = this.getSelectedRoom()
             if (room) {
-                this.onGuestsSelectionChange(room, guestsArr)
+                const allowed = this.onGuestsSelectionChange(room, guestsArr)
+                if (!allowed) {
+                    // Selection was reverted inside onGuestsSelectionChange,
+                    // do not continue with guestIds / date auto-adjust.
+                    return
+                }
             }
             // Keep guestIds in sync (IDs only)
             this.reservationForm.patchValue({ guestIds: ids }, { emitEvent: false })
@@ -587,67 +592,131 @@ export class ReservationComponent implements OnInit {
         this.sidebar = false
     }
 
-    private onGuestsSelectionChange(room: Room, nextGuests: Guest[]): void {
-        const roomId = Number(room?.id);
-        const beds = Number(room?.beds ?? 0); // hard beds only
+    /**
+     * Handles guest selection changes for a given room.
+     *
+     * Behaviour:
+     *  - Calculates room capacity:
+     *      - hard beds: room.beds
+     *      - total capacity: room.beds + room.extraBeds
+     *  - For organizers (isOrganizer === true):
+     *      - If the selected guest count exceeds total capacity, the selection is reverted
+     *        to the last valid state and a warning toast is shown.
+     *      - In this case the method returns false so callers can stop further processing.
+     *  - For all users:
+     *      - If the selected guest count exceeds the hard beds (but not total capacity),
+     *        a confirm dialog is shown to indicate who / how many will not get a real bed
+     *        and may need a mattress or baby bed.
+     *  - The method also:
+     *      - Tracks the last valid selection per room (lastSelectionByRoom),
+     *      - Tracks which guests were already warned about (bedFullWarnedByGuest),
+     *      - Clears warning flags when the selection goes back to within hard bed capacity.
+     *
+     * @param room       The currently selected room.
+     * @param nextGuests The next guest selection (as Guest[] from the UI control).
+     * @returns          true if the selection is accepted, false if it was reverted.
+     */
+    private onGuestsSelectionChange(room: Room, nextGuests: Guest[]): boolean {
+        const roomId = Number(room?.id)
+        const beds = Number(room?.beds ?? 0) // hard beds only
+        const extra = Number(room?.extraBeds ?? 0)  // mattresses / baby beds
+        const totalCapacity = beds + extra
 
-        const prevIds = this.lastSelectionByRoom.get(roomId) ?? [];
-        const nextIds = nextGuests.map(g => g.id);
+        const prevIds = this.lastSelectionByRoom.get(roomId) ?? []
+        const nextIds = nextGuests.map(g => g.id).filter((id): id is number => id != null)
+        const guestsCount = nextIds.length
 
-        // Determine newly added ids to detect "last added"
-        const prevSet = new Set(prevIds);
-        const addedIds: number[] = nextIds.filter(id => !prevSet.has(id));
-        const lastAddedId: number | null =
-            addedIds.length ? addedIds[addedIds.length - 1] : null;
+        // --- HARD RULE FOR ORGANIZER: cannot exceed total capacity (beds + extraBeds) ---
+        if (this.isOrganizer && totalCapacity > 0 && guestsCount > totalCapacity) {
+            // Rebuild previous guests in the original order
+            const guestsById = new Map(
+                nextGuests
+                    .filter(g => g && g.id != null)
+                    .map(g => [g.id as number, g])
+            )
 
-        // Total number of guests currently exceeding hard-bed capacity
-        const overNow = Math.max(0, nextIds.length - beds);
+            const prevGuests: Guest[] = prevIds
+                .map(id => guestsById.get(id))
+                .filter((g): g is Guest => !!g)
 
-        // Mark newly added guests that are over the bed count to avoid duplicate prompts
+            // Revert selection programmatically without triggering valueChanges again
+            this.suppressEmits = true
+            this.reservationForm.patchValue(
+                {
+                    guests: prevGuests,
+                    guestIds: prevIds
+                },
+                { emitEvent: false }
+            )
+            this.suppressEmits = false
+
+            // Keep lastSelectionByRoom as the previous valid state
+            this.lastSelectionByRoom.set(roomId, prevIds)
+
+            // Warn organizer
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Szoba megtelt',
+                detail: `A szoba maximális kapacitása ${totalCapacity} fő. Több vendég nem helyezhető el ebben a szobában.`,
+                life: 8000
+            })
+
+            return false
+        }
+
+        // --- Existing "hard bed" warning logic (allowed, but with warning) ---
+        const prevSetForAdded = new Set(prevIds)
+        const addedIds: number[] = nextIds.filter(id => !prevSetForAdded.has(id))
+        const lastAddedId: number | null = addedIds.length ? addedIds[addedIds.length - 1] : null
+
+        // Over hard beds
+        const overBeds = Math.max(0, guestsCount - beds)
+
+        // Mark newly over-bed guests so we don't warn about the same person repeatedly
         const newlyOverAdded = addedIds
-            .map((id, idx) => ({ id, pos: prevIds.length + idx + 1 })) // 1-based pos after add
+            .map((id, idx) => ({ id, pos: prevIds.length + idx + 1 })) // 1-based index after add
             .filter(x => x.pos > beds)
             .map(x => x.id)
-            .filter(id => !this.bedFullWarnedByGuest.has(`${roomId}:${id}`));
-        newlyOverAdded.forEach(id => this.bedFullWarnedByGuest.add(`${roomId}:${id}`));
+            .filter(id => !this.bedFullWarnedByGuest.has(`${roomId}:${id}`))
+
+        newlyOverAdded.forEach(id => this.bedFullWarnedByGuest.add(`${roomId}:${id}`))
 
         // Show a single message:
         //  - if exactly 1 over-bed -> show the LAST added person's name
-        //  - if 2+ over-bed       -> show count only (e.g., "2 fő már nem fér ágyra!")
-        if (overNow > 0) {
-            if (overNow === 1 && lastAddedId != null) {
-                const g = nextGuests.find(x => x.id === lastAddedId);
-                const name = g ? `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim() || 'A vendég' : 'A vendég';
+        //  - if 2+ over-bed       -> show count only
+        if (overBeds > 0) {
+            if (overBeds === 1 && lastAddedId != null) {
+                const g = nextGuests.find(x => x.id === lastAddedId)
+                const name = g ? `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim() || 'A vendég' : 'A vendég'
                 this.confirmationService.confirm({
                     header: 'Figyelmeztetés',
                     message: `${name} már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
                     icon: 'pi pi-exclamation-triangle',
                     acceptLabel: 'OK',
                     rejectVisible: false
-                });
+                })
             } else {
                 this.confirmationService.confirm({
                     header: 'Figyelmeztetés',
-                    message: `${overNow} fő már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
+                    message: `${overBeds} fő már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
                     icon: 'pi pi-exclamation-triangle',
                     acceptLabel: 'OK',
                     rejectVisible: false
-                });
+                })
             }
         }
 
         // Persist selection order for this room
-        this.lastSelectionByRoom.set(roomId, nextIds);
+        this.lastSelectionByRoom.set(roomId, nextIds)
 
-        // If selection returns to <= beds, clear warn flags for this room
-        if (nextIds.length <= beds) {
+        // If selection goes back to <= beds, clear warn flags for this room
+        if (guestsCount <= beds) {
             [...this.bedFullWarnedByGuest]
                 .filter(k => k.startsWith(`${roomId}:`))
-                .forEach(k => this.bedFullWarnedByGuest.delete(k));
+                .forEach(k => this.bedFullWarnedByGuest.delete(k))
         }
 
-        // Keep form model in sync (IDs only)
-        this.reservationForm.patchValue({ guestIds: nextIds }, { emitEvent: false });
+        return true
     }
 
     /**
