@@ -256,9 +256,12 @@ export class ReservationComponent implements OnInit {
             // Keep guestIds in sync (IDs only)
             this.reservationForm.patchValue({ guestIds: ids }, { emitEvent: false })
 
-            // Auto-adjust dates for NEW reservations based on selected guests
-            if (!this.sidebar || this.suppressEmits || this.id?.value) {
-                return // only auto-adjust on new reservations with open sidebar
+            // Auto-adjust dates while:
+            //  - sidebar is open
+            //  - change is user driven (not suppressEmits)
+            //  - user has not modified dates manually in this session
+            if (!this.sidebar || this.suppressEmits || this.datesTouchedByUser) {
+                return
             }
 
             // User already changed dates manually, do not overwrite
@@ -309,17 +312,13 @@ export class ReservationComponent implements OnInit {
         this.startDate?.valueChanges
             .pipe(filter(() => !this.suppressEmits && this.sidebar))
             .subscribe(() => {
-                if (!this.id?.value) {
-                    this.datesTouchedByUser = true
-                }
+                this.datesTouchedByUser = true
             })
 
         this.endDate?.valueChanges
             .pipe(filter(() => !this.suppressEmits && this.sidebar))
             .subscribe(() => {
-                if (!this.id?.value) {
-                    this.datesTouchedByUser = true
-                }
+                this.datesTouchedByUser = true
             })
 
         // Monitor the changes of the window size
@@ -755,6 +754,9 @@ export class ReservationComponent implements OnInit {
      * @param reservation
      */
     edit(reservation: Reservation) {
+        // New edit session: allow auto date adjustment until user changes dates manually
+        this.datesTouchedByUser = false
+
         // 0) Reset tisztán, események nélkül
         this.reservationForm.reset(this.initialFormValues, { emitEvent: false })
 
