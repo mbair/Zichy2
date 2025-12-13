@@ -1322,6 +1322,22 @@ export class ReservationComponent implements OnInit {
             .join(', ')
     }
 
+    // Returns how many 3+ years old guests will need a mattress due to overbooking of hard beds.
+    // We intentionally do NOT identify who exactly will be on a mattress; we only show the count.
+    getMattressCount(reservation: Reservation): number {
+        const beds = Number(reservation?.room?.beds ?? 0)
+        const guests = reservation?.guests ?? []
+        if (!guests.length) return 0
+
+        const babyCount = this.getBabyBedGuests(reservation).length
+
+        // Guests who are NOT 0–3 years old (unknown birthDate counts as 3+ => safer)
+        const olderCount = Math.max(0, guests.length - babyCount)
+
+        // Overbooking relative to hard beds for 3+ guests
+        return Math.max(0, olderCount - beds)
+    }
+
     // Don't delete this, its needed from a performance point of view,
     ngOnDestroy(): void {
     }

@@ -222,8 +222,8 @@
                                                 <ng-container *ngIf="babyGuests.length === 1; else multipleBabyBeds">
                                                     <img src="/assets/demo/images/baby-bed.svg"
                                                         alt="Baby bed"
-                                                        style="max-width: 20px;"
-                                                        pTooltip="{{ babyGuests[0].lastName }} {{ babyGuests[0].firstName }} ({{ getAge(babyGuests[0].birthDate) }})"
+                                                        style="max-width: 20px"
+                                                        pTooltip="Babaágyra kerül: {{ babyGuests[0].lastName }} {{ babyGuests[0].firstName }} ({{ getAge(babyGuests[0].birthDate) }})"
                                                         tooltipPosition="top">
                                                 </ng-container>
 
@@ -231,13 +231,33 @@
                                                 <ng-template #multipleBabyBeds>
                                                     <img src="/assets/demo/images/baby-bed.svg"
                                                         alt="Baby bed"
-                                                        style="max-width: 20px;"
-                                                        pTooltip="{{ getBabyBedTooltip(babyGuests) }}"
+                                                        style="max-width: 20px"
+                                                        pTooltip="Babaágyra kerülnek: {{ getBabyBedTooltip(babyGuests) }}"
                                                         tooltipPosition="top">
                                                     <span class="text-sm font-semibold pl-1">
                                                         {{ babyGuests.length }}
                                                     </span>
                                                 </ng-template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ng-container>
+
+                                <!-- Mattress indicator – 3+ years old over hard beds -->
+                                <ng-container *ngIf="getMattressCount(reservation) as mattressCount">
+                                    <div *ngIf="mattressCount > 0"
+                                         class="border-round-xl w-min p-0"
+                                         style="background-color: #FFEDD5;">
+                                        <div class="flex align-items-center justify-content-center py-1 px-1">
+                                            <div class="flex align-items-center justify-content-center gap-1 px-2">
+                                                <img src="/assets/demo/images/mattress.svg"
+                                                     alt="Matrac"
+                                                     style="max-width: 20px"
+                                                     pTooltip="Matrac {{ mattressCount }} fő részére"
+                                                     tooltipPosition="top">
+                                                <span class="text-sm font-semibold pl-1">
+                                                    {{ mattressCount }}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
