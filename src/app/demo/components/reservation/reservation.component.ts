@@ -67,6 +67,7 @@ export class ReservationComponent implements OnInit {
     registeredGuests: number = 0                 // registeredGuests
     reservedGuests: number = 0                   // reservedGuests
     waitingForRoom: number = 0                   // waitingForRoom
+    datesTouchedByUser = false                   // Track if user manually changed start/end dates
 
     preselectConferenceId?: number
     conferenceStart: Date | null = null
@@ -243,12 +244,82 @@ export class ReservationComponent implements OnInit {
                 a.ids.length === b.ids.length && a.ids.every((x, i) => x === b.ids[i])
             )
         ).subscribe(({ guestsArr, ids }) => {
-            const room = this.getSelectedRoom();
+            const room = this.getSelectedRoom()
             if (room) {
-                this.onGuestsSelectionChange(room, guestsArr);
+                const allowed = this.onGuestsSelectionChange(room, guestsArr)
+                if (!allowed) {
+                    // Selection was reverted inside onGuestsSelectionChange,
+                    // do not continue with guestIds / date auto-adjust.
+                    return
+                }
             }
+            // Keep guestIds in sync (IDs only)
             this.reservationForm.patchValue({ guestIds: ids }, { emitEvent: false })
+
+            // Auto-adjust dates while:
+            //  - sidebar is open
+            //  - change is user driven (not suppressEmits)
+            //  - user has not modified dates manually in this session
+            if (!this.sidebar || this.suppressEmits || this.datesTouchedByUser) {
+                return
+            }
+
+            // User already changed dates manually, do not overwrite
+            if (this.datesTouchedByUser) {
+                return
+            }
+
+            const range = this.computeGuestDateRange(guestsArr)
+            const hasRange = !!range.minArrival && !!range.maxDeparture
+
+            if (hasRange) {
+                const nextStart = range.minArrival!.format('YYYY-MM-DD')
+                const nextEnd = range.maxDeparture!.format('YYYY-MM-DD')
+
+                const currentStart = this.startDate?.value
+                const currentEnd = this.endDate?.value
+
+                if (currentStart !== nextStart || currentEnd !== nextEnd) {
+                    this.reservationForm.patchValue(
+                        { startDate: nextStart, endDate: nextEnd },
+                        { emitEvent: false }
+                    )
+                }
+            } else {
+                // No guests selected -> fall back to conference dates (if any)
+                const confArr = Array.isArray(this.conference?.value)
+                    ? (this.conference!.value as Conference[])
+                    : [];
+                const currentConf = confArr.length ? confArr[0] : null
+
+                if (currentConf) {
+                    const begin = (currentConf as any).beginDate
+                        ? moment((currentConf as any).beginDate).format('YYYY-MM-DD')
+                        : null;
+                    const end = (currentConf as any).endDate
+                        ? moment((currentConf as any).endDate).format('YYYY-MM-DD')
+                        : null;
+
+                    this.reservationForm.patchValue(
+                        { startDate: begin, endDate: end },
+                        { emitEvent: false }
+                    )
+                }
+            }
         })
+
+        // Track manual changes of start/end dates (only matters for new reservations)
+        this.startDate?.valueChanges
+            .pipe(filter(() => !this.suppressEmits && this.sidebar))
+            .subscribe(() => {
+                this.datesTouchedByUser = true
+            })
+
+        this.endDate?.valueChanges
+            .pipe(filter(() => !this.suppressEmits && this.sidebar))
+            .subscribe(() => {
+                this.datesTouchedByUser = true
+            })
 
         // Monitor the changes of the window size
         this.responsiveService.isMobile$.subscribe((isMobile) => {
@@ -481,7 +552,7 @@ export class ReservationComponent implements OnInit {
             queueMicrotask(() => this.applyConferenceSideEffects(headerConf))
         } else {
             this.preselectConferenceId = undefined
-            
+
             // If there is already a value selected manually, also align state
             queueMicrotask(() => this.applyConferenceSideEffects())
         }
@@ -497,6 +568,7 @@ export class ReservationComponent implements OnInit {
 
         // One-shot reset to initial closed state: clears room/guests/dates, disables where needed
         // IMPORTANT: emit so distinctByIds sees [] before the next open
+        this.datesTouchedByUser = false
         this.reservationForm.reset(this.INITIAL_FORM_STATE_CLOSED, { emitEvent: true })
         this.preselectConferenceId = undefined
         this.preselectRoomIds = undefined
@@ -519,67 +591,131 @@ export class ReservationComponent implements OnInit {
         this.sidebar = false
     }
 
-    private onGuestsSelectionChange(room: Room, nextGuests: Guest[]): void {
-        const roomId = Number(room?.id);
-        const beds = Number(room?.beds ?? 0); // hard beds only
+    /**
+     * Handles guest selection changes for a given room.
+     *
+     * Behaviour:
+     *  - Calculates room capacity:
+     *      - hard beds: room.beds
+     *      - total capacity: room.beds + room.extraBeds
+     *  - For organizers (isOrganizer === true):
+     *      - If the selected guest count exceeds total capacity, the selection is reverted
+     *        to the last valid state and a warning toast is shown.
+     *      - In this case the method returns false so callers can stop further processing.
+     *  - For all users:
+     *      - If the selected guest count exceeds the hard beds (but not total capacity),
+     *        a confirm dialog is shown to indicate who / how many will not get a real bed
+     *        and may need a mattress or baby bed.
+     *  - The method also:
+     *      - Tracks the last valid selection per room (lastSelectionByRoom),
+     *      - Tracks which guests were already warned about (bedFullWarnedByGuest),
+     *      - Clears warning flags when the selection goes back to within hard bed capacity.
+     *
+     * @param room       The currently selected room.
+     * @param nextGuests The next guest selection (as Guest[] from the UI control).
+     * @returns          true if the selection is accepted, false if it was reverted.
+     */
+    private onGuestsSelectionChange(room: Room, nextGuests: Guest[]): boolean {
+        const roomId = Number(room?.id)
+        const beds = Number(room?.beds ?? 0) // hard beds only
+        const extra = Number(room?.extraBeds ?? 0)  // mattresses / baby beds
+        const totalCapacity = beds + extra
 
-        const prevIds = this.lastSelectionByRoom.get(roomId) ?? [];
-        const nextIds = nextGuests.map(g => g.id);
+        const prevIds = this.lastSelectionByRoom.get(roomId) ?? []
+        const nextIds = nextGuests.map(g => g.id).filter((id): id is number => id != null)
+        const guestsCount = nextIds.length
 
-        // Determine newly added ids to detect "last added"
-        const prevSet = new Set(prevIds);
-        const addedIds: number[] = nextIds.filter(id => !prevSet.has(id));
-        const lastAddedId: number | null =
-            addedIds.length ? addedIds[addedIds.length - 1] : null;
+        // --- HARD RULE FOR ORGANIZER: cannot exceed total capacity (beds + extraBeds) ---
+        if (this.isOrganizer && totalCapacity > 0 && guestsCount > totalCapacity) {
+            // Rebuild previous guests in the original order
+            const guestsById = new Map(
+                nextGuests
+                    .filter(g => g && g.id != null)
+                    .map(g => [g.id as number, g])
+            )
 
-        // Total number of guests currently exceeding hard-bed capacity
-        const overNow = Math.max(0, nextIds.length - beds);
+            const prevGuests: Guest[] = prevIds
+                .map(id => guestsById.get(id))
+                .filter((g): g is Guest => !!g)
 
-        // Mark newly added guests that are over the bed count to avoid duplicate prompts
+            // Revert selection programmatically without triggering valueChanges again
+            this.suppressEmits = true
+            this.reservationForm.patchValue(
+                {
+                    guests: prevGuests,
+                    guestIds: prevIds
+                },
+                { emitEvent: false }
+            )
+            this.suppressEmits = false
+
+            // Keep lastSelectionByRoom as the previous valid state
+            this.lastSelectionByRoom.set(roomId, prevIds)
+
+            // Warn organizer
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Szoba megtelt',
+                detail: `A szoba maximális kapacitása ${totalCapacity} fő. Több vendég nem helyezhető el ebben a szobában.`,
+                life: 8000
+            })
+
+            return false
+        }
+
+        // --- Existing "hard bed" warning logic (allowed, but with warning) ---
+        const prevSetForAdded = new Set(prevIds)
+        const addedIds: number[] = nextIds.filter(id => !prevSetForAdded.has(id))
+        const lastAddedId: number | null = addedIds.length ? addedIds[addedIds.length - 1] : null
+
+        // Over hard beds
+        const overBeds = Math.max(0, guestsCount - beds)
+
+        // Mark newly over-bed guests so we don't warn about the same person repeatedly
         const newlyOverAdded = addedIds
-            .map((id, idx) => ({ id, pos: prevIds.length + idx + 1 })) // 1-based pos after add
+            .map((id, idx) => ({ id, pos: prevIds.length + idx + 1 })) // 1-based index after add
             .filter(x => x.pos > beds)
             .map(x => x.id)
-            .filter(id => !this.bedFullWarnedByGuest.has(`${roomId}:${id}`));
-        newlyOverAdded.forEach(id => this.bedFullWarnedByGuest.add(`${roomId}:${id}`));
+            .filter(id => !this.bedFullWarnedByGuest.has(`${roomId}:${id}`))
+
+        newlyOverAdded.forEach(id => this.bedFullWarnedByGuest.add(`${roomId}:${id}`))
 
         // Show a single message:
         //  - if exactly 1 over-bed -> show the LAST added person's name
-        //  - if 2+ over-bed       -> show count only (e.g., "2 fő már nem fér ágyra!")
-        if (overNow > 0) {
-            if (overNow === 1 && lastAddedId != null) {
-                const g = nextGuests.find(x => x.id === lastAddedId);
-                const name = g ? `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim() || 'A vendég' : 'A vendég';
+        //  - if 2+ over-bed       -> show count only
+        if (overBeds > 0) {
+            if (overBeds === 1 && lastAddedId != null) {
+                const g = nextGuests.find(x => x.id === lastAddedId)
+                const name = g ? `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim() || 'A vendég' : 'A vendég'
                 this.confirmationService.confirm({
                     header: 'Figyelmeztetés',
                     message: `${name} már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
                     icon: 'pi pi-exclamation-triangle',
                     acceptLabel: 'OK',
                     rejectVisible: false
-                });
+                })
             } else {
                 this.confirmationService.confirm({
                     header: 'Figyelmeztetés',
-                    message: `${overNow} fő már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
+                    message: `${overBeds} fő már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
                     icon: 'pi pi-exclamation-triangle',
                     acceptLabel: 'OK',
                     rejectVisible: false
-                });
+                })
             }
         }
 
         // Persist selection order for this room
-        this.lastSelectionByRoom.set(roomId, nextIds);
+        this.lastSelectionByRoom.set(roomId, nextIds)
 
-        // If selection returns to <= beds, clear warn flags for this room
-        if (nextIds.length <= beds) {
+        // If selection goes back to <= beds, clear warn flags for this room
+        if (guestsCount <= beds) {
             [...this.bedFullWarnedByGuest]
                 .filter(k => k.startsWith(`${roomId}:`))
-                .forEach(k => this.bedFullWarnedByGuest.delete(k));
+                .forEach(k => this.bedFullWarnedByGuest.delete(k))
         }
 
-        // Keep form model in sync (IDs only)
-        this.reservationForm.patchValue({ guestIds: nextIds }, { emitEvent: false });
+        return true
     }
 
     /**
@@ -590,6 +726,7 @@ export class ReservationComponent implements OnInit {
         this.suppressEmits = true
 
         // Clear any preselects/state from last edit
+        this.datesTouchedByUser = false
         this.preselectConferenceId = undefined
         this.preselectRoomIds = undefined
         this.preselectGuestIds = []
@@ -617,6 +754,9 @@ export class ReservationComponent implements OnInit {
      * @param reservation
      */
     edit(reservation: Reservation) {
+        // New edit session: allow auto date adjustment until user changes dates manually
+        this.datesTouchedByUser = false
+
         // 0) Reset tisztán, események nélkül
         this.reservationForm.reset(this.initialFormValues, { emitEvent: false })
 
@@ -824,11 +964,42 @@ export class ReservationComponent implements OnInit {
     }
 
     // Get Age by birthdate
-    getAge(birthDate: string): string {
-        if (!birthDate) return "";
+    getAge(birthDate?: string | null): string {
+        if (!birthDate) return ""
         const birth = moment(birthDate)
         const today = moment()
         return today.diff(birth, 'years').toString()
+    }
+
+    // Returns how many guests are between 0–3 years old (need baby bed)
+    getBabyBedCount(reservation: Reservation): number {
+        if (!reservation?.guests || !reservation.guests.length) return 0
+
+        const today = moment();
+        return reservation.guests.reduce((count, guest) => {
+            if (!guest?.birthDate) return count
+
+            const ageYears = today.diff(moment(guest.birthDate), 'years')
+            // 0–3 év közöttiek (3 év alatti / max 3 éves)
+            if (ageYears >= 0 && ageYears < 3) {
+                return count + 1
+            }
+            return count;
+        }, 0)
+    }
+
+    // Returns guests between 0–3 years old (need baby bed)
+    getBabyBedGuests(reservation: Reservation): Guest[] {
+        if (!reservation?.guests || !reservation.guests.length) return []
+
+        const today = moment();
+        return reservation.guests.filter(guest => {
+            if (!guest?.birthDate) return false
+
+            const ageYears = today.diff(moment(guest.birthDate), 'years')
+            // 0–3 years old
+            return ageYears >= 0 && ageYears < 3
+        })
     }
 
     // Returns free capacity (can be negative when overbooked)
@@ -850,12 +1021,20 @@ export class ReservationComponent implements OnInit {
     // Optional: clearer tooltip text
     capacityTooltip(cap: number): string {
         if (cap < 0) return `Túlfoglalva ${Math.abs(cap)} fővel`
-        return `Szabad ágy ${cap} fő részére`
+        return `Szabad férőhely ${cap} fő részére`
     }
 
-    // Returns a signed label, e.g. "+2", "-1"
+    // Returns a signed label for the capacity avatar.
+    //  - Positive capacity -> "+2" (free beds)
+    //  - Zero capacity     -> ""  (not shown because of *ngIf, but kept for safety)
+    //  - Negative capacity -> "2" (overbooked by 2 persons, red background and tooltip explain it)
     formatCapacityLabel(cap: number): string {
-        return cap > 0 ? `+${cap}` : `${cap}`
+        if (cap > 0) {
+            return `+${cap}`
+        } else if (cap < 0) {
+            return `${Math.abs(cap)}`
+        }
+        return ''
     }
 
     /**
@@ -1038,7 +1217,7 @@ export class ReservationComponent implements OnInit {
         }
 
         // Persist selection snapshot for this room
-        this.lastSelectionByRoom.set(roomId, ids);
+        this.lastSelectionByRoom.set(roomId, ids)
     }
 
     private applyConferenceSideEffects(conf?: Conference | null): void {
@@ -1061,7 +1240,7 @@ export class ReservationComponent implements OnInit {
 
         // Prefill dates only when creating or when the field is empty
         const curStart = this.startDate?.value
-        const curEnd   = this.endDate?.value
+        const curEnd = this.endDate?.value
         const datePatch: any = {}
 
         if (current) {
@@ -1074,7 +1253,7 @@ export class ReservationComponent implements OnInit {
             if (Object.keys(datePatch).length) {
                 this.reservationForm.patchValue(datePatch, { emitEvent: false })
             }
-            
+
             // Enable dependent controls
             this.room?.enable({ emitEvent: false })
             this.guests?.enable({ emitEvent: false })
@@ -1087,13 +1266,76 @@ export class ReservationComponent implements OnInit {
             if (isNew) {
                 this.reservationForm.patchValue({ startDate: null, endDate: null }, { emitEvent: false })
             }
-            
+
             // Disable if no conference
             this.room?.disable({ emitEvent: false })
             this.guests?.disable({ emitEvent: false })
             this.startDate?.disable({ emitEvent: false })
             this.endDate?.disable({ emitEvent: false })
         }
+    }
+
+    // Calculates the earliest arrival and latest departure among the selected guests
+    private computeGuestDateRange(
+        guests: Guest[]
+    ): { minArrival: moment.Moment | null; maxDeparture: moment.Moment | null } {
+        let minArrival: moment.Moment | null = null
+        let maxDeparture: moment.Moment | null = null
+
+        for (const g of guests ?? []) {
+            const rawArrival = (g as any).dateOfArrival
+            const rawDeparture = (g as any).dateOfDeparture
+
+            const arrival = rawArrival
+                ? moment(rawArrival, 'YYYY-MM-DD', true)
+                : null
+            const departure = rawDeparture
+                ? moment(rawDeparture, 'YYYY-MM-DD', true)
+                : null
+
+            if (arrival && arrival.isValid()) {
+                if (!minArrival || arrival.isBefore(minArrival)) {
+                    minArrival = arrival
+                }
+            }
+
+            if (departure && departure.isValid()) {
+                if (!maxDeparture || departure.isAfter(maxDeparture)) {
+                    maxDeparture = departure
+                }
+            }
+        }
+
+        return { minArrival, maxDeparture }
+    }
+
+    // Builds a tooltip text for multiple baby-bed guests (0–3 years old)
+    getBabyBedTooltip(babyGuests: Guest[]): string {
+        if (!babyGuests?.length) return ''
+
+        return babyGuests
+            .map(baby => {
+                const name = `${baby.lastName ?? ''} ${baby.firstName ?? ''}`.trim()
+                const age = this.getAge(baby.birthDate)
+                return age ? `${name} (${age})` : name
+            })
+            .join(', ')
+    }
+
+    // Returns how many 3+ years old guests will need a mattress due to overbooking of hard beds.
+    // We intentionally do NOT identify who exactly will be on a mattress; we only show the count.
+    getMattressCount(reservation: Reservation): number {
+        const beds = Number(reservation?.room?.beds ?? 0)
+        const guests = reservation?.guests ?? []
+        if (!guests.length) return 0
+
+        const babyCount = this.getBabyBedGuests(reservation).length
+
+        // Guests who are NOT 0–3 years old (unknown birthDate counts as 3+ => safer)
+        const olderCount = Math.max(0, guests.length - babyCount)
+
+        // Overbooking relative to hard beds for 3+ guests
+        return Math.max(0, olderCount - beds)
     }
 
     // Don't delete this, its needed from a performance point of view,

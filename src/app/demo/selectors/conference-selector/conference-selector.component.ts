@@ -124,8 +124,6 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
         // Global rule:
         // - If user is Organizer and we know the logged in user id,
         //   filter by organizer_user_id.
-        console.log('this.isOrganizer', this.isOrganizer)
-        console.log('this.currentUserId', this.currentUserId)
         if (this.isOrganizer && this.currentUserId != null) {
             params.organizer_user_id = this.currentUserId
         }
