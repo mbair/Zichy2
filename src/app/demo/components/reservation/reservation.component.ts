@@ -1021,7 +1021,7 @@ export class ReservationComponent implements OnInit {
     // Optional: clearer tooltip text
     capacityTooltip(cap: number): string {
         if (cap < 0) return `Túlfoglalva ${Math.abs(cap)} fővel`
-        return `Szabad ágy ${cap} fő részére`
+        return `Szabad férőhely ${cap} fő részére`
     }
 
     // Returns a signed label for the capacity avatar.
