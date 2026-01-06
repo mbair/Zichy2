@@ -109,6 +109,16 @@ export class ReservationComponent implements OnInit {
         guestIds: { value: [], disabled: false }
     }
 
+    // Rooms where ONLY a baby bed fits (no mattress)
+    private readonly BABY_ONLY_ROOM_NUMS = new Set<string>([
+        '207', '212', '20A', 'G11B', 'K12B', 'L11A', 'L11D*', 'L11E*', 'S11A', 'S12A', 'S12C', 'V11A*'
+    ])
+
+    // Rooms where 1 baby bed + 1 mattress fits
+    private readonly BABY_PLUS_MATTRESS_ROOM_NUMS = new Set<string>([
+        'S11B*', 'S11C*', 'S11D*', 'S21A*', 'S21B*'
+    ])
+
     private lastSelectionByRoom = new Map<number, number[]>() // roomId -> last selection (guest ids, in selection order)
     private bedFullWarnedByGuest = new Set<string>()          // roomId:guestId pairs we already warned for, to avoid duplicate prompts if user toggles UI
 
@@ -625,6 +635,50 @@ export class ReservationComponent implements OnInit {
         const nextIds = nextGuests.map(g => g.id).filter((id): id is number => id != null)
         const guestsCount = nextIds.length
 
+        const policyInfo = this.evaluateExtraGuests(room, nextGuests)
+
+        // Special rooms: enforce total capacity for everyone (these rooms physically cannot be extended with more mattresses)
+        if (policyInfo.policy.kind !== 'default' && policyInfo.totalCapacity > 0 && guestsCount > policyInfo.totalCapacity) {
+            this.revertGuestsToPrevious(roomId, nextGuests, prevIds)
+
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Szoba megtelt',
+                detail: `A(z) ${policyInfo.roomNum} szoba maximális kapacitása ${policyInfo.totalCapacity} fő. Több vendég nem helyezhető el ebben a szobában.`,
+                life: 8000
+            })
+            return false
+        }
+
+        // Special rooms: validate who can go to extra beds (based on selection order)
+        if (policyInfo.policy.kind === 'babyOnly') {
+            // Any adult/unknown in extra guests is forbidden
+            if (policyInfo.adultExtraCount > 0) {
+                this.revertGuestsToPrevious(roomId, nextGuests, prevIds)
+
+                this.messageService.add({
+                    severity: 'warn',
+                    summary: 'Csak babaágy fér',
+                    detail: `A(z) ${policyInfo.roomNum} szobában pótágy csak babaágy (0–3 év). 3 év feletti (vagy ismeretlen korú) vendég nem tehető pótágyra.`,
+                    life: 10000
+                })
+                return false
+            }
+        } else if (policyInfo.policy.kind === 'babyPlusMattress') {
+            // Only 1 adult/unknown is allowed among extra guests (mattress)
+            if (policyInfo.adultExtraCount > policyInfo.policy.allowedAdultExtra) {
+                this.revertGuestsToPrevious(roomId, nextGuests, prevIds)
+
+                this.messageService.add({
+                    severity: 'warn',
+                    summary: 'Pótágy korlátozás',
+                    detail: `A(z) ${policyInfo.roomNum} szobában legfeljebb 1 matrac használható; a további pótágy(ak) csak babaágy (0–3 év).`,
+                    life: 10000
+                })
+                return false
+            }
+        }
+
         // --- HARD RULE FOR ORGANIZER: cannot exceed total capacity (beds + extraBeds) ---
         if (this.isOrganizer && totalCapacity > 0 && guestsCount > totalCapacity) {
             // Rebuild previous guests in the original order
@@ -684,12 +738,28 @@ export class ReservationComponent implements OnInit {
         //  - if exactly 1 over-bed -> show the LAST added person's name
         //  - if 2+ over-bed       -> show count only
         if (overBeds > 0) {
+            const p = this.getExtraBedPolicyByRoom(room)
+            const roomNum = (room as any)?.roomNum
+
+            const baseMsg = (() => {
+                if (p.kind === 'babyOnly') {
+                    return 'Csak babaágy használható (0–3 év).'
+                }
+                if (p.kind === 'babyPlusMattress') {
+                    // First extra can be mattress OR baby; second extra must be baby
+                    if (overBeds >= 2) return 'A 2. pótágy csak babaágy (0–3 év).'
+                    return 'Matracra vagy babaágyra kerülhet (max 1 matrac).'
+                }
+                return 'Matracra vagy gyerekágyra kerülhet.'
+            })()
+
             if (overBeds === 1 && lastAddedId != null) {
                 const g = nextGuests.find(x => x.id === lastAddedId)
                 const name = g ? `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim() || 'A vendég' : 'A vendég'
+
                 this.confirmationService.confirm({
                     header: 'Figyelmeztetés',
-                    message: `${name} már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
+                    message: `${name} már nem fér ágyra! ${baseMsg}`,
                     icon: 'pi pi-exclamation-triangle',
                     acceptLabel: 'OK',
                     rejectVisible: false
@@ -697,7 +767,7 @@ export class ReservationComponent implements OnInit {
             } else {
                 this.confirmationService.confirm({
                     header: 'Figyelmeztetés',
-                    message: `${overBeds} fő már nem fér ágyra! Matracra vagy gyerekágyra kerülhet.`,
+                    message: `${overBeds} fő már nem fér ágyra! ${baseMsg}`,
                     icon: 'pi pi-exclamation-triangle',
                     acceptLabel: 'OK',
                     rejectVisible: false
@@ -871,6 +941,50 @@ export class ReservationComponent implements OnInit {
      */
     save() {
         if (!this.reservationForm.valid) return
+
+        const selectedRoom = this.getSelectedRoom()
+        const selectedGuests: Guest[] = Array.isArray(this.guests?.value) ? (this.guests!.value as Guest[]) : []
+
+        if (selectedRoom) {
+            const info = this.evaluateExtraGuests(selectedRoom, selectedGuests)
+
+            // Only for special rooms
+            if (info.policy.kind !== 'default') {
+                // Total capacity hard rule
+                if (info.totalCapacity > 0 && selectedGuests.length > info.totalCapacity) {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Szoba megtelt',
+                        detail: `A(z) ${info.roomNum} szoba maximális kapacitása ${info.totalCapacity} fő. Több vendég nem menthető ebbe a szobába.`,
+                        life: 10000
+                    })
+                    return
+                }
+
+                // Extra-bed policy rule
+                const policyInvalid =
+                    (info.policy.kind === 'babyOnly' && info.adultExtraCount > 0) ||
+                    (info.policy.kind === 'babyPlusMattress' && info.adultExtraCount > info.policy.allowedAdultExtra)
+
+                if (policyInvalid) {
+                    const detail =
+                        (selectedGuests.length === info.totalCapacity && info.requiredBabyExtra > 0)
+                            ? this.buildRoomPolicySaveMessage(info.totalCapacity, info.requiredBabyExtra)
+                            : (info.policy.kind === 'babyOnly'
+                                ? `A(z) ${info.roomNum} szobában pótágy csak babaágy (0–3 év). 3+ vendég nem menthető pótágyra.`
+                                : `A(z) ${info.roomNum} szobában legfeljebb 1 matrac használható; a további pótágy(ak) csak babaágy (0–3 év).`)
+
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Nem menthető',
+                        detail,
+                        life: 12000
+                    })
+                    return
+                }
+            }
+        }
+
         this.loading = true
 
         const v = this.reservationForm.value
@@ -1309,6 +1423,26 @@ export class ReservationComponent implements OnInit {
         return { minArrival, maxDeparture }
     }
 
+    /**
+     * Returns true if the guest is considered a "baby-bed" guest (0–3 years old).
+     *
+     * Business rule:
+     *  - A guest qualifies for a baby bed if their age (in full years) is >= 0 and < 3 at the time of evaluation.
+     *  - If birthDate is missing/unknown, we treat the guest as NOT a baby (i.e., 3+),
+     *    which is the safer default for rooms where extra capacity is baby-bed-only.
+     *
+     * Note:
+     *  - Uses moment().diff(..., 'years') which returns full years (floored), not fractional years.
+     */
+    private isBabyGuest(guest: Guest | null | undefined): boolean {
+        // Missing birthDate => treat as 3+ (safer for baby-bed-only rules)
+        if (!guest?.birthDate) return false
+
+        const today = moment()
+        const ageYears = today.diff(moment(guest.birthDate), 'years')
+        return ageYears >= 0 && ageYears < 3
+    }
+
     // Builds a tooltip text for multiple baby-bed guests (0–3 years old)
     getBabyBedTooltip(babyGuests: Guest[]): string {
         if (!babyGuests?.length) return ''
@@ -1336,6 +1470,189 @@ export class ReservationComponent implements OnInit {
 
         // Overbooking relative to hard beds for 3+ guests
         return Math.max(0, olderCount - beds)
+    }
+
+    /**
+     * Determines the "extra bed" policy for the given room based on roomNum.
+     *
+     * Policies:
+     *  - 'babyOnly':
+     *      Extra capacity (beds over the hard-bed count) can ONLY be used by 0–3 year old guests (baby bed).
+     *      allowedAdultExtra = 0 means no 3+ (or unknown-age) guest is allowed among the extra guests.
+     *
+     *  - 'babyPlusMattress':
+     *      Extra capacity can include at most one 3+ (or unknown-age) guest on a mattress,
+     *      and any additional extra guests must be 0–3 (baby bed).
+     *      allowedAdultExtra = 1.
+     *
+     *  - 'default':
+     *      Existing logic applies; no special restriction is enforced here.
+     *      allowedAdultExtra = Infinity effectively means "unlimited" adult extras from this policy perspective.
+     *
+     * Notes:
+     *  - roomNum must match the normalized values stored in BABY_ONLY_ROOM_NUMS / BABY_PLUS_MATTRESS_ROOM_NUMS
+     *    (e.g., trimming/uppercasing and stripping trailing '*' if you use that in your data).
+     *
+     * @param room The selected room (can be null).
+     * @returns Policy kind + how many 3+ guests are allowed among the "extra" guests.
+     */
+    private getExtraBedPolicyByRoom(room: Room | null): { kind: 'default' | 'babyOnly' | 'babyPlusMattress'; allowedAdultExtra: number } {
+        const roomNum = (room as any)?.roomNum
+
+        if (this.BABY_ONLY_ROOM_NUMS.has(roomNum)) {
+            return { kind: 'babyOnly', allowedAdultExtra: 0 }
+        }
+
+        if (this.BABY_PLUS_MATTRESS_ROOM_NUMS.has(roomNum)) {
+            return { kind: 'babyPlusMattress', allowedAdultExtra: 1 }
+        }
+
+        return { kind: 'default', allowedAdultExtra: Number.POSITIVE_INFINITY }
+    }
+
+    /**
+     * Computes derived capacity / extra-bed occupancy information for the currently selected room and guests.
+     *
+     * Key concept:
+     *  - "Hard beds" = room.beds
+     *  - "Extra beds" = room.extraBeds (baby beds and/or mattresses, depending on the room policy)
+     *  - Guests are evaluated in the given order (guestsInOrder), and anyone beyond the first `beds`
+     *    is considered an "extra guest" who will require an extra bed.
+     *
+     * What this method returns:
+     *  - policy:             The extra-bed policy for this room (default / babyOnly / babyPlusMattress)
+     *  - roomNum:            Room number string used for messaging/logging
+     *  - beds:               Hard bed count
+     *  - extraBeds:          Extra capacity count
+     *  - totalCapacity:      beds + extraBeds
+     *  - extraGuests:        Guests who overflow the hard beds (guestsInOrder.slice(beds))
+     *  - babyExtraCount:     How many of the extra guests are 0–3 years old (need baby bed)
+     *  - adultExtraCount:    How many of the extra guests are 3+ or unknown-age (need mattress or forbidden)
+     *  - requiredBabyExtra:  Minimum number of baby guests required among extraGuests given the policy
+     *
+     * requiredBabyExtra calculation:
+     *  - policy.allowedAdultExtra indicates how many 3+ (or unknown-age) guests are allowed among extraGuests
+     *  - therefore, at least (extraGuests.length - allowedAdultExtra) must be baby guests
+     *    Example:
+     *      - babyOnly (allowedAdultExtra=0): requiredBabyExtra = extraGuests.length
+     *      - babyPlusMattress (allowedAdultExtra=1): requiredBabyExtra = max(0, extraGuests.length - 1)
+     *
+     * Notes:
+     *  - This method does NOT enforce rules; it only computes counts and requirements for use by validators
+     *    (e.g., guest selection change handling and save-time guards).
+     *  - Guests with missing birthDate are treated as 3+ via isBabyGuest() returning false.
+     */
+    private evaluateExtraGuests(room: Room, guestsInOrder: Guest[]): {
+        policy: { kind: 'default' | 'babyOnly' | 'babyPlusMattress'; allowedAdultExtra: number },
+        roomNum: string,
+        beds: number,
+        extraBeds: number,
+        totalCapacity: number,
+        extraGuests: Guest[],
+        babyExtraCount: number,
+        adultExtraCount: number,
+        requiredBabyExtra: number
+    } {
+        const policy = this.getExtraBedPolicyByRoom(room)
+        const roomNum = (room as any)?.roomNum
+
+        const beds = Number(room?.beds ?? 0)
+        const extraBeds = Number(room?.extraBeds ?? 0)
+        const totalCapacity = beds + extraBeds
+
+        const extraGuests = guestsInOrder.slice(beds)
+        const babyExtraCount = extraGuests.filter(g => this.isBabyGuest(g)).length
+        const adultExtraCount = extraGuests.length - babyExtraCount
+
+        // How many babies are REQUIRED among the extra guests given the allowed adult-extra slots
+        // Example:
+        //  - babyOnly: allowedAdultExtra=0 => requiredBabyExtra = extrasCount
+        //  - baby+mat: allowedAdultExtra=1 => requiredBabyExtra = max(0, extrasCount - 1)
+        const requiredBabyExtra = Math.max(0, extraGuests.length - policy.allowedAdultExtra)
+
+        return {
+            policy,
+            roomNum,
+            beds,
+            extraBeds,
+            totalCapacity,
+            extraGuests,
+            babyExtraCount,
+            adultExtraCount,
+            requiredBabyExtra
+        }
+    }
+
+    /**
+     * Reverts the guest selection for a given room back to the last known valid state.
+     *
+     * Why this exists:
+     *  - We validate guest selection while the user is clicking in the UI.
+     * - If the new selection violates capacity/policy rules, we must roll back the UI control value
+     *   (guests) and the backend payload field (guestIds) to the previous valid IDs.
+     *
+     * How it works:
+     *  - Builds a lookup map from the current "nextGuests" array (id -> Guest object),
+     *    then reconstructs the previous Guest[] in the exact order of prevIds.
+     *  - Uses suppressEmits + emitEvent:false to avoid triggering valueChanges subscriptions again
+     *    (prevents loops and double warnings).
+     *  - Persists the restored state in lastSelectionByRoom for future diffs/warnings.
+     *
+     * Important:
+     *  - This method assumes prevIds represent a valid selection for the room.
+     *  - If a prevId is not found in nextGuests (should be rare), it is silently skipped.
+     *
+     * @param roomId    Current room id (key for lastSelectionByRoom).
+     * @param nextGuests The latest Guest[] coming from the UI (may be invalid).
+     * @param prevIds   The previous valid guest ID list (in selection order).
+     */
+    private revertGuestsToPrevious(roomId: number, nextGuests: Guest[], prevIds: number[]): void {
+        const guestsById = new Map(
+            nextGuests
+                .filter(g => g && g.id != null)
+                .map(g => [g.id as number, g])
+        )
+
+        const prevGuests: Guest[] = prevIds
+            .map(id => guestsById.get(id))
+            .filter((g): g is Guest => !!g)
+
+        this.suppressEmits = true
+        this.reservationForm.patchValue(
+            { guests: prevGuests, guestIds: prevIds },
+            { emitEvent: false }
+        )
+        this.suppressEmits = false
+
+        this.lastSelectionByRoom.set(roomId, prevIds)
+    }
+
+    /**
+     * Builds a human-friendly validation message for "special-policy" rooms when saving is blocked.
+     *
+     * Intended use:
+     *  - When the room is filled up to total capacity (beds + extraBeds),
+     *    and policy requires that some of the extra spots must be occupied by 0–3 year old guests.
+     *  - Example (requiredBabyExtra = 1, totalCapacity = 5):
+     *      "Ebbe a szobába összesen 5 fő kerülhet, amiből az egyik 0–3 év közötti!"
+     *
+     * Rules:
+     *  - If requiredBabyExtra <= 0, no special requirement exists -> return empty string.
+     *  - For 1 required baby, use the singular wording.
+     *  - For 2+ required babies, use the plural wording with "legalább {requiredBabyExtra}".
+     *
+     * @param totalCapacity      Total allowed headcount in the room (beds + extraBeds).
+     * @param requiredBabyExtra  Minimum number of 0–3 guests required among the extra guests.
+     * @returns A Hungarian warning string suitable for toast/validation UI.
+     */
+    private buildRoomPolicySaveMessage(totalCapacity: number, requiredBabyExtra: number): string {
+        if (requiredBabyExtra <= 0) return ''
+
+        if (requiredBabyExtra === 1) {
+            return `Ebbe a szobába összesen ${totalCapacity} fő kerülhet, amiből az egyik 0–3 év közötti!`
+        }
+
+        return `Ebbe a szobába összesen ${totalCapacity} fő kerülhet, amiből legalább ${requiredBabyExtra} fő 0–3 év közötti!`
     }
 
     // Don't delete this, its needed from a performance point of view,
