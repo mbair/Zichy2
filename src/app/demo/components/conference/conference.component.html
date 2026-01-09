@@ -429,8 +429,9 @@
                         <input id="contactEmail" type="text" pInputText formControlName="contactEmail">
                         <div *ngIf="contactEmail?.dirty && contactEmail?.errors?.['required']" class="block p-error">
                             Kötelező kitölteni</div>
-                        <div *ngIf="contactEmail?.dirty && contactEmail?.errors?.['invalidEmail']" class="block p-error">Nem
-                            megfelelő email formátum</div>
+                        <div *ngIf="contactEmail?.dirty && contactEmail?.errors?.['invalidEmail']" class="block p-error">
+                            Nem megfelelő email formátum
+                        </div>
                     </div>
 
                     <!-- Regisztráció vége -->
@@ -481,6 +482,9 @@
                         </span>
                         <div *ngIf="acceptanceCriteriaUrl?.dirty && acceptanceCriteriaUrl?.errors?.['required']" class="block p-error">
                             Kötelező kitölteni
+                        </div>
+                        <div *ngIf="acceptanceCriteriaUrl?.dirty && acceptanceCriteriaUrl?.errors?.['invalidUrl']" class="block p-error">
+                            Nem megfelelő URL formátum (pl. https://valami.hu)
                         </div>
                     </div>
                 </form>

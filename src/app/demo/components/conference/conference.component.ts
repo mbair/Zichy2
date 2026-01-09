@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
+import { urlValidator } from '../../utils/url-validator';
 import { emailDomainValidator } from '../../utils/email-validator';
 import { allLanguagesRequiredValidator } from '../../utils/all-languages-required-validator';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
@@ -153,7 +154,7 @@ export class ConferenceComponent implements OnInit {
             guestEditEndDate: [this.initialFormValues.guestEditEndDate, Validators.required],
             organizer_user_id: [this.initialFormValues.organizer_user_id],
             enabled: [this.initialFormValues.enabled],
-            acceptanceCriteriaUrl: [this.initialFormValues.acceptanceCriteriaUrl],
+            acceptanceCriteriaUrl: [this.initialFormValues.acceptanceCriteriaUrl, [urlValidator()]],
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
