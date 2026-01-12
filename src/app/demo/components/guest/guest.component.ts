@@ -180,7 +180,7 @@ export class GuestComponent implements OnInit {
             birthDate: [this.initialFormValues.birthDate, Validators.required],
             rfid: [this.initialFormValues.rfid],
             rfidColor: [this.initialFormValues.rfidColor],
-            enabled: [this.initialFormValues.enabled],
+            enabled: [this.initialFormValues.enabled, { nonNullable: true }],
             conference: new FormControl(this.initialFormValues.conference),
             conferenceName: [this.initialFormValues.conferenceName],
             conferenceid: [this.initialFormValues.conferenceid],
@@ -659,6 +659,10 @@ export class GuestComponent implements OnInit {
      */
     create() {
         this.guestForm.reset(this.initialFormValues)
+
+        // Store original values for Cancel (create mode)
+        this.originalFormValues = this.guestForm.getRawValue()
+
         this.sidebar = true
     }
 
@@ -693,7 +697,9 @@ export class GuestComponent implements OnInit {
             // Because side bar is not visible yet, we need to wait a bit
             setTimeout(() => {
                 this.guestForm.patchValue(guest)
-                this.originalFormValues = this.guestForm.value
+
+                // Store original values for Cancel (edit mode)
+                this.originalFormValues = this.guestForm.getRawValue()
             })
 
             // Set arrival and departure date limitations
@@ -776,7 +782,8 @@ export class GuestComponent implements OnInit {
      * Cancel saving the form
      */
     cancel() {
-        this.guestForm.reset(this.originalFormValues)
+        // Fallback to initial values if original is missing for any reason
+        this.guestForm.reset(this.originalFormValues ?? this.initialFormValues)
     }
 
     /**

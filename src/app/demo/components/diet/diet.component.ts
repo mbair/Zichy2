@@ -71,7 +71,7 @@ export class DietComponent implements OnInit {
             id: [this.initialFormValues.id],
             name: [this.initialFormValues.name, Validators.required],
             color: [this.initialFormValues.color, Validators.required],
-            enabled: [this.initialFormValues.enabled],
+            enabled: [this.initialFormValues.enabled, { nonNullable: true }],
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -215,6 +215,10 @@ export class DietComponent implements OnInit {
      */
     create() {
         this.dietForm.reset(this.initialFormValues)
+        
+        // Store original values for Cancel (create mode)
+        this.originalFormValues = this.dietForm.getRawValue()
+
         this.sidebar = true
     }
 
@@ -225,7 +229,10 @@ export class DietComponent implements OnInit {
     edit(diet: Diet) {
         this.dietForm.reset(this.initialFormValues)
         this.dietForm.patchValue(diet)
-        this.originalFormValues = this.dietForm.value
+
+        // Store original values for Cancel (edit mode)
+        this.originalFormValues = this.dietForm.getRawValue()
+
         this.sidebar = true
     }
 
@@ -272,7 +279,8 @@ export class DietComponent implements OnInit {
      * Cancel saving the form
      */
     cancel() {
-        this.dietForm.reset(this.originalFormValues)
+        // Fallback to initial values if original is missing for any reason
+        this.dietForm.reset(this.originalFormValues ?? this.initialFormValues)
     }
 
     /**

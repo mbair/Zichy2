@@ -153,7 +153,7 @@ export class ConferenceComponent implements OnInit {
             registrationEndDate: [this.initialFormValues.registrationEndDate, Validators.required],
             guestEditEndDate: [this.initialFormValues.guestEditEndDate, Validators.required],
             organizer_user_id: [this.initialFormValues.organizer_user_id],
-            enabled: [this.initialFormValues.enabled],
+            enabled: [this.initialFormValues.enabled, { nonNullable: true }],
             acceptanceCriteriaUrl: [this.initialFormValues.acceptanceCriteriaUrl, [urlValidator()]],
         })
 
@@ -527,6 +527,10 @@ export class ConferenceComponent implements OnInit {
      */
     create() {
         this.conferenceForm.reset(this.initialFormValues)
+        
+        // Store original values for Cancel (create mode)
+        this.originalFormValues = this.conferenceForm.getRawValue()
+        
         this.sidebar = true
     }
 
@@ -537,7 +541,10 @@ export class ConferenceComponent implements OnInit {
     edit(conference: Conference) {
         this.conferenceForm.reset(this.initialFormValues)
         this.conferenceForm.patchValue(conference)
-        this.originalFormValues = this.conferenceForm.value
+
+        // Store original values for Cancel (edit mode)
+        this.originalFormValues = this.conferenceForm.getRawValue()
+
         this.sidebar = true
     }
 
@@ -584,7 +591,8 @@ export class ConferenceComponent implements OnInit {
      * Cancel saving the form
      */
     cancel() {
-        this.conferenceForm.reset(this.originalFormValues)
+        // Fallback to initial values if original is missing for any reason
+        this.conferenceForm.reset(this.originalFormValues ?? this.initialFormValues)
     }
 
     /**

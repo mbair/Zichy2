@@ -75,7 +75,7 @@ export class NFCTagComponent implements OnInit {
             id: [this.initialFormValues.id],
             rfid: [this.initialFormValues.rfid, Validators.required],
             color: [this.initialFormValues.color, Validators.required],
-            enabled: [this.initialFormValues.enabled],
+            enabled: [this.initialFormValues.enabled, { nonNullable: true }],
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -224,6 +224,10 @@ export class NFCTagComponent implements OnInit {
      */
     create() {
         this.tagForm.reset(this.initialFormValues)
+
+        // Store original values for Cancel (create mode)
+        this.originalFormValues = this.tagForm.getRawValue()
+
         this.sidebar = true
     }
 
@@ -234,7 +238,10 @@ export class NFCTagComponent implements OnInit {
     edit(tag: Tag) {
         this.tagForm.reset(this.initialFormValues)
         this.tagForm.patchValue(tag)
-        this.originalFormValues = this.tagForm.value
+
+        // Store original values for Cancel (edit mode)
+        this.originalFormValues = this.tagForm.getRawValue()
+
         this.sidebar = true
     }
 
@@ -281,7 +288,8 @@ export class NFCTagComponent implements OnInit {
      * Cancel saving the form
      */
     cancel() {
-        this.tagForm.reset(this.originalFormValues)
+        // Fallback to initial values if original is missing for any reason
+        this.tagForm.reset(this.originalFormValues ?? this.initialFormValues)
     }
 
     @HostListener('window:keypress', ['$event'])
