@@ -72,25 +72,25 @@ export class ConferenceComponent implements OnInit {
     isMobile: boolean = false                    // Mobile screen detection
 
     FORM_FIELD_INFOS_CONFIG = [
-        { field: 'lastName',        label: 'Vezetéknév' },
-        { field: 'firstName',       label: 'Keresztnév' },
-        { field: 'gender',          label: 'Neme' },
-        { field: 'birthDate',       label: 'Születési dátum' },
-        { field: 'nationality',     label: 'Állampolgárság' },
-        { field: 'country',         label: 'Lakóhely - ország' },
-        { field: 'zipCode',         label: 'Lakóhely - irányítószám' },
-        { field: 'email',           label: 'Email' },
-        { field: 'telephone',       label: 'Telefon' },
-        { field: 'dateOfArrival',   label: 'Érkezés dátuma' },
-        { field: 'firstMeal',       label: 'Első étkezés' },
-        { field: 'diet',            label: 'Étrend' },
+        { field: 'lastName', label: 'Vezetéknév' },
+        { field: 'firstName', label: 'Keresztnév' },
+        { field: 'gender', label: 'Neme' },
+        { field: 'birthDate', label: 'Születési dátum' },
+        { field: 'nationality', label: 'Állampolgárság' },
+        { field: 'country', label: 'Lakóhely - ország' },
+        { field: 'zipCode', label: 'Lakóhely - irányítószám' },
+        { field: 'email', label: 'Email' },
+        { field: 'telephone', label: 'Telefon' },
+        { field: 'dateOfArrival', label: 'Érkezés dátuma' },
+        { field: 'firstMeal', label: 'Első étkezés' },
+        { field: 'diet', label: 'Étrend' },
         { field: 'dateOfDeparture', label: 'Távozás dátuma' },
-        { field: 'lastMeal',        label: 'Utolsó étkezés' },
-        { field: 'babyBed',         label: 'Babaágyat kérsz?' },
-        { field: 'roomType',        label: 'Szállástípus' },
-        { field: 'climate',         label: 'Klímát kérsz?' },
-        { field: 'roomMate',        label: 'Kivel laknál egy szobában' },
-        { field: 'payment',         label: 'Fizetési mód' },
+        { field: 'lastMeal', label: 'Utolsó étkezés' },
+        { field: 'babyBed', label: 'Babaágyat kérsz?' },
+        { field: 'roomType', label: 'Szállástípus' },
+        { field: 'climate', label: 'Klímát kérsz?' },
+        { field: 'roomMate', label: 'Kivel laknál egy szobában' },
+        { field: 'payment', label: 'Fizetési mód' },
     ]
 
     private initialFormValues = {
@@ -527,10 +527,10 @@ export class ConferenceComponent implements OnInit {
      */
     create() {
         this.conferenceForm.reset(this.initialFormValues)
-        
+
         // Store original values for Cancel (create mode)
         this.originalFormValues = this.conferenceForm.getRawValue()
-        
+
         this.sidebar = true
     }
 
@@ -544,6 +544,10 @@ export class ConferenceComponent implements OnInit {
 
         // Store original values for Cancel (edit mode)
         this.originalFormValues = this.conferenceForm.getRawValue()
+
+        // Force validation + reveal already-invalid persisted values
+        this.conferenceForm.updateValueAndValidity({ emitEvent: false })
+        this.markInvalidControlsTouched(this.conferenceForm)
 
         this.sidebar = true
     }
@@ -570,21 +574,19 @@ export class ConferenceComponent implements OnInit {
      * Saving the form
      */
     save() {
-        if (this.conferenceForm.valid) {
-            this.loading = true
-            const formValues = this.conferenceForm.value
+        this.conferenceForm.markAllAsTouched()
+        this.conferenceForm.updateValueAndValidity()
 
-            // Create
-            if (!formValues.id) {
-                this.conferenceService.create(formValues)
+        this.loading = true
+        const formValues = this.conferenceForm.value
 
-                // Update
-            } else {
-                this.conferenceService.update(formValues)
-            }
-
-            this.sidebar = false
+        if (!formValues.id) {
+            this.conferenceService.create(formValues)
+        } else {
+            this.conferenceService.update(formValues)
         }
+
+        this.sidebar = false
     }
 
     /**
@@ -771,6 +773,24 @@ export class ConferenceComponent implements OnInit {
                 this.layoutService.onConfigUpdate()
             })
         }
+    }
+
+    private markInvalidControlsTouched(group: FormGroup | FormArray): void {
+        Object.values(group.controls).forEach(control => {
+            if (control instanceof FormGroup || control instanceof FormArray) {
+                this.markInvalidControlsTouched(control)
+                return
+            }
+
+            // Ensure validators are evaluated
+            control.updateValueAndValidity({ onlySelf: true, emitEvent: false })
+
+            if (control.invalid) {
+                // Use touched for error visibility (or markAsDirty if your CSS relies on dirty)
+                control.markAsTouched({ onlySelf: true })
+                // control.markAsDirty({ onlySelf: true }) // <- alternative if needed
+            }
+        })
     }
 
     // Don't delete this, its needed from a performance point of view,
