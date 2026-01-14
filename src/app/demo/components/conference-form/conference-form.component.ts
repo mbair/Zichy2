@@ -48,7 +48,6 @@ export class ConferenceFormComponent implements OnInit {
     darkMode: boolean = false                    // Dark mode
     subscription: Subscription                   // Subscription for dark mode
     showIdCardField: boolean = false             // IdCard field visibility
-    showClimateField: boolean = false            // Climate field visibility
     szepCardMessage: Message[]                   // Message for szep card payment
     idCardTemplateVisible: boolean = false       // ID card template visible
     canFillFormAfterDeadline: boolean = false    // User has permission to fill form after deadline
@@ -110,7 +109,6 @@ export class ConferenceFormComponent implements OnInit {
             roomMate: new FormControl<string[] | null>(null),
             payment: ['', Validators.required],
             babyBed: ['', Validators.required],
-            climate: [0],
             idCard: [null],
             privacy: ['', Validators.required],
             answers: this.formBuilder.array([]),
@@ -187,7 +185,6 @@ export class ConferenceFormComponent implements OnInit {
         // Watch roomType value changes to enable/disable roomMate
         this.conferenceForm.get('roomType')?.valueChanges.subscribe(value => {
             const roomMateControl = this.conferenceForm.get('roomMate')
-            const climateControl = this.conferenceForm.get('climate')
             const idCardControl = this.conferenceForm.get('idCard')
             this.updateIdCardVisibility()
 
@@ -198,8 +195,6 @@ export class ConferenceFormComponent implements OnInit {
 
                 roomMateControl?.reset()
                 roomMateControl?.disable()
-
-                this.showClimateField = false
             } else {
                 // Re-Enabling field validation
                 idCardControl?.enable()
@@ -207,26 +202,6 @@ export class ConferenceFormComponent implements OnInit {
 
                 // Set validators for idCard field
                 this.updateIdCardVisibility()
-
-                // Climate field visibility handling
-                // TODO: Later, it depends on whether the room type includes this climate
-                const roomTypeWithClimate = [
-                    'Maranatha Panzióház 2 ágyas szoba (külön fürdős)',
-                    'Maranatha Panzióház franciaágyas szoba (külön fürdős)',
-                    // 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)',
-                    'Családi szoba (közös konyhával, fürdővel és nappalival)',
-                ]
-
-                this.showClimateField = roomTypeWithClimate.includes(value)
-
-                // Set validators for the climate field
-                if (this.showClimateField) {
-                    climateControl?.setValidators(Validators.required)
-                } else {
-                    climateControl?.clearValidators()
-                }
-
-                climateControl?.updateValueAndValidity()
             }
         })
 
@@ -422,7 +397,6 @@ export class ConferenceFormComponent implements OnInit {
     get roomMate() { return this.conferenceForm.get('roomMate') }
     get payment() { return this.conferenceForm.get('payment') }
     get babyBed() { return this.conferenceForm.get('babyBed') }
-    get climate() { return this.conferenceForm.get('climate') }
     get idCard() { return this.conferenceForm.get('idCard') }
     get privacy() { return this.conferenceForm.get('privacy') }
     get acceptanceCriteriaUrl() { return this.conferenceForm.get('acceptanceCriteriaUrl') }
@@ -574,96 +548,6 @@ export class ConferenceFormComponent implements OnInit {
     }
 
     /**
-     * Form fields information messages
-     */
-    // setFormFieldInfos(): void {
-    //     if (this.conference?.name === '20250713-20250718 Új Jeruzsálem nyári tábor') {
-    //         this.formFieldInfos = {
-    //             firstMeal: {
-    //                 hu: 'Kérlek, első étkezésnek a vacsorát jelöld meg',
-    //                 en: 'Please select dinner as your first meal.',
-    //                 tooltip: false
-    //             },
-    //             diet: {
-    //                 hu: 'Normáltól eltérő menü rendelésének felára 10 év felettieknek 1300 Ft/fő/éj, 3-10 év közöttiek esetén 800 Ft/fő/éj',
-    //                 en: 'The surcharge for ordering a menu other than the standard one is 1300 HUF/person/night for those over 10 years old, 800 HUF/person/night for those between 3 and 10 years old.',
-    //                 tooltip: false
-    //             },
-    //             lastMeal: {
-    //                 hu: 'Kérlek, utolsó étkezésnek az ebédet jelöld meg',
-    //                 en: 'Please mark lunch as your last meal.',
-    //                 tooltip: false
-    //             },
-    //             climate: {
-    //                 hu: 'Klímával felszerelt szoba felára 1000 Ft/fő/éj',
-    //                 en: 'Surcharge for a room with air conditioning 1000 HUF/person/night',
-    //                 tooltip: false
-    //             },
-    //             payment: {
-    //                 hu: 'Kérlek, a "Banki átutalás" és "SZÉP kártya" közül válassz. Készpénzes fizetést, kérlek, csak a Szervezővel való  egyeztetés után jelölj meg. programujjeruzsalem@gmail.com',
-    //                 en: 'Please choose between "Bank transfer" and "SZÉP card". Please only indicate cash payment after consultation with the Organizer. programujjeruzsalem@gmail.com',
-    //                 tooltip: true
-    //             }
-    //         }
-    //     }
-
-    //     if (this.conference?.name === '20250803-20250808 Golgota nyári hetek 1' || this.conference?.name === '20250803-20250808 Önkéntesek Golgota nyári hetek 1' || this.conference?.name === '20250810-20250815 Golgota nyári hetek 2' || this.conference?.name === '20250810-20250815 Önkéntesek Golgota nyári hetek 2') {
-    //         this.formFieldInfos = {
-    //             firstMeal: {
-    //                 hu: 'Vasárnap csak vacsora kérhető',
-    //                 en: 'Only dinner is available on Sunday.',
-    //                 tooltip: false
-    //             },
-    //             diet: {
-    //                 hu: 'A normáltól eltérő étkezésnek felára van',
-    //                 en: 'There is a surcharge for meals other than the standard.',
-    //                 tooltip: false
-    //             },
-    //             lastMeal: {
-    //                 hu: 'Pénteken ebéd is kérhető',
-    //                 en: 'Lunch is also available on Fridays.',
-    //                 tooltip: false
-    //             },
-    //             climate: {
-    //                 hu: 'Ennek a felára 1.000 Ft/fő/éjszaka',
-    //                 en: 'The surcharge for this is 1,000 HUF/person/night.',
-    //                 tooltip: false
-    //             },
-    //             roomMate: {
-    //                 hu: 'Kérjük ugyanazt az egy családtagot írja be az egész család',
-    //                 en: 'Please enter the same one family member for the entire family.',
-    //                 tooltip: true
-    //             },
-    //             payment: {
-    //                 hu: 'NE válassz készpénzes fizetést',
-    //                 en: 'DO NOT choose cash payment.',
-    //                 tooltip: false
-    //             }
-    //         }
-    //     }
-
-    //     if (this.conference?.name === '20250727-20250801 Sarokkő nyári tábor') {
-    //         this.formFieldInfos = {
-    //             dateOfDeparture: {
-    //                 hu: 'Ha végig maradsz a táborban (augusztus 1), a távozás megadásánál, az augusztus hónaphoz kell ugrani',
-    //                 en: 'If you stay in the camp until the end (August 1), when you enter your departure, you must jump to the month of August.',
-    //                 tooltip: false
-    //             },
-    //             climate: {
-    //                 hu: 'Klíma csak adott szobák esetében lehetséges, garantálni nem tudjuk',
-    //                 en: 'Air conditioning is only available in certain rooms, we cannot guarantee it.',
-    //                 tooltip: false
-    //             },
-    //             payment: {
-    //                 hu: 'A banki átutalás választása technikai okok nem lehetséges, kérjük ezt NE jelöld meg',
-    //                 en: 'The bank transfer option is not possible for technical reasons, please DO NOT select this option.',
-    //                 tooltip: true
-    //             }
-    //         }
-    //     }
-    // }
-
-    /**
      * Handles the submission of the form.
      * Marks all form elements as dirty and touched,
      * then creates a guest from the form data and submits it.
@@ -743,7 +627,6 @@ export class ConferenceFormComponent implements OnInit {
                 roomMate: this.translate.instant('Szobatárs'),
                 payment: this.translate.instant('Fizetési mód'),
                 babyBed: this.translate.instant('Babaágy'),
-                climate: this.translate.instant('Klíma'),
                 idCard: this.translate.instant('Személyi igazolvány'),
                 privacy: this.translate.instant('Adatvédelem'),
             }
