@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { auditTime, BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject, Subscription, switchMap, filter } from 'rxjs';
+import { auditTime, BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject, Subscription, switchMap, filter, of, catchError } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { ConfirmationService } from 'primeng/api';
@@ -11,6 +11,7 @@ import { ReservationService } from '../../service/reservation.service';
 import { UserService } from '../../service/user.service';
 import { ResponsiveService } from '../../service/responsive.service';
 import { ConferenceService } from '../../service/conference.service';
+import { RoomService } from '../../service/room.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Reservation } from '../../api/reservation';
@@ -131,6 +132,7 @@ export class ReservationComponent implements OnInit {
 
     constructor(
         private reservationService: ReservationService,
+        private roomService: RoomService,
         private userService: UserService,
         private conferenceService: ConferenceService,
         private confirmationService: ConfirmationService,
@@ -231,10 +233,22 @@ export class ReservationComponent implements OnInit {
                     room_id: first?.id ?? null,
                 }, { emitEvent: false })
 
-                // reset per-room warning state (ne vigyük át az előző szobából)
+                // reset per-room warning state (don't move it from the previous room)
                 if (first?.id != null) {
                     // Validate current guest selection against the newly chosen room
                     this.validateCapacityForCurrentSelection(first)
+
+                    // Always keep the selected room visible in the dropdown even if it becomes unavailable
+                    // after a date/guest change (backend may use includeRoomIds for this).
+                    this.roomFilter = ({
+                        ...this.roomFilter,
+                        includeRoomIds: [first.id]
+                    } as any)
+                } else {
+                    // No room selected -> remove forced include if present
+                    const rf: any = { ...this.roomFilter }
+                    delete rf.includeRoomIds
+                    this.roomFilter = rf
                 }
             })
 
@@ -254,68 +268,130 @@ export class ReservationComponent implements OnInit {
                 a.ids.length === b.ids.length && a.ids.every((x, i) => x === b.ids[i])
             )
         ).subscribe(({ guestsArr, ids }) => {
-            const room = this.getSelectedRoom()
-            if (room) {
-                const allowed = this.onGuestsSelectionChange(room, guestsArr)
+            const selectedRoom = this.getSelectedRoom()
+
+            // Snapshot of the previous guestIds before we patch them below.
+            // (This is useful when we need to revert a "range-expanding" guest add.)
+            const prevIdsRaw = this.guestIds?.value
+            const prevIds: number[] = Array.isArray(prevIdsRaw)
+                ? (prevIdsRaw as any[]).map(x => Number(x)).filter(n => Number.isFinite(n))
+                : []
+
+            if (selectedRoom) {
+                const allowed = this.onGuestsSelectionChange(selectedRoom, guestsArr)
                 if (!allowed) {
                     // Selection was reverted inside onGuestsSelectionChange,
                     // do not continue with guestIds / date auto-adjust.
                     return
                 }
             }
-            // Keep guestIds in sync (IDs only)
-            this.reservationForm.patchValue({ guestIds: ids }, { emitEvent: false })
 
             // Auto-adjust dates while:
             //  - sidebar is open
             //  - change is user driven (not suppressEmits)
             //  - user has not modified dates manually in this session
-            if (!this.sidebar || this.suppressEmits || this.datesTouchedByUser) {
-                return
-            }
+            const shouldAutoAdjustDates = this.sidebar && !this.suppressEmits && !this.datesTouchedByUser
 
-            // User already changed dates manually, do not overwrite
-            if (this.datesTouchedByUser) {
+            // Keep guestIds in sync (IDs only)
+            this.reservationForm.patchValue({ guestIds: ids }, { emitEvent: false })
+            
+            if (!shouldAutoAdjustDates) {
                 return
             }
 
             const range = this.computeGuestDateRange(guestsArr)
             const hasRange = !!range.minArrival && !!range.maxDeparture
 
+            let nextStart: string | null = null
+            let nextEnd: string | null = null
+
             if (hasRange) {
-                const nextStart = range.minArrival!.format('YYYY-MM-DD')
-                const nextEnd = range.maxDeparture!.format('YYYY-MM-DD')
-
-                const currentStart = this.startDate?.value
-                const currentEnd = this.endDate?.value
-
-                if (currentStart !== nextStart || currentEnd !== nextEnd) {
-                    this.reservationForm.patchValue(
-                        { startDate: nextStart, endDate: nextEnd },
-                        { emitEvent: false }
-                    )
-                }
+                nextStart = range.minArrival!.format('YYYY-MM-DD')
+                nextEnd = range.maxDeparture!.format('YYYY-MM-DD')
             } else {
                 // No guests selected -> fall back to conference dates (if any)
                 const confArr = Array.isArray(this.conference?.value)
                     ? (this.conference!.value as Conference[])
-                    : [];
+                    : []
                 const currentConf = confArr.length ? confArr[0] : null
 
-                if (currentConf) {
-                    const begin = (currentConf as any).beginDate
-                        ? moment((currentConf as any).beginDate).format('YYYY-MM-DD')
-                        : null;
-                    const end = (currentConf as any).endDate
-                        ? moment((currentConf as any).endDate).format('YYYY-MM-DD')
-                        : null;
-
-                    this.reservationForm.patchValue(
-                        { startDate: begin, endDate: end },
-                        { emitEvent: false }
-                    )
-                }
+                nextStart = (currentConf as any)?.beginDate
+                    ? moment((currentConf as any).beginDate).format('YYYY-MM-DD')
+                    : null
+                nextEnd = (currentConf as any)?.endDate
+                    ? moment((currentConf as any).endDate).format('YYYY-MM-DD')
+                    : null
             }
+
+            const currentStart: string | null = this.startDate?.value ?? null
+            const currentEnd: string | null = this.endDate?.value ?? null
+            const datesWouldChange = currentStart !== nextStart || currentEnd !== nextEnd
+
+            // If the guest selection expands the date range (earlier arrival / later departure)
+            // and we already have a room selected, verify that the room is still available.
+            // If not, ask for confirmation:
+            //  - Accept: keep guests & dates, clear room (user will pick another room)
+            //  - Reject: keep room & dates, revert guest selection
+            if (selectedRoom?.id != null && datesWouldChange && nextStart && nextEnd) {
+            const expandsEarlier = !!currentStart && nextStart < currentStart
+            const expandsLater = !!currentEnd && nextEnd > currentEnd
+
+            if (expandsEarlier || expandsLater) {
+                const roomId = Number(selectedRoom.id)
+
+                this.verifyRoomAvailableForRange$(roomId, nextStart, nextEnd)
+                    .pipe(take(1))
+                    .subscribe(isAvailable => {
+                        if (isAvailable) {
+                            this.reservationForm.patchValue(
+                                { startDate: nextStart, endDate: nextEnd },
+                                { emitEvent: false }
+                            )
+                            this.updateRoomFilterForDateRange(nextStart, nextEnd)
+                            return
+                        }
+
+                        const roomNum = (selectedRoom as any)?.roomNum ?? (selectedRoom as any)?.number ?? (selectedRoom as any)?.name ?? 'a kiválasztott'
+
+                        this.confirmationService.confirm({
+                            header: 'Szoba már nem elérhető',
+                            message:
+                                `A kiválasztott vendégek miatt az időtartam megváltozna (${currentStart ?? '-'}–${currentEnd ?? '-'} → ${nextStart}–${nextEnd}). ` +
+                                `Ebben az esetben a(z) ${roomNum} szoba már nem lenne elérhető. ` +
+                                `Megtartod a vendégválasztást és választasz másik szobát?`,
+                            icon: 'pi pi-exclamation-triangle',
+                            acceptLabel: 'Igen, új szobát választok',
+                            rejectLabel: 'Nem, maradjon a szoba',
+                            accept: () => {
+                                this.reservationForm.patchValue(
+                                    { startDate: nextStart, endDate: nextEnd },
+                                    { emitEvent: false }
+                                )
+                                this.clearSelectedRoom()
+                                this.updateRoomFilterForDateRange(nextStart, nextEnd)
+                            },
+                            reject: () => {
+                                this.revertGuestsToPrevious(roomId, guestsArr, prevIds)
+                                // Keep dates as-is; ensure filter matches the current visible dates.
+                                this.updateRoomFilterForDateRange(currentStart, currentEnd)
+                            }
+                        })
+                    })
+
+                return
+            }
+        }
+
+        // No confirmation needed -> apply date patch normally
+        if (datesWouldChange) {
+            this.reservationForm.patchValue(
+                { startDate: nextStart, endDate: nextEnd },
+                { emitEvent: false }
+            )
+        }
+
+        // Keep room selector availability filter aligned with the final dates
+        this.updateRoomFilterForDateRange(nextStart, nextEnd)
         })
 
         // Track manual changes of start/end dates (only matters for new reservations)
@@ -323,12 +399,14 @@ export class ReservationComponent implements OnInit {
             .pipe(filter(() => !this.suppressEmits && this.sidebar))
             .subscribe(() => {
                 this.datesTouchedByUser = true
+                this.updateRoomFilterForDateRange()
             })
 
         this.endDate?.valueChanges
             .pipe(filter(() => !this.suppressEmits && this.sidebar))
             .subscribe(() => {
                 this.datesTouchedByUser = true
+                this.updateRoomFilterForDateRange()
             })
 
         // Monitor the changes of the window size
@@ -874,11 +952,14 @@ export class ReservationComponent implements OnInit {
         this.preselectGuestIds = guestIdsNum;
 
         // A konferencia alapján szűrők (mi állítjuk, nem a subscriber)
-        this.roomFilter = {
+        this.roomFilter = ({
             ...this.roomFilter,
             conferenceId: confObj?.id ?? null,
-            includeRoomIds: roomObj?.id ? [roomObj.id] : []
-        }
+            includeRoomIds: roomObj?.id ? [roomObj.id] : [],
+            startDate: (reservation as any).startDate ?? null,
+            endDate: (reservation as any).endDate ?? null,
+            excludeReservationId: reservation.id ?? null
+        } as any)
 
         this.guestFilter = {
             ...this.guestFilter,
@@ -1387,6 +1468,9 @@ export class ReservationComponent implements OnInit {
             this.startDate?.disable({ emitEvent: false })
             this.endDate?.disable({ emitEvent: false })
         }
+
+        // Keep the room selector's availability filter in sync with the currently visible dates.
+        this.updateRoomFilterForDateRange()
     }
 
     // Calculates the earliest arrival and latest departure among the selected guests
@@ -1653,6 +1737,112 @@ export class ReservationComponent implements OnInit {
         }
 
         return `Ebbe a szobába összesen ${totalCapacity} fő kerülhet, amiből legalább ${requiredBabyExtra} fő 0–3 év közötti!`
+    }
+
+    private getSelectedConferenceId(): number | null {
+        const val = this.conference?.value
+        const first = Array.isArray(val) && val.length ? (val[0] as any) : null
+        const id = first?.id ?? null
+        const num = Number(id)
+        return Number.isFinite(num) ? num : null
+    }
+
+    private updateRoomFilterForDateRange(
+        startOverride?: string | null,
+        endOverride?: string | null
+    ): void {
+        const conferenceId = this.getSelectedConferenceId()
+        if (!conferenceId) {
+            this.roomFilter = { ...this.roomFilter, conferenceId: null } as any
+            return
+        }
+
+        const startDate = (startOverride ?? (this.startDate?.value ?? null)) as string | null
+        const endDate = (endOverride ?? (this.endDate?.value ?? null)) as string | null
+
+        const currentReservationId = this.id?.value ?? null
+
+        const patch: any = {
+            conferenceId,
+            startDate,
+            endDate,
+            allowPartial: true
+        }
+
+        if (currentReservationId) {
+            patch.excludeReservationId = currentReservationId
+        } else {
+            patch.excludeReservationId = null
+        }
+
+        this.roomFilter = ({
+            ...this.roomFilter,
+            ...patch
+        } as any)
+    }
+
+    private verifyRoomAvailableForRange$(
+        roomId: number,
+        startDate: string,
+        endDate: string
+    ): Observable<boolean> {
+        const conferenceId = this.getSelectedConferenceId()
+        if (!conferenceId) return of(true)
+
+        const payload: any = {
+            ...this.roomFilter,
+            enabled: true,
+            conferenceId,
+            onlyNotReserved: true,
+            startDate,
+            endDate,
+            includeRoomIds: [roomId],
+            excludeReservationId: this.id?.value ?? null
+        }
+
+        return this.roomService.searchRoomsForSelector$(payload).pipe(
+            map((rooms: Room[]) => {
+                const room = (rooms ?? []).find(r => Number((r as any)?.id) === roomId)
+                if (!room) return false
+                return !this.isRoomConsideredUnavailable(room as any)
+            }),
+            catchError(() => of(false))
+        )
+    }
+
+    private isRoomConsideredUnavailable(room: any): boolean {
+        if (!room) return true
+
+        if (typeof room.disabled === 'boolean') return room.disabled
+        if (typeof room.available === 'boolean') return !room.available
+        if (typeof room.isAvailable === 'boolean') return !room.isAvailable
+        if (typeof room.isReserved === 'boolean') return room.isReserved
+        if (typeof room.reserved === 'boolean') return room.reserved
+
+        return false
+    }
+
+    private clearSelectedRoom(): void {
+        this.suppressEmits = true
+        this.reservationForm.patchValue(
+            { room: [], room_id: null },
+            { emitEvent: false }
+        )
+        this.suppressEmits = false
+
+        this.preselectRoomIds = undefined
+
+        const rf: any = { ...this.roomFilter }
+        delete rf.includeRoomIds
+        this.roomFilter = rf
+    }
+
+    /**
+     * 
+     * @param reservation 
+     */
+    requiresRebedding(reservation: Reservation) {
+
     }
 
     // Don't delete this, its needed from a performance point of view,

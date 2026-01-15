@@ -217,20 +217,34 @@ export class RoomService {
     private buildRoomQS(f: RoomFilter = {}): string {
         const parts: string[] = [];
 
-        // Prefer 'conferenceId' (backended mindkettőt érti, de ez tisztább)
-        if (f.conferenceId != null) parts.push(`conferenceId=${encodeURIComponent(String(f.conferenceId))}`);
+        // Helper to add query params safely
+        const push = (key: string, value: unknown) => {
+            if (value === null || value === undefined || value === '') return;
+            parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+        };
 
+        // Conference
+        push('conferenceId', f.conferenceId);
+
+        // Filters
         if (f.building) {
             const arr = Array.isArray(f.building) ? f.building : [f.building];
-            parts.push(`building=${arr.map(encodeURIComponent).join(',')}`);
+            push('building', arr.join(','));
         }
-        if (typeof f.minBeds === 'number') parts.push(`minBeds=${f.minBeds}`);
-        if (typeof f.climate === 'boolean') parts.push(`climate=${f.climate ? 1 : 0}`);
-        if (f.enabled) parts.push(`enabled=1`);
 
-        if (f.onlyNotReserved) parts.push(`onlyNotReserved=true`);
-        if (f.includeRoomIds?.length) parts.push(`includeRoomIds=${f.includeRoomIds.join(',')}`);
-        if (f.conferenceId != null) parts.push(`conferenceId=${encodeURIComponent(String(f.conferenceId))}`);
+        if (typeof (f as any).minBeds === 'number') push('minBeds', (f as any).minBeds);
+        if (typeof f.climate === 'boolean') push('climate', f.climate ? 1 : 0);
+        if (f.enabled) push('enabled', 1);
+
+        // Availability filters
+        if (f.onlyNotReserved) push('onlyNotReserved', 'true');
+        if ((f as any).allowPartial) push('allowPartial', 'true');
+        if ((f as any).startDate) push('startDate', (f as any).startDate);
+        if ((f as any).endDate) push('endDate', (f as any).endDate);
+        if ((f as any).excludeReservationId != null) push('excludeReservationId', (f as any).excludeReservationId);
+
+        // Keep selected room(s) visible
+        if (f.includeRoomIds?.length) push('includeRoomIds', f.includeRoomIds.join(','));
 
         return parts.join('&');
     }
