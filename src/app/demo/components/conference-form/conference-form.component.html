@@ -484,36 +484,6 @@
                                             </small>
                                         </div>
 
-                                        <!-- Klímát kérsz? -->
-                                        <div *ngIf="showClimateField" class="field mb-4 col-12 lg:col-4">
-                                            <label for="climate" class="font-medium text-900">
-                                                {{'Klímát kérsz' | translate }}?
-                                                <i *ngIf="getFormFieldInfoPosition('climate') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('climate')"                                                    
-                                                    [escape]="false"
-                                                    appendTo="body"
-                                                    class="pi pi-info-circle"
-                                                    tooltipPosition="top"
-                                                    tooltipStyleClass="tooltip"></i>
-                                            </label>
-                                            <div class="flex flex-wrap gap-3 my-3">
-                                                <div class="flex align-items-center">
-                                                    <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes"></p-radioButton>
-                                                    <label for="climate-yes" class="ml-2">{{'Igen' | translate }}</label>
-                                                </div>
-                                                <div class="flex align-items-center">
-                                                    <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no"></p-radioButton>
-                                                    <label for="climate-no" class="ml-2">{{'Nem' | translate }}</label>
-                                                </div>
-                                            </div>
-                                            <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
-                                                {{'Kérjük válassza ki, hogy kér-e klímát' | translate }}!
-                                            </div>
-                                            <small *ngIf="getFormFieldInfoPosition('climate') === 'text' && getFormFieldInfo('climate')" id="climate-info">
-                                                {{ getFormFieldInfo('climate') }}
-                                            </small>
-                                        </div>
-
                                         <!-- Kivel laknál egy szobában -->
                                         <div class="field mb-4 col-12 lg:col-8" *ngIf="conferenceForm.get('roomType')?.value !== 'Nem kérek szállást'">
                                             <label for="roomMate" class="font-medium text-900">
@@ -634,6 +604,14 @@
                                                         [href]="conference.acceptanceCriteriaUrl"
                                                         target="_blank">
                                                         {{'Adatvédelmi/Hozzájárulási Nyilatkozatot' | translate }}
+                                                    </a>
+                                                </span>
+                                                <span>
+                                                    {{'és a' | translate }}
+                                                    <a class="cursor-pointer text-primary-700 "
+                                                        href="https://www.zichy-vajta.com/hazirend"
+                                                        target="_blank">
+                                                        {{'ZVKK házirendet' | translate }}
                                                     </a>
                                                 </span>
                                             </span>

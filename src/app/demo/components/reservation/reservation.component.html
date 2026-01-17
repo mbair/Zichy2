@@ -262,6 +262,13 @@
                                         </div>
                                     </div>
                                 </ng-container>
+
+                                <!-- Rebedding indicator -->
+                                <ng-container *ngIf="requiresRebedding(reservation)">
+                                    <i class="pi pi-refresh vertical-align-middle"
+                                        pTooltip="Újraágyazás szükséges"
+                                        tooltipPosition="top"></i>
+                                </ng-container>
                             </div>
                         </td>
                         <td>

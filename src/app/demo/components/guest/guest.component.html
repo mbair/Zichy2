@@ -30,19 +30,21 @@
                                 [showClear]="true"
                                 [selectionLimit]="1"
                                 [selectFirstOption]="isOrganizer"
+                                [showNoneOption]="!isOrganizer"
                                 [emitOnSelectFirstOption]="true"
                                 [style]="{'minWidth': '35rem'}"
                                 placeholder="Válasszon konferenciát..."
                                 (ngModelChange)="onConferenceSelectionChange($event)">
                             </app-conference-selector>
                         </span>
-                        <!-- Hide global filter pemanently
+                        <!-- Hide global filter permanently
                         <span class="block mt-2 md:mt-0 p-input-icon-left w-full sm:w-auto">
                             <i class="pi pi-search"></i>
                             <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés bármely vendégadatra..." style="min-width: 300px;" pTooltip="NFC címkét a saját keresőmezőjébe csippantsd"/>
                         </span> -->
                         <span class="block mt-2 md:mt-0 flex align-items-center flex-wrap">
-                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="create()" [disabled]="!canCreate"></button>
+                            <!-- Hide New button permanently
+                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="create()" [disabled]="!canCreate"></button> -->
                             <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="bulkDeleteDialog = true" [disabled]="!selected || !selected.length || !canDelete"></button>
                             <p-fileUpload
                                 #fileUpload

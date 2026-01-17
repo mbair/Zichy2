@@ -65,6 +65,7 @@ export class GuestComponent implements OnInit {
     selected: Guest[] = []                       // Table items chosen by guest
     canCreate: boolean = false                   // User has permission to create new guest
     canEdit: boolean = false                     // User has permission to update guest
+    canEditByRole: boolean = false               // Edit permission by Role
     canDelete: boolean = false                   // User has permission to delete guest
     canAssign: boolean = false                   // User has permission to assign Tag to guest
     canImport: boolean = false                   // User has permission to import Excel
@@ -180,7 +181,7 @@ export class GuestComponent implements OnInit {
             birthDate: [this.initialFormValues.birthDate, Validators.required],
             rfid: [this.initialFormValues.rfid],
             rfidColor: [this.initialFormValues.rfidColor],
-            enabled: [this.initialFormValues.enabled],
+            enabled: [this.initialFormValues.enabled, { nonNullable: true }],
             conference: new FormControl(this.initialFormValues.conference),
             conferenceName: [this.initialFormValues.conferenceName],
             conferenceid: [this.initialFormValues.conferenceid],
@@ -256,11 +257,11 @@ export class GuestComponent implements OnInit {
 
         // Permissions
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canCreate => this.canCreate = canCreate)
-        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo']).subscribe(canEdit => this.canEdit = canEdit)
+        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo']).subscribe(canEdit => { this.canEditByRole = canEdit; this.recomputeCanEdit() })
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canDelete => this.canDelete = canDelete)
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canAssign => this.canAssign = canAssign)
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canImport => this.canImport = canImport)
-        this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => this.isOrganizer = isOrganizer)
+        this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => { this.isOrganizer = isOrganizer; this.recomputeCanEdit() })
 
         this.selectionChanges$
             .pipe(
@@ -659,6 +660,10 @@ export class GuestComponent implements OnInit {
      */
     create() {
         this.guestForm.reset(this.initialFormValues)
+
+        // Store original values for Cancel (create mode)
+        this.originalFormValues = this.guestForm.getRawValue()
+
         this.sidebar = true
     }
 
@@ -693,7 +698,9 @@ export class GuestComponent implements OnInit {
             // Because side bar is not visible yet, we need to wait a bit
             setTimeout(() => {
                 this.guestForm.patchValue(guest)
-                this.originalFormValues = this.guestForm.value
+
+                // Store original values for Cancel (edit mode)
+                this.originalFormValues = this.guestForm.getRawValue()
             })
 
             // Set arrival and departure date limitations
@@ -776,7 +783,8 @@ export class GuestComponent implements OnInit {
      * Cancel saving the form
      */
     cancel() {
-        this.guestForm.reset(this.originalFormValues)
+        // Fallback to initial values if original is missing for any reason
+        this.guestForm.reset(this.originalFormValues ?? this.initialFormValues)
     }
 
     /**
@@ -1256,15 +1264,7 @@ export class GuestComponent implements OnInit {
         // We control conference filtering via noConference / conferenceIds
         delete this.filterValues['conferenceName']
 
-        // Check if the user can edit the selected conferences
-        if (this.isOrganizer && this.selectedConferences.length > 0) {
-            this.canEdit = this.selectedConferences.some(conf =>
-                conf.guestEditEndDate && moment().isSameOrBefore(moment(conf.guestEditEndDate), 'day')
-            )
-        } else {
-            this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo'])
-                .subscribe(canEdit => this.canEdit = canEdit)
-        }
+        this.recomputeCanEdit()
 
         this.selectionChanges$.next(this.selectedConferences)
     }
@@ -1484,6 +1484,42 @@ export class GuestComponent implements OnInit {
 
     private isNoneConferenceSelected(confs: Conference[] | null | undefined): boolean {
         return !!confs?.some(c => (c as any)?.__none__ === true || Number(c?.id) === GuestComponent.NONE_CONF_ID)
+    }
+
+    private recomputeCanEdit(): void {
+        // Base permission (roles)
+        if (!this.canEditByRole) {
+            this.canEdit = false
+            return
+        }
+
+        // Non-organizers can edit anytime
+        if (!this.isOrganizer) {
+            this.canEdit = true
+            return
+        }
+
+        // Organizer must have an active conference selected
+        const selectedId = this.selectedConferences?.[0]?.id
+        if (!selectedId) {
+            this.canEdit = false
+            return
+        }
+
+        // Prefer the "full" conference object from the selector list (often has more fields)
+        const fullConf = this.conferenceSelector?.conferences?.find(c => Number(c.id) === Number(selectedId))
+        const conf = fullConf ?? this.selectedConferences[0]
+
+        const rawEnd = (conf as any)?.guestEditEndDate
+        if (!rawEnd) {
+            this.canEdit = false
+            return
+        }
+
+        // Parse end date strictly with multiple accepted formats
+        const end = moment(rawEnd, [moment.ISO_8601, 'YYYY-MM-DD', 'YYYY.MM.DD'], true)
+
+        this.canEdit = end.isValid() && moment().isSameOrBefore(end, 'day')
     }
 
     isImage(url: string) {

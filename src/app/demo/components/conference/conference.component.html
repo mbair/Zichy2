@@ -429,8 +429,9 @@
                         <input id="contactEmail" type="text" pInputText formControlName="contactEmail">
                         <div *ngIf="contactEmail?.dirty && contactEmail?.errors?.['required']" class="block p-error">
                             Kötelező kitölteni</div>
-                        <div *ngIf="contactEmail?.dirty && contactEmail?.errors?.['invalidEmail']" class="block p-error">Nem
-                            megfelelő email formátum</div>
+                        <div *ngIf="contactEmail?.dirty && contactEmail?.errors?.['invalidEmail']" class="block p-error">
+                            Nem megfelelő email formátum
+                        </div>
                     </div>
 
                     <!-- Regisztráció vége -->
@@ -479,8 +480,8 @@
                             <i class="pi pi-copy cursor-pointer hover:text-blue-500" (click)="copyUrl(acceptanceCriteriaUrl?.value)"></i>
                             <input id="acceptanceCriteriaUrl" type="text" pInputText formControlName="acceptanceCriteriaUrl">
                         </span>
-                        <div *ngIf="acceptanceCriteriaUrl?.dirty && acceptanceCriteriaUrl?.errors?.['required']" class="block p-error">
-                            Kötelező kitölteni
+                        <div *ngIf="acceptanceCriteriaUrl?.errors?.['invalidUrl'] && (acceptanceCriteriaUrl?.dirty || acceptanceCriteriaUrl?.touched)" class="block p-error">
+                            Nem megfelelő URL formátum (pl. https://valami.hu)
                         </div>
                     </div>
                 </form>
@@ -488,7 +489,7 @@
             <ng-template pTemplate="footer">
                 <div class="flex justify-content-end ap-2">
                     <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-outlined"
-                        (click)="cancel()" [disabled]="!conferenceForm.dirty"></button>
+                        (click)="cancel()"></button>
                     <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button ml-2" (click)="save()"
                         [disabled]="!conferenceForm.valid || !conferenceForm.dirty"></button>
                 </div>

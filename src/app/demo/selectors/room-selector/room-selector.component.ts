@@ -107,6 +107,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
         const payload: RoomFilter = {
             ...effective,
             ...(includeRoomIds.length ? { includeRoomIds } : {}),
+            ...(effective.onlyNotReserved ? { allowPartial: true } : {}),
         }
 
         const sub = this.roomService.searchRoomsForSelector$(payload)
