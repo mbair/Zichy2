@@ -427,36 +427,6 @@
                                             </small>
                                         </div>
 
-                                        <!-- Babaágyat kérsz? -->
-                                        <div class="field mb-4 col-12 lg:col-4">
-                                            <label for="babyBed" class="font-medium text-900">
-                                                {{'Babaágyat kérsz' | translate }}?
-                                                <i *ngIf="getFormFieldInfoPosition('babyBed') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('babyBed')"                                                    
-                                                    [escape]="false"
-                                                    appendTo="body"
-                                                    class="pi pi-info-circle"
-                                                    tooltipPosition="top"
-                                                    tooltipStyleClass="tooltip"></i>
-                                            </label>
-                                            <div class="flex flex-wrap gap-3 my-3">
-                                                <div class="flex align-items-center">
-                                                    <p-radioButton name="babyBed" value="1" formControlName="babyBed" inputId="baby-bed-yes"></p-radioButton>
-                                                    <label for="baby-bed-yes" class="ml-2">{{'Igen' | translate }}</label>
-                                                </div>
-                                                <div class="flex align-items-center">
-                                                    <p-radioButton name="babyBed" value="0" formControlName="babyBed" inputId="baby-bed-no"></p-radioButton>
-                                                    <label for="baby-bed-no" class="ml-2">{{'Nem' | translate }}</label>
-                                                </div>
-                                            </div>
-                                            <div *ngIf="babyBed?.dirty && babyBed?.errors?.['required']" class="p-error">
-                                                {{'Kérjük válassza ki, hogy kér-e babaágyat' | translate }}!
-                                            </div>
-                                            <small *ngIf="getFormFieldInfoPosition('babyBed') === 'text' && getFormFieldInfo('babyBed')" id="babyBed-info">
-                                                {{ getFormFieldInfo('babyBed') }}
-                                            </small>
-                                        </div>
-
                                         <!-- Szállástípus -->
                                         <div class="field mb-4 col-12 lg:col-8">
                                             <label for="roomType" class="font-medium text-900">
@@ -484,8 +454,38 @@
                                             </small>
                                         </div>
 
+                                        <!-- Babaágyat kérsz? -->
+                                        <div class="field mb-4 col-12 lg:col-4" *ngIf="needsRoom">
+                                            <label for="babyBed" class="font-medium text-900">
+                                                {{'Babaágyat kérsz' | translate }}?
+                                                <i *ngIf="getFormFieldInfoPosition('babyBed') === 'bubble'"
+                                                    [pTooltip]="getFormFieldInfo('babyBed')"                                                    
+                                                    [escape]="false"
+                                                    appendTo="body"
+                                                    class="pi pi-info-circle"
+                                                    tooltipPosition="top"
+                                                    tooltipStyleClass="tooltip"></i>
+                                            </label>
+                                            <div class="flex flex-wrap gap-3 my-3">
+                                                <div class="flex align-items-center">
+                                                    <p-radioButton name="babyBed" value="1" formControlName="babyBed" inputId="baby-bed-yes"></p-radioButton>
+                                                    <label for="baby-bed-yes" class="ml-2">{{'Igen' | translate }}</label>
+                                                </div>
+                                                <div class="flex align-items-center">
+                                                    <p-radioButton name="babyBed" value="0" formControlName="babyBed" inputId="baby-bed-no"></p-radioButton>
+                                                    <label for="baby-bed-no" class="ml-2">{{'Nem' | translate }}</label>
+                                                </div>
+                                            </div>
+                                            <div *ngIf="(babyBed?.dirty || babyBed?.touched) && babyBed?.errors?.['required']" class="p-error">
+                                                {{'Kérjük válassza ki, hogy kér-e babaágyat' | translate }}!
+                                            </div>
+                                            <small *ngIf="getFormFieldInfoPosition('babyBed') === 'text' && getFormFieldInfo('babyBed')" id="babyBed-info">
+                                                {{ getFormFieldInfo('babyBed') }}
+                                            </small>
+                                        </div>
+
                                         <!-- Kivel laknál egy szobában -->
-                                        <div class="field mb-4 col-12 lg:col-8" *ngIf="conferenceForm.get('roomType')?.value !== 'Nem kérek szállást'">
+                                        <div class="field mb-4 col-12 lg:col-8" *ngIf="needsRoom">
                                             <label for="roomMate" class="font-medium text-900">
                                                 {{'Kivel laknál egy szobában' | translate }}?
                                                 <i *ngIf="getFormFieldInfoPosition('roomMate') === 'bubble'"

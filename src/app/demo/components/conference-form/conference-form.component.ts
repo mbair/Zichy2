@@ -1,8 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
-import { Subscription, Observable, Subject, BehaviorSubject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { Subscription, Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { TranslateService } from '@ngx-translate/core';
 import { emailDomainValidator } from '../../utils/email-validator';
@@ -46,20 +45,17 @@ export class ConferenceFormComponent implements OnInit {
     showForm: boolean = true                     // Show or hide form
     registrationEnded: boolean = false           // Registration ended
     darkMode: boolean = false                    // Dark mode
-    subscription: Subscription                   // Subscription for dark mode
     showIdCardField: boolean = false             // IdCard field visibility
     szepCardMessage: Message[]                   // Message for szep card payment
     idCardTemplateVisible: boolean = false       // ID card template visible
     canFillFormAfterDeadline: boolean = false    // User has permission to fill form after deadline
-    formFieldInfos: FormFieldInfo[] = []         // Field messages for validation
     formFieldInfosMap: { [key: string]: FormFieldInfo } = {}
 
-    private isFormValid$: Observable<boolean>
-    private formChanges$: Subject<void> = new Subject()
-    private conferenceObs$: Observable<any> | undefined
-    private createdGuestObs$: Observable<any> | undefined
-    private guestServiceMessageObs$: Observable<any> | undefined
-    private answerServiceMessageObs$: Observable<any> | undefined
+    private guestServiceMessageObs$: Observable<any>
+    private answerServiceMessageObs$: Observable<any>
+    
+    private readonly subs = new Subscription()
+    private readonly ROOMTYPE_NO_ACCOMMODATION = 'Nem kérek szállást'
 
     constructor(public router: Router,
         public userService: UserService,
@@ -71,10 +67,12 @@ export class ConferenceFormComponent implements OnInit {
         private formBuilder: FormBuilder,
         private translate: TranslateService,
         private cdRef: ChangeDetectorRef) {
-
-        this.subscription = this.layoutService.configUpdate$.subscribe(config => {
-            this.darkMode = config.colorScheme === 'dark' || config.colorScheme === 'dim' ? true : false;
-        })
+        
+        this.subs.add(
+            this.layoutService.configUpdate$.subscribe(config => {
+                this.darkMode = config.colorScheme === 'dark' || config.colorScheme === 'dim' ? true : false;
+            })
+        )
 
         // Set default theme
         this.changeTheme('orange')
@@ -108,20 +106,21 @@ export class ConferenceFormComponent implements OnInit {
             roomType: ['', Validators.required],
             roomMate: new FormControl<string[] | null>(null),
             payment: ['', Validators.required],
-            babyBed: ['', Validators.required],
+            babyBed: [null],
             idCard: [null],
             privacy: ['', Validators.required],
+            acceptanceCriteriaUrl: [null],
             answers: this.formBuilder.array([]),
         }, {
             validators: dateRangeValidator('dateOfArrival', 'dateOfDeparture')
         })
-
-        this.isFormValid$ = new BehaviorSubject<boolean>(false)
     }
 
     ngOnInit() {
         // Permissions
-        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canFillFormAfterDeadline => this.canFillFormAfterDeadline = canFillFormAfterDeadline)
+        this.subs.add(
+            this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canFillFormAfterDeadline => this.canFillFormAfterDeadline = canFillFormAfterDeadline)
+        )
 
         // Get conference by URL
         this.getConferenceBySlug()
@@ -130,253 +129,274 @@ export class ConferenceFormComponent implements OnInit {
         this.currentLang = this.translate.currentLang === 'gb' ? 'en' : this.translate.currentLang
 
         // Diet + firstMeal + lastMeal handling
-        this.conferenceForm.get('diet')?.valueChanges.subscribe((dietValue) => {
-            if (dietValue === 'nem kér étkezést') {
-                this.conferenceForm.patchValue({
-                    firstMeal: 'nem kér étkezést',
-                    lastMeal: 'nem kér étkezést'
-                })
-            } else {
-                // Reset meal selector if not 'nem kérétkezés'
-                const firstMealValue = this.conferenceForm.get('firstMeal')?.value
-                const lastMealValue = this.conferenceForm.get('lastMeal')?.value
-
-                if (firstMealValue === 'nem kér étkezést') {
-                    this.conferenceForm.patchValue({ firstMeal: '' })
-                }
-                if (lastMealValue === 'nem kér étkezést') {
-                    this.conferenceForm.patchValue({ lastMeal: '' })
-                }
-            }
-        })
-
-        this.conferenceForm.get('firstMeal')?.valueChanges.subscribe((firstMealValue) => {
-            if (firstMealValue === 'nem kér étkezést') {
-                if (this.conferenceForm.get('diet')?.value !== 'nem kér étkezést') {
-                    this.conferenceForm.patchValue({
-                        diet: 'nem kér étkezést',
-                        lastMeal: 'nem kér étkezést'
-                    })
-                }
-            } else {
-                // If the first meal is not 'nem kérétkezés', reset the diet selector if it is 'nem kérétkezést'
-                if (this.conferenceForm.get('diet')?.value === 'nem kér étkezést') {
-                    this.conferenceForm.patchValue({ diet: '' })
-                }
-            }
-        })
-
-        this.conferenceForm.get('lastMeal')?.valueChanges.subscribe((lastMealValue) => {
-            if (lastMealValue === 'nem kér étkezést') {
-                if (this.conferenceForm.get('diet')?.value !== 'nem kér étkezést') {
-                    this.conferenceForm.patchValue({
-                        diet: 'nem kér étkezést',
-                        firstMeal: 'nem kér étkezést'
-                    })
-                }
-            } else {
-                // If the last meal is not 'nem kérétkezés', reset the diet selector if it is 'nem kérétkezést'
-                if (this.conferenceForm.get('diet')?.value === 'nem kér étkezést') {
-                    this.conferenceForm.patchValue({ diet: '' })
-                }
-            }
-        })
-
-        // Watch roomType value changes to enable/disable roomMate
-        this.conferenceForm.get('roomType')?.valueChanges.subscribe(value => {
-            const roomMateControl = this.conferenceForm.get('roomMate')
-            const idCardControl = this.conferenceForm.get('idCard')
-            this.updateIdCardVisibility()
-
-            if (value === 'Nem kérek szállást') {
-                // Clear any previously entered value
-                idCardControl?.reset()
-                idCardControl?.disable()
-
-                roomMateControl?.reset()
-                roomMateControl?.disable()
-            } else {
-                // Re-Enabling field validation
-                idCardControl?.enable()
-                roomMateControl?.enable()
-
-                // Set validators for idCard field
-                this.updateIdCardVisibility()
-            }
-        })
-
-        // Conferences
-        this.conferenceObs$ = this.conferenceService.conferenceObs
-        this.conferenceObs$.subscribe((data: ApiResponse) => {
-            this.loading = false
-            if (data && data.rows) {
-                if (data.rows.length > 0) {
-                    this.conference = data.rows[0]
-                    this.beginDate = this.conference.beginDate ? moment(this.conference.beginDate, 'YYYY-MM-DD').toDate() : undefined
-                    this.endDate = this.conference.endDate ? moment(this.conference.endDate, 'YYYY-MM-DD').toDate() : undefined
-
-                    // Setting conference-related data on the form
-                    this.conferenceForm.patchValue({
-                        conferenceid: this.conference.id,
-                        conferenceName: this.conference.name
-                    })
-
-                    // Fill form with stored questions
-                    const answersArray = this.conferenceForm.get('answers') as FormArray
-                    answersArray.clear() // It is important to always empty it
-                    if (this.conference?.questions?.length > 0) {
-                        this.conference.questions[0].translations?.forEach((question: any) => {
-                            if (question['hu']?.trim() || question['en']?.trim()) {
-                                answersArray.push(this.formBuilder.control('', Validators.required))
-                            }
+        const dietCtrl = this.conferenceForm.get('diet')
+        if (dietCtrl) {
+            this.subs.add(
+                dietCtrl.valueChanges.subscribe((dietValue) => {
+                    if (dietValue === 'nem kér étkezést') {
+                        this.conferenceForm.patchValue({
+                            firstMeal: 'nem kér étkezést',
+                            lastMeal: 'nem kér étkezést'
                         })
-                    }
+                    } else {
+                        // Reset meal selector if not 'nem kérétkezés'
+                        const firstMealValue = this.conferenceForm.get('firstMeal')?.value
+                        const lastMealValue = this.conferenceForm.get('lastMeal')?.value
 
-                    // Set form field infos
-                    this.setFormFieldInfos()
-
-                    // Check if registration has ended
-                    if (this.conference?.registrationEndDate) {
-                        const registrationEndDate = new Date(this.conference.registrationEndDate)
-                        const today = new Date()
-
-                        // Set time to midnight to ignore time differences
-                        today.setHours(0, 0, 0, 0)
-                        this.registrationEnded = registrationEndDate < today
-
-                        // If registration has ended, show error
-                        if (this.registrationEnded && !this.canFillFormAfterDeadline) {
-                            this.setRegistrationEndMessage()
+                        if (firstMealValue === 'nem kér étkezést') {
+                            this.conferenceForm.patchValue({ firstMeal: '' })
+                        }
+                        if (lastMealValue === 'nem kér étkezést') {
+                            this.conferenceForm.patchValue({ lastMeal: '' })
                         }
                     }
-                } else {
-                    // If slug is invalid navigate to error page
-                    this.router.navigateByUrl('/error-page')
-                }
-            }
-        })
+                })
+            )
+        }
 
-        // Guest created => Save answers
-        this.createdGuestObs$ = this.guestService.createdGuestObs
-        this.createdGuestObs$.subscribe((createdGuest: any) => {
-            this.loading = false
-            if (!createdGuest) return
-
-            // If there are extra questions: save answers
-            if (this.conference?.questions?.length > 0) {
-                const answers: Answer = {
-                    translations: [],
-                    guestid: createdGuest.id,
-                    questionid: this.conference?.questions[0].id
-                }
-
-                const lang = this.currentLang
-
-                this.conference.questions[0].translations?.forEach((question: any, i: number) => {
-                    const hu = question['hu']
-                    const en = question['en']
-                    if (hu !== '' || en !== '') {
-                        answers.translations.push({
-                            hu: hu,
-                            en: en,
-                            answers: this.conferenceForm.get('answers')?.value[i]
-                        })
+        const firstMealCtrl = this.conferenceForm.get('firstMeal')
+        if (firstMealCtrl) {
+            this.subs.add(
+                firstMealCtrl.valueChanges.subscribe((firstMealValue) => {
+                    if (firstMealValue === 'nem kér étkezést') {
+                        if (this.conferenceForm.get('diet')?.value !== 'nem kér étkezést') {
+                            this.conferenceForm.patchValue({
+                                diet: 'nem kér étkezést',
+                                lastMeal: 'nem kér étkezést'
+                            })
+                        }
+                    } else {
+                        // If the first meal is not 'nem kérétkezés', reset the diet selector if it is 'nem kérétkezést'
+                        if (this.conferenceForm.get('diet')?.value === 'nem kér étkezést') {
+                            this.conferenceForm.patchValue({ diet: '' })
+                        }
                     }
                 })
+            )
+        }
 
-                this.answerService.create(answers)
-            }
-        })
+        const lastMealCtrl = this.conferenceForm.get('lastMeal')
+        if (lastMealCtrl) {
+            this.subs.add(
+                lastMealCtrl.valueChanges.subscribe((lastMealValue) => {
+                    if (lastMealValue === 'nem kér étkezést') {
+                        if (this.conferenceForm.get('diet')?.value !== 'nem kér étkezést') {
+                            this.conferenceForm.patchValue({
+                                diet: 'nem kér étkezést',
+                                firstMeal: 'nem kér étkezést'
+                            })
+                        }
+                    } else {
+                        // If the last meal is not 'nem kérétkezés', reset the diet selector if it is 'nem kérétkezést'
+                        if (this.conferenceForm.get('diet')?.value === 'nem kér étkezést') {
+                            this.conferenceForm.patchValue({ diet: '' })
+                        }
+                    }
+                })
+            )
+        }
+
+        // Watch roomType value changes to enable/disable roomMate
+        const roomTypeCtrl = this.conferenceForm.get('roomType')
+        if (roomTypeCtrl) {
+            this.subs.add(
+                roomTypeCtrl.valueChanges.subscribe(value => {
+                    const roomMateControl = this.conferenceForm.get('roomMate')
+
+                    if (value === this.ROOMTYPE_NO_ACCOMMODATION) {
+                        roomMateControl?.reset()
+                        roomMateControl?.disable({ emitEvent: false })
+                    } else {
+                        roomMateControl?.enable({ emitEvent: false })
+                    }
+
+                    this.updateIdCardVisibility()
+                    this.updateBabyBedVisibility()
+                })
+            )
+        }
+
+        // Conferences
+        this.subs.add(
+            this.conferenceService.conferenceObs.subscribe((data: ApiResponse | null) => {
+                this.loading = false
+                if (data && data.rows) {
+                    if (data.rows.length > 0) {
+                        this.conference = data.rows[0]
+                        this.beginDate = this.conference.beginDate ? moment(this.conference.beginDate, 'YYYY-MM-DD').toDate() : undefined
+                        this.endDate = this.conference.endDate ? moment(this.conference.endDate, 'YYYY-MM-DD').toDate() : undefined
+
+                        // Setting conference-related data on the form
+                        this.conferenceForm.patchValue({
+                            conferenceid: this.conference.id,
+                            conferenceName: this.conference.name
+                        })
+
+                        // Fill form with stored questions
+                        const answersArray = this.conferenceForm.get('answers') as FormArray
+                        answersArray.clear() // It is important to always empty it
+                        if (this.conference?.questions?.length > 0) {
+                            this.conference.questions[0].translations?.forEach((question: any) => {
+                                if (question['hu']?.trim() || question['en']?.trim()) {
+                                    answersArray.push(this.formBuilder.control('', Validators.required))
+                                }
+                            })
+                        }
+
+                        // Check if registration has ended
+                        if (this.conference?.registrationEndDate) {
+                            const registrationEnd = moment(this.conference.registrationEndDate).startOf('day')
+                            const today = moment().startOf('day')
+
+                            this.registrationEnded = registrationEnd.isBefore(today)
+
+                            // If registration has ended, show error
+                            if (this.registrationEnded && !this.canFillFormAfterDeadline) {
+                                this.setRegistrationEndMessage()
+                            }
+                        }
+
+                        this.setFormFieldInfos()
+                    } else {
+                        // If slug is invalid navigate to error page
+                        this.router.navigateByUrl('/error-page')
+                    }
+                }
+            })
+        )
+
+        // Guest created => Save answers
+        this.subs.add(
+            this.guestService.createdGuestObs.subscribe((createdGuest: any | null) => {
+                this.loading = false
+                if (!createdGuest) return
+
+                // If there are extra questions: save answers
+                if (this.conference?.questions?.length > 0) {
+                    const answers: Answer = {
+                        translations: [],
+                        guestid: createdGuest.id,
+                        questionid: this.conference?.questions[0].id
+                    }
+
+                    this.conference.questions[0].translations?.forEach((question: any, i: number) => {
+                        const hu = question['hu']
+                        const en = question['en']
+                        if (hu !== '' || en !== '') {
+                            answers.translations.push({
+                                hu: hu,
+                                en: en,
+                                answers: this.conferenceForm.get('answers')?.value[i]
+                            })
+                        }
+                    })
+
+                    this.answerService.create(answers)
+                }
+            })
+        )
 
         // Guest Message
         this.guestServiceMessageObs$ = this.guestService.messageObs
-        this.guestServiceMessageObs$.subscribe(message => {
-            this.loading = false
-            if (!message) return
+        this.subs.add(
+            this.guestServiceMessageObs$.subscribe(message => {
+                this.loading = false
+                if (!message) return
 
-            // If message is a Toast
-            if (message?.severity) {
-                this.messageService.add(message)
-                message.severity === 'success' ? this.saveSuccess() : this.saveFailed()
-                return
-            }
+                // If message is a Toast
+                if (message?.severity) {
+                    this.messageService.add(message)
+                    message.severity === 'success' ? this.saveSuccess() : this.saveFailed()
+                    return
+                }
 
-            // If message is NOT a Toast
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Válasz mentés hiba',
-                detail: message?.errorMessage || message?.message || 'Ismeretlen hiba.'
+                // If message is NOT a Toast
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Válasz mentés hiba',
+                    detail: message?.errorMessage || message?.message || 'Ismeretlen hiba.'
+                })
+                this.saveFailed()
             })
-            this.saveFailed()
-        })
+        )
 
         // Answer Message
         this.answerServiceMessageObs$ = this.answerService.messageObs
-        this.answerServiceMessageObs$.subscribe(message => {
-            this.loading = false
-            if (message && message.severity) {
-                // Show success message if we have no answers to save
-                message.severity == 'success' ? this.saveSuccess() : this.saveFailed()
-            }
-        })
-
-        this.isFormValid$ = this.formChanges$.pipe(
-            debounceTime(300),
-            distinctUntilChanged(),
-            map(() => this.conferenceForm.valid)
+        this.subs.add(
+            this.answerServiceMessageObs$.subscribe(message => {
+                this.loading = false
+                if (message && message.severity) {
+                    // Show success message if we have no answers to save
+                    message.severity == 'success' ? this.saveSuccess() : this.saveFailed()
+                }
+            })
         )
 
-        // Monitor the changes of the form
-        this.conferenceForm.valueChanges.pipe(
-            debounceTime(300)
-        ).subscribe(() => this.formChanges$.next())
-
         // On dateOfArrival change, update the firstMeal
-        this.conferenceForm.get('dateOfArrival')?.valueChanges.subscribe(() => {
-            this.getEarliestFirstMeal()
-            this.getLatestFirstMeal()
-            this.cdRef.detectChanges()
-        })
+        const dateOfArrivalCtrl = this.conferenceForm.get('dateOfArrival')
+        if (dateOfArrivalCtrl) {
+            this.subs.add(
+                dateOfArrivalCtrl.valueChanges.subscribe(() => {
+                    this.getEarliestFirstMeal()
+                    this.getLatestFirstMeal()
+                    this.cdRef.detectChanges()
+                })
+            )
+        }
 
         // On dateOfDeparture change, update the lastMeal
-        this.conferenceForm.get('dateOfDeparture')?.valueChanges.subscribe(() => {
-            this.getEarliestLastMeal()
-            this.getLatestLastMeal()
-            this.cdRef.detectChanges()
-        })
+        const dateOfDepartureCtrl = this.conferenceForm.get('dateOfDeparture')
+        if (dateOfDepartureCtrl) {
+            this.subs.add(
+                dateOfDepartureCtrl.valueChanges.subscribe(() => {
+                    this.getEarliestLastMeal()
+                    this.getLatestLastMeal()
+                    this.cdRef.detectChanges()
+                })
+            )
+        }
 
         // Apply zipCode validator if country is Hungary
-        this.conferenceForm.get('country')!.valueChanges.subscribe(country => {
-            const zipCodeControl = this.conferenceForm.get('zipCode')
-            if (country === 'Hungary') {
-                zipCodeControl!.setValidators([Validators.required, zipCodeValidator()])
-            } else {
-                zipCodeControl!.setValidators([Validators.required])
-            }
-            zipCodeControl!.updateValueAndValidity()
-        })
+        this.subs.add(
+            this.conferenceForm.get('country')!.valueChanges.subscribe(country => {
+                const zipCodeControl = this.conferenceForm.get('zipCode')
+                if (country === 'Hungary') {
+                    zipCodeControl!.setValidators([Validators.required, zipCodeValidator()])
+                } else {
+                    zipCodeControl!.setValidators([Validators.required])
+                }
+                zipCodeControl!.updateValueAndValidity()
+            })
+        )
 
         // Apply idCard validator if guest is older than 14
-        this.conferenceForm.get('birthDate')?.valueChanges.subscribe((birthDate) => {
-            this.updateIdCardVisibility()
-        })
+        const birthDateCtrl = this.conferenceForm.get('birthDate')
+        if (birthDateCtrl) {
+            this.subs.add(
+                birthDateCtrl.valueChanges.subscribe(() => {
+                    this.updateIdCardVisibility()
+                })
+            )
+        }
 
         // Set the szepCardMessage
         this.setSzepCardMessage()
 
-        // Set form field informations
-        this.setFormFieldInfos()
-
         // On language change, update the szepCardMessage
-        this.translate.onLangChange.subscribe(() => {
-            this.currentLang = this.translate.currentLang === 'gb' ? 'en' : this.translate.currentLang
-            this.setSzepCardMessage()
-            
-            // If registration has ended, show error
-            if (this.registrationEnded) {
-                this.setRegistrationEndMessage()
-            }
-        })
+        this.subs.add(
+            this.translate.onLangChange.subscribe(() => {
+                this.currentLang = this.translate.currentLang === 'gb' ? 'en' : this.translate.currentLang
+                this.setSzepCardMessage()
+                
+                // If registration has ended, show error
+                if (this.registrationEnded) {
+                    this.setRegistrationEndMessage()
+                }
+            })
+        )
+
+        this.updateBabyBedVisibility()
+        this.updateIdCardVisibility()
     }
 
     get lastName() { return this.conferenceForm.get('lastName') }
@@ -400,6 +420,11 @@ export class ConferenceFormComponent implements OnInit {
     get idCard() { return this.conferenceForm.get('idCard') }
     get privacy() { return this.conferenceForm.get('privacy') }
     get acceptanceCriteriaUrl() { return this.conferenceForm.get('acceptanceCriteriaUrl') }
+    
+    get needsRoom(): boolean {
+        const roomType = this.conferenceForm.get('roomType')?.value as string | null
+        return !!roomType && roomType !== this.ROOMTYPE_NO_ACCOMMODATION
+    }
 
     // Gets the FormArray of questions
     get answers(): FormArray {
@@ -719,24 +744,47 @@ export class ConferenceFormComponent implements OnInit {
      */
     updateIdCardVisibility(): void {
         const birthDate = this.conferenceForm.get('birthDate')?.value
-        const roomType = this.conferenceForm.get('roomType')?.value
         const idCardControl = this.conferenceForm.get('idCard')
 
-        const age = moment().diff(moment(birthDate, 'YYYY-MM-DD'), 'years')
-        const needsRoom = roomType !== 'Nem kérek szállást'
+        const age = birthDate ? moment().diff(moment(birthDate, 'YYYY-MM-DD'), 'years') : 0
+        const needsRoom = this.needsRoom
 
         // Required if needs room and older than 14
         if (needsRoom && age >= 14) {
             this.showIdCardField = true
             idCardControl?.setValidators([Validators.required])
-            idCardControl?.enable()
+            idCardControl?.enable({ emitEvent: false })
         } else {
             this.showIdCardField = false
             idCardControl?.clearValidators()
-            idCardControl?.setValue(null)
-            idCardControl?.disable()
+            idCardControl?.setValue(null, { emitEvent: false })
+            idCardControl?.disable({ emitEvent: false })
         }
-        idCardControl?.updateValueAndValidity()
+        idCardControl?.updateValueAndValidity({ emitEvent: false })
+    }
+
+    /**
+     * Updates babyBed visibility + validators based on whether accommodation is needed.
+     */
+    private updateBabyBedVisibility(): void {
+        const babyBedControl = this.conferenceForm.get('babyBed')
+        if (!babyBedControl) return
+
+        if (this.needsRoom) {
+            babyBedControl.enable({ emitEvent: false })
+            babyBedControl.setValidators([Validators.required])
+
+            // Optional: default to "No" to reduce friction
+            if (babyBedControl.value === null || babyBedControl.value === '' || babyBedControl.value === undefined) {
+                babyBedControl.setValue('0', { emitEvent: false })
+            }
+        } else {
+            babyBedControl.clearValidators()
+            babyBedControl.setValue(null, { emitEvent: false })
+            babyBedControl.disable({ emitEvent: false })
+        }
+
+        babyBedControl.updateValueAndValidity({ emitEvent: false })
     }
 
     setFormFieldInfos() {
@@ -797,10 +845,6 @@ export class ConferenceFormComponent implements OnInit {
         answersArray.clear()
 
         // Clean up
-        this.formChanges$.complete()
-
-        if (this.isFormValid$ instanceof BehaviorSubject) {
-            this.isFormValid$.complete()
-        }
+        this.subs.unsubscribe()
     }
 }
