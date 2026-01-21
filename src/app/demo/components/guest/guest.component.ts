@@ -101,7 +101,8 @@ export class GuestComponent implements OnInit {
     guestConference: Conference                  // Guest's conference
     prepaidOptions: any[] = []                   // Possible prepaid options
     guestReservations: Reservation[] = []        // Guest reservations
-    acutalReservation: any | null = null        // Actual guest reservation
+    acutalReservation: any | null = null         // Actual guest reservation
+    firstRowIndex: number = 0                    // Helper for rows
 
     private static readonly NONE_CONF_ID = -1
     noConferenceMode: boolean = false
@@ -512,6 +513,15 @@ export class GuestComponent implements OnInit {
             ? this.guestReservations[0]
             : null
     }
+    
+    /**
+     * Returns the 1-based serial number of a row in the table, taking lazy pagination into account.
+     * `firstRowIndex` is the absolute index of the first row on the current page (PrimeNG lazy `event.first`),
+     * so the displayed number stays continuous across pages.
+     */
+    getRowNumber(rowIndex: number): number {
+        return this.firstRowIndex + rowIndex + 1
+    }
 
     /**
      * Load filtered data into the Table
@@ -623,6 +633,7 @@ export class GuestComponent implements OnInit {
      * @param event
      */
     onLazyLoad(event: any) {
+        this.firstRowIndex = event.first ?? 0
         this.page = event.first! / event.rows!
         this.rowsPerPage = event.rows ?? this.rowsPerPage
         this.sortField = event.sortField ?? ''
