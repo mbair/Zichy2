@@ -111,7 +111,8 @@ export class ConferenceComponent implements OnInit {
         guestEditEndDate: '',
         organizer_user_id: '',
         enabled: true,
-        acceptanceCriteriaUrl: ''
+        acceptanceCriteriaUrl: '',
+        paymentMethod: '',
     }
 
     private isFormValid$: Observable<boolean>
@@ -155,6 +156,7 @@ export class ConferenceComponent implements OnInit {
             organizer_user_id: [this.initialFormValues.organizer_user_id],
             enabled: [this.initialFormValues.enabled, { nonNullable: true }],
             acceptanceCriteriaUrl: [this.initialFormValues.acceptanceCriteriaUrl, [urlValidator()]],
+            paymentMethod: [this.initialFormValues.paymentMethod, Validators.required],
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -249,6 +251,7 @@ export class ConferenceComponent implements OnInit {
     get guestEditEndDate() { return this.conferenceForm.get('guestEditEndDate') }
     get enabled() { return this.conferenceForm.get('enabled') }
     get acceptanceCriteriaUrl() { return this.conferenceForm.get('acceptanceCriteriaUrl') }
+    get paymentMethod() { return this.conferenceForm.get('paymentMethod') }
 
     // Gets the FormArray of questions
     get questions(): FormArray {

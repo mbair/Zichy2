@@ -457,6 +457,29 @@
                             class="block p-error">Kötelező kitölteni</div>
                     </div>
 
+                    <!-- Fizetési módok -->
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="paymentMethod" class="font-medium text-900">Fizetési módok</label>
+                        <app-payment-selector 
+                            [parentForm]="conferenceForm" 
+                            controlName="payment">
+                        </app-payment-selector>
+                        <div *ngIf="paymentMethod?.dirty && paymentMethod?.errors?.['required']"
+                             class="block p-error">Kötelező kitölteni</div>
+                    </div>
+
+                    <!-- Adatvédelmi nyilatkozat URL -->
+                    <div class="field mb-4 col-12">
+                        <label for="acceptanceCriteriaUrl" class="font-medium text-900">Adatvédelmi nyilatkozat URL</label>
+                        <span class="block mt-2 md:mt-0 p-input-icon-right">
+                            <i class="pi pi-copy cursor-pointer hover:text-blue-500" (click)="copyUrl(acceptanceCriteriaUrl?.value)"></i>
+                            <input id="acceptanceCriteriaUrl" type="text" pInputText formControlName="acceptanceCriteriaUrl">
+                        </span>
+                        <div *ngIf="acceptanceCriteriaUrl?.errors?.['invalidUrl'] && (acceptanceCriteriaUrl?.dirty || acceptanceCriteriaUrl?.touched)" class="block p-error">
+                            Nem megfelelő URL formátum (pl. https://valami.hu)
+                        </div>
+                    </div>
+
                     <!-- Enabled -->
                     <div class="field mb-4 col-12 lg:col-6">
                         <label for="enabled" class="font-medium text-900">Engedélyezve</label>
@@ -470,18 +493,6 @@
                         </app-yes-no-selector>
                         <div *ngIf="enabled?.dirty && enabled?.errors?.['required']" class="block p-error">
                             Kötelező kitölteni
-                        </div>
-                    </div>
-
-                    <!-- Adatvédelmi nyilatkozat URL -->
-                    <div class="field mb-4 col-12">
-                        <label for="acceptanceCriteriaUrl" class="font-medium text-900">Adatvédelmi nyilatkozat URL</label>
-                        <span class="block mt-2 md:mt-0 p-input-icon-right">
-                            <i class="pi pi-copy cursor-pointer hover:text-blue-500" (click)="copyUrl(acceptanceCriteriaUrl?.value)"></i>
-                            <input id="acceptanceCriteriaUrl" type="text" pInputText formControlName="acceptanceCriteriaUrl">
-                        </span>
-                        <div *ngIf="acceptanceCriteriaUrl?.errors?.['invalidUrl'] && (acceptanceCriteriaUrl?.dirty || acceptanceCriteriaUrl?.touched)" class="block p-error">
-                            Nem megfelelő URL formátum (pl. https://valami.hu)
                         </div>
                     </div>
                 </form>
