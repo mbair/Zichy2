@@ -116,6 +116,7 @@
         {"name": "Kiribati", "huname": "Kiribati", "nationality": "kiribatian", "hunationality": "kiribati", "code": "KI"},
         {"name": "Korea, Democratic PeopleS Republic of", "huname": "Korea, Demokratikus Népi Köztársaság", "nationality": "north korean", "hunationality": "észak-koreai", "code": "KP"},
         {"name": "Korea, Republic of", "huname": "Korea, Köztársaság", "nationality": "south korean", "hunationality": "dél-koreai", "code": "KR"},
+        {"name": "Kosovo", "huname": "Koszovó", "nationality": "Kosovan", "hunationality": "koszovói", "code": "XK"},
         {"name": "Kuwait", "huname": "Kuvait", "nationality": "kuwaiti", "hunationality": "kuvaiti", "code": "KW"},
         {"name": "Kyrgyzstan", "huname": "Kirgizisztán", "nationality": "kyrgyz", "hunationality": "kirgiz", "code": "KG"},
         {"name": "Lao PeopleS Democratic Republic", "huname": "Laosz", "nationality": "laotian", "hunationality": "laoszi", "code": "LA"},
