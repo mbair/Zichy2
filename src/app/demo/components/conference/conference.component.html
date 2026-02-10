@@ -462,9 +462,12 @@
                         <label for="paymentMethod" class="font-medium text-900">Fizetési módok</label>
                         <app-payment-selector 
                             [parentForm]="conferenceForm" 
-                            controlName="payment">
+                            controlName="paymentMethodIds"
+                            [multiple]="true"
+                            [optionSelectable]="true"
+                            [showClear]="true">
                         </app-payment-selector>
-                        <div *ngIf="paymentMethod?.dirty && paymentMethod?.errors?.['required']"
+                        <div *ngIf="paymentMethodIds?.dirty && paymentMethodIds?.errors?.['required']"
                              class="block p-error">Kötelező kitölteni</div>
                     </div>
 

@@ -112,7 +112,7 @@ export class ConferenceComponent implements OnInit {
         organizer_user_id: '',
         enabled: true,
         acceptanceCriteriaUrl: '',
-        paymentMethod: '',
+        paymentMethodIds: [] as number[],
     }
 
     private isFormValid$: Observable<boolean>
@@ -156,7 +156,7 @@ export class ConferenceComponent implements OnInit {
             organizer_user_id: [this.initialFormValues.organizer_user_id],
             enabled: [this.initialFormValues.enabled, { nonNullable: true }],
             acceptanceCriteriaUrl: [this.initialFormValues.acceptanceCriteriaUrl, [urlValidator()]],
-            paymentMethod: [this.initialFormValues.paymentMethod, Validators.required],
+            paymentMethodIds: [this.initialFormValues.paymentMethodIds, Validators.required],
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -251,7 +251,7 @@ export class ConferenceComponent implements OnInit {
     get guestEditEndDate() { return this.conferenceForm.get('guestEditEndDate') }
     get enabled() { return this.conferenceForm.get('enabled') }
     get acceptanceCriteriaUrl() { return this.conferenceForm.get('acceptanceCriteriaUrl') }
-    get paymentMethod() { return this.conferenceForm.get('paymentMethod') }
+    get paymentMethodIds() { return this.conferenceForm.get('paymentMethodIds') }
 
     // Gets the FormArray of questions
     get questions(): FormArray {
@@ -543,7 +543,23 @@ export class ConferenceComponent implements OnInit {
      */
     edit(conference: Conference) {
         this.conferenceForm.reset(this.initialFormValues)
-        this.conferenceForm.patchValue(conference)
+
+        // Normalize backend payload to number[] for the MultiSelect.
+        // Supports both shapes:
+        // - conference.paymentMethods: [{ id: 1, ... }, ...]
+        // - conference.paymentMethodIds: [1,2,3] or [{ id: 1 }, ...]
+        const raw = (conference as any).paymentMethods
+            ?? (conference as any).paymentMethodIds
+            ?? []
+
+        const paymentMethodIds = (Array.isArray(raw) ? raw : [])
+            .map((pm: any) => Number(pm?.id ?? pm))
+            .filter((n: number) => Number.isFinite(n))
+
+        this.conferenceForm.patchValue({
+            ...conference,
+            paymentMethodIds
+        })
 
         // Store original values for Cancel (edit mode)
         this.originalFormValues = this.conferenceForm.getRawValue()
