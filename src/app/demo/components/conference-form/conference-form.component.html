@@ -529,7 +529,9 @@
                                             </label>
                                             <app-payment-selector 
                                                 [parentForm]="conferenceForm" 
-                                                controlName="payment">
+                                                controlName="payment"
+                                                [allowedPaymentMethodIds]="allowedPaymentMethodIds"
+                                                [optionSelectable]="(allowedPaymentMethodIds?.length ?? 0) > 0">
                                             </app-payment-selector>
                                             <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki a fizetési módot' | translate }}!
@@ -537,11 +539,14 @@
                                             <small *ngIf="getFormFieldInfoPosition('payment') === 'text' && getFormFieldInfo('payment')" id="payment-info">
                                                 {{ getFormFieldInfo('payment') }}
                                             </small>
+                                            <small class="p-error" *ngIf="(allowedPaymentMethodIds?.length ?? 0) === 0">
+                                                A szervező még nem állított be fizetési módot ehhez a konferenciához.
+                                            </small>
                                         </div>
 
                                         <!-- Figyelmeztetés SZÉP kártyás fizetés esetén -->
-                                        <div *ngIf="payment?.value === 'SZÉP kártya' && (conference?.name !== '20250803-20250808 Golgota nyári hetek 1' && conference?.name !== '20250803-20250808 Önkéntesek Golgota nyári hetek 1' && conference?.name !== '20250810-20250815 Golgota nyári hetek 2' && conference?.name !== '20250810-20250815 Önkéntesek Golgota nyári hetek 2')" class="field mb-4 col-12">
-                                            <p-messages [value]="szepCardMessage" [closable]="false"/>
+                                        <div *ngIf="payment?.value === 2" class="field mb-4 col-12">
+                                            <p-messages [value]="szepCardMessage" [closable]="false"></p-messages>
                                         </div>
 
                                         <!-- Extra kérdések -->

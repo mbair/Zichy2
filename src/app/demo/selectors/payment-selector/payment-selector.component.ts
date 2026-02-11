@@ -1,19 +1,19 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
-import { DropdownChangeEvent } from 'primeng/dropdown';
-import { MultiSelectChangeEvent } from 'primeng/multiselect';
+import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core'
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms'
+import { TranslateService } from '@ngx-translate/core'
+import { DropdownChangeEvent } from 'primeng/dropdown'
+import { MultiSelectChangeEvent } from 'primeng/multiselect'
 
 export interface changeEvent {
-    value: number | number[] | null;
-    field: string;
+    value: number | number[] | null
+    field: string
 }
 
 interface PaymentOption {
-    label: string;
-    value: number;      // payment_method_id
-    style: string;
-    icon: string;
+    label: string
+    value: number      // payment_method_id
+    style: string
+    icon: string
 }
 
 @Component({
@@ -33,11 +33,13 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() showClear = false
     @Input() multiple = false        // If true, show checkbox-based multi-select and the value is number[]
     @Input() optionSelectable = true // If false, options are not selectable (read-only display)
+    @Input() allowedPaymentMethodIds: number[] | null | undefined = undefined
     @Output() change = new EventEmitter<changeEvent>()
 
     payments: PaymentOption[] = []                    // Available payments
     selectedPayment: number | number[] | null = null  // Selected payment
     disabled = false
+    lastWrittenValue: any = null
 
     constructor(private translate: TranslateService,
         private cdRef: ChangeDetectorRef) { }
@@ -51,6 +53,9 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
         this.translate.onLangChange.subscribe(() => this.setPayments())
         this.setPayments()
         this.syncDisabledState()
+
+        // Ensure control value is numeric and respects allowedPaymentMethodIds
+        this.syncControlValueWithModeAndAllowed()
     }
 
     /**
@@ -64,11 +69,14 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
 
         // Ensure selected value matches the mode (single vs multi)
         if (this.multiple && !Array.isArray(this.selectedPayment)) {
-            this.selectedPayment = this.selectedPayment == null ? [] : [this.selectedPayment as number];
+            this.selectedPayment = this.selectedPayment == null ? [] : [this.selectedPayment as number]
         }
         if (!this.multiple && Array.isArray(this.selectedPayment)) {
-            this.selectedPayment = this.selectedPayment.length > 0 ? this.selectedPayment[0] : null;
+            this.selectedPayment = this.selectedPayment.length > 0 ? this.selectedPayment[0] : null
         }
+
+        // Ensure control value is numeric and respects allowedPaymentMethodIds
+        this.syncControlValueWithModeAndAllowed()
     }
 
     /**
@@ -86,9 +94,8 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
      * For now this is hardcoded. Later you can load from backend (GET /payment-methods)
      * and map to these UI fields.
      */
-    private setPayments() {
-        // NOTE: value should be the payment_method_id from DB, not a label string
-        this.payments = [
+    private setPayments(): void {
+        const all: PaymentOption[] = [
             {
                 label: this.translate.instant('PAYMENTS.BANK-TRANSFER'),
                 value: 1,
@@ -108,6 +115,116 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
                 icon: 'pi pi-money-bill'
             }
         ]
+
+        // If allowedPaymentMethodIds is provided (even empty), restrict the options.
+        // undefined / null -> show all
+        if (Array.isArray(this.allowedPaymentMethodIds)) {
+            const allowed = new Set(
+                this.allowedPaymentMethodIds
+                    .map((v) => Number(v))
+                    .filter((n) => Number.isFinite(n))
+            )
+
+            this.payments = all.filter((p) => allowed.has(p.value))
+        } else {
+            this.payments = all
+        }
+
+        // If current selection is not allowed anymore, clear it
+        const control = this.getFormControl()
+        if (!control) {
+            return
+        }
+
+        const allowedSet = new Set(this.payments.map((p) => p.value))
+        const current = control.value
+
+        if (this.multiple) {
+            const ids = Array.isArray(current)
+                ? current
+                    .map((v: any) => Number(v))
+                    .filter((n: number) => Number.isFinite(n))
+                : []
+
+            const filtered = ids.filter((id) => allowedSet.has(id))
+
+            const changed =
+                filtered.length !== ids.length ||
+                filtered.some((v, i) => v !== ids[i])
+
+            if (changed) {
+                control.setValue(filtered, { emitEvent: false })
+                this.selectedPayment = filtered
+            }
+        } else {
+            const id = Number(current)
+
+            if (Number.isFinite(id) && !allowedSet.has(id)) {
+                control.setValue(null, { emitEvent: false })
+                this.selectedPayment = null
+            }
+        }
+    }
+
+    private buildAllowedSet(): Set<number> | null {
+        if (this.allowedPaymentMethodIds === undefined || this.allowedPaymentMethodIds === null) {
+            return null // "no restriction"
+        }
+
+        const ids = this.allowedPaymentMethodIds
+            .map((v) => Number(v))
+            .filter((n) => Number.isFinite(n))
+
+        return new Set(ids)
+    }
+
+    private normalizeToNumberValue(raw: any): number | number[] | null {
+        const allowedSet = this.buildAllowedSet()
+
+        if (this.multiple) {
+            const arr = Array.isArray(raw) ? raw : (raw == null ? [] : [raw])
+
+            const nums = arr
+                .map((v) => Number(v))
+                .filter((n) => Number.isFinite(n))
+
+            const filtered = allowedSet ? nums.filter((n) => allowedSet.has(n)) : nums
+
+            // Deduplicate for safety
+            return Array.from(new Set(filtered))
+        }
+
+        // single
+        if (raw == null || raw === '') {
+            return null
+        }
+
+        const n = Number(raw)
+        if (!Number.isFinite(n)) {
+            return null
+        }
+
+        if (allowedSet && !allowedSet.has(n)) {
+            return null
+        }
+
+        return n
+    }
+
+    private syncControlValueWithModeAndAllowed(): void {
+        const control = this.getFormControl()
+        if (!control) return
+
+        const source = this.lastWrittenValue ?? control.value
+        const normalized = this.normalizeToNumberValue(source)
+
+        // Avoid infinite loops / extra emits
+        const same = JSON.stringify(control.value) === JSON.stringify(normalized)
+        if (!same) {
+            control.setValue(normalized, { emitEvent: false })
+        }
+
+        this.selectedPayment = normalized
     }
 
     /**
@@ -116,16 +233,23 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
      * @param event the change event of the payment selector
      */
     handleOnChange(event: DropdownChangeEvent | MultiSelectChangeEvent) {
-        const value = (event as any).value as number | number[] | null
+        const raw = (event as any).value
+        const normalized = this.normalizeToNumberValue(raw)
 
-        this.selectedPayment = value
+        this.selectedPayment = normalized
+
+        // If used with parentForm+controlName (reactive), enforce normalized value
+        const control = this.getFormControl()
+        if (control) {
+            control.setValue(normalized, { emitEvent: false })
+        }
 
         // CVA notify
-        this.onChange(value)
+        this.onChange(normalized)
         this.onTouched()
 
         // External notify
-        this.change.emit({ value, field: this.controlName })
+        this.change.emit({ value: normalized, field: this.controlName })
     }
 
     /**
@@ -180,19 +304,14 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
      * @param value - The selected conferences coming from the form.
      */
     writeValue(value: any): void {
-        this.selectedPayment = value
+        this.lastWrittenValue = value
 
-        // Normalize by mode
-        if (this.multiple) {
-            if (this.selectedPayment == null) {
-                this.selectedPayment = []
-            } else if (!Array.isArray(this.selectedPayment)) {
-                this.selectedPayment = [this.selectedPayment as number]
-            }
-        } else {
-            if (Array.isArray(this.selectedPayment)) {
-                this.selectedPayment = this.selectedPayment.length > 0 ? this.selectedPayment[0] : null
-            }
+        const normalized = this.normalizeToNumberValue(value)
+        this.selectedPayment = normalized
+
+        const control = this.getFormControl()
+        if (control) {
+            control.setValue(normalized, { emitEvent: false })
         }
 
         this.cdRef.detectChanges()

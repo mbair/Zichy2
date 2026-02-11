@@ -50,10 +50,11 @@ export class ConferenceFormComponent implements OnInit {
     idCardTemplateVisible: boolean = false       // ID card template visible
     canFillFormAfterDeadline: boolean = false    // User has permission to fill form after deadline
     formFieldInfosMap: { [key: string]: FormFieldInfo } = {}
+    allowedPaymentMethodIds: number[] | null | undefined = undefined
 
     private guestServiceMessageObs$: Observable<any>
     private answerServiceMessageObs$: Observable<any>
-    
+
     private readonly subs = new Subscription()
     private readonly ROOMTYPE_NO_ACCOMMODATION = 'Nem kérek szállást'
 
@@ -67,7 +68,7 @@ export class ConferenceFormComponent implements OnInit {
         private formBuilder: FormBuilder,
         private translate: TranslateService,
         private cdRef: ChangeDetectorRef) {
-        
+
         this.subs.add(
             this.layoutService.configUpdate$.subscribe(config => {
                 this.darkMode = config.colorScheme === 'dark' || config.colorScheme === 'dim' ? true : false;
@@ -105,7 +106,7 @@ export class ConferenceFormComponent implements OnInit {
             lastMeal: ['', Validators.required],
             roomType: ['', Validators.required],
             roomMate: new FormControl<string[] | null>(null),
-            payment: ['', Validators.required],
+            payment: [null, Validators.required],
             babyBed: [null],
             idCard: [null],
             privacy: ['', Validators.required],
@@ -225,6 +226,16 @@ export class ConferenceFormComponent implements OnInit {
                         this.conference = data.rows[0]
                         this.beginDate = this.conference.beginDate ? moment(this.conference.beginDate, 'YYYY-MM-DD').toDate() : undefined
                         this.endDate = this.conference.endDate ? moment(this.conference.endDate, 'YYYY-MM-DD').toDate() : undefined
+                        this.allowedPaymentMethodIds = this.extractPaymentMethodIds(this.conference)
+
+                        // Optional safety: if current selected payment is not allowed, clear it
+                        const paymentCtrl = this.conferenceForm.get('payment')
+                        if (paymentCtrl) {
+                            const current = Number(paymentCtrl.value)
+                            if (Number.isFinite(current) && !this.allowedPaymentMethodIds.includes(current)) {
+                                paymentCtrl.setValue(null, { emitEvent: false })
+                            }
+                        }
 
                         // Setting conference-related data on the form
                         this.conferenceForm.patchValue({
@@ -387,7 +398,7 @@ export class ConferenceFormComponent implements OnInit {
             this.translate.onLangChange.subscribe(() => {
                 this.currentLang = this.translate.currentLang === 'gb' ? 'en' : this.translate.currentLang
                 this.setSzepCardMessage()
-                
+
                 // If registration has ended, show error
                 if (this.registrationEnded) {
                     this.setRegistrationEndMessage()
@@ -420,7 +431,7 @@ export class ConferenceFormComponent implements OnInit {
     get idCard() { return this.conferenceForm.get('idCard') }
     get privacy() { return this.conferenceForm.get('privacy') }
     get acceptanceCriteriaUrl() { return this.conferenceForm.get('acceptanceCriteriaUrl') }
-    
+
     get needsRoom(): boolean {
         const roomType = this.conferenceForm.get('roomType')?.value as string | null
         return !!roomType && roomType !== this.ROOMTYPE_NO_ACCOMMODATION
@@ -565,9 +576,9 @@ export class ConferenceFormComponent implements OnInit {
     setRegistrationEndMessage(): void {
         this.translate.get('registrationEndMessage').subscribe((translatedMessage: string) => {
             this.messageService.add({
-                    severity: 'error',
-                    summary: this.currentLang == 'hu' ? "Figyelem!" : "Attention!",
-                    detail: translatedMessage,
+                severity: 'error',
+                summary: this.currentLang == 'hu' ? "Figyelem!" : "Attention!",
+                detail: translatedMessage,
             })
         })
     }
@@ -794,6 +805,32 @@ export class ConferenceFormComponent implements OnInit {
                 this.formFieldInfosMap[info.field] = info
             }
         }
+    }
+
+    private extractPaymentMethodIds(conf: any): number[] {
+        if (!conf) {
+            return [];
+        }
+
+        // Case 1: backend already returns number[] (paymentMethodIds)
+        if (Array.isArray(conf.paymentMethodIds)) {
+            const ids = conf.paymentMethodIds
+                .map((v: any) => Number(v))
+                .filter((n: number) => Number.isFinite(n));
+
+            return Array.from(new Set(ids));
+        }
+
+        // Case 2: backend returns paymentMethods[] objects
+        if (Array.isArray(conf.paymentMethods)) {
+            const ids = conf.paymentMethods
+                .map((pm: any) => Number(pm?.id))
+                .filter((n: number) => Number.isFinite(n));
+
+            return Array.from(new Set(ids));
+        }
+
+        return [];
     }
 
     /**
