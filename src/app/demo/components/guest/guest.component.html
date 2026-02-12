@@ -47,6 +47,7 @@
                             <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="create()" [disabled]="!canCreate"></button> -->
                             <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="bulkDeleteDialog = true" [disabled]="!selected || !selected.length || !canDelete"></button>
                             <p-fileUpload
+                                *ngIf="!isOrganizer"
                                 #fileUpload
                                 mode="basic"
                                 label="Import"
