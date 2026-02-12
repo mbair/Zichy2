@@ -21,6 +21,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { CalendarModule } from 'primeng/calendar';
 import { ChipModule } from 'primeng/chip';
+import { TooltipModule } from 'primeng/tooltip';
 import { LogService } from '../../service/log.service';
 
 @NgModule({
@@ -47,6 +48,7 @@ import { LogService } from '../../service/log.service';
         BlockUIModule,
         CalendarModule,
         ChipModule,
+        TooltipModule,
     ],
     declarations: [LogsComponent],
     providers: [LogService]

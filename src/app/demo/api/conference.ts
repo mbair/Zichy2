@@ -35,6 +35,7 @@ export interface Conference {
     guestsNumber?: number;
     acceptanceCriteriaUrl?: string | null;
     formFieldInfos?: FormFieldInfo[];
+    paymentMethodIds?: number[];
 
     // Can be deleted
     code?: string;

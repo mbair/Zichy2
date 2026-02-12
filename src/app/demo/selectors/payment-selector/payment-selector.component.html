@@ -1,50 +1,139 @@
 <!-- ReactiveForms -->
-<p-dropdown *ngIf="getFormControl() as control; else useNgModel"
-            [formControl]="control"
-            [options]="payments"
-            optionLabel="label"
-            optionValue="value"
-            (onChange)="handleOnChange($event)"
-            placeholder="{{ 'Válasszon...' | translate }}"
-            emptyMessage="{{ 'Nincs találat...' | translate }}"
-            [showClear]="showClear"
-            appendTo="body">
-    <ng-template pTemplate="item" let-option>
-        <span [ngClass]="'payment-badge ' + option?.style">
-            <i [ngClass]="'mr-1 ' + option?.icon"></i>
-            {{ option.label }}
-        </span>
-    </ng-template>
-    <ng-template pTemplate="selectedItem" let-selectedItem>
-        <span [ngClass]="'payment-badge ' + selectedItem?.style">
-            <i [ngClass]="'mr-1 ' + selectedItem?.icon"></i>
-            {{ selectedItem?.label }}
-        </span>
-    </ng-template>
-</p-dropdown>
+<ng-container *ngIf="getFormControl() as control; else useNgModel">
+    <!-- MULTI (checkbox) -->
+    <p-multiSelect *ngIf="multiple; else singleReactive"
+                   [formControl]="control"
+                   [options]="payments"
+                   optionLabel="label"
+                   optionValue="value"
+                   (onChange)="handleOnChange($event)"
+                   placeholder="{{ 'Válasszon...' | translate }}"
+                   emptyMessage="{{ 'Nincs találat...' | translate }}"
+                   [showClear]="showClear"
+                   styleClass="payment-multiselect w-full"
+                   appendTo="body">
 
-<!-- ngModel -->
-<ng-template #useNgModel>
-    <p-dropdown [(ngModel)]="selectedPayment"
-                [options]="payments"
-                optionLabel="label"
-                optionValue="value"
-                (onChange)="handleOnChange($event)"
-                placeholder="{{ 'Válasszon...' | translate }}"
-                emptyMessage="{{ 'Nincs találat...' | translate }}"
-                [showClear]="showClear"
-                appendTo="body">
         <ng-template pTemplate="item" let-option>
             <span [ngClass]="'payment-badge ' + option?.style">
                 <i [ngClass]="'mr-1 ' + option?.icon"></i>
                 {{ option.label }}
             </span>
         </ng-template>
-        <ng-template pTemplate="selectedItem" let-selectedItem>
-            <span [ngClass]="'payment-badge ' + selectedItem?.style">
-                <i [ngClass]="'mr-1 ' + selectedItem?.icon"></i>
-                {{ selectedItem?.label }}
+
+        <!-- PrimeNG MultiSelect: selectedItems template "value" is the selected value(s),
+             in our case number[] (IDs), NOT option objects -->
+        <ng-template pTemplate="selectedItems" let-value>
+            <ng-container *ngIf="(value?.length ?? 0) > 0; else placeholderTpl">
+                <ng-container *ngFor="let opt of getSelectedOptions(value)">
+                    <span [ngClass]="'payment-badge ' + opt.style">
+                        <i [ngClass]="'mr-1 ' + opt.icon"></i>
+                        {{ opt.label }}
+                    </span>
+                </ng-container>
+            </ng-container>
+
+            <ng-template #placeholderTpl>
+                <span class="p-placeholder">
+                    {{ 'Válasszon...' | translate }}
+                </span>
+            </ng-template>
+        </ng-template>
+    </p-multiSelect>
+
+    <!-- SINGLE (dropdown) -->
+    <ng-template #singleReactive>
+        <p-dropdown [formControl]="control"
+                    [options]="payments"
+                    optionLabel="label"
+                    optionValue="value"
+                    (onChange)="handleOnChange($event)"
+                    placeholder="{{ 'Válasszon...' | translate }}"
+                    emptyMessage="{{ 'Nincs találat...' | translate }}"
+                    [showClear]="showClear"
+                    styleClass="w-full"
+                    appendTo="body">
+            <ng-template pTemplate="item" let-option>
+                <span [ngClass]="'payment-badge ' + option?.style">
+                    <i [ngClass]="'mr-1 ' + option?.icon"></i>
+                    {{ option.label }}
+                </span>
+            </ng-template>
+            <ng-template pTemplate="selectedItem" let-selectedItem>
+                <span [ngClass]="'payment-badge ' + selectedItem?.style">
+                    <i [ngClass]="'mr-1 ' + selectedItem?.icon"></i>
+                    {{ selectedItem?.label }}
+                </span>
+            </ng-template>
+        </p-dropdown>
+    </ng-template>
+</ng-container>
+
+<!-- ngModel -->
+<ng-template #useNgModel>
+    <!-- MULTI (checkbox) -->
+    <p-multiSelect *ngIf="multiple; else singleNgModel"
+                   [(ngModel)]="selectedPayment"
+                   [options]="payments"
+                   optionLabel="label"
+                   optionValue="value"
+                   (onChange)="handleOnChange($event)"
+                   placeholder="{{ 'Válasszon...' | translate }}"
+                   emptyMessage="{{ 'Nincs találat...' | translate }}"
+                   [showClear]="showClear"
+                   [disabled]="disabled || !optionSelectable"
+                   styleClass="payment-multiselect w-full"
+                   appendTo="body">
+
+        <ng-template pTemplate="item" let-option>
+            <span [ngClass]="'payment-badge ' + option?.style">
+                <i [ngClass]="'mr-1 ' + option?.icon"></i>
+                {{ option.label }}
             </span>
         </ng-template>
-    </p-dropdown>
+
+        <ng-template pTemplate="selectedItems" let-value>
+            <ng-container *ngIf="(value?.length ?? 0) > 0; else placeholderTplNg">
+                <ng-container *ngFor="let opt of getSelectedOptions(value)">
+                    <span [ngClass]="'payment-badge ' + opt.style">
+                        <i [ngClass]="'mr-1 ' + opt.icon"></i>
+                        {{ opt.label }}
+                    </span>
+                </ng-container>
+            </ng-container>
+
+            <ng-template #placeholderTplNg>
+                <span class="p-placeholder">
+                    {{ 'Válasszon...' | translate }}
+                </span>
+            </ng-template>
+        </ng-template>
+    </p-multiSelect>
+
+    <!-- SINGLE (dropdown) -->
+    <ng-template #singleNgModel>
+        <p-dropdown [(ngModel)]="selectedPayment"
+                    [options]="payments"
+                    optionLabel="label"
+                    optionValue="value"
+                    (onChange)="handleOnChange($event)"
+                    placeholder="{{ 'Válasszon...' | translate }}"
+                    emptyMessage="{{ 'Nincs találat...' | translate }}"
+                    [showClear]="showClear"
+                    [disabled]="disabled || !optionSelectable"
+                    styleClass="w-full"
+                    appendTo="body">
+            <ng-template pTemplate="item" let-option>
+                <span [ngClass]="'payment-badge ' + option?.style">
+                    <i [ngClass]="'mr-1 ' + option?.icon"></i>
+                    {{ option.label }}
+                </span>
+            </ng-template>
+            <ng-template pTemplate="selectedItem" let-selectedItem>
+                <span [ngClass]="'payment-badge ' + selectedItem?.style">
+                    <i [ngClass]="'mr-1 ' + selectedItem?.icon"></i>
+                    {{ selectedItem?.label }}
+                </span>
+            </ng-template>
+        </p-dropdown>
+    </ng-template>
 </ng-template>

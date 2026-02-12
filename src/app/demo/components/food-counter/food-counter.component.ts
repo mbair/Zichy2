@@ -252,11 +252,11 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 })
 
                 // Check whether the guest has already received food in the given meal cycle
-                let today = moment(),
-                    dateOfArrival = moment(new Date(data.dateOfArrival).setHours(1)),
-                    dateOfDeparture = moment(new Date(data.dateOfDeparture).setHours(23));
+                const today = moment()
+                const dateOfArrival = moment(data.dateOfArrival, "YYYY-MM-DD", true).startOf("day")
+                const dateOfDeparture = moment(data.dateOfDeparture, "YYYY-MM-DD", true).endOf("day")
 
-                if (dateOfArrival <= today && today <= dateOfDeparture) {
+                if (today.isBetween(dateOfArrival, dateOfDeparture, undefined, "[]")) {
 
                     // Don't ask for meal, we will not investigate further
                     if (data.diet == 'nem kér étkezést') {

@@ -1,0 +1,23 @@
+:host ::ng-deep .diff-cell {
+    max-width: 40rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:host ::ng-deep .diff-new-strong {
+    font-weight: 600;
+}
+
+/* Highlighting (you asked for yellow; added/removed are optional but useful) */
+:host ::ng-deep .diff-row-changed td {
+    background-color: #fff3cd; // light yellow
+}
+
+:host ::ng-deep .diff-row-added td {
+    background-color: #d1e7dd; // light green
+}
+
+:host ::ng-deep .diff-row-removed td {
+    background-color: #f8d7da; // light red
+}
