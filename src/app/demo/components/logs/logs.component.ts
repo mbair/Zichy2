@@ -11,8 +11,25 @@ import { Log } from '../../api/log';
 import * as moment from 'moment-timezone'
 moment.locale('hu')
 
+type DiffChangeType = 'unchanged' | 'changed' | 'added' | 'removed'
+interface DiffRow {
+    key: string;
+    originalValue: unknown;
+    newValue: unknown;
+
+    originalText: string;
+    originalTooltip: string;
+
+    newText: string;
+    newTooltip: string;
+
+    changeType: DiffChangeType;
+    changed: boolean;
+}
+
 @Component({
     templateUrl: './logs.component.html',
+    styleUrls: ['./logs.component.scss'],
     providers: [MessageService]
 })
 
@@ -58,6 +75,9 @@ export class LogsComponent implements OnInit {
         userid: null,
     }
 
+    private diffCache = new Map<number, DiffRow[]>()
+    private readonly DIFF_TRUNCATE_LIMIT = 160
+
     private logObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
 
@@ -87,9 +107,12 @@ export class LogsComponent implements OnInit {
         this.logObs$.subscribe((data: ApiResponse) => {
             this.loading = false
             if (data) {
-                this.tableData = data.rows || [];
-                this.totalRecords = data.totalItems || 0;
-                this.page = data.currentPage || 0;
+                this.tableData = data.rows || []
+                this.totalRecords = data.totalItems || 0
+                this.page = data.currentPage || 0
+
+                // Clear diff cache on dataset refresh to avoid memory growth
+                this.diffCache.clear()
             }
         })
 
@@ -372,6 +395,202 @@ export class LogsComponent implements OnInit {
      */
     formatUTCToHungarian(createdAt: string): string {
         return moment.utc(createdAt).tz('Europe/Budapest').format('YYYY.MM.DD HH:mm:ss')
+    }
+
+    private isUpdateAction(actionType: string | undefined | null): boolean {
+        return (actionType ?? '').toLowerCase() === 'update'
+    }
+
+    /**
+ * Returns cached diff rows for a log entry.
+ * This avoids repeated JSON parsing during change detection.
+ */
+    getDiffRows(log: Log): DiffRow[] {
+        const id = Number((log as any)?.id ?? 0);
+        if (!id) {
+            return this.buildDiffRows(log.original_data as any, log.new_data as any);
+        }
+
+        const cached = this.diffCache.get(id);
+        if (cached) {
+            return cached;
+        }
+
+        const rows = this.buildDiffRows(log.original_data as any, log.new_data as any);
+        this.diffCache.set(id, rows);
+        return rows;
+    }
+
+    /**
+     * CSS classes for highlighting. Only highlight changes for UPDATE logs,
+     * but you can remove the isUpdateAction condition if you want it for all actions.
+     */
+    getDiffRowClass(log: Log, row: DiffRow): Record<string, boolean> {
+        const highlight = this.isUpdateAction((log as any)?.action_type);
+        return {
+            'diff-row-changed': highlight && row.changeType === 'changed',
+            'diff-row-added': highlight && row.changeType === 'added',
+            'diff-row-removed': highlight && row.changeType === 'removed',
+        };
+    }
+
+    private buildDiffRows(originalJson: string | null | undefined, newJson: string | null | undefined): DiffRow[] {
+        const originalObj = this.parseJsonObject(originalJson) ?? {};
+        const newObj = this.parseJsonObject(newJson) ?? {};
+
+        // Preserve original key order first, then append keys only present in the new object.
+        const orderedKeys: string[] = [];
+        for (const k of Object.keys(originalObj)) {
+            orderedKeys.push(k);
+        }
+        for (const k of Object.keys(newObj)) {
+            if (!orderedKeys.includes(k)) {
+                orderedKeys.push(k);
+            }
+        }
+
+        const rows: DiffRow[] = [];
+        for (const key of orderedKeys) {
+            const hasOriginal = Object.prototype.hasOwnProperty.call(originalObj, key);
+            const hasNew = Object.prototype.hasOwnProperty.call(newObj, key);
+
+            const originalValue = hasOriginal ? (originalObj as any)[key] : undefined;
+            const newValue = hasNew ? (newObj as any)[key] : undefined;
+
+            let changeType: DiffChangeType = 'unchanged';
+            if (hasOriginal && !hasNew) {
+                changeType = 'removed';
+            } else if (!hasOriginal && hasNew) {
+                changeType = 'added';
+            } else if (!this.deepEqual(originalValue, newValue)) {
+                changeType = 'changed';
+            }
+
+            const originalTooltip = this.formatValue(originalValue);
+            const newTooltip = this.formatValue(newValue);
+
+            rows.push({
+                key,
+                originalValue,
+                newValue,
+                originalTooltip,
+                newTooltip,
+                originalText: this.truncate(originalTooltip, this.DIFF_TRUNCATE_LIMIT),
+                newText: this.truncate(newTooltip, this.DIFF_TRUNCATE_LIMIT),
+                changeType,
+                changed: changeType !== 'unchanged',
+            });
+        }
+
+        return rows;
+    }
+
+    private parseJsonObject(json: string | null | undefined): Record<string, unknown> | null {
+        if (!json || typeof json !== 'string') {
+            return null;
+        }
+
+        try {
+            const parsed = JSON.parse(json);
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                return parsed as Record<string, unknown>;
+            }
+            return null;
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Formats values for display (single-line).
+     */
+    private formatValue(value: unknown): string {
+        if (value === null) {
+            return 'null';
+        }
+        if (value === undefined) {
+            return '';
+        }
+        if (typeof value === 'string') {
+            return value;
+        }
+        if (typeof value === 'number' || typeof value === 'boolean') {
+            return String(value);
+        }
+        try {
+            // Objects/arrays
+            return JSON.stringify(value);
+        } catch {
+            return String(value);
+        }
+    }
+
+    private truncate(text: string, limit: number): string {
+        if (!text) {
+            return '';
+        }
+        if (text.length <= limit) {
+            return text;
+        }
+        return text.slice(0, limit - 1) + '…';
+    }
+
+    /**
+     * Deep equality without external libs.
+     */
+    private deepEqual(a: unknown, b: unknown): boolean {
+        if (a === b) {
+            return true;
+        }
+
+        if (typeof a !== typeof b) {
+            return false;
+        }
+
+        if (a === null || b === null) {
+            return a === b;
+        }
+
+        if (typeof a !== 'object' || typeof b !== 'object') {
+            return false;
+        }
+
+        // Arrays
+        if (Array.isArray(a) || Array.isArray(b)) {
+            if (!Array.isArray(a) || !Array.isArray(b)) {
+                return false;
+            }
+            if (a.length !== b.length) {
+                return false;
+            }
+            for (let i = 0; i < a.length; i += 1) {
+                if (!this.deepEqual(a[i], b[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Objects
+        const objA = a as Record<string, unknown>;
+        const objB = b as Record<string, unknown>;
+        const keysA = Object.keys(objA);
+        const keysB = Object.keys(objB);
+
+        if (keysA.length !== keysB.length) {
+            return false;
+        }
+
+        for (const key of keysA) {
+            if (!Object.prototype.hasOwnProperty.call(objB, key)) {
+                return false;
+            }
+            if (!this.deepEqual(objA[key], objB[key])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // Don't delete this, its needed from a performance point of view,
