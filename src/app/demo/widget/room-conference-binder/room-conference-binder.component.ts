@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { Table } from 'primeng/table';
 import { Room } from '../../api/room';
@@ -15,7 +15,7 @@ moment.locale('hu')
     selector: 'app-room-conference-binder',
     templateUrl: './room-conference-binder.component.html',
     styleUrls: ['./room-conference-binder.component.scss'],
-    providers: [MessageService]
+    providers: [MessageService, ConfirmationService]
 })
 export class RoomConferenceBinderComponent {
     visible: boolean = false                     // Visibility of the component
@@ -38,7 +38,7 @@ export class RoomConferenceBinderComponent {
     selected: Room[] = []                        // Table items chosen by user
     selectedConferences: Conference[] = []
     selectedFilterConferences: Conference[] = []
-    selectedRooms: number[] = []
+    selectedRooms: Room[] = []                   // Selected rooms
     canBindRoomToConference: boolean = true      // User has permission to bind Room to Conference
     selectFirstOption: boolean
     numberOfBeds: number = 0                     // Number of beds
@@ -53,7 +53,8 @@ export class RoomConferenceBinderComponent {
         private roomService: RoomService,
         private conferenceService: ConferenceService,
         private userService: UserService,
-        private messageService: MessageService
+        private messageService: MessageService,
+        private confirmationService: ConfirmationService
     ) { }
 
     /** The array actually shown in the table (original or filtered by "free") */
@@ -189,24 +190,64 @@ export class RoomConferenceBinderComponent {
             return
         }
 
-        const conferenceId = this.selectedConferences[0]
-        const roomIds = this.selectedRooms.map((r: any) => Number(r.id))
+        const selectedConferenceId = Number(this.selectedConferences[0]?.id)
+        if (!Number.isFinite(selectedConferenceId)) {
+            return
+        }
 
+        const rooms = (this.selectedRooms ?? []) as Room[]
+        const roomIds = rooms.map(r => Number(r?.id)).filter(id => Number.isFinite(id))
+        if (!roomIds.length) {
+            return
+        }
+
+        const hasAnyAlreadyAssignedElsewhere = rooms.some(r =>
+            this.roomHasOtherEnabledConference(r, selectedConferenceId)
+        )
+
+        if (hasAnyAlreadyAssignedElsewhere) {
+            this.confirmationService.confirm({
+                header: 'Megerősítés',
+                message: 'Az adott szoba már tartozik másik konfihoz. Biztosan kiválasztja?',
+                icon: 'pi pi-exclamation-triangle',
+                acceptLabel: 'Igen',
+                rejectLabel: 'Mégsem',
+                accept: () => this.executeAssign(selectedConferenceId, rooms, roomIds)
+            })
+            return
+        }
+
+        this.executeAssign(selectedConferenceId, rooms, roomIds)
+    }
+
+    /**
+     * Executes the room-to-conference assignment call and updates the UI state on success/failure.
+     *
+     * - Calls backend to bind the given roomIds to the given conferenceId
+     * - Shows a success/error toast
+     * - On success: recalculates and increments the displayed bed count, clears selection,
+     *   refreshes conference stats, and reloads the table data
+     *
+     * @param conferenceId Target conference ID to which rooms will be assigned
+     * @param rooms        The selected Room objects (used for local bed count recalculation)
+     * @param roomIds      The selected room IDs sent to the backend
+     */
+    private executeAssign(conferenceId: number, rooms: Room[], roomIds: number[]): void {
         this.conferenceService.assignRoomsToConference(conferenceId, roomIds).subscribe({
-            next: (response: any) => {
+            next: () => {
                 this.messageService.add({
                     severity: 'success',
                     summary: 'Sikeres szoba-konferencia összerendelés',
                     detail: 'Szobák hozzárendelve',
                 })
 
-                // ReCalculate Beds number
-                let additionalBeds = 0;
-                (this.selectedRooms as Room[]).forEach((room: Room) => {
+                // Recalculate beds
+                let additionalBeds = 0
+                rooms.forEach((room: Room) => {
                     additionalBeds += room.beds || 0
                 })
 
-                this.numberOfBeds += additionalBeds;
+                this.numberOfBeds += additionalBeds
                 this.selectedRooms = []
                 this.refreshSelectedConferenceStats()
                 this.doQuery()
@@ -369,6 +410,31 @@ export class RoomConferenceBinderComponent {
         if (!this.selectedConferences?.length) return false;
         const enabledConfs = (room?.conferences ?? []).filter((c: any) => c?.enabled);
         return enabledConfs.some((rc: any) => this.selectedConferences.some(sc => this.overlaps(rc, sc)));
+    }
+
+    /**
+     * Checks whether the given room is already assigned to ANY other enabled conference
+     * than the currently selected one.
+     *
+     * Used to trigger a confirmation dialog before assigning a room to a conference,
+     * because this action may result in the room being linked to multiple conferences.
+     *
+     * Note:
+     * - Only conferences with `enabled === true` are considered.
+     * - The conference id can come from different shapes (`c.id` or `c.conferenceId`),
+     *   so we normalize it to a number before comparison.
+     *
+     * @param room                Room to inspect (expects `room.conferences` to be present)
+     * @param selectedConferenceId Currently selected conference id (the "target" conference)
+     * @returns true if the room has at least one enabled conference with a different id
+     */
+    private roomHasOtherEnabledConference(room: Room, selectedConferenceId: number): boolean {
+        const enabledConfs = (room?.conferences ?? []).filter((c: any) => c?.enabled)
+
+        return enabledConfs.some((c: any) => {
+            const cid = Number(c?.id ?? c?.conferenceId)
+            return Number.isFinite(cid) && cid !== selectedConferenceId
+        })
     }
 
     // Used by Angular *ngFor to efficiently track list items by their unique ID.

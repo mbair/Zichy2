@@ -257,7 +257,7 @@ export class ConferenceService {
      * @param roomIds 
      */
     public assignRoomsToConference(conferenceId: any, roomIds: number[]): Observable<any> {
-        return this.apiService.post(`conferencesroom/addroom/${conferenceId.id}`, { roomIds })
+        return this.apiService.post(`conferencesroom/addroom/${conferenceId}`, { roomIds })
     }
 
     /**

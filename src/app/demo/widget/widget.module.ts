@@ -12,6 +12,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip';
 import { ChipModule } from 'primeng/chip';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { BlockUIModule } from 'primeng/blockui';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
@@ -40,6 +41,7 @@ import { SelectorsModule } from "../selectors/selectors.module";
         InputTextModule,
         TooltipModule,
         ChipModule,
+        ConfirmDialogModule,
         BlockUIModule,
         ProgressSpinnerModule,
         ToastModule,
