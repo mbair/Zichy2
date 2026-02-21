@@ -57,8 +57,8 @@ export class UserService {
             .subscribe({
                 next: (response: ApiResponse) => {
                     if (response && response.rows) {
-                        // Super admin users is visible only for Super Admin's
-                        if (!this.hasRole(['Super Admin'])) {
+                        // Super admin users are visible only for Super Admins
+                        if (!this.hasRoleSync(['Super Admin'])) {
                             response.rows = response.rows.filter((user: User) => user.user_rolesid !== 1)
                         }
                     }
@@ -242,6 +242,16 @@ export class UserService {
         return this.getUserRole().pipe(
             map(userRole => roles.length === 0 || roles.includes(userRole))
         )
+    }
+
+    /**
+     * Synchronous check for user roles.
+     * @param roles role names
+     * @returns true if the current user has any of the roles
+     */
+    public hasRoleSync(roles: string[] = []): boolean {
+        const userRole = this.userRole$.getValue()
+        return roles.length === 0 || roles.includes(userRole)
     }
 
     /**

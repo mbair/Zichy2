@@ -1,6 +1,6 @@
 {
     "name": "nfc-reserve",
-    "version": "1.15.18",
+    "version": "1.15.19",
     "scripts": {
         "ng": "ng",
         "start": "ng serve",
@@ -10,7 +10,7 @@
         "dev": "ng serve --ssl --ssl-cert ./localSslCertificate/server.crt --ssl-key ./localSslCertificate/server.key --open --host 0.0.0.0 --disable-host-check",
         "test": "ng test",
         "lint": "ng lint",
-        "deploy": "npm run buildProd && git commit -m 'Deploy' && git push"
+        "deploy": "npm run build && npm run buildProd && git commit -m 'Deploy' && git push"
     },
     "private": true,
     "dependencies": {
