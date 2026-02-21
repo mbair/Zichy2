@@ -431,9 +431,13 @@ export class RoomConferenceBinderComponent {
     private roomHasOtherEnabledConference(room: Room, selectedConferenceId: number): boolean {
         const enabledConfs = (room?.conferences ?? []).filter((c: any) => c?.enabled)
 
+        // Find the currently selected conference object for overlap checking
+        const selectedConf = this.selectedConferences.find(sc => Number(sc?.id) === selectedConferenceId)
+
         return enabledConfs.some((c: any) => {
             const cid = Number(c?.id ?? c?.conferenceId)
-            return Number.isFinite(cid) && cid !== selectedConferenceId
+            // Must be a different conference AND must overlap with the selected one in time
+            return Number.isFinite(cid) && cid !== selectedConferenceId && this.overlaps(c, selectedConf as Conference)
         })
     }
 
