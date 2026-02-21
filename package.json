@@ -1,6 +1,6 @@
 {
     "name": "nfc-reserve",
-    "version": "1.15.19",
+    "version": "1.15.20",
     "scripts": {
         "ng": "ng",
         "start": "ng serve",
@@ -10,6 +10,7 @@
         "dev": "ng serve --ssl --ssl-cert ./localSslCertificate/server.crt --ssl-key ./localSslCertificate/server.key --open --host 0.0.0.0 --disable-host-check",
         "test": "ng test",
         "lint": "ng lint",
+        "bump:patch": "npm version patch --no-git-tag-version --force",
         "deploy": "npm run build && npm run buildProd && git commit -m 'Deploy' && git push"
     },
     "private": true,
@@ -54,6 +55,7 @@
         "@types/file-saver": "^2.0.7",
         "@types/jasmine": "~4.3.0",
         "@types/lodash": "^4.17.15",
+        "husky": "^9.1.7",
         "jasmine-core": "~4.6.0",
         "karma": "~6.4.0",
         "karma-chrome-launcher": "~3.2.0",
