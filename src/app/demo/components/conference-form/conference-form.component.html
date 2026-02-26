@@ -441,7 +441,8 @@
                                             </label>
                                             <app-roomtype-selector 
                                                 [parentForm]="conferenceForm" 
-                                                controlName="roomType">
+                                                controlName="roomType"
+                                                [allowedRoomTypeIds]="allowedConferenceRoomTypeIds">
                                             </app-roomtype-selector>
                                             <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
                                                 {{'Kérjük válassza ki a szállástípust' | translate }}!

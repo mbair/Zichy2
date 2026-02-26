@@ -51,6 +51,7 @@ export class ConferenceFormComponent implements OnInit {
     canFillFormAfterDeadline: boolean = false    // User has permission to fill form after deadline
     formFieldInfosMap: { [key: string]: FormFieldInfo } = {}
     allowedPaymentMethodIds: number[] | null | undefined = undefined
+    allowedConferenceRoomTypeIds: number[] = []
 
     private guestServiceMessageObs$: Observable<any>
     private answerServiceMessageObs$: Observable<any>
@@ -227,6 +228,7 @@ export class ConferenceFormComponent implements OnInit {
                         this.beginDate = this.conference.beginDate ? moment(this.conference.beginDate, 'YYYY-MM-DD').toDate() : undefined
                         this.endDate = this.conference.endDate ? moment(this.conference.endDate, 'YYYY-MM-DD').toDate() : undefined
                         this.allowedPaymentMethodIds = this.extractPaymentMethodIds(this.conference)
+                        this.allowedConferenceRoomTypeIds = this.extractConferenceRoomTypeIds(this.conference)
 
                         // Optional safety: if current selected payment is not allowed, clear it
                         const paymentCtrl = this.conferenceForm.get('payment')
@@ -831,6 +833,20 @@ export class ConferenceFormComponent implements OnInit {
         }
 
         return [];
+    }
+
+    private extractConferenceRoomTypeIds(conf: Conference | null | undefined): number[] {
+        const rooms = conf?.rooms
+        if (!Array.isArray(rooms)) {
+            return []
+        }
+
+        const ids = rooms
+            .map((room) => Number(room?.room_typeid))
+            .filter((id) => Number.isFinite(id))
+            .filter((id) => id > 0)
+
+        return Array.from(new Set(ids))
     }
 
     /**

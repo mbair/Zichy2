@@ -24,6 +24,7 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() controlName: string
     @Input() showClear: boolean
     @Input() optionValue: 'value' | 'id' = 'value'
+    @Input() allowedRoomTypeIds: number[] | null | undefined = undefined
     @Output() change = new EventEmitter<changeEvent>()
     
     roomTypes: any[] = []           // Available room types
@@ -70,7 +71,7 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
      * Translates the accommodation labels to the current language and maps them to their respective values.
      */
     setRoomTypes() {
-        this.roomTypes = [
+        const allRoomTypes = [
             { 
                 id: 0,
                 label: this.translate.instant('ROOMTYPES.NOTHING'), 
@@ -127,6 +128,23 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
                 color: 'orange' 
             },
         ]
+
+        // Optional filtering by room type IDs.
+        // Keep "no accommodation" visible even when filtered.
+        if (Array.isArray(this.allowedRoomTypeIds)) {
+            const allowed = new Set(
+                this.allowedRoomTypeIds
+                    .map((id) => Number(id))
+                    .filter((id) => Number.isFinite(id))
+            )
+
+            this.roomTypes = allRoomTypes.filter((roomType) =>
+                roomType.id === 0 || allowed.has(roomType.id)
+            )
+            return
+        }
+
+        this.roomTypes = allRoomTypes
     }
 
     /**
