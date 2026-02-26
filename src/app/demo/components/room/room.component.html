@@ -341,6 +341,19 @@
                         </div>
                     </div>
 
+                    <!-- roomType -->
+                    <div class="field mb-4 col-12">
+                        <label for="room_typeid" class="font-medium text-900">Szobatípus</label>
+                        <app-roomtype-selector 
+                            [parentForm]="roomForm" 
+                            controlName="room_typeid"
+                            optionValue="id">
+                        </app-roomtype-selector>
+                        <div *ngIf="room_typeid?.dirty && room_typeid?.errors?.['required']" class="block p-error">
+                            Kötelező kitölteni
+                        </div>
+                    </div>
+
                     <!-- climate -->
                     <div class="field mb-4 col-6">
                         <label for="climate" class="font-medium text-900">Klimatizált?</label>

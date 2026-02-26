@@ -59,6 +59,7 @@ export class RoomComponent implements OnInit {
         roomNum: '',
         roomCode: '',
         beds: '',
+        room_typeid: null,
         spareBeds: '',
         bathroom: '',
         building: '',
@@ -90,6 +91,7 @@ export class RoomComponent implements OnInit {
             roomNum: [this.initialFormValues.roomNum, Validators.required],
             roomCode: [this.initialFormValues.roomCode, Validators.required],
             beds: [this.initialFormValues.beds, Validators.required],
+            room_typeid: [this.initialFormValues.room_typeid, Validators.required],
             spareBeds: [this.initialFormValues.spareBeds],
             bathroom: [this.initialFormValues.bathroom],
             building: [this.initialFormValues.building, Validators.required],
@@ -147,6 +149,7 @@ export class RoomComponent implements OnInit {
     get roomNum() { return this.roomForm.get('roomNum') }
     get roomCode() { return this.roomForm.get('roomCode') }
     get beds() { return this.roomForm.get('beds') }
+    get room_typeid() { return this.roomForm.get('room_typeid') }
     get spareBeds() { return this.roomForm.get('spareBeds') }
     get bathroom() { return this.roomForm.get('bathroom') }
     get building() { return this.roomForm.get('building') }
@@ -299,7 +302,7 @@ export class RoomComponent implements OnInit {
             if (!formValues.id) {
                 this.roomService.create(formValues)
 
-                // Update
+            // Update
             } else {
                 this.roomService.update(formValues)
             }

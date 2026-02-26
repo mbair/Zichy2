@@ -4,7 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { DropdownChangeEvent } from 'primeng/dropdown';
 
 export interface changeEvent {
-    value: string;
+    value: any;
     field: string;
 }
 
@@ -23,10 +23,11 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
+    @Input() optionValue: 'value' | 'id' = 'value'
     @Output() change = new EventEmitter<changeEvent>()
     
     roomTypes: any[] = []           // Available room types
-    selectedRoomType: string = ''   // Selected room type
+    selectedRoomType: any = ''   // Selected room type
     disabled = false
 
     constructor(private translate: TranslateService, 
@@ -71,48 +72,56 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
     setRoomTypes() {
         this.roomTypes = [
             { 
+                id: 0,
                 label: this.translate.instant('ROOMTYPES.NOTHING'), 
                 value: 'Nem kérek szállást', 
                 color: 'gray' 
             },
             { 
                 label: this.translate.instant('ROOMTYPES.CASTLE'), 
+                id: 1,
                 description: this.translate.instant('ROOMTYPES.4-BED-ROOM'), 
                 value: 'Kastély szállás 4 ágyas szoba', 
                 color: 'teal' 
             },
             { 
                 label: this.translate.instant('ROOMTYPES.CASTLE'), 
+                id: 2,
                 description: this.translate.instant('ROOMTYPES.6-BED-ROOM'), 
                 value: 'Kastély szállás 6 ágyas szoba', 
                 color: 'teal' 
             },
             { 
                 label: this.translate.instant('ROOMTYPES.CASTLE'), 
+                id: 3,
                 description: this.translate.instant('ROOMTYPES.8-BED-ROOM'), 
                 value: 'Kastély szállás 8 ágyas szoba', 
                 color: 'teal' 
             },
             { 
                 label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
+                id: 4,
                 description: this.translate.instant('ROOMTYPES.2-BED-ROOM'), 
                 value: 'Maranatha Panzióház 2 ágyas szoba (külön fürdős)', 
                 color: 'yellow' 
             },
             { 
                 label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
+                id: 5,
                 description: this.translate.instant('ROOMTYPES.DOUBLE-BED-ROOM'), 
                 value: 'Maranatha Panzióház franciaágyas szoba (külön fürdős)', 
                 color: 'yellow' 
             },
             { 
                 label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
+                id: 6,
                 description: this.translate.instant('ROOMTYPES.M-4-BED-ROOM'), 
                 value: 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)', 
                 color: 'yellow' 
             },
             { 
                 label: this.translate.instant('ROOMTYPES.FAMILY-ROOM'), 
+                id: 7,
                 description: this.translate.instant('ROOMTYPES.WITH-KITCHEN'), 
                 value: 'Családi szoba (közös konyhával, fürdővel és nappalival)', 
                 color: 'orange' 

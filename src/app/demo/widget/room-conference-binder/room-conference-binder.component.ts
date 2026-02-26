@@ -19,7 +19,6 @@ moment.locale('hu')
 })
 export class RoomConferenceBinderComponent {
     visible: boolean = false                     // Visibility of the component
-    apiURL: string                               // API URL depending on whether we are working on test or production
     loading: boolean = true                      // Loading overlay trigger value
     loadingConferences: boolean = true           // Loading overlay trigger value
     tableItem: Room = {}                         // One guest object
@@ -33,14 +32,11 @@ export class RoomConferenceBinderComponent {
     globalFilter: string = ''                    // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
     debounce: { [key: string]: any } = {}        // Search delay in filter field
-    conferences: any[] = []
-    rooms: any[] = []
     selected: Room[] = []                        // Table items chosen by user
     selectedConferences: Conference[] = []
     selectedFilterConferences: Conference[] = []
     selectedRooms: Room[] = []                   // Selected rooms
     canBindRoomToConference: boolean = true      // User has permission to bind Room to Conference
-    selectFirstOption: boolean
     numberOfBeds: number = 0                     // Number of beds
     numberOfGuests: number = 0                   // Number of guests
     numberOfFilteredBeds: number = 0             // Number of filtered beds
@@ -294,7 +290,7 @@ export class RoomConferenceBinderComponent {
      * @returns 
      */
     private calculateConferenceGuestsAndBeds(selectedConferences: Conference[]): { guests: number, beds: number } {
-        // If no cenference are selected we return with 0
+        // If no conference are selected we return with 0
         if (!selectedConferences || selectedConferences.length === 0) {
             return { guests: 0, beds: 0 }
         }
