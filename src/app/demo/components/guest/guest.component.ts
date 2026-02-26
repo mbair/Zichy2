@@ -2,7 +2,7 @@ import { Component, OnInit, HostListener, isDevMode, ViewChild, ElementRef, Chan
 import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
-import { MenuItem, Message, MessageService } from 'primeng/api';
+import { ConfirmationService, MenuItem, Message, MessageService } from 'primeng/api';
 import { HttpClient } from '@angular/common/http';
 import { FileSendEvent, FileUpload, FileUploadErrorEvent } from 'primeng/fileupload';
 import { Table } from 'primeng/table';
@@ -29,7 +29,7 @@ import { ConferenceSelectorComponent } from '../../selectors/conference-selector
 @Component({
     selector: 'guest-component',
     templateUrl: './guest.component.html',
-    providers: [MessageService]
+    providers: [MessageService, ConfirmationService]
 })
 
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy
@@ -74,6 +74,7 @@ export class GuestComponent implements OnInit {
     successfulMessage: Message[] = []            // Message displayed on success
     tag: Tag = {}                                // NFC tag
     tagDialog: boolean = false                   // Tag assignment popup
+    roomKeyDialog: boolean = false               // Room key status popup
     conferences: any[] = []                      // Optional conferences
     selectedConferences: Conference[] = []       // Conference chosen by user
     guest: Guest | null = null                   // One guest object
@@ -100,6 +101,7 @@ export class GuestComponent implements OnInit {
     showUploadBlock: boolean = false             // Upload block visibility in edit form  
     guestConference: Conference                  // Guest's conference
     prepaidOptions: any[] = []                   // Possible prepaid options
+    roomKeyFilterOptions: any[] = []             // Room key filter options
     guestReservations: Reservation[] = []        // Guest reservations
     acutalReservation: any | null = null         // Actual guest reservation
     firstRowIndex: number = 0                    // Helper for rows
@@ -160,6 +162,7 @@ export class GuestComponent implements OnInit {
         private dietService: DietService,
         private countryService: CountryService,
         private messageService: MessageService,
+        private confirmationService: ConfirmationService,
         private logService: LogService,
         private cdRef: ChangeDetectorRef,
         private fb: FormBuilder) {
@@ -231,7 +234,8 @@ export class GuestComponent implements OnInit {
             babyBed: [],
             prepaid: [],
             roomMate: [],
-            climate: []
+            climate: [],
+            roomKeyIssued: []
         })
 
         this.exportButtonItems = [
@@ -366,6 +370,7 @@ export class GuestComponent implements OnInit {
         this.cols = [
             { field: 'name', header: 'Név' },  // lastName + firstName
             { field: 'roomNum', header: 'Szoba' },
+            { field: 'roomKeyStatus', header: 'Szobakulcs' },
             { field: 'diet', header: 'Étrend' },
             { field: 'rfid', header: 'NFC' },
             { field: 'lastRfidUsage', header: 'NFC használat' },
@@ -377,6 +382,11 @@ export class GuestComponent implements OnInit {
         this.prepaidOptions = [
             { name: 'Igen', value: 'true' },
             { name: 'Nem', value: 'false' }
+        ]
+
+        this.roomKeyFilterOptions = [
+            { name: 'Igen', value: '1' },
+            { name: 'Nem', value: '0' }
         ]
 
         this.isFormValid$ = this.formChanges$.pipe(
@@ -586,7 +596,7 @@ export class GuestComponent implements OnInit {
         // Organizer need select conference
         if (this.isOrganizer && !this.selectedConferences) return
 
-        const noWaitFields = ['diet', 'lastRfidUsage', 'dateOfArrival', 'dateOfDeparture', 'prepaid']
+        const noWaitFields = ['diet', 'lastRfidUsage', 'dateOfArrival', 'dateOfDeparture', 'prepaid', 'roomKeyIssued']
         let filterValue = ''
 
         // Calendar date as String
@@ -822,6 +832,7 @@ export class GuestComponent implements OnInit {
         this.filterValues['climate'] = ''
         this.filterValues['prepaid'] = ''
         this.filterValues['roomMate'] = ''
+        this.filterValues['roomKeyIssued'] = ''
 
         this.doQuery()
     }
@@ -892,6 +903,65 @@ export class GuestComponent implements OnInit {
             action_type: "unassign",
             table_name: "guest",
             original_data: `Unassign Tag from ${name || 'ismeretlen vendég'}`
+        })
+    }
+
+
+    openRoomKeyDialog(guest: Guest) {
+        this.guest = { ...guest }
+        this.roomKeyDialog = true
+    }
+
+    hideRoomKeyDialog() {
+        this.roomKeyDialog = false
+    }
+
+    getRoomKeyIconClass(guest: Guest): string {
+        if (guest.roomKeyReturnedAt) {
+            return 'pi pi-check-circle text-green-500'
+        }
+
+        if (guest.roomKeyIssued || guest.roomKeyIssuedAt) {
+            return 'pi pi-key text-orange-500'
+        }
+
+        return 'pi pi-key text-500'
+    }
+
+    issueRoomKey() {
+        if (!this.guest?.id) return
+
+        this.guestService.issueRoomKey(this.guest.id).subscribe({
+            next: () => {
+                this.messageService.add({ severity: 'success', summary: 'Szobakulcs kiadva' })
+                this.roomKeyDialog = false
+                this.doQuery()
+            },
+            error: () => {
+                this.messageService.add({ severity: 'error', summary: 'Hiba', detail: 'A szobakulcs kiadása nem sikerült.' })
+            }
+        })
+    }
+
+    returnRoomKey() {
+        if (!this.guest?.id) return
+
+        this.confirmationService.confirm({
+            message: 'Biztosan visszaveszi a szobakulcsot?',
+            header: 'Megerősítés',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {
+                this.guestService.returnRoomKey(this.guest!.id!).subscribe({
+                    next: () => {
+                        this.messageService.add({ severity: 'success', summary: 'Szobakulcs visszavéve' })
+                        this.roomKeyDialog = false
+                        this.doQuery()
+                    },
+                    error: () => {
+                        this.messageService.add({ severity: 'error', summary: 'Hiba', detail: 'A szobakulcs visszavétele nem sikerült.' })
+                    }
+                })
+            }
         })
     }
 
@@ -1318,6 +1388,7 @@ export class GuestComponent implements OnInit {
 
                 return {
                     ...rest,
+                    roomKeyStatus: this.getRoomKeyStatusLabel(row),
                     ...qnaColumns
                 } as { [key: string]: any }
             })
@@ -1351,6 +1422,7 @@ export class GuestComponent implements OnInit {
                     }
                     return {
                         ...rest,
+                        roomKeyStatus: this.getRoomKeyStatusLabel(row),
                         ...qnaColumns
                     } as { [key: string]: any }
                 })
@@ -1396,6 +1468,19 @@ export class GuestComponent implements OnInit {
             const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
             this.saveAsExcelFile(excelBuffer, "guests")
         })
+    }
+
+
+    getRoomKeyStatusLabel(guest: Partial<Guest>): string {
+        if (guest.roomKeyReturnedAt) {
+            return 'Visszaadva'
+        }
+
+        if (guest.roomKeyIssued || guest.roomKeyIssuedAt) {
+            return 'Kiadva'
+        }
+
+        return 'Nincs'
     }
 
     /**

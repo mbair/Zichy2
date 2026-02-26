@@ -157,6 +157,15 @@ export class GuestService {
             })
     }
 
+
+    public issueRoomKey(guestId: number): Observable<any> {
+        return this.apiService.post(`guest/${guestId}/room-key/issue`, {})
+    }
+
+    public returnRoomKey(guestId: number): Observable<any> {
+        return this.apiService.post(`guest/${guestId}/room-key/return`, {})
+    }
+
     /**
      * Guest create
      * @param guest

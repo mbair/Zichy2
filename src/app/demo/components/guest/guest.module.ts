@@ -27,6 +27,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { CalendarModule } from 'primeng/calendar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { SplitButtonModule } from 'primeng/splitbutton';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SelectorsModule } from '../../selectors/selectors.module';
 import { WidgetModule } from '../../widget/widget.module';
 
@@ -60,6 +61,7 @@ import { WidgetModule } from '../../widget/widget.module';
         CalendarModule,
         SkeletonModule,
         SplitButtonModule,
+        ConfirmDialogModule,
         SelectorsModule,
         WidgetModule,
     ],
