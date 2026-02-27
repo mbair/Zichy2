@@ -928,13 +928,45 @@ export class GuestComponent implements OnInit {
         return 'pi pi-key text-500'
     }
 
+    isRoomKeyCurrentlyIssued(guest: Partial<Guest> | null | undefined): boolean {
+        if (!guest) return false
+        return !!(guest.roomKeyIssued || guest.roomKeyIssuedAt) && !guest.roomKeyReturnedAt
+    }
+
+    canIssueRoomKey(guest: Partial<Guest> | null | undefined): boolean {
+        return !!guest && !this.isRoomKeyCurrentlyIssued(guest)
+    }
+
+    canReturnRoomKey(guest: Partial<Guest> | null | undefined): boolean {
+        return !!guest && this.isRoomKeyCurrentlyIssued(guest)
+    }
+
+    private updateRoomKeyStateLocally(nextFields: Partial<Guest>): void {
+        if (!this.guest?.id) return
+
+        const updatedGuest: Guest = { ...this.guest, ...nextFields }
+        const idx = this.findIndexById(updatedGuest.id)
+        if (idx !== -1) {
+            this.tableData = [
+                ...this.tableData.slice(0, idx),
+                updatedGuest,
+                ...this.tableData.slice(idx + 1)
+            ]
+        }
+        this.guest = updatedGuest
+    }
+
     issueRoomKey() {
         if (!this.guest?.id) return
 
         this.guestService.issueRoomKey(this.guest.id).subscribe({
             next: () => {
+                this.updateRoomKeyStateLocally({
+                    roomKeyIssued: true,
+                    roomKeyIssuedAt: this.guest?.roomKeyIssuedAt || new Date().toISOString(),
+                    roomKeyReturnedAt: null
+                })
                 this.messageService.add({ severity: 'success', summary: 'Szobakulcs kiadva' })
-                this.roomKeyDialog = false
                 this.doQuery()
             },
             error: () => {
@@ -953,8 +985,11 @@ export class GuestComponent implements OnInit {
             accept: () => {
                 this.guestService.returnRoomKey(this.guest!.id!).subscribe({
                     next: () => {
+                        this.updateRoomKeyStateLocally({
+                            roomKeyIssued: false,
+                            roomKeyReturnedAt: new Date().toISOString()
+                        })
                         this.messageService.add({ severity: 'success', summary: 'Szobakulcs visszavéve' })
-                        this.roomKeyDialog = false
                         this.doQuery()
                     },
                     error: () => {

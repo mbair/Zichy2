@@ -870,8 +870,8 @@
                     <button pButton pRipple label="Címke visszavétel" icon="pi pi-trash" class="p-button-danger" (click)="unAssignTag()" [disabled]="!guest?.rfid?.length"></button>
                 </div>
                 <div class="text-center mt-3 flex justify-content-center gap-2">
-                    <button pButton pRipple label="Szobakulcs kiadása" icon="pi pi-key" class="p-button-warning" (click)="issueRoomKey()" [disabled]="!!guest?.roomKeyIssued && !guest?.roomKeyReturnedAt"></button>
-                    <button pButton pRipple label="Szobakulcs visszavétele" icon="pi pi-check" class="p-button-secondary" (click)="returnRoomKey()" [disabled]="!guest?.roomKeyIssued && !guest?.roomKeyIssuedAt"></button>
+                    <button pButton pRipple label="Szobakulcs kiadása" icon="pi pi-key" class="p-button-warning" (click)="issueRoomKey()" [disabled]="!canIssueRoomKey(guest)"></button>
+                    <button pButton pRipple label="Szobakulcs visszavétele" icon="pi pi-check" class="p-button-secondary" (click)="returnRoomKey()" [disabled]="!canReturnRoomKey(guest)"></button>
                 </div>
             </ng-template>
             <ng-template pTemplate="footer">
@@ -1157,8 +1157,8 @@
             </ng-template>
             <ng-template pTemplate="footer">
                 <button pButton pRipple label="Bezárás" icon="pi pi-times" class="p-button-outlined" (click)="hideRoomKeyDialog()"></button>
-                <button pButton pRipple label="Kulcs kiadása" icon="pi pi-key" class="p-button-warning ml-2" (click)="issueRoomKey()" [disabled]="!!guest?.roomKeyIssued && !guest?.roomKeyReturnedAt"></button>
-                <button pButton pRipple label="Kulcs visszavétele" icon="pi pi-check" class="p-button ml-2" (click)="returnRoomKey()" [disabled]="!guest?.roomKeyIssued && !guest?.roomKeyIssuedAt"></button>
+                <button pButton pRipple label="Kulcs kiadása" icon="pi pi-key" class="p-button-warning ml-2" (click)="issueRoomKey()" [disabled]="!canIssueRoomKey(guest)"></button>
+                <button pButton pRipple label="Kulcs visszavétele" icon="pi pi-check" class="p-button ml-2" (click)="returnRoomKey()" [disabled]="!canReturnRoomKey(guest)"></button>
             </ng-template>
         </p-dialog>
 
