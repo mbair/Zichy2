@@ -48,6 +48,11 @@ export interface Guest {
     idCardUploaded?: any;
     conference?: Conference[]
     reservations?: Reservation[]
+    roomKeyIssued?: boolean;
+    roomKeyIssuedAt?: string | null;
+    roomKeyReturnedAt?: string | null;
+    roomKeyIssuedByUserId?: number | null;
+    roomKeyReturnedByUserId?: number | null;
 }
 
 export type GuestFilter = {

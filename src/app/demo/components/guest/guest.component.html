@@ -212,6 +212,16 @@
                                 tooltipPosition="top"
                                 [disabled]="!res?.id">
                                 </button>
+                                <button
+                                    pButton
+                                    type="button"
+                                    class="p-button-rounded p-button-text ml-1"
+                                    *ngIf="guest.roomKeyIssued || guest.roomKeyIssuedAt || guest.roomKeyReturnedAt"
+                                    [icon]="getRoomKeyIconClass(guest)"
+                                    pTooltip="Szobakulcs státusz"
+                                    tooltipPosition="top"
+                                    (click)="openRoomKeyDialog(guest)">
+                                </button>
                             </ng-container>
 
                             <ng-template #noReservation>
@@ -219,6 +229,16 @@
                                 <span *ngIf="guest.displayRoomNum || guest.roomNum; else noRoom">
                                 {{ guest.displayRoomNum || guest.roomNum }}
                                 </span>
+                                <button
+                                    pButton
+                                    type="button"
+                                    class="p-button-rounded p-button-text ml-1"
+                                    *ngIf="guest.roomKeyIssued || guest.roomKeyIssuedAt || guest.roomKeyReturnedAt"
+                                    [icon]="getRoomKeyIconClass(guest)"
+                                    pTooltip="Szobakulcs státusz"
+                                    tooltipPosition="top"
+                                    (click)="openRoomKeyDialog(guest)">
+                                </button>
                                 <ng-template #noRoom>
                                 <span class="text-500">nincs beállítva</span>
                                 </ng-template>
@@ -849,6 +869,10 @@
                 <div class="text-center">
                     <button pButton pRipple label="Címke visszavétel" icon="pi pi-trash" class="p-button-danger" (click)="unAssignTag()" [disabled]="!guest?.rfid?.length"></button>
                 </div>
+                <div class="text-center mt-3 flex justify-content-center gap-2">
+                    <button pButton pRipple label="Szobakulcs kiadása" icon="pi pi-key" class="p-button-warning" (click)="issueRoomKey()" [disabled]="!canIssueRoomKey(guest)"></button>
+                    <button pButton pRipple label="Szobakulcs visszavétele" icon="pi pi-check" class="p-button-secondary" (click)="returnRoomKey()" [disabled]="!canReturnRoomKey(guest)"></button>
+                </div>
             </ng-template>
             <ng-template pTemplate="footer">
                 <div class="flex justify-content-end ap-2">
@@ -1092,6 +1116,20 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- roomKeyIssued -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="roomKeyIssued" class="font-medium text-900">Szobakulcsot kapott?</label>
+                    <p-dropdown
+                        formControlName="roomKeyIssued"
+                        [options]="roomKeyFilterOptions"
+                        optionLabel="name"
+                        optionValue="value"
+                        placeholder="Válassz..."
+                        [showClear]="true"
+                        (onChange)="onFilter($event, 'roomKeyIssued')">
+                    </p-dropdown>
+                </div>
             </form>
 
             <ng-template pTemplate="footer">
@@ -1107,6 +1145,23 @@
             </ng-template>
         </p-sidebar>
     </div>
+
+        <p-dialog [(visible)]="roomKeyDialog" [style]="{width: '420px'}" header="Szobakulcs státusz" [modal]="true">
+            <ng-template pTemplate="content">
+                <div class="mb-3">
+                    <div><strong>Vendég:</strong> {{guest?.lastName}} {{guest?.firstName}}</div>
+                    <div><strong>Státusz:</strong> {{ getRoomKeyStatusLabel(guest || {}) }}</div>
+                    <div *ngIf="guest?.roomKeyIssuedAt"><strong>Kiadva:</strong> {{guest?.roomKeyIssuedAt | date:'yyyy.MM.dd HH:mm:ss'}}</div>
+                    <div *ngIf="guest?.roomKeyReturnedAt"><strong>Visszavéve:</strong> {{guest?.roomKeyReturnedAt | date:'yyyy.MM.dd HH:mm:ss'}}</div>
+                </div>
+            </ng-template>
+            <ng-template pTemplate="footer">
+                <button pButton pRipple label="Bezárás" icon="pi pi-times" class="p-button-outlined" (click)="hideRoomKeyDialog()"></button>
+                <button pButton pRipple label="Kulcs kiadása" icon="pi pi-key" class="p-button-warning ml-2" (click)="issueRoomKey()" [disabled]="!canIssueRoomKey(guest)"></button>
+                <button pButton pRipple label="Kulcs visszavétele" icon="pi pi-check" class="p-button ml-2" (click)="returnRoomKey()" [disabled]="!canReturnRoomKey(guest)"></button>
+            </ng-template>
+        </p-dialog>
+
 </div>
 
 <!-- Loading Overlay -->
@@ -1114,4 +1169,5 @@
     <p-progressSpinner></p-progressSpinner>
 </p-blockUI>
 
+<p-confirmDialog></p-confirmDialog>
 <p-toast></p-toast>
