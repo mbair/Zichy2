@@ -63,7 +63,9 @@ export class ConferenceComponent implements OnInit {
     bulkDeleteDialog: boolean = false            // Popup for deleting table items
     selected: Conference[] = []                  // Table items chosen by user
     meals: any[] = []                            // Possible meals
-    organizer: User | null = null                // Organizer of the expanded conference
+    organizerByConferenceId: { [conferenceId: number]: User | null } = {} // Organizer per expanded conference
+    expandedConferenceDetails: { [conferenceId: number]: Conference } = {} // Lazy-loaded details per expanded conference
+    loadingExpandedConferenceIds: Set<number> = new Set<number>()          // Loading state for expanded rows
     canCreate: boolean = false                   // User has permission to create new user
     canEdit: boolean = false                     // User has permission to update user
     canDelete: boolean = false                   // User has permission to delete user
@@ -272,6 +274,9 @@ export class ConferenceComponent implements OnInit {
      */
     doQuery() {
         this.loading = true
+        this.expandedConferenceDetails = {}
+        this.organizerByConferenceId = {}
+        this.loadingExpandedConferenceIds.clear()
 
         const filters = Object.keys(this.filterValues)
             .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
@@ -361,15 +366,97 @@ export class ConferenceComponent implements OnInit {
      * @param conference The conference object for the row that was expanded.
      */
     onRowExpand(conference: Conference): void {
-        this.organizer = null
+        const conferenceId = Number(conference?.id)
+        if (!Number.isFinite(conferenceId)) return
 
-        // Load organizer data
-        const organizerId = conference?.organizer_user_id
-        if (organizerId) {
-            this.userService.getUserById(organizerId).subscribe((user: User | null) => {
-                this.organizer = user
-            })
+        // Skip if already loaded for this row
+        if (this.expandedConferenceDetails[conferenceId]) {
+            this.loadOrganizerForConference(conferenceId, this.expandedConferenceDetails[conferenceId].organizer_user_id)
+            return
         }
+
+        this.loadingExpandedConferenceIds.add(conferenceId)
+        this.conferenceService.getById(conferenceId).subscribe({
+            next: (response: any) => {
+                const detailedConference = this.normalizeConferenceFromResponse(response, conference)
+                this.expandedConferenceDetails[conferenceId] = detailedConference
+                this.loadOrganizerForConference(conferenceId, detailedConference.organizer_user_id)
+                this.loadingExpandedConferenceIds.delete(conferenceId)
+            },
+            error: () => {
+                // Fallback to the row data if details fetch fails
+                this.expandedConferenceDetails[conferenceId] = { ...conference }
+                this.loadOrganizerForConference(conferenceId, conference.organizer_user_id)
+                this.loadingExpandedConferenceIds.delete(conferenceId)
+            }
+        })
+    }
+
+    private normalizeConferenceFromResponse(response: any, fallbackConference: Conference): Conference {
+        if (response && typeof response === 'object') {
+            if (response.rows && Array.isArray(response.rows) && response.rows.length > 0) {
+                return { ...fallbackConference, ...response.rows[0] }
+            }
+            if (response.row && typeof response.row === 'object') {
+                return { ...fallbackConference, ...response.row }
+            }
+            return { ...fallbackConference, ...response }
+        }
+        return { ...fallbackConference }
+    }
+
+    getExpandedConference(conference: Conference): Conference {
+        const conferenceId = Number(conference?.id)
+        if (!Number.isFinite(conferenceId)) return conference
+        return this.expandedConferenceDetails[conferenceId] || conference
+    }
+
+    isExpandedConferenceLoading(conference: Conference): boolean {
+        const conferenceId = Number(conference?.id)
+        if (!Number.isFinite(conferenceId)) return false
+        return this.loadingExpandedConferenceIds.has(conferenceId)
+    }
+
+    private loadOrganizerForConference(conferenceId: number, organizerId: any): void {
+        if (!organizerId) {
+            this.organizerByConferenceId[conferenceId] = null
+            return
+        }
+        this.organizerByConferenceId[conferenceId] = null
+        this.userService.getUserById(organizerId).subscribe((user: User | null) => {
+            this.organizerByConferenceId[conferenceId] = user
+        })
+    }
+
+    getOrganizerName(conference: Conference): string {
+        const conferenceId = Number(conference?.id)
+        if (!Number.isFinite(conferenceId)) return ''
+        return this.organizerByConferenceId[conferenceId]?.fullname || ''
+    }
+
+    private withConferenceDetails(conference: Conference, onReady: (detailedConference: Conference) => void): void {
+        const conferenceId = Number(conference?.id)
+        if (!Number.isFinite(conferenceId)) {
+            onReady(conference)
+            return
+        }
+
+        const cached = this.expandedConferenceDetails[conferenceId]
+        if (cached) {
+            onReady(cached)
+            return
+        }
+
+        this.conferenceService.getById(conferenceId).subscribe({
+            next: (response: any) => {
+                const detailedConference = this.normalizeConferenceFromResponse(response, conference)
+                this.expandedConferenceDetails[conferenceId] = detailedConference
+                onReady(detailedConference)
+            },
+            error: () => {
+                onReady(conference)
+            }
+        })
     }
 
     /**
@@ -621,10 +708,12 @@ export class ConferenceComponent implements OnInit {
      * @param conference
      */
     editFormFieldInfos(conference: Conference) {
-        this.tableItem = conference
-        this.formFieldInfosForm.reset()
-        this.initializeFormFieldInfosForm(conference.formFieldInfos)
-        this.formFieldsInfosSidebar = true
+        this.withConferenceDetails(conference, (detailedConference) => {
+            this.tableItem = detailedConference
+            this.formFieldInfosForm.reset()
+            this.initializeFormFieldInfosForm(detailedConference.formFieldInfos)
+            this.formFieldsInfosSidebar = true
+        })
     }
 
     /**
@@ -661,10 +750,12 @@ export class ConferenceComponent implements OnInit {
      * @param conference
      */
     editQuestions(conference: Conference) {
-        this.tableItem = conference
-        this.questionsForm.reset()
-        this.initializeQuestionsForm()
-        this.questionsSidebar = true
+        this.withConferenceDetails(conference, (detailedConference) => {
+            this.tableItem = detailedConference
+            this.questionsForm.reset()
+            this.initializeQuestionsForm()
+            this.questionsSidebar = true
+        })
     }
 
     /**
