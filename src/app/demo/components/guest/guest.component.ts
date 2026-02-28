@@ -101,7 +101,6 @@ export class GuestComponent implements OnInit {
     showUploadBlock: boolean = false             // Upload block visibility in edit form  
     guestConference: Conference                  // Guest's conference
     prepaidOptions: any[] = []                   // Possible prepaid options
-    roomKeyFilterOptions: any[] = []             // Room key filter options
     guestReservations: Reservation[] = []        // Guest reservations
     acutalReservation: any | null = null         // Actual guest reservation
     firstRowIndex: number = 0                    // Helper for rows
@@ -382,11 +381,6 @@ export class GuestComponent implements OnInit {
         this.prepaidOptions = [
             { name: 'Igen', value: 'true' },
             { name: 'Nem', value: 'false' }
-        ]
-
-        this.roomKeyFilterOptions = [
-            { name: 'Igen', value: '1' },
-            { name: 'Nem', value: '0' }
         ]
 
         this.isFormValid$ = this.formChanges$.pipe(

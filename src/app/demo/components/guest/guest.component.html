@@ -1116,16 +1116,13 @@
 
                 <!-- roomKeyIssued -->
                 <div class="field mb-4 col-12 lg:col-4">
-                    <label for="roomKeyIssued" class="font-medium text-900">Szobakulcsot kapott?</label>
-                    <p-dropdown
-                        formControlName="roomKeyIssued"
-                        [options]="roomKeyFilterOptions"
-                        optionLabel="name"
-                        optionValue="value"
-                        placeholder="Válassz..."
+                    <label for="roomKeyIssued" class="font-medium text-900">Szobakulcs státusz</label>
+                    <app-roomkey-selector
+                        [parentForm]="dialogFiltersForm"
+                        controlName="roomKeyIssued"
                         [showClear]="true"
-                        (onChange)="onFilter($event, 'roomKeyIssued')">
-                    </p-dropdown>
+                        (change)="onFilter($event, 'roomKeyIssued')">
+                    </app-roomkey-selector>
                 </div>
             </form>
 
