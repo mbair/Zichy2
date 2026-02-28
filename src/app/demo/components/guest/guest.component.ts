@@ -52,7 +52,7 @@ export class GuestComponent implements OnInit {
     sortField: string = ''                       // Current sort field
     sortOrder: number = 1                        // Current sort order
     globalFilter: string = ''                    // Global filter
-    filterValues: { [key: string]: string } = {} // Table filter conditions
+    filterValues: { [key: string]: any } = {}    // Table filter conditions
     rfidFilterValue: any                         // Store for RFID filter value
     prepaidFilterValue: any                      // Store for Prepaid filter value
     debounce: { [key: string]: any } = {}        // Search delay in filter field
@@ -464,9 +464,7 @@ export class GuestComponent implements OnInit {
                 // build search + noConference query and use get()
                 const qp: string[] = [`search=${encodeURIComponent(searchValue)}`, 'noConference=1']
                 // include any other active table filters
-                const extraFilters = Object.keys(this.filterValues)
-                    .map(key => this.filterValues[key]?.length > 0 ? `${key}=${this.filterValues[key]}` : '')
-                    .filter(x => x.length > 0)
+                const extraFilters = this.buildActiveFilterParams()
                 qp.push(...extraFilters)
 
                 return this.guestService.get(
@@ -544,9 +542,7 @@ export class GuestComponent implements OnInit {
         this.loading = true
 
         // build base filters from table filters
-        const filters = Object.keys(this.filterValues)
-            .map(key => this.filterValues[key]?.length > 0 ? `${key}=${this.filterValues[key]}` : '')
-            .filter(x => x.length > 0)
+        const filters = this.buildActiveFilterParams()
 
         // translate conference selection to API params
         const ids = this.selectedConferences
@@ -596,7 +592,7 @@ export class GuestComponent implements OnInit {
         // Organizer need select conference
         if (this.isOrganizer && !this.selectedConferences) return
 
-        const noWaitFields = ['diet', 'lastRfidUsage', 'dateOfArrival', 'dateOfDeparture', 'prepaid', 'roomKeyIssued']
+        const noWaitFields = ['diet', 'lastRfidUsage', 'dateOfArrival', 'dateOfDeparture', 'prepaid', 'roomKeyIssued', 'payment']
         let filterValue = ''
 
         // Calendar date as String
@@ -634,6 +630,19 @@ export class GuestComponent implements OnInit {
                 }
             }, 500)
         }
+    }
+
+    private hasActiveFilterValue(value: any): boolean {
+        if (value === null || value === undefined) return false
+        if (typeof value === 'string') return value.trim().length > 0
+        if (Array.isArray(value)) return value.length > 0
+        return true
+    }
+
+    private buildActiveFilterParams(): string[] {
+        return Object.keys(this.filterValues)
+            .filter((key) => this.hasActiveFilterValue(this.filterValues[key]))
+            .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(String(this.filterValues[key]))}`)
     }
 
     /**
