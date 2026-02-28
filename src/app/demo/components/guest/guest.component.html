@@ -284,9 +284,10 @@
                         </td>
                         <td>
                             <div class="flex">
-                                <button pButton pRipple icon="pi pi-tags" class="p-button-rounded p-button-success mr-2" (click)="assignTag(guest)" [disabled]="!canAssign"></button>
-                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(guest)" [disabled]="!canEdit"></button>
-                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = guest; deleteDialog = true" [disabled]="!canDelete"></button>
+                                <button pButton pRipple icon="pi pi-tags" class="p-button-rounded p-button-success mr-2" (click)="assignTag(guest)" [disabled]="!canAssign" pTooltip="NFC címke vendéghez rendelés" tooltipPosition="top"></button>
+                                <button pButton pRipple icon="pi pi-key" class="p-button-rounded p-button-success mr-2" (click)="openRoomKeyDialog(guest)" pTooltip="Szobakulcs státusz és kezelés" tooltipPosition="top"></button>
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(guest)" [disabled]="!canEdit" pTooltip="Vendég szerkesztés" tooltipPosition="top"></button>
+                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = guest; deleteDialog = true" [disabled]="!canDelete" pTooltip="Vendég törlés" tooltipPosition="top"></button>
                             </div>
                         </td>
                     </tr>
@@ -869,10 +870,6 @@
                 <div class="text-center">
                     <button pButton pRipple label="Címke visszavétel" icon="pi pi-trash" class="p-button-danger" (click)="unAssignTag()" [disabled]="!guest?.rfid?.length"></button>
                 </div>
-                <div class="text-center mt-3 flex justify-content-center gap-2">
-                    <button pButton pRipple label="Szobakulcs kiadása" icon="pi pi-key" class="p-button-warning" (click)="issueRoomKey()" [disabled]="!canIssueRoomKey(guest)"></button>
-                    <button pButton pRipple label="Szobakulcs visszavétele" icon="pi pi-check" class="p-button-secondary" (click)="returnRoomKey()" [disabled]="!canReturnRoomKey(guest)"></button>
-                </div>
             </ng-template>
             <ng-template pTemplate="footer">
                 <div class="flex justify-content-end ap-2">
@@ -1146,22 +1143,62 @@
         </p-sidebar>
     </div>
 
-        <p-dialog [(visible)]="roomKeyDialog" [style]="{width: '420px'}" header="Szobakulcs státusz" [modal]="true">
-            <ng-template pTemplate="content">
-                <div class="mb-3">
-                    <div><strong>Vendég:</strong> {{guest?.lastName}} {{guest?.firstName}}</div>
-                    <div><strong>Státusz:</strong> {{ getRoomKeyStatusLabel(guest || {}) }}</div>
-                    <div *ngIf="guest?.roomKeyIssuedAt"><strong>Kiadva:</strong> {{guest?.roomKeyIssuedAt | date:'yyyy.MM.dd HH:mm:ss'}}</div>
-                    <div *ngIf="guest?.roomKeyReturnedAt"><strong>Visszavéve:</strong> {{guest?.roomKeyReturnedAt | date:'yyyy.MM.dd HH:mm:ss'}}</div>
-                </div>
-            </ng-template>
-            <ng-template pTemplate="footer">
-                <button pButton pRipple label="Bezárás" icon="pi pi-times" class="p-button-outlined" (click)="hideRoomKeyDialog()"></button>
-                <button pButton pRipple label="Kulcs kiadása" icon="pi pi-key" class="p-button-warning ml-2" (click)="issueRoomKey()" [disabled]="!canIssueRoomKey(guest)"></button>
-                <button pButton pRipple label="Kulcs visszavétele" icon="pi pi-check" class="p-button ml-2" (click)="returnRoomKey()" [disabled]="!canReturnRoomKey(guest)"></button>
-            </ng-template>
-        </p-dialog>
+    <!-- Room key dialog -->
+    <p-dialog [(visible)]="roomKeyDialog" [style]="{width: '420px'}" header="Szobakulcs státusz" [modal]="true">
+        <ng-template pTemplate="content">
+            <div class="surface-50 border-1 border-200 border-round p-3">
+                <div class="grid m-0 row-gap-2">
+                    <div class="col-5 text-600 font-medium py-2 border-bottom-1 border-200">
+                        <i class="pi pi-user mr-2"></i>
+                        Vendég
+                    </div>
+                    <div class="col-7 text-900 py-2 border-bottom-1 border-200">
+                        <span class="color-badge gray">
+                            <i class="pi pi-user mr-1"></i>
+                            {{guest?.lastName}} {{guest?.firstName}}
+                        </span>
+                    </div>
+                    <div class="col-5 text-600 font-medium py-2 border-bottom-1 border-200">
+                        <i class="pi pi-key mr-2"></i>
+                        Státusz
+                    </div>
+                    <div class="col-7 text-900 py-2 border-bottom-1 border-200">
+                        <span *ngIf="guest?.roomKeyReturnedAt" class="color-badge green"><i class="pi pi-sign-in mr-2"></i>{{ getRoomKeyStatusLabel(guest || {}) }}</span>
+                        <span *ngIf="!guest?.roomKeyReturnedAt && isRoomKeyCurrentlyIssued(guest)" class="color-badge orange"><i class="pi pi-sign-out mr-2"></i>{{ getRoomKeyStatusLabel(guest || {}) }}</span>
+                        <span *ngIf="!guest?.roomKeyReturnedAt && !isRoomKeyCurrentlyIssued(guest)" class="color-badge indigo"><i class="pi pi pi-times mr-2"></i>{{ getRoomKeyStatusLabel(guest || {}) }}</span>
+                    </div>
 
+                    <div class="col-5 text-600 font-medium py-2 border-bottom-1 border-200">
+                        <i class="pi pi-sign-in mr-2"></i>
+                        Kiadva
+                    </div>
+                    <div class="col-7 text-900 py-2 border-bottom-1 border-200">
+                        <span class="calendar-badge">
+                            <i class="pi pi-calendar mr-1"></i>
+                            {{ guest?.roomKeyIssuedAt ? (guest?.roomKeyIssuedAt | date:'yyyy.MM.dd HH:mm:ss') : '-' }}
+                        </span>
+                    </div>
+
+                    <div class="col-5 text-600 font-medium py-2">
+                        <i class="pi pi-sign-out mr-2"></i>
+                        Visszaadva
+                    </div>
+                    <div class="col-7 text-900 py-2">
+                        <span class="calendar-badge">
+                            <i class="pi pi-calendar mr-1"></i>
+                            {{ guest?.roomKeyReturnedAt ? (guest?.roomKeyReturnedAt | date:'yyyy.MM.dd HH:mm:ss') : '-' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="footer">
+            <div class="flex justify-content-between align-items-center w-full m-0 p-0">
+                <button pButton pRipple label="Kulcs kiadása" icon="pi pi-key" class="p-button-warning ml-0" (click)="issueRoomKey()" [disabled]="!canIssueRoomKey(guest)"></button>
+                <button pButton pRipple label="Kulcs visszavétele" icon="pi pi-sign-out" class="p-button-success mr-0" (click)="returnRoomKey()" [disabled]="!canReturnRoomKey(guest)"></button>
+            </div>
+        </ng-template>
+    </p-dialog>
 </div>
 
 <!-- Loading Overlay -->
