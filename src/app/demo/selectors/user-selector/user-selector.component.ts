@@ -15,7 +15,8 @@ import { Subscription } from 'rxjs';
             useExisting: forwardRef(() => UserSelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class UserSelectorComponent implements OnInit, OnDestroy, ControlValueAccessor {
     @Input() parentForm: FormGroup

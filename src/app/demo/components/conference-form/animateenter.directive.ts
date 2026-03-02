@@ -1,7 +1,8 @@
 import { Directive, ElementRef, OnDestroy, Renderer2, Input, OnInit, HostBinding, AfterViewInit } from '@angular/core';
 
 @Directive({
-    selector: '[animateEnter]'
+    selector: '[animateEnter]',
+    standalone: false
 })
 export class AnimateEnterDirective implements OnInit, AfterViewInit, OnDestroy {
 

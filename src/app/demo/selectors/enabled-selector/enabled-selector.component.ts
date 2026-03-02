@@ -17,7 +17,8 @@ export interface changeEvent {
             useExisting: forwardRef(() => EnabledSelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class EnabledSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

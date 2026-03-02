@@ -17,7 +17,8 @@ export interface changeEvent {
             useExisting: forwardRef(() => ReservationStatusSelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class ReservationStatusSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

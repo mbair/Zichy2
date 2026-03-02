@@ -17,7 +17,8 @@ export interface changeEvent {
             useExisting: forwardRef(() => FloorSelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class FloorSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

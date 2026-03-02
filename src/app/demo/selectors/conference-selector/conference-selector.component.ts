@@ -21,10 +21,11 @@ const NONE_OPTION: ExtendedConference = {
     templateUrl: './conference-selector.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [{
-        provide: NG_VALUE_ACCESSOR,
-        useExisting: forwardRef(() => ConferenceSelectorComponent),
-        multi: true
-    }]
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => ConferenceSelectorComponent),
+            multi: true
+        }],
+    standalone: false
 })
 export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy, ControlValueAccessor {
 

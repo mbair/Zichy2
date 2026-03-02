@@ -17,7 +17,8 @@ export interface changeEvent {
             useExisting: forwardRef(() => MealSelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class MealSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

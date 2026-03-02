@@ -13,10 +13,11 @@ export type ChangeSource = 'user' | 'auto-select-first' | 'preselect-id' | 'prog
     templateUrl: './room-selector.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [{
-        provide: NG_VALUE_ACCESSOR,
-        useExisting: forwardRef(() => RoomSelectorComponent),
-        multi: true
-    }]
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => RoomSelectorComponent),
+            multi: true
+        }],
+    standalone: false
 })
 export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, ControlValueAccessor {
 

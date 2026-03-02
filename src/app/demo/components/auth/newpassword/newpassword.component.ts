@@ -6,8 +6,9 @@ import { passwordMatchValidator } from 'src/app/demo/utils/password-match-valida
 
 @Component({
     selector: 'newpassword',
-	templateUrl: './newpassword.component.html',
+    templateUrl: './newpassword.component.html',
     providers: [MessageService],
+    standalone: false
 })
 
 export class NewPasswordComponent {

@@ -2,7 +2,8 @@ import {  Directive, ElementRef, OnDestroy, Renderer2, Input, OnInit, HostBindin
 
 @Directive({
     // eslint-disable-next-line @angular-eslint/directive-selector
-    selector: '[animateEnter]'
+    selector: '[animateEnter]',
+    standalone: false
 })
 export class AnimateEnterDirective implements OnInit, AfterViewInit, OnDestroy {
 

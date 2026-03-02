@@ -7,6 +7,7 @@ import { emailDomainValidator } from 'src/app/demo/utils/email-validator';
 @Component({
     templateUrl: './forgotpassword.component.html',
     providers: [MessageService],
+    standalone: false
 })
 export class ForgotPasswordComponent {
 

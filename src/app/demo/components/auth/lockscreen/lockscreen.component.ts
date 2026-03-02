@@ -6,7 +6,8 @@ import { AuthService } from 'src/app/demo/service/auth.service';
 
 @Component({
     templateUrl: './lockscreen.component.html',
-	providers: [MessageService],
+    providers: [MessageService],
+    standalone: false
 })
 export class LockScreenComponent { 
 

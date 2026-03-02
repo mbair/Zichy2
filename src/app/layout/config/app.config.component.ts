@@ -4,7 +4,8 @@ import { ColorScheme, LayoutService, MenuColorScheme, MenuMode } from '../servic
 
 @Component({
     selector: 'app-config',
-    templateUrl: './app.config.component.html'
+    templateUrl: './app.config.component.html',
+    standalone: false
 })
 export class AppConfigComponent implements OnInit {
 

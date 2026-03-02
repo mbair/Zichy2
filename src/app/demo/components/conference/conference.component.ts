@@ -27,7 +27,8 @@ type Option = { label: string; value: string }
 @Component({
     selector: 'conference',
     templateUrl: './conference.component.html',
-    providers: [MessageService]
+    providers: [MessageService],
+    standalone: false
 })
 
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy

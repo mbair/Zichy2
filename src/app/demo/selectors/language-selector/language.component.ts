@@ -4,7 +4,8 @@ import { Language } from '../../api/language';
 
 @Component({
     selector: 'app-language-selector',
-    templateUrl: './language-selector.component.html'
+    templateUrl: './language-selector.component.html',
+    standalone: false
 })
 export class LanguageSelectorComponent {
     

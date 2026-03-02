@@ -5,10 +5,11 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     selector: 'app-yes-no-selector',
     templateUrl: './yes-no-selector.component.html',
     providers: [{
-        provide: NG_VALUE_ACCESSOR,
-        useExisting: forwardRef(() => YesNoSelectorComponent),
-        multi: true
-    }]
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => YesNoSelectorComponent),
+            multi: true
+        }],
+    standalone: false
 })
 export class YesNoSelectorComponent implements ControlValueAccessor {
     @Input() yesText: string = 'Igen'

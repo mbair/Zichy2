@@ -20,6 +20,7 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { MessagesModule } from 'primeng/messages';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
 import { TranslateModule } from '@ngx-translate/core';
@@ -50,6 +51,7 @@ import { WidgetModule } from '../../widget/widget.module';
         AppConfigModule,
         TagModule,
         ToastModule,
+        MessagesModule,
         TooltipModule,
         DialogModule,
         TranslateModule,

@@ -6,7 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { DropdownModule } from 'primeng/dropdown';
 import { FileUploadModule } from 'primeng/fileupload';
-import { InputTextareaModule } from 'primeng/inputtextarea';
+import { TextareaModule } from 'primeng/textarea';
 import { ProfileCreateComponent } from './profilecreate.component';
 import { ProfileCreateRoutingModule } from './profilecreate-routing.module';
 
@@ -20,7 +20,7 @@ import { ProfileCreateRoutingModule } from './profilecreate-routing.module';
 		InputTextModule,
 		DropdownModule,
 		FileUploadModule,
-		InputTextareaModule
+		TextareaModule
 	],
 	declarations: [ProfileCreateComponent]
 })

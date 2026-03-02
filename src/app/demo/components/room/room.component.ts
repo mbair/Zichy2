@@ -19,7 +19,8 @@ moment.locale('hu')
 @Component({
     selector: 'room-component',
     templateUrl: './room.component.html',
-    providers: [MessageService]
+    providers: [MessageService],
+    standalone: false
 })
 
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy

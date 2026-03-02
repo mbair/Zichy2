@@ -8,7 +8,8 @@ import { LayoutService } from './service/app.layout.service';
 
 @Component({
     selector: 'app-layout',
-    templateUrl: './app.layout.component.html'
+    templateUrl: './app.layout.component.html',
+    standalone: false
 })
 export class AppLayoutComponent implements OnDestroy {
 

@@ -17,6 +17,7 @@ const ADULT_DOSAGE_AGE_LIMIT: number = 10;  // From the age of 10, we give an ad
     templateUrl: './food-counter.component.html',
     styleUrls: ['./food-counter.component.scss'],
     providers: [MessageService],
+    standalone: false
 })
 
 

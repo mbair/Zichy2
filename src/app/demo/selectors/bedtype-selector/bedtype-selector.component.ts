@@ -17,7 +17,8 @@ export interface changeEvent {
             useExisting: forwardRef(() => BedtypeSelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class BedtypeSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

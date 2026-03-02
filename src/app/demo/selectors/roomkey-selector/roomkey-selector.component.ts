@@ -23,7 +23,8 @@ interface RoomKeyOption {
             useExisting: forwardRef(() => RoomKeySelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class RoomKeySelectorComponent implements ControlValueAccessor {
     @Input() parentForm: FormGroup

@@ -6,7 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
-import { InputTextareaModule } from 'primeng/inputtextarea';
+import { TextareaModule } from 'primeng/textarea';
 import { InputTextModule } from 'primeng/inputtext';
 import { ChartModule } from 'primeng/chart';
 import { KnobModule } from 'primeng/knob';
@@ -26,7 +26,7 @@ import { StyleClassModule } from "primeng/styleclass";
     FormsModule,
     TableModule,
     InputTextModule,
-    InputTextareaModule,
+    TextareaModule,
     ChartModule,
     RatingModule,
     KnobModule,

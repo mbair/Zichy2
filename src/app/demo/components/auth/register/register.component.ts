@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 
 @Component({
-	templateUrl: './register.component.html'
+    templateUrl: './register.component.html',
+    standalone: false
 })
 export class RegisterComponent {
 

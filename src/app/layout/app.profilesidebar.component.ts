@@ -6,7 +6,8 @@ import { LogService } from '../demo/service/log.service';
 
 @Component({
     selector: 'app-profilemenu',
-    templateUrl: './app.profilesidebar.component.html'
+    templateUrl: './app.profilesidebar.component.html',
+    standalone: false
 })
 export class AppProfileSidebarComponent {
 

@@ -23,10 +23,11 @@ type GuestGroup = {
     styleUrls: ['./guest-selector.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [{
-        provide: NG_VALUE_ACCESSOR,
-        useExisting: forwardRef(() => GuestSelectorComponent),
-        multi: true
-    }]
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => GuestSelectorComponent),
+            multi: true
+        }],
+    standalone: false
 })
 export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, ControlValueAccessor {
 

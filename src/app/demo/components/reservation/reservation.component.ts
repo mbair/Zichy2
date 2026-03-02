@@ -30,7 +30,8 @@ type SortDir = 1 | -1
 @Component({
     selector: 'reservation-component',
     templateUrl: './reservation.component.html',
-    providers: [MessageService, ConfirmationService]
+    providers: [MessageService, ConfirmationService],
+    standalone: false
 })
 
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy

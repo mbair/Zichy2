@@ -17,7 +17,8 @@ export interface changeEvent {
             useExisting: forwardRef(() => SparebedSelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class SparebedSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

@@ -14,7 +14,8 @@ import { Subscription } from 'rxjs';
             useExisting: forwardRef(() => RoleSelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class RoleSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

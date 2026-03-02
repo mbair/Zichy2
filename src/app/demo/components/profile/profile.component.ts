@@ -12,7 +12,8 @@ import { User } from '../../api/user';
 
 @Component({
     templateUrl: './profile.component.html',
-    providers: [MessageService]
+    providers: [MessageService],
+    standalone: false
 })
 
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy

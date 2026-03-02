@@ -9,6 +9,7 @@ import { LayoutService } from 'src/app/layout/service/app.layout.service';
 @Component({
     templateUrl: './login.component.html',
     providers: [MessageService],
+    standalone: false
 })
 export class LoginComponent {
 

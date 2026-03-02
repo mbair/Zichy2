@@ -25,7 +25,8 @@ interface PaymentOption {
             useExisting: forwardRef(() => PaymentSelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm!: FormGroup

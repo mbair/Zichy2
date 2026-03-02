@@ -10,7 +10,8 @@ interface MonthlyPayment {
 }
 
 @Component({
-	templateUrl: './banking.dashboard.component.html'
+    templateUrl: './banking.dashboard.component.html',
+    standalone: false
 })
 export class BankingDashboardComponent implements OnInit, OnDestroy {
 

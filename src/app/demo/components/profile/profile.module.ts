@@ -6,7 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { DropdownModule } from 'primeng/dropdown';
 import { FileUploadModule } from 'primeng/fileupload';
-import { InputTextareaModule } from 'primeng/inputtextarea';
+import { TextareaModule } from 'primeng/textarea';
 import { ProfileComponent } from './profile.component';
 import { ProfileRoutingModule } from './profile-routing.module';
 import { ToastModule } from 'primeng/toast';
@@ -27,14 +27,14 @@ import { BlockUIModule } from 'primeng/blockui';
 		InputTextModule,
 		DropdownModule,
 		FileUploadModule,
-		InputTextareaModule,
+		TextareaModule,
         FormsModule,
         ReactiveFormsModule,
         ButtonModule,
         RippleModule,
         ToastModule,
         InputTextModule,
-        InputTextareaModule,
+        TextareaModule,
         DropdownModule,
         TagModule,
         MessagesModule,

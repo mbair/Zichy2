@@ -14,7 +14,8 @@ moment.locale('hu')
 
 @Component({
     templateUrl: './diet.component.html',
-    providers: [MessageService]
+    providers: [MessageService],
+    standalone: false
 })
 
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy

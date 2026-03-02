@@ -19,7 +19,8 @@ export interface changeEvent {
             useExisting: forwardRef(() => DietSelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class DietSelectorComponent implements OnInit, OnDestroy, ControlValueAccessor {
     @Input() parentForm: FormGroup

@@ -18,7 +18,8 @@ export interface changeEvent {
             useExisting: forwardRef(() => ColorSelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class ColorSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

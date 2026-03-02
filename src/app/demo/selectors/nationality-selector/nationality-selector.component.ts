@@ -18,7 +18,8 @@ export interface changeEvent {
             useExisting: forwardRef(() => NationalitySelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class NationalitySelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

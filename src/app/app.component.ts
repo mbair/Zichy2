@@ -1,13 +1,14 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
-import { PrimeNGConfig } from 'primeng/api';
+import { PrimeNG } from 'primeng/config';
 import { TranslateService } from '@ngx-translate/core';
 
 declare const require: (path: string) => any;
 
 @Component({
     selector: 'app-root',
-    templateUrl: './app.component.html'
+    templateUrl: './app.component.html',
+    standalone: false
 })
 
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy
@@ -16,7 +17,7 @@ declare const require: (path: string) => any;
 
 export class AppComponent implements OnInit, OnDestroy {
 
-    constructor(private primengConfig: PrimeNGConfig,
+    constructor(private primengConfig: PrimeNG,
         private translateService: TranslateService) {
 
         // this language will be used as a fallback when a translation isn't found in the current language
@@ -34,7 +35,7 @@ export class AppComponent implements OnInit, OnDestroy {
             localStorage.setItem("APP_VERSION", APP_VERSION)
         }
 
-        this.primengConfig.ripple = true;
+        this.primengConfig.ripple.set(true);
 
         this.translateService.setDefaultLang('hu');
 

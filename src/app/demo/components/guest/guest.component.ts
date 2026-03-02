@@ -2,7 +2,7 @@ import { Component, OnInit, HostListener, isDevMode, ViewChild, ElementRef, Chan
 import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
-import { ConfirmationService, MenuItem, Message, MessageService } from 'primeng/api';
+import { ConfirmationService, MenuItem, MessageService, ToastMessageOptions } from 'primeng/api';
 import { HttpClient } from '@angular/common/http';
 import { FileSendEvent, FileUpload, FileUploadErrorEvent } from 'primeng/fileupload';
 import { Table } from 'primeng/table';
@@ -30,7 +30,8 @@ import { ConferenceSelectorComponent } from '../../selectors/conference-selector
 @Component({
     selector: 'guest-component',
     templateUrl: './guest.component.html',
-    providers: [MessageService, ConfirmationService]
+    providers: [MessageService, ConfirmationService],
+    standalone: false
 })
 
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy
@@ -71,8 +72,8 @@ export class GuestComponent implements OnInit {
     canAssign: boolean = false                   // User has permission to assign Tag to guest
     canImport: boolean = false                   // User has permission to import Excel
     isMobile: boolean = false                    // Mobile screen detection
-    messages: Message[] = []                     // A message used for notifications and displaying errors
-    successfulMessage: Message[] = []            // Message displayed on success
+    messages: ToastMessageOptions[] = []                     // A message used for notifications and displaying errors
+    successfulMessage: ToastMessageOptions[] = []            // Message displayed on success
     tag: Tag = {}                                // NFC tag
     tagDialog: boolean = false                   // Tag assignment popup
     roomKeyDialog: boolean = false               // Room key status popup

@@ -5,7 +5,8 @@ import { Subscription } from 'rxjs';
 
 @Component({
     templateUrl: './landing.component.html',
-    styleUrls: ['./landing.component.scss']
+    styleUrls: ['./landing.component.scss'],
+    standalone: false
 })
 export class LandingComponent implements OnDestroy {
 

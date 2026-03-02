@@ -8,7 +8,7 @@ import { emailDomainValidator } from '../../utils/email-validator';
 import { dateRangeValidator } from '../../utils/date-range-validator';
 import { zipCodeValidator } from '../../utils/zipcode-validator';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
-import { Message, MessageService } from 'primeng/api';
+import { MessageService, ToastMessageOptions } from 'primeng/api';
 import { ConferenceService } from '../../service/conference.service';
 import { AnswerService } from '../../service/answer.service';
 import { GuestService } from '../../service/guest.service';
@@ -26,6 +26,7 @@ declare let gtag: Function;
     templateUrl: './conference-form.component.html',
     styleUrls: ['./conference-form.component.scss'],
     providers: [MessageService],
+    standalone: false
 })
 
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy
@@ -46,7 +47,7 @@ export class ConferenceFormComponent implements OnInit {
     registrationEnded: boolean = false           // Registration ended
     darkMode: boolean = false                    // Dark mode
     showIdCardField: boolean = false             // IdCard field visibility
-    szepCardMessage: Message[]                   // Message for szep card payment
+    szepCardMessage: ToastMessageOptions[]                   // Message for szep card payment
     idCardTemplateVisible: boolean = false       // ID card template visible
     canFillFormAfterDeadline: boolean = false    // User has permission to fill form after deadline
     formFieldInfosMap: { [key: string]: FormFieldInfo } = {}

@@ -15,7 +15,8 @@ moment.locale('hu')
     selector: 'app-room-conference-binder',
     templateUrl: './room-conference-binder.component.html',
     styleUrls: ['./room-conference-binder.component.scss'],
-    providers: [MessageService, ConfirmationService]
+    providers: [MessageService, ConfirmationService],
+    standalone: false
 })
 export class RoomConferenceBinderComponent {
     visible: boolean = false                     // Visibility of the component

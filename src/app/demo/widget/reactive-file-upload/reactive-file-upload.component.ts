@@ -11,7 +11,8 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
             useExisting: forwardRef(() => ReactiveFileUploadComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class ReactiveFileUploadComponent implements ControlValueAccessor {
     @Input() name: string

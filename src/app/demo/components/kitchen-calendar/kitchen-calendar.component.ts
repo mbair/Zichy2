@@ -19,7 +19,8 @@ interface KitchenCalendarData {
     selector: 'kitchen-calendar-component',
     templateUrl: './kitchen-calendar.component.html',
     styleUrls: ['./kitchen-calendar.component.scss'],
-    providers: [MessageService]
+    providers: [MessageService],
+    standalone: false
 })
 
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy

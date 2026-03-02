@@ -16,6 +16,7 @@ import { CardModule } from 'primeng/card';
 import { FileUploadModule } from 'primeng/fileupload';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { ToastModule } from 'primeng/toast';
+import { MessagesModule } from 'primeng/messages';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
 
@@ -36,6 +37,7 @@ import { DialogModule } from 'primeng/dialog';
         StyleClassModule,
         AppConfigModule,
         ToastModule,
+        MessagesModule,
         TooltipModule,
         DialogModule,
     ],

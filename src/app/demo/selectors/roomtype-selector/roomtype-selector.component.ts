@@ -17,7 +17,8 @@ export interface changeEvent {
             useExisting: forwardRef(() => RoomTypeSelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

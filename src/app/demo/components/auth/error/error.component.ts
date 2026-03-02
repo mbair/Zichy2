@@ -3,7 +3,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { Language } from 'src/app/demo/api/language';
 
 @Component({
-    templateUrl: './error.component.html'
+    templateUrl: './error.component.html',
+    standalone: false
 })
 export class ErrorComponent {
 

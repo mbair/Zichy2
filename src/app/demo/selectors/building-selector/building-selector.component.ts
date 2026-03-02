@@ -17,7 +17,8 @@ export interface changeEvent {
             useExisting: forwardRef(() => BuildingSelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class BuildingSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

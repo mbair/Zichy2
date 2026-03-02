@@ -11,7 +11,7 @@ import { ToastModule } from 'primeng/toast';
 import { ToolbarModule } from 'primeng/toolbar';
 import { RatingModule } from 'primeng/rating';
 import { InputTextModule } from 'primeng/inputtext';
-import { InputTextareaModule } from 'primeng/inputtextarea';
+import { TextareaModule } from 'primeng/textarea';
 import { DropdownModule } from 'primeng/dropdown';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -28,6 +28,7 @@ import { CalendarModule } from 'primeng/calendar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { MessagesModule } from 'primeng/messages';
 import { SelectorsModule } from '../../selectors/selectors.module';
 import { WidgetModule } from '../../widget/widget.module';
 
@@ -45,7 +46,7 @@ import { WidgetModule } from '../../widget/widget.module';
         ToolbarModule,
         RatingModule,
         InputTextModule,
-        InputTextareaModule,
+        TextareaModule,
         DropdownModule,
         RadioButtonModule,
         InputNumberModule,
@@ -62,6 +63,7 @@ import { WidgetModule } from '../../widget/widget.module';
         SkeletonModule,
         SplitButtonModule,
         ConfirmDialogModule,
+        MessagesModule,
         SelectorsModule,
         WidgetModule,
     ],

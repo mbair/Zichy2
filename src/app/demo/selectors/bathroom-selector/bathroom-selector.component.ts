@@ -17,7 +17,8 @@ export interface changeEvent {
             useExisting: forwardRef(() => BathroomSelectorComponent),
             multi: true
         }
-    ]
+    ],
+    standalone: false
 })
 export class BathroomSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

@@ -30,7 +30,8 @@ interface DiffRow {
 @Component({
     templateUrl: './logs.component.html',
     styleUrls: ['./logs.component.scss'],
-    providers: [MessageService]
+    providers: [MessageService],
+    standalone: false
 })
 
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy

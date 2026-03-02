@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 
 @Component({
-    templateUrl: './verification.component.html'
+    templateUrl: './verification.component.html',
+    standalone: false
 })
 export class VerificationComponent {
 

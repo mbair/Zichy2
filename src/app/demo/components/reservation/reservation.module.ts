@@ -25,7 +25,7 @@ import { SliderModule } from 'primeng/slider';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { CalendarModule } from 'primeng/calendar';
 import { ChipModule } from 'primeng/chip';
-import { InputTextareaModule } from 'primeng/inputtextarea';
+import { TextareaModule } from 'primeng/textarea';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SelectorsModule } from '../../selectors/selectors.module';
 import { ReservationService } from '../../service/reservation.service';
@@ -59,7 +59,7 @@ import { ReservationService } from '../../service/reservation.service';
         TranslateModule,
         CalendarModule,
         ChipModule,
-        InputTextareaModule,
+        TextareaModule,
         ConfirmDialogModule
     ],
     declarations: [ReservationComponent],
