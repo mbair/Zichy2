@@ -19,7 +19,7 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { Conference, FormFieldInfo } from '../../api/conference';
 import { User } from '../../api/user';
 import { Table } from 'primeng/table';
-import * as moment from 'moment';
+import moment from 'moment';
 moment.locale('hu')
 
 type Option = { label: string; value: string }

@@ -21,7 +21,7 @@ import { Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
 import { loadXlsx } from '../../utils/xlsx-loader';
 import * as FileSaver from 'file-saver';
-import * as moment from 'moment';
+import moment from 'moment';
 moment.locale('hu')
 
 import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';

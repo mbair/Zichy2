@@ -10,7 +10,7 @@ import { ConferenceService } from 'src/app/demo/service/conference.service';
 import { GuestService } from 'src/app/demo/service/guest.service';
 import { UserService } from 'src/app/demo/service/user.service';
 import { Table } from 'primeng/table';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Conference } from 'src/app/demo/api/conference';
 import { Guest } from 'src/app/demo/api/guest';
 moment.locale('hu')

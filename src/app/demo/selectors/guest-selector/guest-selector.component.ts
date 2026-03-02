@@ -5,7 +5,7 @@ import { MultiSelect } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
 import { Guest, GuestFilter } from '../../api/guest';
 import { GuestService } from '../../service/guest.service';
-import * as moment from 'moment';
+import moment from 'moment';
 moment.locale('hu')
 
 export type ChangeSource = 'user' | 'auto-select-first' | 'preselect-id' | 'programmatic';

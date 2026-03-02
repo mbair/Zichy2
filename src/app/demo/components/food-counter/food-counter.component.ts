@@ -7,7 +7,7 @@ import { GuestService } from '../../service/guest.service';
 import { MealService } from '../../service/meal.service';
 import { LogService } from '../../service/log.service';
 import { Observable } from 'rxjs';
-import * as moment from 'moment';
+import moment from 'moment';
 moment.locale('hu')
 
 const ADULT_DOSAGE_AGE_LIMIT: number = 10;  // From the age of 10, we give an adult dose

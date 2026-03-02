@@ -15,7 +15,7 @@
             "prefix": "app",
             "architect": {
                 "build": {
-                    "builder": "@angular-devkit/build-angular:browser",
+                    "builder": "@angular-devkit/build-angular:application",
                     "options": {
                         "allowedCommonJsDependencies": [
                             "file-saver",
@@ -24,9 +24,10 @@
                             "moment-timezone",
                             "quill-delta"
                         ],
-                        "outputPath": "dist/nfc-reserve",
+                        "outputPath": {
+                          "base": "dist/nfc-reserve"
+                        },
                         "index": "src/index.html",
-                        "main": "src/main.ts",
                         "polyfills": ["zone.js"],
                         "tsConfig": "tsconfig.app.json",
                         "inlineStyleLanguage": "scss",
@@ -34,7 +35,8 @@
                         "styles": [
                             "src/styles.scss"
                         ],
-                        "scripts": []
+                        "scripts": [],
+                        "browser": "src/main.ts"
                     },
                     "configurations": {
                         "production": {
@@ -53,9 +55,7 @@
                             "outputHashing": "all"
                         },
                         "development": {
-                            "buildOptimizer": false,
-                            "optimization": false,
-                            "vendorChunk": true,
+                          "optimization": false,
                             "extractLicenses": false,
                             "sourceMap": false,
                             "namedChunks": true

@@ -10,7 +10,7 @@ import { RoleService } from '../../service/role.service';
 import { ResponsiveService } from '../../service/responsive.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { User } from '../../api/user';
-import * as moment from 'moment';
+import moment from 'moment';
 moment.locale('hu')
 
 @Component({

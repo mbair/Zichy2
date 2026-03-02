@@ -9,7 +9,7 @@ import { UserService } from '../../service/user.service';
 import { ResponsiveService } from '../../service/responsive.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Tag } from '../../api/tag';
-import * as moment from 'moment';
+import moment from 'moment';
 moment.locale('hu')
 
 @Component({

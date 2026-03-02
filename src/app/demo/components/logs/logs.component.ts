@@ -8,7 +8,7 @@ import { LogService } from 'src/app/demo/service/log.service';
 import { UserService } from '../../service/user.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Log } from '../../api/log';
-import * as moment from 'moment-timezone'
+import moment from 'moment-timezone'
 moment.locale('hu')
 
 type DiffChangeType = 'unchanged' | 'changed' | 'added' | 'removed'

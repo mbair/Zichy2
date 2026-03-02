@@ -16,7 +16,7 @@ import { UserService } from '../../service/user.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference, FormFieldInfo } from '../../api/conference';
 import { Answer } from '../../api/answer';
-import * as moment from 'moment';
+import moment from 'moment';
 
 // Google Analytics
 declare let gtag: Function;

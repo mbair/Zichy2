@@ -8,7 +8,7 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { RoomService } from '../../service/room.service';
 import { UserService } from '../../service/user.service';
 import { ConferenceService, ConferenceStatsMap } from '../../service/conference.service';
-import * as moment from 'moment';
+import moment from 'moment';
 moment.locale('hu')
 
 @Component({

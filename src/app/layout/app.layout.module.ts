@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { InputTextModule } from 'primeng/inputtext';
 import { SidebarModule } from 'primeng/sidebar';
@@ -22,8 +22,7 @@ import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 
-@NgModule({
-    declarations: [
+@NgModule({ declarations: [
         AppLayoutComponent,
         AppBreadcrumbComponent,
         AppSidebarComponent,
@@ -31,11 +30,8 @@ import { TagModule } from 'primeng/tag';
         AppProfileSidebarComponent,
         AppMenuComponent,
         AppMenuitemComponent
-    ],
-    imports: [
-        BrowserModule,
+    ], imports: [BrowserModule,
         FormsModule,
-        HttpClientModule,
         BrowserAnimationsModule,
         InputTextModule,
         SidebarModule,
@@ -47,7 +43,5 @@ import { TagModule } from 'primeng/tag';
         RippleModule,
         RouterModule,
         AppConfigModule,
-        TagModule
-    ]
-})
+        TagModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class AppLayoutModule { }

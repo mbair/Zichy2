@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
-import { HttpClientModule, HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HttpClient, HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { AppRoutingModule } from './app-routing.module';
@@ -14,14 +14,11 @@ export function HttpLoaderFactory(http: HttpClient) {
     return new TranslateHttpLoader(http, '../assets/i18n/', '.json')
 }
 
-@NgModule({
-    declarations: [
+@NgModule({ declarations: [
         AppComponent
     ],
-    imports: [
-        AppRoutingModule,
+    bootstrap: [AppComponent], imports: [AppRoutingModule,
         AppLayoutModule,
-        HttpClientModule,
         TranslateModule.forRoot({
             loader: {
                 provide: TranslateLoader,
@@ -30,14 +27,11 @@ export function HttpLoaderFactory(http: HttpClient) {
             },
             defaultLanguage: 'hu',
             useDefaultLang: true
-        })
-    ],
-    providers: [
+        })], providers: [
         ApiService,
         { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
-        { provide: LocationStrategy, useClass: HashLocationStrategy }
-    ],
-    bootstrap: [AppComponent]
-})
+        { provide: LocationStrategy, useClass: HashLocationStrategy },
+        provideHttpClient(withInterceptorsFromDi())
+    ] })
 export class AppModule { }

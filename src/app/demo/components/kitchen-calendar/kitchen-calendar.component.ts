@@ -5,7 +5,7 @@ import { MessageService } from 'primeng/api';
 import { cloneDeep, isEqual } from 'lodash';
 import { KitchenCalendarService } from '../../service/kitchen-calendar.service';
 import { ResponsiveService } from '../../service/responsive.service';
-import * as moment from 'moment';
+import moment from 'moment';
 moment.locale('hu')
 
 interface KitchenCalendarData {

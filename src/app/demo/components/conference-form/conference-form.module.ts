@@ -23,13 +23,15 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
 import { TranslateModule } from '@ngx-translate/core';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { SelectorsModule } from '../../selectors/selectors.module';
 import { WidgetModule } from '../../widget/widget.module';
 
-@NgModule({
-    imports: [
-        CommonModule,
+@NgModule({ declarations: [
+        ConferenceFormComponent,
+        AnimateEnterDirective,
+    ],
+    exports: [ConferenceFormComponent], imports: [CommonModule,
         ConferenceFormRoutingModule,
         FormsModule,
         ReactiveFormsModule,
@@ -50,15 +52,7 @@ import { WidgetModule } from '../../widget/widget.module';
         ToastModule,
         TooltipModule,
         DialogModule,
-        HttpClientModule,
         TranslateModule,
         SelectorsModule,
-        WidgetModule,
-    ],
-    declarations: [
-        ConferenceFormComponent,
-        AnimateEnterDirective,
-    ],
-    exports: [ConferenceFormComponent]
-})
+        WidgetModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class ConferenceFormModule { }

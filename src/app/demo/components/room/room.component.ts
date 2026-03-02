@@ -13,7 +13,7 @@ import { Conference } from '../../api/conference';
 import { Room } from '../../api/room';
 import { loadXlsx } from '../../utils/xlsx-loader';
 import * as FileSaver from 'file-saver';
-import * as moment from 'moment';
+import moment from 'moment';
 moment.locale('hu')
 
 @Component({
