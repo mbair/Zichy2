@@ -1,9 +1,10 @@
 {
   "name": "nfc-reserve",
-  "version": "1.15.36",
+  "version": "1.15.37",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:fast": "ng serve --configuration development --hmr",
     "build": "ng build && ng build --output-path docs --base-href /Zichy2/ --configuration production && git add .",
     "watch": "ng build --watch --configuration development",
     "dev": "ng serve --ssl --ssl-cert ./localSslCertificate/server.crt --ssl-key ./localSslCertificate/server.key --open --host 0.0.0.0 --disable-host-check",
@@ -15,7 +16,7 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "^17.3.12",
-    "@angular/cdk": "^16.1.0",
+    "@angular/cdk": "^17.3.10",
     "@angular/common": "^17.3.12",
     "@angular/compiler": "^17.3.12",
     "@angular/core": "^17.3.12",
