@@ -11,6 +11,7 @@ import { ConferenceService } from '../../service/conference.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Room } from '../../api/room';
+import { loadXlsx } from '../../utils/xlsx-loader';
 import * as FileSaver from 'file-saver';
 import * as moment from 'moment';
 moment.locale('hu')
@@ -373,7 +374,7 @@ export class RoomComponent implements OnInit {
      * @export
      */
     exportExcel() {
-        import("xlsx").then(xlsx => {
+        loadXlsx().then(xlsx => {
             // Hungarian header
             const headerMap = [
                 { key: 'roomNum', label: 'Szoba-szám' },

@@ -19,6 +19,7 @@ import { Room, RoomFilter } from '../../api/room';
 import { Guest, GuestFilter } from '../../api/guest';
 import { dateRangeValidator } from '../../utils/date-range-validator';
 import { distinctByIds } from '../../utils/rx-ops';
+import { loadXlsx } from '../../utils/xlsx-loader';
 import { ChangeSource, ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
 import * as FileSaver from 'file-saver';
 import * as moment from 'moment';
@@ -1239,7 +1240,7 @@ export class ReservationComponent implements OnInit {
      * @export
      */
     exportExcel() {
-        import("xlsx").then(xlsx => {
+        loadXlsx().then(xlsx => {
             // Hungarian header
             const headerMap = [
                 { key: 'reservationNum', label: 'Szoba-szám' },

@@ -19,6 +19,7 @@ import { Reservation } from '../../api/reservation';
 import { Conference } from '../../api/conference';
 import { Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
+import { loadXlsx } from '../../utils/xlsx-loader';
 import * as FileSaver from 'file-saver';
 import * as moment from 'moment';
 moment.locale('hu')
@@ -1395,7 +1396,7 @@ export class GuestComponent implements OnInit {
      * @export
      */
     exportExcel() {
-        import("xlsx").then(xlsx => {
+        loadXlsx().then(xlsx => {
             let data = this.selected.map(row => {
                 // Remove id column and keep the rest columns
                 const { id, answers, ...rest } = row
@@ -1538,7 +1539,7 @@ export class GuestComponent implements OnInit {
     }
 
     downloadImportTemplate() {
-        import("xlsx").then(xlsx => {
+        loadXlsx().then(xlsx => {
             const INCLUDED_COLUMNS = [
                 'firstName',
                 'lastName',
