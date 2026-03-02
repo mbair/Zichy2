@@ -27,7 +27,9 @@ export interface Guest {
     email?: string;
     telephone?: string;
     roomType?: string;
-    payment?: string;
+    payment?: string | number | null;
+    paymentName?: string;
+    paymentMethodName?: string;
     babyBed?: boolean;
     roomMate?: string;
     idcard?: string;
