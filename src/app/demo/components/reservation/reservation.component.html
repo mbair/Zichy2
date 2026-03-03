@@ -31,7 +31,7 @@
                                 [showClear]="true"
                                 [style]="{'minWidth': '35rem'}"
                                 placeholder="Válasszon konferenciát..."
-                                (ngModelChange)="doQuery()">
+                                (change)="onConfChange($event)">
                             </app-conference-selector>
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
@@ -339,7 +339,7 @@
             [(visible)]="sidebar" 
             position="right" 
             styleClass="p-sidebar-md"
-            [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
+            [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
             [fullScreen]="isMobile"
             [blockScroll]="true"
             (onHide)="onSidebarHide()"
@@ -527,7 +527,7 @@
 </div>
 
 <!-- Loading Overlay -->
-<p-blockUI [autoZIndex]="true" [blocked]="loading">
+<p-blockUI *ngIf="loading" [autoZIndex]="true" [blocked]="true">
     <p-progressSpinner></p-progressSpinner>
 </p-blockUI>
 

@@ -1,5 +1,5 @@
 <!-- Selected guests as chips above the selector -->
-<div class="flex flex-wrap gap-2 mb-2" *ngIf="selectedGuests?.length">
+<div class="flex flex-wrap gap-2 mb-2" *ngIf="selectedGuests.length">
     <p-chip *ngFor="let g of selectedGuests; trackBy: trackByGuestId" [label]="g.lastName + ' ' + g.firstName"
         icon="pi pi-user" [removable]="true"
         [styleClass]="'cursor-pointer color-badge ' + getColorByRoomType(g?.roomType || '')" pTooltip="{{ g.roomMate }}"

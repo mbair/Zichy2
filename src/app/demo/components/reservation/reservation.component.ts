@@ -42,7 +42,7 @@ export class ReservationComponent implements OnInit {
     @ViewChild(ConferenceSelectorComponent) conferenceSelector!: ConferenceSelectorComponent;
     conferenceSelectorComponent!: ConferenceSelectorComponent;
 
-    loading: boolean = true                      // Loading overlay trigger value
+    loading: boolean = false                     // Loading overlay trigger value
     tableItem: Reservation = {}                  // One reservation object
     tableData: Reservation[] = []                // Data set displayed in a table
     rowsPerPageOptions = [20, 50, 100, 200]      // Possible rows per page
@@ -131,6 +131,27 @@ export class ReservationComponent implements OnInit {
     private formChanges$: Subject<void> = new Subject()
     private serviceMessageObs$: Observable<any> | undefined
     private conferenceMessageObs$: Observable<any> | undefined
+    private loadingFailSafeTimer: ReturnType<typeof setTimeout> | null = null
+
+    private deferUiUpdate(fn: () => void): void {
+        setTimeout(() => {
+            requestAnimationFrame(() => fn())
+        })
+    }
+
+    private setLoading(value: boolean): void {
+        this.loading = value
+        if (this.loadingFailSafeTimer) {
+            clearTimeout(this.loadingFailSafeTimer)
+            this.loadingFailSafeTimer = null
+        }
+        if (value) {
+            this.loadingFailSafeTimer = setTimeout(() => {
+                this.loading = false
+                this.loadingFailSafeTimer = null
+            }, 15000)
+        }
+    }
 
     constructor(
         private reservationService: ReservationService,
@@ -179,7 +200,7 @@ export class ReservationComponent implements OnInit {
             distinctUntilChanged((prev, curr) => !curr.force && prev.key === curr.key),
             auditTime(50),
             switchMap(() => {
-                this.loading = true
+                this.setLoading(true)
 
                 this.filterValues['conference_id'] =
                     (this.selectedConferences ?? []).map(x => x.id).join(',')
@@ -199,18 +220,22 @@ export class ReservationComponent implements OnInit {
             })
         ).subscribe({
             next: (data: ApiResponse) => {
-                this.loading = false
-                this.tableData = data?.rows ?? []
-                this.totalRecords = data?.totalItems ?? 0
-                this.page = data?.currentPage ?? 0
-                this.totalBeds = data?.summary?.totalBeds ?? 0
-                this.registeredGuests = data?.summary?.registeredGuests ?? 0
-                this.reservedGuests = data?.summary?.reservedGuests ?? 0
-                this.waitingForRoom = data?.summary?.waitingForRoom ?? 0
+                this.deferUiUpdate(() => {
+                    this.setLoading(false)
+                    this.tableData = data?.rows ?? []
+                    this.totalRecords = data?.totalItems ?? 0
+                    this.page = data?.currentPage ?? 0
+                    this.totalBeds = data?.summary?.totalBeds ?? 0
+                    this.registeredGuests = data?.summary?.registeredGuests ?? 0
+                    this.reservedGuests = data?.summary?.reservedGuests ?? 0
+                    this.waitingForRoom = data?.summary?.waitingForRoom ?? 0
+                })
             },
             error: () => {
-                this.loading = false
-                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Hiba történt!' })
+                this.deferUiUpdate(() => {
+                    this.setLoading(false)
+                    this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Hiba történt!' })
+                })
             }
         })
 
@@ -536,12 +561,18 @@ export class ReservationComponent implements OnInit {
     doQuery(force: boolean = false) {
         // Don't query if there is no conference selected
         if (!this.selectedConferences?.length) {
-            this.tableData = []
-            this.totalRecords = 0
-            this.loading = false
+            this.deferUiUpdate(() => {
+                this.tableData = []
+                this.totalRecords = 0
+                this.setLoading(false)
+            })
             return
         }
         this.query$.next({ force })
+    }
+
+    onConferenceSelectionChange(): void {
+        this.deferUiUpdate(() => this.doQuery())
     }
 
     /**
@@ -1005,7 +1036,7 @@ export class ReservationComponent implements OnInit {
      * Delete the Reservation
      */
     delete() {
-        this.loading = true
+        this.setLoading(true)
         this.deleteDialog = false
         this.reservationService.delete(this.tableItem)
     }
@@ -1014,7 +1045,7 @@ export class ReservationComponent implements OnInit {
      * Delete selected Reservations
      */
     deleteSelected() {
-        this.loading = true
+        this.setLoading(true)
         this.bulkDeleteDialog = false
         this.reservationService.bulkdelete(this.selected)
     }
@@ -1068,7 +1099,7 @@ export class ReservationComponent implements OnInit {
             }
         }
 
-        this.loading = true
+        this.setLoading(true)
 
         const v = this.reservationForm.value
 
@@ -1126,7 +1157,7 @@ export class ReservationComponent implements OnInit {
      */
     handleMessage(message: any) {
         if (!message) return
-        this.loading = false
+        this.setLoading(false)
 
         if (message == 'ERROR' || message?.severity === 'error') {
             this.messageService.add({
@@ -1152,12 +1183,16 @@ export class ReservationComponent implements OnInit {
     }
 
     onConfChange(e: { value: Conference[]; source: ChangeSource }) {
-        this.selectedConferences = e.value;
-        // Csak a számodra értelmes forrásokra kérdezz le:
-        if (e.source === 'user' || e.source === 'auto-select-first') {
-            this.tableData = [];
-            this.doQuery();
-        }
+        // Keep updates out of the current CD cycle.
+        this.deferUiUpdate(() => {
+            this.selectedConferences = e.value
+
+            // Csak a számodra értelmes forrásokra kérdezz le:
+            if (e.source === 'user' || e.source === 'auto-select-first') {
+                this.tableData = []
+                this.doQuery()
+            }
+        })
     }
 
     // Get Age by birthdate

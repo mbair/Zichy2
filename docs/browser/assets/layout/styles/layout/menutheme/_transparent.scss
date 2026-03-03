@@ -1,3 +1,5 @@
+@use '../_sass_variables' as *;
+
 .layout-transparent-menu {
     --logo-color: var(--primary-color);
     --menu-bg: var(--surface-overlay);
@@ -11,7 +13,7 @@
 }
 
 @media screen and (min-width: $breakpoint) {
-    .layout-container.layout-transparent-menu {
+    .layout-transparent-menu {
         &.layout-static,
         &.layout-slim,
         &.layout-slim-plus,

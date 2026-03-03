@@ -43,7 +43,7 @@
                             <div class="col-12 lg:col-12 pb-0">
 
                                 <!-- SYSTEM MESSAGE -->
-                                <p-message></p-message>
+                                <p-message [closable]="false"></p-message>
 
                                 <!-- Show registration form if registration is not ended -->
                                 <div *ngIf="showForm && (!registrationEnded || (registrationEnded && canFillFormAfterDeadline))">
@@ -549,7 +549,7 @@
 
                                         <!-- Figyelmeztetés SZÉP kártyás fizetés esetén -->
                                         <div *ngIf="payment?.value === 2" class="field mb-4 col-12">
-                                            <p-message></p-message>
+                                            <p-message [closable]="false"></p-message>
                                         </div>
 
                                         <!-- Extra kérdések -->
@@ -606,7 +606,7 @@
                                                     target="_blank">
                                                     {{'ZVKK Adatvédelmi Nyilatkozatot' | translate }}
                                                 </a> 
-                                                <span *ngIf="conference?.acceptanceCriteriaUrl?.length">
+                                                <span *ngIf="conference.acceptanceCriteriaUrl?.length">
                                                     {{'és az' | translate }}
                                                     <a class="cursor-pointer text-primary-700 "
                                                         [href]="conference.acceptanceCriteriaUrl"

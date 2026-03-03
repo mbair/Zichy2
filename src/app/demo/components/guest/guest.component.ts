@@ -44,7 +44,7 @@ export class GuestComponent implements OnInit {
     @ViewChild('dt') table!: Table;
 
     apiURL: string                               // API URL depending on whether we are working on test or production
-    loading: boolean = true                      // Loading overlay trigger value
+    loading: boolean = false                     // Loading overlay trigger value
     tableItem: Guest | null = null               // One guest object
     tableData: Guest[] = []                      // Data set displayed in a table
     rowsPerPageOptions = [20, 50, 100, 9999]     // Possible rows per page
@@ -154,6 +154,22 @@ export class GuestComponent implements OnInit {
     private guestObs$: Observable<any> | undefined
     private genderObs$: Observable<any> | undefined
     private messageObs$: Observable<any> | undefined
+    private loadingFailSafeTimer: ReturnType<typeof setTimeout> | null = null
+
+    private setLoading(value: boolean): void {
+        this.loading = value
+        if (this.loadingFailSafeTimer) {
+            clearTimeout(this.loadingFailSafeTimer)
+            this.loadingFailSafeTimer = null
+        }
+        if (value) {
+            // Safety net: never keep full-page overlay forever on unexpected code paths.
+            this.loadingFailSafeTimer = setTimeout(() => {
+                this.loading = false
+                this.loadingFailSafeTimer = null
+            }, 15000)
+        }
+    }
 
     constructor(private http: HttpClient,
         private guestService: GuestService,
@@ -262,12 +278,31 @@ export class GuestComponent implements OnInit {
         this.apiURL = this.guestService.apiURL
 
         // Permissions
-        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canCreate => this.canCreate = canCreate)
-        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo']).subscribe(canEdit => { this.canEditByRole = canEdit; this.recomputeCanEdit() })
-        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canDelete => this.canDelete = canDelete)
-        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canAssign => this.canAssign = canAssign)
-        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canImport => this.canImport = canImport)
-        this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => { this.isOrganizer = isOrganizer; this.recomputeCanEdit() })
+        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canCreate => {
+            setTimeout(() => this.canCreate = canCreate)
+        })
+        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo']).subscribe(canEdit => {
+            setTimeout(() => {
+                this.canEditByRole = canEdit
+                this.recomputeCanEdit()
+            })
+        })
+        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canDelete => {
+            setTimeout(() => this.canDelete = canDelete)
+        })
+        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canAssign => {
+            setTimeout(() => this.canAssign = canAssign)
+        })
+        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canImport => {
+            setTimeout(() => this.canImport = canImport)
+        })
+        this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => {
+            // Avoid NG0100 on initial render for bindings using !isOrganizer
+            setTimeout(() => {
+                this.isOrganizer = isOrganizer
+                this.recomputeCanEdit()
+            })
+        })
 
         this.selectionChanges$
             .pipe(
@@ -279,7 +314,7 @@ export class GuestComponent implements OnInit {
         // Guests
         this.guestObs$ = this.guestService.guestObs
         this.guestObs$.subscribe((data: ApiResponse) => {
-            this.loading = false
+            this.setLoading(false)
             if (data && data.rows) {
                 // Filter out test users on production
                 let rows = data.rows || []
@@ -359,7 +394,7 @@ export class GuestComponent implements OnInit {
         // Message
         this.messageObs$ = this.guestService.messageObs;
         this.messageObs$.subscribe((data) => {
-            this.loading = false;
+            this.setLoading(false);
             if (data == 'ERROR') {
                 this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Hiba történt!' });
             } else {
@@ -449,7 +484,7 @@ export class GuestComponent implements OnInit {
             }
 
             // Conditions met, perform the search
-            this.loading = true
+            this.setLoading(true)
 
             // same ID handling as in doQuery
             const ids = this.selectedConferences
@@ -535,7 +570,7 @@ export class GuestComponent implements OnInit {
         // Organizer need select conference
         if (this.isOrganizer && !this.selectedConferences.length) return
 
-        this.loading = true
+        this.setLoading(true)
 
         // build base filters from table filters
         const filters = this.buildActiveFilterParams()
@@ -748,7 +783,7 @@ export class GuestComponent implements OnInit {
      */
     delete() {
         if (!this.tableItem) return
-        this.loading = true
+        this.setLoading(true)
         this.deleteDialog = false
         this.guestService.delete(this.tableItem)
         setTimeout(() => this.doQuery(), 200)
@@ -758,7 +793,7 @@ export class GuestComponent implements OnInit {
      * Delete selected Guests
      */
     deleteSelected() {
-        this.loading = true
+        this.setLoading(true)
         this.bulkDeleteDialog = false
         this.guestService.bulkdelete(this.selected)
         setTimeout(() => this.doQuery(), 200)
@@ -781,7 +816,7 @@ export class GuestComponent implements OnInit {
      */
     save() {
         if (this.guestForm.valid) {
-            this.loading = true
+            this.setLoading(true)
             const formValues = this.guestForm.value
 
             // ID Card kezelés
@@ -1123,7 +1158,7 @@ export class GuestComponent implements OnInit {
      * @param event
      */
     onSend(event: FileSendEvent) {
-        this.loading = true
+        this.setLoading(true)
     }
 
     /**
@@ -1131,7 +1166,7 @@ export class GuestComponent implements OnInit {
      * @param event
      */
     onExcelUploadError(event: FileUploadErrorEvent, fileUpload: FileUpload) {
-        this.loading = false
+        this.setLoading(false)
         this.messageService.add({
             severity: 'error',
             summary: 'Hibás Excel!',
@@ -1156,7 +1191,7 @@ export class GuestComponent implements OnInit {
      * @param event
      */
     onExcelUpload(event: any) {  // Files were missing from UploadEvent, although they are included
-        this.loading = false
+        this.setLoading(false)
         this.doQuery()
         this.messageService.add({
             severity: 'success',
@@ -1378,16 +1413,19 @@ export class GuestComponent implements OnInit {
      * @param selectedConferences 
      */
     onConferenceSelectionChange(selectedConferences: Conference[]): void {
-        this.selectedConferences = selectedConferences || []
-        this.noConferenceMode = this.isNoneConferenceSelected(this.selectedConferences)
+        // PrimeNG selector can emit during initial CD pass; defer state mutation
+        // to avoid ExpressionChangedAfterItHasBeenCheckedError in Angular 21.
+        setTimeout(() => {
+            this.selectedConferences = selectedConferences || []
+            this.noConferenceMode = this.isNoneConferenceSelected(this.selectedConferences)
 
-        // Do NOT push the sentinel text into query params
-        // We control conference filtering via noConference / conferenceIds
-        delete this.filterValues['conferenceName']
+            // Do NOT push the sentinel text into query params
+            // We control conference filtering via noConference / conferenceIds
+            delete this.filterValues['conferenceName']
 
-        this.recomputeCanEdit()
-
-        this.selectionChanges$.next(this.selectedConferences)
+            this.recomputeCanEdit()
+            this.selectionChanges$.next(this.selectedConferences)
+        })
     }
 
     /**

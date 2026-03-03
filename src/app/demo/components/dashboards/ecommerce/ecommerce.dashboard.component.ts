@@ -89,36 +89,42 @@ export class EcommerceDashboardComponent implements OnInit {
     ngOnInit(): void {
         // User Role
         this.userService.getUserRole().subscribe(role => {
-            this.userRole = role
-            console.log('Updated userRole', this.userRole)
+            setTimeout(() => {
+                this.userRole = role
+                console.log('Updated userRole', this.userRole)
+            })
         })
 
         // Dashboard Informations
         this.dashboardObs$ = this.dashboardService.dashboardObs;
         this.dashboardObs$.subscribe((data: any) => {
-            this.loading = false
-            if (data) {
-                this.conferences = data.conferences
-                this.guests = data.guests
-                this.rooms.active = 106 // Temporary solution (its not yet stored in DB)
-                this.tags = data.tags
+            setTimeout(() => {
+                this.loading = false
+                if (data) {
+                    this.conferences = data.conferences
+                    this.guests = data.guests
+                    this.rooms.active = 106 // Temporary solution (its not yet stored in DB)
+                    this.tags = data.tags
 
-                let rfidPercentage = (data.tags.used / data.tags.active) * 100
-                this.rfidPercentage = Number(rfidPercentage.toFixed(0))
+                    let rfidPercentage = (data.tags.used / data.tags.active) * 100
+                    this.rfidPercentage = Number(rfidPercentage.toFixed(0))
 
-                this.adults = Number(this.guests.guestsAge[0].adults)
-                this.childrens = parseFloat(this.guests.guestsAge[0].childrens)
-                this.initCharts()
-            }
+                    this.adults = Number(this.guests.guestsAge[0].adults)
+                    this.childrens = parseFloat(this.guests.guestsAge[0].childrens)
+                    this.initCharts()
+                }
+            })
         })
         this.dashboardService.getInformations()
 
         // Conferences
         this.conferenceObs$ = this.conferenceService.conferenceObs;
         this.conferenceObs$.subscribe((data: any) => {
-            if (data && data.rows) {
-                this.conferenceData = data.rows[0]
-            }
+            setTimeout(() => {
+                if (data && data.rows) {
+                    this.conferenceData = data.rows[0]
+                }
+            })
         })
 
         // Tasks
@@ -313,17 +319,21 @@ export class EcommerceDashboardComponent implements OnInit {
 
     onConferenceChange(selectedConfs: Conference[]): void {
         console.log('Selected conference:', selectedConfs);
+        setTimeout(() => {
             this.selectedConference = selectedConfs[0];
             const conferenceName = this.selectedConference?.name;
 
-        if (conferenceName) { // Ensure conferenceName is defined
-            this.guestService.getByConferenceName(conferenceName).subscribe((guests: any) => {
-                this.conferenceGuests = guests.rows || [];
-                this.prepaidPercentage = Math.round((this.prepaid / this.registrations) * 100) || 0
-            })
-        } else {
-            console.error('Conference name is undefined');
-        }
+            if (conferenceName) { // Ensure conferenceName is defined
+                this.guestService.getByConferenceName(conferenceName).subscribe((guests: any) => {
+                    setTimeout(() => {
+                        this.conferenceGuests = guests.rows || [];
+                        this.prepaidPercentage = Math.round((this.prepaid / this.registrations) * 100) || 0
+                    })
+                })
+            } else {
+                console.error('Conference name is undefined');
+            }
+        })
     }
 
     /**

@@ -1,3 +1,12 @@
+.layout-config-sidebar {
+    &.p-sidebar {
+        .p-sidebar-content {
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+    }
+}
+
 .layout-config-button {
     display: block;
     position: fixed;
@@ -18,7 +27,18 @@
     overflow: hidden;
     cursor: pointer;
     z-index: 999;
-    box-shadow: -.25rem 0 1rem rgba(0,0,0,.15);
+    box-shadow: -0.25rem 0 1rem rgba(0, 0, 0, 0.15);
+
+    &.config-link {
+        font-size: 1rem;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+        border: none;
+    }
+    .config-link:focus {
+        outline: 0 none;
+        outline-offset: 0;
+        box-shadow: 0 0 0 1px var(--focus-ring--shadow);
+    }
 
     i {
         font-size: 2rem;
@@ -28,15 +48,6 @@
     }
 
     &:hover {
-        background: var(--primary-400);
-    }
-}
-
-.layout-config-sidebar {
-    &.p-sidebar {
-        .p-sidebar-content {
-            padding-left: 2rem;
-            padding-right: 2rem;
-        }
+        background: var(--p-primary-400);
     }
 }
