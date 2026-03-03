@@ -12,16 +12,16 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { RatingModule } from 'primeng/rating';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
-import { MessagesModule } from 'primeng/messages';
+import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { PasswordModule } from 'primeng/password';
-import { SidebarModule } from 'primeng/sidebar';
+import { DrawerModule } from 'primeng/drawer';
 import { SelectorsModule } from '../../selectors/selectors.module';
 import { UserService } from '../../service/user.service';
 
@@ -40,16 +40,16 @@ import { UserService } from '../../service/user.service';
         RatingModule,
         InputTextModule,
         TextareaModule,
-        DropdownModule,
+        SelectModule,
         RadioButtonModule,
         InputNumberModule,
         DialogModule,
         TagModule,
-        MessagesModule,
+        MessageModule,
         ProgressSpinnerModule,
         BlockUIModule,
         PasswordModule,
-        SidebarModule,
+        DrawerModule,
         SelectorsModule,
     ],
     declarations: [UserComponent],

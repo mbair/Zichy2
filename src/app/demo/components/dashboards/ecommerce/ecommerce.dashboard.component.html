@@ -79,7 +79,7 @@
             <div class="card h-full">
                 <div class="flex align-items-start justify-content-between mb-6">
                     <span class="text-900 text-xl font-semibold">Bevételek áttekintése</span>
-                    <p-dropdown [options]="weeks" [(ngModel)]="selectedWeek" styleClass="w-10rem" optionLabel="label" (onChange)="onWeekChange()"></p-dropdown>
+                    <p-select [options]="weeks" [(ngModel)]="selectedWeek" styleClass="w-10rem" optionLabel="label" (onChange)="onWeekChange()"></p-select>
                 </div>
                 <p-chart type="bar" [data]="barData" [options]="barOptions" height="300px"></p-chart>
             </div>

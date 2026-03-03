@@ -11,15 +11,15 @@ import { ToastModule } from 'primeng/toast';
 import { ToolbarModule } from 'primeng/toolbar';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
-import { MessagesModule } from 'primeng/messages';
+import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
-import { CalendarModule } from 'primeng/calendar';
+import { DatePickerModule } from 'primeng/datepicker';
 import { ChipModule } from 'primeng/chip';
 import { TooltipModule } from 'primeng/tooltip';
 import { LogService } from '../../service/log.service';
@@ -38,15 +38,15 @@ import { LogService } from '../../service/log.service';
         ToolbarModule,
         InputTextModule,
         TextareaModule,
-        DropdownModule,
+        SelectModule,
         RadioButtonModule,
         InputNumberModule,
         DialogModule,
         TagModule,
-        MessagesModule,
+        MessageModule,
         ProgressSpinnerModule,
         BlockUIModule,
-        CalendarModule,
+        DatePickerModule,
         ChipModule,
         TooltipModule,
     ],

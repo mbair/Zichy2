@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit, OnDestroy } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
-import { DropdownChangeEvent } from 'primeng/dropdown';
+import { SelectChangeEvent } from 'primeng/select';
 import { TranslateService } from '@ngx-translate/core';
 import { DietService } from '../../service/diet.service';
 import { Subscription } from 'rxjs';
@@ -108,7 +108,7 @@ export class DietSelectorComponent implements OnInit, OnDestroy, ControlValueAcc
      * changed field name.
      * @param event the change event of the diet selector
      */
-    handleOnChange(event: DropdownChangeEvent) {
+    handleOnChange(event: SelectChangeEvent) {
         this.selectedDiet = event.value
         this.onChange(event.value)
         this.onTouched()

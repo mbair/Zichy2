@@ -9,7 +9,7 @@ import { RippleModule } from 'primeng/ripple';
 import { AppConfigModule } from 'src/app/layout/config/app.config.module';
 import { PasswordModule } from 'primeng/password';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MessagesModule } from 'primeng/messages';
+import { MessageModule } from 'primeng/message';
 
 @NgModule({
     imports: [
@@ -22,7 +22,7 @@ import { MessagesModule } from 'primeng/messages';
         RippleModule,
         AppConfigModule,
         PasswordModule,
-        MessagesModule
+        MessageModule
     ],
     declarations: [NewPasswordComponent]
 })

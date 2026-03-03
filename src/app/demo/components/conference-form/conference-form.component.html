@@ -43,7 +43,7 @@
                             <div class="col-12 lg:col-12 pb-0">
 
                                 <!-- SYSTEM MESSAGE -->
-                                <p-messages></p-messages>
+                                <p-message></p-message>
 
                                 <!-- Show registration form if registration is not ended -->
                                 <div *ngIf="showForm && (!registrationEnded || (registrationEnded && canFillFormAfterDeadline))">
@@ -135,7 +135,7 @@
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <p-calendar id="birthDate"
+                                            <p-datepicker id="birthDate"
                                                         formControlName="birthDate"
                                                         [defaultDate]="birthDateMax"
                                                         [minDate]="birthDateMin" 
@@ -143,7 +143,7 @@
                                                         dateFormat="yy-mm-dd" 
                                                         dataType="string"
                                                         appendTo="body">
-                                            </p-calendar>
+                                            </p-datepicker>
                                             <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
                                                 {{'Születési dátum' | translate }} {{'kötelező' | translate }}
                                             </div>
@@ -298,7 +298,7 @@
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <p-calendar id="dateOfArrival"
+                                            <p-datepicker id="dateOfArrival"
                                                         formControlName="dateOfArrival"
                                                         [ngClass]="{'ng-invalid': conferenceForm.errors?.['dateRangeInvalid']}"
                                                         [defaultDate]="beginDate"
@@ -307,7 +307,7 @@
                                                         dateFormat="yy-mm-dd"
                                                         dataType="string"
                                                         appendTo="body">
-                                            </p-calendar>
+                                            </p-datepicker>
                                             <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
                                             </div>
@@ -379,7 +379,7 @@
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <p-calendar id="dateOfDeparture"
+                                            <p-datepicker id="dateOfDeparture"
                                                         formControlName="dateOfDeparture"
                                                         [ngClass]="{'ng-invalid': conferenceForm.errors?.['dateRangeInvalid']}"
                                                         [defaultDate]="beginDate"
@@ -388,7 +388,7 @@
                                                         dateFormat="yy-mm-dd"
                                                         dataType="string"
                                                         appendTo="body">
-                                            </p-calendar>
+                                            </p-datepicker>
                                             <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, adja meg a távozás dátumát' | translate }}!
                                             </div>
@@ -497,14 +497,16 @@
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <p-chips formControlName="roomMate" 
-                                                    separator="," 
-                                                    [showClear]="true"
-                                                    [addOnBlur]="true">
-                                                <ng-template let-item pTemplate="item">
-                                                    <i class="pi pi-user mr-2"></i> {{ item }}
-                                                </ng-template>
-                                            </p-chips>
+                                            <p-autocomplete
+                                                formControlName="roomMate"
+                                                [multiple]="true"
+                                                [typeahead]="false"
+                                                [showClear]="true"
+                                                [addOnBlur]="true"
+                                                separator=","
+                                                [suggestions]="[]"
+                                                placeholder="Név1, Név2, Név3">
+                                            </p-autocomplete>
                                             <small id="roomMate-help">
                                                 {{'Kérjük a regisztrációkor megadott nevet tüntesse itt fel' | translate }}.
                                             </small>
@@ -547,7 +549,7 @@
 
                                         <!-- Figyelmeztetés SZÉP kártyás fizetés esetén -->
                                         <div *ngIf="payment?.value === 2" class="field mb-4 col-12">
-                                            <p-messages [value]="szepCardMessage" [closable]="false"></p-messages>
+                                            <p-message></p-message>
                                         </div>
 
                                         <!-- Extra kérdések -->

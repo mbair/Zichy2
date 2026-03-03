@@ -1,14 +1,14 @@
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { FoodCounterComponent } from './food-counter.component';
-import { MessagesModule } from 'primeng/messages';
+import { MessageModule } from 'primeng/message';
 
 @NgModule({
     imports: [
         RouterModule.forChild([
             { path: '', component: FoodCounterComponent },
         ]),
-        MessagesModule
+        MessageModule
     ],
     exports: [RouterModule]
 })

@@ -8,13 +8,13 @@ import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { TooltipModule } from 'primeng/tooltip';
-import { CalendarModule } from 'primeng/calendar';
+import { DatePickerModule } from 'primeng/datepicker';
 import { KitchenCalendarService } from '../../service/kitchen-calendar.service';
 
 @NgModule({
     imports: [
         BlockUIModule,
-        CalendarModule,
+        DatePickerModule,
         CommonModule,
         FormsModule,
         KitchenCalendarRoutingModule,

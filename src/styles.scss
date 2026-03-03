@@ -18,3 +18,43 @@
 
 /* Demos */
 @import "assets/demo/styles/flags/flags.css";
+
+/* PrimeNG v20 spinner fallback styles (class rename: p-progress-spinner -> p-progressspinner) */
+.p-progressspinner,
+.p-progress-spinner {
+    width: 3rem;
+    height: 3rem;
+}
+
+.p-progressspinner-circle,
+.p-progress-spinner-circle {
+    stroke: var(--primary-color, #f59e0b) !important;
+    fill: none;
+    stroke-linecap: round;
+}
+
+.p-progressspinner-spin,
+.p-progress-spinner-svg {
+    transform-origin: center center;
+    animation: app-progressspinner-rotate 2s linear infinite;
+}
+
+@keyframes app-progressspinner-rotate {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* PrimeNG v20 BlockUI fallback layout: keep loader centered */
+.p-blockui.p-blockui-mask.p-overlay-mask {
+    position: absolute;
+    inset: 0;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.p-blockui.p-blockui-mask.p-overlay-mask.p-blockui-mask-document {
+    position: fixed;
+}

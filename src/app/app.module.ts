@@ -1,8 +1,11 @@
 import { NgModule } from '@angular/core';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { HttpClient, HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { providePrimeNG } from 'primeng/config';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { AppLayoutModule } from './layout/app.layout.module';
@@ -18,6 +21,8 @@ export function HttpLoaderFactory(http: HttpClient) {
         AppComponent
     ],
     bootstrap: [AppComponent], imports: [AppRoutingModule,
+        BrowserModule,
+        BrowserAnimationsModule,
         AppLayoutModule,
         TranslateModule.forRoot({
             loader: {
@@ -32,6 +37,7 @@ export function HttpLoaderFactory(http: HttpClient) {
         { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
         { provide: LocationStrategy, useClass: HashLocationStrategy },
+        providePrimeNG({ ripple: true }),
         provideHttpClient(withInterceptorsFromDi())
     ] })
 export class AppModule { }

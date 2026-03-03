@@ -11,7 +11,7 @@
 
 <!-- Performance tuning: Load only Sidebar related things if it is visible -->
 <ng-container *ngIf="visible">
-    <p-sidebar id="sidebar" 
+    <p-drawer id="sidebar" 
                [(visible)]="visible" 
                position="right" 
                styleClass="p-sidebar-md binder-sidebar"
@@ -274,7 +274,7 @@
                 </p-table>
             </div>
         </div>
-    </p-sidebar>
+    </p-drawer>
 </ng-container>
 
 <!-- Loading Overlay -->

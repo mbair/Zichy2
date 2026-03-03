@@ -12,15 +12,15 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputMaskModule } from 'primeng/inputmask';
 import { CheckboxModule } from 'primeng/checkbox';
-import { ChipsModule } from 'primeng/chips';
-import { CalendarModule } from 'primeng/calendar';
-import { DropdownModule } from 'primeng/dropdown';
+import { AutoCompleteModule } from 'primeng/autocomplete';
+import { DatePickerModule } from 'primeng/datepicker';
+import { SelectModule } from 'primeng/select';
 import { CardModule } from 'primeng/card';
 import { FileUploadModule } from 'primeng/fileupload';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { MessagesModule } from 'primeng/messages';
+import { MessageModule } from 'primeng/message';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
 import { TranslateModule } from '@ngx-translate/core';
@@ -39,9 +39,9 @@ import { WidgetModule } from '../../widget/widget.module';
         InputTextModule,
         InputMaskModule,
         CheckboxModule,
-        CalendarModule,
-        ChipsModule,
-        DropdownModule,
+        AutoCompleteModule,
+        DatePickerModule,
+        SelectModule,
         CardModule,
         FileUploadModule,
         ButtonModule,
@@ -51,7 +51,7 @@ import { WidgetModule } from '../../widget/widget.module';
         AppConfigModule,
         TagModule,
         ToastModule,
-        MessagesModule,
+        MessageModule,
         TooltipModule,
         DialogModule,
         TranslateModule,

@@ -42,7 +42,7 @@
 
     <!-- SINGLE (dropdown) -->
     <ng-template #singleReactive>
-        <p-dropdown [formControl]="control"
+        <p-select [formControl]="control"
                     [options]="payments"
                     optionLabel="label"
                     optionValue="value"
@@ -64,7 +64,7 @@
                     {{ selectedItem?.label }}
                 </span>
             </ng-template>
-        </p-dropdown>
+        </p-select>
     </ng-template>
 </ng-container>
 
@@ -111,7 +111,7 @@
 
     <!-- SINGLE (dropdown) -->
     <ng-template #singleNgModel>
-        <p-dropdown [(ngModel)]="selectedPayment"
+        <p-select [(ngModel)]="selectedPayment"
                     [options]="payments"
                     optionLabel="label"
                     optionValue="value"
@@ -134,6 +134,6 @@
                     {{ selectedItem?.label }}
                 </span>
             </ng-template>
-        </p-dropdown>
+        </p-select>
     </ng-template>
 </ng-template>

@@ -92,24 +92,24 @@
                             </app-yes-no-selector>
                         </th>
                         <th>
-                            <p-calendar 
+                            <p-datepicker 
                                 (onSelect)="onFilter($event, 'createdAt')"
                                 (onClearClick)="onFilter($event, 'createdAt')" 
                                 appendTo="body" 
                                 dataType="string"
                                 placeholder="Keresés..." 
                                 [showButtonBar]="true">
-                            </p-calendar>
+                            </p-datepicker>
                         </th>
                         <th>
-                            <p-calendar 
+                            <p-datepicker 
                                 (onSelect)="onFilter($event, 'updatedAt')"
                                 (onClearClick)="onFilter($event, 'updatedAt')" 
                                 appendTo="body" 
                                 dataType="string"
                                 placeholder="Keresés..." 
                                 [showButtonBar]="true">
-                            </p-calendar>
+                            </p-datepicker>
                         </th>
                         <th></th>
                     </tr>
@@ -179,7 +179,7 @@
         </div>
 
         <!-- New / Update sidebar -->
-        <p-sidebar 
+        <p-drawer 
             id="sidebar" 
             [(visible)]="sidebar" 
             position="right" 
@@ -265,7 +265,7 @@
                     </button>
                 </div>
             </ng-template>
-        </p-sidebar>
+        </p-drawer>
 
         <!-- Delete dialog -->
         <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">

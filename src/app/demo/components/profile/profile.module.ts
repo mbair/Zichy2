@@ -4,14 +4,14 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RippleModule } from 'primeng/ripple';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { FileUploadModule } from 'primeng/fileupload';
 import { TextareaModule } from 'primeng/textarea';
 import { ProfileComponent } from './profile.component';
 import { ProfileRoutingModule } from './profile-routing.module';
 import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
-import { MessagesModule } from 'primeng/messages';
+import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { PasswordModule } from 'primeng/password';
 import { BlockUIModule } from 'primeng/blockui';
@@ -25,7 +25,7 @@ import { BlockUIModule } from 'primeng/blockui';
 		ButtonModule,
 		RippleModule,
 		InputTextModule,
-		DropdownModule,
+		SelectModule,
 		FileUploadModule,
 		TextareaModule,
         FormsModule,
@@ -35,9 +35,9 @@ import { BlockUIModule } from 'primeng/blockui';
         ToastModule,
         InputTextModule,
         TextareaModule,
-        DropdownModule,
+        SelectModule,
         TagModule,
-        MessagesModule,
+        MessageModule,
         ProgressSpinnerModule,
         PasswordModule
 	],

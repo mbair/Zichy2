@@ -205,7 +205,7 @@ export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, Cont
      */
     setDisabledState?(isDisabled: boolean): void {
         this.disabled = isDisabled
-        if (this.roomSelectorRef) this.roomSelectorRef.disabled = isDisabled
+        if (this.roomSelectorRef) this.roomSelectorRef.setDisabledState?.(isDisabled)
     }
 
     /**

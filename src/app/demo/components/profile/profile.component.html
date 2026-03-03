@@ -8,7 +8,7 @@
         <div class="col-12 lg:col-10">
             <div class="grid formgrid p-fluid">
                 <form [formGroup]="userForm" class="w-full px-2 grid formgrid p-fluid">
-                    <!-- <p-messages [(value)]="messages" [enableService]="false" [closable]="false"></p-messages> -->
+                    <!-- <p-message [(value)]="messages" [enableService]="false" [closable]="false"></p-message> -->
                     <input formControlName="id" type="hidden">
                     <input formControlName="username" type="hidden">
 
@@ -21,7 +21,7 @@
                     </div>
                     <div class="field mb-4 col-12 md:col-6">
                         <label for="user_rolesid" class="font-medium text-900">Szerepkör</label>
-                        <p-dropdown
+                        <p-select
                             *ngIf="canEditRoles"
                             id="user_rolesid"
                             formControlName="user_rolesid"
@@ -43,7 +43,7 @@
                                     {{roleService.getRoleName(userForm.get('user_rolesid')?.value)}}
                                 </span>
                             </ng-template>
-                        </p-dropdown>
+                        </p-select>
                         <div *ngIf="userForm.get('user_rolesid')?.invalid && userForm.get('user_rolesid')?.dirty">
                             <div *ngIf="userForm.get('user_rolesid')?.errors?.['required']" class="p-error">Kötelező kitölteni</div>
                         </div>

@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ChipModule } from 'primeng/chip';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { InputSwitchModule } from 'primeng/inputswitch';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { TooltipModule } from 'primeng/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { ConferenceSelectorComponent } from './conference-selector/conference-selector.component';
@@ -61,9 +61,9 @@ import { RoomKeySelectorComponent } from './roomkey-selector/roomkey-selector.co
         FormsModule,
         ReactiveFormsModule,
         ChipModule,
-        DropdownModule,
+        SelectModule,
         MultiSelectModule,
-        InputSwitchModule,
+        ToggleSwitchModule,
         TooltipModule,
         TranslateModule,
     ],

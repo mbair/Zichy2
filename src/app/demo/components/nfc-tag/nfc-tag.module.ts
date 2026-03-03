@@ -12,19 +12,19 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { RatingModule } from 'primeng/rating';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
-import { MessagesModule } from 'primeng/messages';
+import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { TooltipModule } from 'primeng/tooltip';
 import { CheckboxModule } from 'primeng/checkbox';
-import { CalendarModule } from 'primeng/calendar';
+import { DatePickerModule } from 'primeng/datepicker';
 import { SkeletonModule } from 'primeng/skeleton';
-import { SidebarModule } from 'primeng/sidebar';
+import { DrawerModule } from 'primeng/drawer';
 import { SelectorsModule } from '../../selectors/selectors.module';
 
 @NgModule({
@@ -42,19 +42,19 @@ import { SelectorsModule } from '../../selectors/selectors.module';
         RatingModule,
         InputTextModule,
         TextareaModule,
-        DropdownModule,
+        SelectModule,
         RadioButtonModule,
         InputNumberModule,
         DialogModule,
         TagModule,
-        MessagesModule,
+        MessageModule,
         ProgressSpinnerModule,
         BlockUIModule,
         TooltipModule,
         CheckboxModule,
-        CalendarModule,
+        DatePickerModule,
         SkeletonModule,
-        SidebarModule,
+        DrawerModule,
         SelectorsModule,
     ],
     declarations: [NFCTagComponent],

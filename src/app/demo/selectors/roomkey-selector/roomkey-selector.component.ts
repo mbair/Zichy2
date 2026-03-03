@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, Output, forwardRef } from '@angular/core';
 import { ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { DropdownChangeEvent } from 'primeng/dropdown';
+import { SelectChangeEvent } from 'primeng/select';
 
 export interface RoomKeySelectorChangeEvent {
     value: string;
@@ -51,7 +51,7 @@ export class RoomKeySelectorComponent implements ControlValueAccessor {
         return this.parentForm.get(this.controlName) as FormControl
     }
 
-    handleOnChange(event: DropdownChangeEvent): void {
+    handleOnChange(event: SelectChangeEvent): void {
         this.selectedValue = event.value
         this.onChange(event.value)
         this.onTouched()

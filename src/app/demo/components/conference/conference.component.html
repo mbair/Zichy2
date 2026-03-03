@@ -78,14 +78,14 @@
                                 style="width:40%; min-width:22rem;" />
                         </th>
                         <th>
-                            <p-calendar 
+                            <p-datepicker 
                                 (onSelect)="onFilter($event, 'beginDate')"
                                 (onClearClick)="onFilter($event, 'beginDate')" 
                                 appendTo="body" 
                                 dataType="string"
                                 placeholder="Keresés..." 
                                 [showButtonBar]="true">
-                            </p-calendar>
+                            </p-datepicker>
                         </th>
                         <th>
                             <app-meal-selector 
@@ -96,7 +96,7 @@
                             </app-meal-selector>
                         </th>
                         <th>
-                            <p-calendar 
+                            <p-datepicker 
                                 (onSelect)="onFilter($event, 'endDate')"
                                 (onClearClick)="onFilter($event, 'endDate')" 
                                 appendTo="body" 
@@ -104,7 +104,7 @@
                                 placeholder="Keresés..." 
                                 [showButtonBar]="true"
                                 inputStyleClass="w-6rem">
-                            </p-calendar>
+                            </p-datepicker>
                         </th>
                         <th>
                             <app-meal-selector 
@@ -306,7 +306,7 @@
         </div>
 
         <!-- Sidebar -->
-        <p-sidebar
+        <p-drawer
             id="sidebar" 
             [(visible)]="sidebar" 
             position="right" 
@@ -352,9 +352,9 @@
                     <!-- Kezdete -->
                     <div class="field mb-4 col-12 lg:col-6">
                         <label for="beginDate" class="font-medium text-900">Kezdete</label>
-                        <p-calendar formControlName="beginDate" appendTo="body" dataType="string" dateFormat="yy-mm-dd"
+                        <p-datepicker formControlName="beginDate" appendTo="body" dataType="string" dateFormat="yy-mm-dd"
                             [showButtonBar]="true">
-                        </p-calendar>
+                        </p-datepicker>
                         <div *ngIf="beginDate?.dirty && beginDate?.errors?.['required']" class="block p-error">Kötelező
                             kitölteni</div>
                     </div>
@@ -370,9 +370,9 @@
                     <!-- Vége -->
                     <div class="field mb-4 col-12 lg:col-6">
                         <label for="endDate" class="font-medium text-900">Vége</label>
-                        <p-calendar formControlName="endDate" appendTo="body" dataType="string" dateFormat="yy-mm-dd"
+                        <p-datepicker formControlName="endDate" appendTo="body" dataType="string" dateFormat="yy-mm-dd"
                             [showButtonBar]="true">
-                        </p-calendar>
+                        </p-datepicker>
                         <div *ngIf="endDate?.dirty && endDate?.errors?.['required']" class="block p-error">Kötelező
                             kitölteni</div>
                     </div>
@@ -445,9 +445,9 @@
                     <!-- Regisztráció vége -->
                     <div class="field mb-4 col-12 lg:col-6">
                         <label for="registrationEndDate" class="font-medium text-900">Regisztráció vége</label>
-                        <p-calendar formControlName="registrationEndDate" appendTo="body" dataType="string"
+                        <p-datepicker formControlName="registrationEndDate" appendTo="body" dataType="string"
                             dateFormat="yy-mm-dd" [showButtonBar]="true">
-                        </p-calendar>
+                        </p-datepicker>
                         <div *ngIf="registrationEndDate?.dirty && registrationEndDate?.errors?.['required']"
                             class="block p-error">Kötelező kitölteni</div>
                     </div>
@@ -455,12 +455,12 @@
                     <!-- Vendég módosítás határideje -->
                     <div class="field mb-4 col-12 lg:col-6">
                         <label for="guestEditEndDate" class="font-medium text-900">Vendég módosítás határideje</label>
-                        <p-calendar formControlName="guestEditEndDate" 
+                        <p-datepicker formControlName="guestEditEndDate" 
                                     appendTo="body" 
                                     dataType="string" 
                                     dateFormat="yy-mm-dd" 
                                     [showButtonBar]="true">
-                        </p-calendar>
+                        </p-datepicker>
                         <div *ngIf="guestEditEndDate?.dirty && guestEditEndDate?.errors?.['required']"
                             class="block p-error">Kötelező kitölteni</div>
                     </div>
@@ -516,10 +516,10 @@
                         [disabled]="!conferenceForm.valid || !conferenceForm.dirty"></button>
                 </div>
             </ng-template>
-        </p-sidebar>
+        </p-drawer>
 
         <!-- Form Field Infos sidebar -->
-        <p-sidebar 
+        <p-drawer 
             id="formFieldsSidebar" 
             [(visible)]="formFieldsInfosSidebar" 
             position="right" 
@@ -584,10 +584,10 @@
                         (click)="saveFormFieldInfos()" [disabled]="!formFieldInfosForm.valid || !formFieldInfosForm.dirty"></button>
                 </div>
             </ng-template>
-        </p-sidebar>
+        </p-drawer>
 
         <!-- Questions sidebar -->
-        <p-sidebar 
+        <p-drawer 
             id="questionsSidebar" 
             [(visible)]="questionsSidebar" 
             position="right" 
@@ -651,7 +651,7 @@
                         (click)="saveQuestions()" [disabled]="!questionsForm.valid || !questionsForm.dirty"></button>
                 </div>
             </ng-template>
-        </p-sidebar>
+        </p-drawer>
 
         <!-- Delete dialog -->
         <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">

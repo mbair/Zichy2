@@ -10,13 +10,13 @@ import { AppConfigModule } from 'src/app/layout/config/app.config.module';
 import { ReactiveFormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { CheckboxModule } from 'primeng/checkbox';
-import { CalendarModule } from 'primeng/calendar';
-import { DropdownModule } from 'primeng/dropdown';
+import { DatePickerModule } from 'primeng/datepicker';
+import { SelectModule } from 'primeng/select';
 import { CardModule } from 'primeng/card';
 import { FileUploadModule } from 'primeng/fileupload';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { ToastModule } from 'primeng/toast';
-import { MessagesModule } from 'primeng/messages';
+import { MessageModule } from 'primeng/message';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
 
@@ -27,8 +27,8 @@ import { DialogModule } from 'primeng/dialog';
         ReactiveFormsModule,
         InputTextModule,
         CheckboxModule,
-        CalendarModule,
-        DropdownModule,
+        DatePickerModule,
+        SelectModule,
         CardModule,
         FileUploadModule,
         ButtonModule,
@@ -37,7 +37,7 @@ import { DialogModule } from 'primeng/dialog';
         StyleClassModule,
         AppConfigModule,
         ToastModule,
-        MessagesModule,
+        MessageModule,
         TooltipModule,
         DialogModule,
     ],

@@ -519,7 +519,7 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
      */
     setDisabledState?(isDisabled: boolean): void {
         this.disabled = isDisabled
-        if (this.guestSelectorRef) this.guestSelectorRef.disabled = isDisabled
+        if (this.guestSelectorRef) this.guestSelectorRef.setDisabledState?.(isDisabled)
     }
 
     /**

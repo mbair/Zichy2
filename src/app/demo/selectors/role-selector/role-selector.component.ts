@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit, OnDestroy } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
-import { DropdownChangeEvent } from 'primeng/dropdown';
+import { SelectChangeEvent } from 'primeng/select';
 import { RoleService } from '../../service/role.service';
 import { Role } from '../../api/role';
 import { Subscription } from 'rxjs';
@@ -86,7 +86,7 @@ export class RoleSelectorComponent implements OnInit, ControlValueAccessor {
      * changed field name.
      * @param event the change event of the role selector
      */
-    handleOnChange(event: DropdownChangeEvent) {
+    handleOnChange(event: SelectChangeEvent) {
         this.change.emit({ value: event.value, field: this.controlName })
     }
 

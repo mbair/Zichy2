@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
-import { DropdownChangeEvent } from 'primeng/dropdown';
+import { SelectChangeEvent } from 'primeng/select';
 
 export interface changeEvent {
     value: any;
@@ -153,7 +153,7 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
      * changed field name.
      * @param event the change event of the roomtype selector
      */
-    handleOnChange(event: DropdownChangeEvent) {
+    handleOnChange(event: SelectChangeEvent) {
         this.selectedRoomType = event.value
         this.onChange(event.value)
         this.onTouched()

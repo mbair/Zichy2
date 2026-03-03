@@ -13,18 +13,18 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { RatingModule } from 'primeng/rating';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
-import { SidebarModule } from 'primeng/sidebar';
+import { DrawerModule } from 'primeng/drawer';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { TagModule } from 'primeng/tag';
 import { TreeTableModule } from 'primeng/treetable';
 import { TooltipModule } from 'primeng/tooltip';
 import { CheckboxModule } from 'primeng/checkbox';
-import { CalendarModule } from 'primeng/calendar';
+import { DatePickerModule } from 'primeng/datepicker';
 import { SkeletonModule } from 'primeng/skeleton';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SelectorsModule } from '../../selectors/selectors.module';
@@ -45,18 +45,18 @@ import { WidgetModule } from '../../widget/widget.module';
         RatingModule,
         InputTextModule,
         TextareaModule,
-        DropdownModule,
+        SelectModule,
         RadioButtonModule,
         InputNumberModule,
         DialogModule,
-        SidebarModule,
+        DrawerModule,
         ProgressSpinnerModule,
         BlockUIModule,
         TagModule,
         TreeTableModule,
         TooltipModule,
         CheckboxModule,
-        CalendarModule,
+        DatePickerModule,
         SkeletonModule,
         SelectButtonModule,
         SelectorsModule,

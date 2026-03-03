@@ -1,5 +1,5 @@
 <!-- ReactiveForms -->
-<p-dropdown *ngIf="getFormControl() as control; else useNgModel"
+<p-select *ngIf="getFormControl() as control; else useNgModel"
             [formControl]="control"
             [options]="sparebeds"
             optionLabel="label"
@@ -19,11 +19,11 @@
             {{ selectedItem?.label }}
         </span>
     </ng-template>
-</p-dropdown>
+</p-select>
 
 <!-- ngModel -->
 <ng-template #useNgModel>
-    <p-dropdown [(ngModel)]="selectedSparebed"
+    <p-select [(ngModel)]="selectedSparebed"
                 [options]="sparebeds"
                 optionLabel="label"
                 optionValue="value"
@@ -42,5 +42,5 @@
                 {{ selectedItem?.label }}
             </span>
         </ng-template>
-    </p-dropdown>
+    </p-select>
 </ng-template>

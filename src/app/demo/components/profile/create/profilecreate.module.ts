@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RippleModule } from 'primeng/ripple';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { FileUploadModule } from 'primeng/fileupload';
 import { TextareaModule } from 'primeng/textarea';
 import { ProfileCreateComponent } from './profilecreate.component';
@@ -18,7 +18,7 @@ import { ProfileCreateRoutingModule } from './profilecreate-routing.module';
 		ButtonModule,
 		RippleModule,
 		InputTextModule,
-		DropdownModule,
+		SelectModule,
 		FileUploadModule,
 		TextareaModule
 	],

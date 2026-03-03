@@ -9,21 +9,21 @@ import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
-import { MessagesModule } from 'primeng/messages';
+import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
-import { SidebarModule } from 'primeng/sidebar';
-import { InputSwitchModule } from 'primeng/inputswitch';
+import { DrawerModule } from 'primeng/drawer';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { TooltipModule } from 'primeng/tooltip';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
 import { SliderModule } from 'primeng/slider';
 import { RadioButtonModule } from 'primeng/radiobutton';
-import { CalendarModule } from 'primeng/calendar';
+import { DatePickerModule } from 'primeng/datepicker';
 import { ChipModule } from 'primeng/chip';
 import { TextareaModule } from 'primeng/textarea';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -41,15 +41,15 @@ import { ReservationService } from '../../service/reservation.service';
         RippleModule,
         ToastModule,
         InputTextModule,
-        DropdownModule,
+        SelectModule,
         DialogModule,
         TagModule,
-        MessagesModule,
+        MessageModule,
         ProgressSpinnerModule,
         BlockUIModule,
-        SidebarModule,
+        DrawerModule,
         SelectorsModule,
-        InputSwitchModule,
+        ToggleSwitchModule,
         TooltipModule,
         ProgressBarModule,
         AvatarModule,
@@ -57,7 +57,7 @@ import { ReservationService } from '../../service/reservation.service';
         SliderModule,
         RadioButtonModule,
         TranslateModule,
-        CalendarModule,
+        DatePickerModule,
         ChipModule,
         TextareaModule,
         ConfirmDialogModule

@@ -2,7 +2,7 @@ import { Component, EventEmitter, OnInit, Input, Output, ChangeDetectorRef, forw
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { CountryService } from '../../service/country.service';
-import { DropdownChangeEvent } from 'primeng/dropdown';
+import { SelectChangeEvent } from 'primeng/select';
 
 export interface changeEvent {
     value: string;
@@ -86,7 +86,7 @@ export class CountrySelectorComponent implements OnInit, ControlValueAccessor {
      * changed field name.
      * @param event the change event of the country selector
      */
-    handleOnChange(event: DropdownChangeEvent) {
+    handleOnChange(event: SelectChangeEvent) {
         this.selectedCountry = event.value
         this.onChange(event.value)
         this.onTouched()

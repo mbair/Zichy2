@@ -118,7 +118,7 @@
         </div>
 
         <!-- New / Update sidebar -->
-        <p-sidebar 
+        <p-drawer 
             id="sidebar" 
             [(visible)]="sidebar" 
             position="right" 
@@ -220,7 +220,7 @@
                     </button>
                 </div>
             </ng-template>
-        </p-sidebar>
+        </p-drawer>
 
         <!-- Delete dialog -->
         <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">

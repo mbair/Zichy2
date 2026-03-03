@@ -142,7 +142,7 @@
                                    style="width: 10rem"/>
                         </th>
                         <th>
-                            <p-calendar
+                            <p-datepicker
                                 (onSelect)="onFilter($event, 'startDate')"
                                 (onClearClick)="onFilter($event, 'startDate')"
                                 appendTo="body"
@@ -150,10 +150,10 @@
                                 placeholder="Keresés..."
                                 [showButtonBar]="true"
                                 inputStyleClass="w-6rem">
-                            </p-calendar>
+                            </p-datepicker>
                         </th>
                         <th>
-                            <p-calendar
+                            <p-datepicker
                                 (onSelect)="onFilter($event, 'endDate')"
                                 (onClearClick)="onFilter($event, 'endDate')"
                                 appendTo="body"
@@ -161,7 +161,7 @@
                                 placeholder="Keresés..."
                                 [showButtonBar]="true"
                                 inputStyleClass="w-6rem">
-                            </p-calendar>
+                            </p-datepicker>
                         </th>
                         <th>
                             <app-reservation-status-selector
@@ -334,7 +334,7 @@
         </div>
 
         <!-- New / Update sidebar -->
-        <p-sidebar 
+        <p-drawer 
             id="sidebar" 
             [(visible)]="sidebar" 
             position="right" 
@@ -419,13 +419,13 @@
                         <label for="startDate" class="font-medium text-900">
                             {{'Érkezés dátuma' | translate }}
                         </label>
-                        <p-calendar id="startDate"
+                        <p-datepicker id="startDate"
                                     formControlName="startDate"
                                     [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
                                     dateFormat="yy-mm-dd"
                                     dataType="string"
                                     appendTo="body">
-                        </p-calendar>
+                        </p-datepicker>
                         <div *ngIf="startDate?.dirty && startDate?.errors?.['required']" class="p-error">
                             {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
                         </div>
@@ -439,13 +439,13 @@
                         <label for="endDate" class="font-medium text-900">
                             {{'Távozás dátuma' | translate }}
                         </label>
-                        <p-calendar id="endDate"
+                        <p-datepicker id="endDate"
                                     formControlName="endDate"
                                     [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
                                     dateFormat="yy-mm-dd"
                                     dataType="string"
                                     appendTo="body">
-                        </p-calendar>
+                        </p-datepicker>
                         <div *ngIf="endDate?.dirty && endDate?.errors?.['required']" class="p-error">
                             {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
                         </div>
@@ -498,7 +498,7 @@
                     </button>
                 </div>
             </ng-template>
-        </p-sidebar>
+        </p-drawer>
 
         <!-- Delete dialog -->
         <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">

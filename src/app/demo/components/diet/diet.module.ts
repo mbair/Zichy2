@@ -8,13 +8,13 @@ import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
-import { MessagesModule } from 'primeng/messages';
+import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
-import { SidebarModule } from 'primeng/sidebar';
+import { DrawerModule } from 'primeng/drawer';
 import { SelectorsModule } from '../../selectors/selectors.module';
 import { DietService } from '../../service/diet.service';
 
@@ -29,13 +29,13 @@ import { DietService } from '../../service/diet.service';
         RippleModule,
         ToastModule,
         InputTextModule,
-        DropdownModule,
+        SelectModule,
         DialogModule,
         TagModule,
-        MessagesModule,
+        MessageModule,
         ProgressSpinnerModule,
         BlockUIModule,
-        SidebarModule,
+        DrawerModule,
         SelectorsModule,
     ],
     declarations: [DietComponent],

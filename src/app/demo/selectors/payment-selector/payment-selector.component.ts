@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core'
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms'
 import { TranslateService } from '@ngx-translate/core'
-import { DropdownChangeEvent } from 'primeng/dropdown'
+import { SelectChangeEvent } from 'primeng/select'
 import { MultiSelectChangeEvent } from 'primeng/multiselect'
 
 export interface changeEvent {
@@ -233,7 +233,7 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
      * changed field name.
      * @param event the change event of the payment selector
      */
-    handleOnChange(event: DropdownChangeEvent | MultiSelectChangeEvent) {
+    handleOnChange(event: SelectChangeEvent | MultiSelectChangeEvent) {
         const raw = (event as any).value
         const normalized = this.normalizeToNumberValue(raw)
 

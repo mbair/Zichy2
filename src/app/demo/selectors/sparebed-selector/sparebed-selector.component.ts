@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
-import { DropdownChangeEvent } from 'primeng/dropdown';
+import { SelectChangeEvent } from 'primeng/select';
 
 export interface changeEvent {
     value: string;
@@ -89,7 +89,7 @@ export class SparebedSelectorComponent implements OnInit, ControlValueAccessor {
      * changed field name.
      * @param event the change event of the spareBed selector
      */
-    handleOnChange(event: DropdownChangeEvent) {
+    handleOnChange(event: SelectChangeEvent) {
         this.selectedSparebed = event.value
         this.onChange(event.value)
         this.onTouched()

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { EcommerceDashboardComponent } from './ecommerce.dashboard.component';
 import { EcommerceDashboardRoutigModule } from './ecommerce.dashboard-routing.module';
 import { ButtonModule } from 'primeng/button';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
@@ -22,7 +22,7 @@ import { StyleClassModule } from "primeng/styleclass";
     EcommerceDashboardRoutigModule,
     ButtonModule,
     RippleModule,
-    DropdownModule,
+    SelectModule,
     FormsModule,
     TableModule,
     InputTextModule,

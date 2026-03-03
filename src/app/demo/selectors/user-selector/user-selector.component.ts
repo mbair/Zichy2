@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit, OnDestroy } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
-import { DropdownChangeEvent } from 'primeng/dropdown';
+import { SelectChangeEvent } from 'primeng/select';
 import { UserService } from '../../service/user.service';
 import { RoleService } from '../../service/role.service';
 import { Role } from '../../api/role';
@@ -119,7 +119,7 @@ export class UserSelectorComponent implements OnInit, OnDestroy, ControlValueAcc
      * changed field name.
      * @param event the change event of the user selector
      */
-    handleOnChange(event: DropdownChangeEvent) {
+    handleOnChange(event: SelectChangeEvent) {
         this.selectedUser = event.value
         this.onChange(event.value)
         this.onTouched()
