@@ -1,5 +1,5 @@
 <div class="grid">
-    <div class="col-12">
+    <div class="w-full">
         <div class="card px-0 py-0">
             <p-table #dt
                      dataKey="id"
@@ -20,7 +20,7 @@
                      [lazy]="true">
 
                 <ng-template pTemplate="caption">
-                    <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center">
                         <h5 class="m-0">NFC címkék</h5>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
                             <i class="pi pi-search"></i>
@@ -120,31 +120,26 @@
                             <p-tableCheckbox [value]="tag"></p-tableCheckbox>
                         </td>
                         <td>
-                            <span class="p-column-title">ID</span>
                             {{tag.id}}
                         </td>
                         <td>
-                            <span class="p-column-title">Szín</span>
                             <span [ngClass]="'color-badge ' + tag.color">
                                 {{tag.color}}
                             </span>
                         </td>
                         <td>
-                            <span class="p-column-title">Azonosító</span>
                             <span class="color-badge gray">
                                 <i class="mr-1 pi pi-tags"></i>
                                 {{tag.rfid}}
                             </span>
                         </td>
                         <td>
-                            <span class="p-column-title">Vendég</span>
                             <span *ngIf="tag.guestData" [ngClass]="'color-badge ' + tag.color">
                                 <i class="mr-1 pi pi-user"></i>
                                 {{tag.guestData?.lastName}} {{tag.guestData?.firstName}}
                             </span>
                         </td>
                         <td class="text-center">
-                            <span class="p-column-title">Engedélyezve van</span>
                             <span *ngIf="tag.enabled" class="color-badge">
                                 <i class="mr-1 pi true-icon pi-check-circle text-green-500"></i>
                                 {{ 'Engedélyezve' }}
@@ -155,11 +150,9 @@
                             </span>
                         </td>
                         <td>
-                            <span class="p-column-title">Létrehozva</span>
                             {{tag.createdAt | date:"yyyy.MM.dd"}}
                         </td>
                         <td>
-                            <span class="p-column-title">Módosítva</span>
                             {{tag.updatedAt | date:"yyyy.MM.dd"}}
                         </td>
                         <td>
@@ -197,13 +190,13 @@
 
             <!-- Render content only after first open -->
             <ng-container *ngIf="sidebar">
-                <form [formGroup]="tagForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
+                <form [formGroup]="tagForm" (ngSubmit)="save()" novalidate class="grid grid">
 
                     <!-- Tag Id -->
                     <input formControlName="id" type="hidden">
 
                     <!-- Color -->
-                    <div class="field mb-4 col-12">
+                    <div class="mb-4 w-full">
                         <label for="color" class="font-medium text-900">Szín</label>
                         <app-color-selector [parentForm]="tagForm" controlName="color"></app-color-selector>
                         <div *ngIf="color?.dirty && color?.errors?.['required']" class="block p-error">
@@ -212,7 +205,7 @@
                     </div>
 
                     <!-- Identifier -->
-                    <div class="field mb-4 col-12">
+                    <div class="mb-4 w-full">
                         <label for="rfid" class="font-medium text-900">Azonosító</label>
                         <input 
                             id="rfid" 
@@ -228,7 +221,7 @@
                     </div>
 
                     <!-- Enabled -->
-                    <div class="field mb-4 col-12">
+                    <div class="mb-4 w-full">
                         <label for="enabled" class="font-medium text-900">Engedélyezve</label>
                         <app-yes-no-selector 
                             formControlName="enabled"
@@ -246,7 +239,7 @@
             </ng-container>
 
             <ng-template pTemplate="footer">
-                <div class="flex justify-content-end ap-2">
+                <div class="flex justify-end ap-2">
                     <button pButton 
                             pRipple 
                             label="Mégsem" 
@@ -269,12 +262,12 @@
 
         <!-- Delete dialog -->
         <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
-            <div class="flex align-items-center justify-content-center">
+            <div class="flex items-center justify-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
                 <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.rfid}}</b> címkét?</span>
             </div>
             <ng-template pTemplate="footer">
-                <div class="flex justify-content-end ap-2">
+                <div class="flex justify-end ap-2">
                     <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="deleteDialog = false"></button>
                     <button pButton pRipple label="Igen" icon="pi pi-check" class="p-button ml-2" (click)="delete()"></button>
                 </div>
@@ -283,12 +276,12 @@
 
         <!-- Bulk Delete dialog -->
         <p-dialog [(visible)]="bulkDeleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
-            <div class="flex align-items-center justify-content-center">
+            <div class="flex items-center justify-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
                 <span>Biztosan törölni akarja a kiválasztott címkéket?</span>
             </div>
             <ng-template pTemplate="footer">
-                <div class="flex justify-content-end ap-2">
+                <div class="flex justify-end ap-2">
                     <button pButton pRipple label="Nem" icon="pi pi-times" class="p-button-outlined" (click)="bulkDeleteDialog = false"></button>
                 <button pButton pRipple label="Igen" icon="pi pi-check" class="p-button ml-2" (click)="deleteSelected()"></button>
                 </div>

@@ -17,7 +17,7 @@
     scrollHeight="400px" appendTo="body" display="chip">
 
     <ng-template let-group pTemplate="group">
-        <div class="flex align-items-center px-1 cursor-pointer bg-surface-100"
+        <div class="flex items-center px-1 cursor-pointer bg-surface-100"
             (click)="toggleGroupSelection(group, $event)" [pTooltip]="group.explanation" tooltipPosition="top">
 
             <i class="pi mr-2" [ngClass]="{
@@ -32,11 +32,11 @@
     </ng-template>
 
     <ng-template pTemplate="item" let-option>
-        <div class="building-badge {{getColorByRoomType(option.roomType)}} border-round-xl w-min p-0">
-            <div class="flex align-items-center justify-content-center py-1 px-1">
+        <div class="building-badge {{getColorByRoomType(option.roomType)}} rounded-xl w-min p-0">
+            <div class="flex items-center justify-center py-1 px-1">
                 <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ option.roomCode }}"
                     tooltipPosition="top">
-                    <div class="flex flex-column align-items-left justify-content-center">
+                    <div class="flex flex-col items-start justify-center">
                         <span class="text-base font-semibold uppercase">
                             {{ option.lastName }} {{ option.firstName }}
                             <span class="font-normal text-sm uppercase">({{ getAge(option.birthDate) }})</span>
@@ -53,10 +53,10 @@
     </ng-template>
 
     <ng-template pTemplate="selectedItem" let-selectedItem>
-        <div class="color-badge {{ getColorByRoomType(selectedItem.roomType) }} border-round-xl w-min p-0">
-            <div class="flex align-items-center justify-content-center py-1 px-1">
+        <div class="color-badge {{ getColorByRoomType(selectedItem.roomType) }} rounded-xl w-min p-0">
+            <div class="flex items-center justify-center py-1 px-1">
                 <div class="block min-w-max" pTooltip="{{ selectedItem.roomMate }}" tooltipPosition="top">
-                    <div class="flex flex-column align-items-left justify-content-center">
+                    <div class="flex flex-col items-start justify-center">
                         <span class="text-base font-semibold uppercase">
                             {{ selectedItem.lastName }} {{ selectedItem.firstName }}
                             <span class="font-normal text-sm uppercase">({{ getAge(selectedItem.birthDate) }})</span>
@@ -65,7 +65,7 @@
                             {{ selectedItem.roomType }}
                         </span>
                         <div
-                            class="font-light text-xs white-space-nowrap overflow-hidden text-overflow-ellipsis max-w-30rem">
+                            class="font-light text-xs white-space-nowrap overflow-hidden text-overflow-ellipsis max-w-[30rem]">
                             {{ selectedItem.roomMate }}
                         </div>
                     </div>

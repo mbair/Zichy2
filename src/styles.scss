@@ -2,9 +2,6 @@
 
 /* Layout and SCSS modules */
 @use "assets/layout/styles/layout/layout.scss";
-@use "primeflex/primeflex.scss" with (
-    $gutter: 1rem
-);
 @use "assets/demo/styles/badges.scss";
 @use "assets/demo/styles/code.scss";
 
@@ -57,4 +54,65 @@
 
 .p-blockui.p-blockui-mask.p-overlay-mask.p-blockui-mask-document {
     position: fixed;
+}
+
+/* Reservation page visual refresh (Apollo-inspired, style-only) */
+.reservation-apollo-look .reservation-shell {
+    border: 1px solid var(--surface-border);
+    border-radius: 1rem;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+}
+
+.reservation-apollo-look .reservation-toolbar {
+    padding: 1rem 1.25rem;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--primary-color) 6%, transparent), transparent);
+    border-bottom: 1px solid var(--surface-border);
+}
+
+.reservation-apollo-look .reservation-toolbar h5 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.reservation-apollo-look .reservation-cta {
+    border-radius: 0.75rem;
+}
+
+.reservation-apollo-look .p-datatable .p-datatable-thead > tr > th {
+    background: var(--surface-50);
+    font-weight: 600;
+}
+
+.reservation-apollo-look .p-datatable .p-datatable-tbody > tr > td {
+    vertical-align: middle;
+}
+
+.reservation-apollo-look .p-drawer .p-drawer-header {
+    border-bottom: 1px solid var(--surface-border);
+}
+
+/* Conference selector overlay tuning after PrimeFlex -> Tailwind migration */
+.conference-selector-panel .p-multiselect-items {
+    padding: 0.25rem 0;
+}
+
+.conference-selector-panel .p-multiselect-items .p-multiselect-item {
+    min-height: 2rem;
+    padding: 0.375rem 0.75rem;
+    display: flex;
+    align-items: center;
+    line-height: 1.2rem;
+    font-size: 0.95rem;
+}
+
+.conference-selector-panel .p-multiselect-items .p-multiselect-item .p-checkbox {
+    margin-right: 0.5rem;
+}
+
+.conference-selector-panel .p-checkbox .p-checkbox-box {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 0.375rem;
 }

@@ -1,10 +1,11 @@
 <div class="grid">
-    <div class="col-12">
+    <div class="w-full">
         <div class="card px-0 py-0">
             <p-table #dt
                      dataKey="id"
                      [value]="tableData"
                      [columns]="cols"
+                     styleClass="stone-50"
                      responsiveLayout="scroll"
                      [rows]="rowsPerPage"
                      [totalRecords]="totalRecords"
@@ -13,6 +14,7 @@
                      [rowsPerPageOptions]="rowsPerPageOptions"
                      [showCurrentPageReport]="true"
                      currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
+                     [expandedRowKeys]="expandedRowKeys"
                      [(selection)]="selected"
                      selectionMode="multiple"
                      [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
@@ -22,7 +24,7 @@
                      [lazy]="true" >
 
                 <ng-template pTemplate="caption">
-                    <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center">
                         <h5 class="m-0">Vendégek</h5>
                         <span class="block mt-2 md:mt-0">
                             <app-conference-selector
@@ -42,7 +44,7 @@
                             <i class="pi pi-search"></i>
                             <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Keresés bármely vendégadatra..." style="min-width: 300px;" pTooltip="NFC címkét a saját keresőmezőjébe csippantsd"/>
                         </span> -->
-                        <span class="block mt-2 md:mt-0 flex align-items-center flex-wrap">
+                        <span class="block mt-2 md:mt-0 flex items-center flex-wrap">
                             <!-- Hide New button permanently
                             <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="create()" [disabled]="!canCreate"></button> -->
                             <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="bulkDeleteDialog = true" [disabled]="!selected || !selected.length || !canDelete"></button>
@@ -187,15 +189,20 @@
                             <p-tableCheckbox [value]="guest"></p-tableCheckbox>
                         </td>
                         <td>
-                            <p-button type="button" styleClass="p-button-rounded p-button-text" pRipple [pRowToggler]="guest" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+                            <button
+                                pButton
+                                pRipple
+                                type="button"
+                                class="p-button-rounded p-button-text"
+                                (click)="toggleRow(guest)"
+                                [icon]="isRowExpanded(guest) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
+                            </button>
                         </td>
                         <td>
-                            <span class="p-column-title">Név</span>
                             {{guest.lastName}} {{guest.firstName}} ({{getAge(guest.birthDate)}})
                             <span *ngIf="guest.rfid" class="pi pi-tag"></span>
                         </td>
                         <td class="text-center" style="white-space: break-spaces">
-                            <span class="p-column-title">Szoba</span>
                             <ng-container *ngIf="guest.actualReservation as res; else noReservation">
                                 <button
                                 pButton
@@ -249,7 +256,6 @@
                             <span *ngIf="hasDietName(guest.diet)" [ngClass]="'color-badge ' + guest?.dietDetails?.color">
                                 {{guest.diet}}
                             </span>
-                            <span class="p-column-title">Étrend</span>
                             <p-tag *ngIf="!hasDietName(guest.diet)"
                                     icon="pi pi-exclamation-triangle"
                                     severity="warn"
@@ -257,26 +263,21 @@
                                     pTooltip="Kérem módosítsa az étrendet!" />
                         </td>
                         <td *ngIf="!isOrganizer">
-                            <span class="p-column-title">NFC</span>
                             {{guest.rfid}}
                         </td>
                         <td *ngIf="isOrganizer">
-                            <span class="p-column-title">Előleget fizetett</span>
                             {{guest.prepaid ? 'Igen' : 'Nem'}}
                         </td>
                         <td style="width:14%; min-width:10rem;">
-                            <span class="p-column-title">Utolsó NFC használat</span>
                             {{guest.lastRfidUsage | date:'yyyy.MM.dd HH:mm:ss' }}
                         </td>
                         <td style="width:9%; min-width:8rem;">
-                            <span class="p-column-title">Érkezés</span>
                             <span class="calendar-badge">
                                 <i class="pi pi-calendar mr-1"></i>
                                 {{guest.dateOfArrival | date:'yyyy.MM.dd'}}
                             </span>
                         </td>
                         <td style="width:9%; min-width:8rem;">
-                            <span class="p-column-title">Távozás</span>
                             <span class="calendar-badge">
                                 <i class="pi pi-calendar mr-1"></i>
                                 {{guest.dateOfDeparture | date:'yyyy.MM.dd'}}
@@ -292,13 +293,13 @@
                         </td>
                     </tr>
                 </ng-template>
-                <ng-template pTemplate="rowexpansion" let-guest>
+                <ng-template #expandedrow let-guest>
                     <tr>
                         <td colspan="11">
                             <div class="p-2">
                                 <div class="w-full">
                                     <div class="grid w-full">
-                                        <div class="col-5">
+                                        <div class="w-5/12">
                                             <table cellspacing="0" cellpadding="5">
                                                 <tr>
                                                     <td class="font-medium">Születési dátum</td>
@@ -367,13 +368,13 @@
                                                 </tr>
                                             </table>
                                         </div>
-                                        <div class="col-7">
+                                        <div class="w-7/12">
                                             
                                             <!-- Kérdések - Válaszok -->
                                             <div *ngIf="isArray(guest.answers)">
                                                 <div *ngFor="let answer of guest.answers">
                                                     <div *ngFor="let translation of answer.translations">
-                                                        <div class="flex flex-column w-full mb-4">
+                                                        <div class="flex flex-col w-full mb-4">
                                                             <div class="font-medium mb-1">
                                                                 {{ translation.hu }}
                                                                 <span *ngIf="!translation.hu.trim().endsWith('?')">?</span>
@@ -385,7 +386,7 @@
                                             </div>
 
                                             <!-- Személyi igazolvány letöltése -->
-                                            <div class="flex flex-column w-full mb-4">
+                                            <div class="flex flex-col w-full mb-4">
                                                 <div class="font-medium mb-1">Személyi igazolvány</div>
                                                 <div *ngIf="guest.idcard">
                                                     <ng-container *ngIf="idCardImageUrls[guest.id]; else imageLoader">
@@ -425,6 +426,7 @@
             [(visible)]="sidebar" 
             position="right" 
             styleClass="p-sidebar-lg"
+            [style]="isMobile ? {'width': '100vw'} : {'width': '74rem', 'max-width': '96vw'}"
             [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
             [fullScreen]="isMobile"
             [blockScroll]="true">
@@ -438,13 +440,13 @@
 
             <!-- Render content only after first open -->
             <ng-container *ngIf="sidebar">
-                <form [formGroup]="guestForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
+                <form [formGroup]="guestForm" (ngSubmit)="save()" novalidate class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-2">
                     
                     <!-- Guest Id -->
                     <input formControlName="id" type="hidden">
 
                     <!-- lastName -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="lastName" class="font-medium text-900">Vezetéknév</label>
                         <input id="lastName" type="text" pInputText formControlName="lastName">
                         <div *ngIf="lastName?.dirty && lastName?.errors?.['required']" class="block p-error">
@@ -453,7 +455,7 @@
                     </div>
 
                     <!-- firstName -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="firstName" class="font-medium text-900">Keresztnév</label>
                         <input id="firstName" type="text" pInputText formControlName="firstName">
                         <div *ngIf="firstName?.dirty && firstName?.errors?.['required']" class="block p-error">
@@ -462,15 +464,15 @@
                     </div>
 
                     <!-- gender -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="gender" class="font-medium text-900">Neme</label>
                         <div class="flex flex-wrap gap-3 my-3">
-                            <div class="flex align-items-center">
+                            <div class="flex items-center">
                                 <p-radioButton name="gender" value="1" formControlName="gender" inputId="gender1"></p-radioButton>
                                 <label for="gender1" class="ml-2">Férfi</label>
                             </div>
 
-                            <div class="flex align-items-center">
+                            <div class="flex items-center">
                                 <p-radioButton name="gender" value="2" formControlName="gender" inputId="gender2"></p-radioButton>
                                 <label for="gender2" class="ml-2">Nő</label>
                             </div>
@@ -481,7 +483,7 @@
                     </div>
 
                     <!-- birthDate -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="birthDate" class="font-medium text-900">Születési dátum</label>
                         <p-datepicker id="birthDate"
                                     formControlName="birthDate"
@@ -498,7 +500,7 @@
                     </div>
 
                     <!-- nationality -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="nationality" class="font-medium text-900">Állampolgárság</label>
                         <app-nationality-selector [parentForm]="guestForm" controlName="nationality"></app-nationality-selector>
                         <div *ngIf="nationality?.dirty && nationality?.errors?.['required']" class="p-error">
@@ -507,7 +509,7 @@
                     </div>
 
                     <!-- country -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="country" class="font-medium text-900">Lakóhely - ország</label>
                         <app-country-selector [parentForm]="guestForm" controlName="country"></app-country-selector>
                         <div *ngIf="country?.dirty && country?.errors?.['required']" class="p-error">
@@ -516,7 +518,7 @@
                     </div>
 
                     <!-- zipCode -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="zipCode" class="font-medium text-900">Lakóhely - irányítószám</label>
                         <input id="zipCode" type="text" pInputText formControlName="zipCode">
                         <div *ngIf="zipCode?.dirty && zipCode?.errors?.['required']" class="p-error">
@@ -525,7 +527,7 @@
                     </div>
 
                     <!-- email -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="email" class="font-medium text-900">Email</label>
                         <input id="email" type="email" pInputText formControlName="email" autocomplete="email">
                         <div *ngIf="email?.dirty" class="p-error">
@@ -539,7 +541,7 @@
                     </div>
 
                     <!-- telephone -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="telephone" class="font-medium text-900">Telefon</label>
                         <input id="telephone" type="text" pInputText formControlName="telephone">
                         <div *ngIf="telephone?.dirty && telephone?.errors?.['required']" class="p-error">
@@ -548,7 +550,7 @@
                     </div>
 
                     <!-- conference -->
-                    <div class="field mb-4 col-8">
+                    <div class="mb-4 col-span-1 lg:col-span-2">
                         <label for="conference" class="font-medium text-900">Konferencia</label>
                         <app-conference-selector
                             formControlName="conference"
@@ -562,7 +564,7 @@
                     </div>
 
                     <!-- roomNum -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label class="font-medium text-900">Szoba</label>
                         <div class="mt-2">
                             <button
@@ -586,7 +588,7 @@
                     </div>
 
                     <!-- dateOfArrival -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="dateOfArrival" class="font-medium text-900">Érkezés dátuma</label>
                         <p-datepicker id="dateOfArrival"
                                     formControlName="dateOfArrival"
@@ -607,7 +609,7 @@
                     </div>
 
                     <!-- firstMeal -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="firstMeal" class="font-medium text-900">Első étkezés</label>
                         <app-meal-selector 
                             [parentForm]="guestForm" 
@@ -622,7 +624,7 @@
                     </div>
 
                     <!-- diet -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="diet" class="font-medium text-900">Étrend</label>
                         <app-diet-selector [parentForm]="guestForm" controlName="diet"></app-diet-selector>
                         <div *ngIf="diet?.dirty && diet?.errors?.['required']" class="p-error">
@@ -631,7 +633,7 @@
                     </div>
 
                     <!-- dateOfDeparture -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="dateOfDeparture" class="font-medium text-900">Távozás dátuma</label>
                         <p-datepicker id="dateOfDeparture"
                                     formControlName="dateOfDeparture"
@@ -652,7 +654,7 @@
                     </div>
                     
                     <!-- lastMeal -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="lastMeal" class="font-medium text-900">Utolsó étkezés</label>
                         <app-meal-selector 
                             [parentForm]="guestForm" 
@@ -667,14 +669,14 @@
                     </div>
 
                     <!-- babyBed -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="babyBed" class="font-medium text-900">Babaágyat kérsz?</label>
                         <div class="flex flex-wrap gap-3 my-3">
-                            <div class="flex align-items-center">
+                            <div class="flex items-center">
                                 <p-radioButton name="babyBed" value="1" formControlName="babyBed" inputId="baby-bed-yes"></p-radioButton>
                                 <label for="baby-bed-yes" class="ml-2">Igen</label>
                             </div>
-                            <div class="flex align-items-center">
+                            <div class="flex items-center">
                                 <p-radioButton name="babyBed" value="0" formControlName="babyBed" inputId="baby-bed-no"></p-radioButton>
                                 <label for="baby-bed-no" class="ml-2">Nem</label>
                             </div>
@@ -685,7 +687,7 @@
                     </div>
 
                     <!-- roomType -->
-                    <div class="field mb-4 col-12 lg:col-8">
+                    <div class="mb-4 col-span-1 lg:col-span-2">
                         <label for="roomType" class="font-medium text-900">Szállástípus</label>
                         <app-roomtype-selector 
                             [parentForm]="guestForm" 
@@ -697,7 +699,7 @@
                     </div>
 
                     <!-- payment -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div class="mb-4 col-span-1">
                         <label for="payment" class="font-medium text-900">Fizetési mód</label>
                         <app-payment-selector 
                             [parentForm]="guestForm" 
@@ -709,7 +711,7 @@
                     </div>
 
                     <!-- idCard -->
-                    <div class="field mb-4 col-12 lg:col-8">
+                    <div class="mb-4 col-span-1 lg:col-span-2">
                         <label for="idCard" class="font-medium text-900">Személyi igazolvány</label>
                         <ng-container *ngIf="currentIdCardUrl; else uploadBlock">
                             <div class="mb-2 flex flex-row gap-2">
@@ -773,45 +775,44 @@
                         </ng-template>
                     </div>
 
-                    <div class="field mb-4 col-12 lg:col-4">
-                        
-                        <!-- climate -->
+                    <div class="mb-4 col-span-1">
                         <label for="climate" class="font-medium text-900">Klímát kérsz?</label>
                         <div class="flex flex-wrap gap-3 my-3">
-                            <div class="flex align-items-center">
+                            <div class="flex items-center">
                                 <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes"></p-radioButton>
                                 <label for="climate-yes" class="ml-2">Igen</label>
                             </div>
-                            <div class="flex align-items-center">
+                            <div class="flex items-center">
                                 <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no"></p-radioButton>
                                 <label for="climate-no" class="ml-2">Nem</label>
                             </div>
                         </div>
                         <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
-                            Kérjük válassza ki, hogy kér-e babaágyat!
+                            Kérjük válassza ki, hogy kér-e klímát!
                         </div>
+                    </div>
 
-                        <!-- prepaid -->
+                    <div class="mb-4 col-span-1">
                         <label for="prepaid" class="font-medium text-900">Előleget fizetett?</label>
                         <div class="flex flex-wrap gap-3 my-3">
-                            <div class="flex align-items-center">
+                            <div class="flex items-center">
                                 <p-radioButton name="prepaid" value="1" formControlName="prepaid" inputId="prepaid-yes"></p-radioButton>
                                 <label for="prepaid-yes" class="ml-2">Igen</label>
                             </div>
-                            <div class="flex align-items-center">
+                            <div class="flex items-center">
                                 <p-radioButton name="prepaid" value="0" formControlName="prepaid" inputId="prepaid-no"></p-radioButton>
                                 <label for="prepaid-no" class="ml-2">Nem</label>
                             </div>
                         </div>
                         <div *ngIf="prepaid?.dirty && prepaid?.errors?.['required']" class="p-error">
-                            Kérjük válassza ki, hogy kér-e babaágyat!
+                            Kérjük válassza ki, hogy fizetett-e előleget!
                         </div>
                     </div>
                 </form>
             </ng-container>
 
             <ng-template pTemplate="footer">
-                <div class="flex justify-content-end ap-2">
+                <div class="flex justify-end gap-2">
                     <button pButton 
                             pRipple 
                             label="Mégsem" 
@@ -824,7 +825,7 @@
                             pRipple 
                             label="Mentés" 
                             icon="pi pi-check" 
-                            class="p-button ml-2" 
+                            class="p-button" 
                             (click)="save()"
                             [disabled]="!guestForm.valid || !guestForm.dirty">
                     </button>
@@ -834,7 +835,7 @@
 
         <!-- Delete dialog -->
         <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
-            <div class="flex align-items-center justify-content-center">
+            <div class="flex items-center justify-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
                 <span *ngIf="tableItem">Biztosan törölni akarja <b>{{tableItem.lastName}} {{tableItem.firstName}}</b>-t?</span>
             </div>
@@ -846,7 +847,7 @@
 
         <!-- Bulk Delete dialog -->
         <p-dialog [(visible)]="bulkDeleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
-            <div class="flex align-items-center justify-content-center">
+            <div class="flex items-center justify-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
                 <span>Biztosan törölni akarja a kiválasztott vendégeket?</span>
             </div>
@@ -857,22 +858,24 @@
         </p-dialog>
 
         <!-- Assign Tag dialog -->
-        <p-dialog [(visible)]="tagDialog" [style]="{width: '450px'}" header="NFC címke vendéghez rendelés" [modal]="true" class="p-fluid">
+        <p-dialog [(visible)]="tagDialog" [style]="{width: '450px'}" header="NFC címke vendéghez rendelés" [modal]="true" >
             <ng-template pTemplate="content">
-                <p-message [closable]="false"></p-message>
-                <div class="formgrid grid">
-                    <div class="field col">
-                        <label for="identifier">Címke azonosító</label>
-                        <input #identifier pInputText type="text" [(ngModel)]="scannedCode" readonly autofocus />
-                        <!-- <span>{{scannedCode.length}}</span> -->
-                    </div>
+                <p-message
+                    *ngIf="messages.length"
+                    severity="info"
+                    [text]="messages[0].detail || ''"
+                    [closable]="false">
+                </p-message>
+                <div class="mt-3">
+                    <label for="identifier" class="font-medium block mb-2">Címke azonosító</label>
+                    <input #identifier pInputText class="w-full" type="text" [(ngModel)]="scannedCode" readonly autofocus />
                 </div>
-                <div class="text-center">
+                <div class="mt-4 flex justify-center">
                     <button pButton pRipple label="Címke visszavétel" icon="pi pi-trash" class="p-button-danger" (click)="unAssignTag()" [disabled]="!guest?.rfid?.length"></button>
                 </div>
             </ng-template>
             <ng-template pTemplate="footer">
-                <div class="flex justify-content-end ap-2">
+                <div class="flex justify-end gap-2">
                     <button pButton pRipple label="Mégsem" icon="pi pi-times" class="p-button-outlined" (click)="hideTagDialog()"></button>
                     <button pButton pRipple label="Mentés" icon="pi pi-check" class="p-button ml-2" (click)="saveTag()"></button>
                 </div>
@@ -896,10 +899,10 @@
                 </span>
             </ng-template>
 
-            <form [formGroup]="dialogFiltersForm" novalidate class="grid formgrid p-fluid">
+            <form [formGroup]="dialogFiltersForm" novalidate class="grid grid">
                 
                 <!-- lastName -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="lastName" class="font-medium text-900">Vezetéknév</label>
                     <span class="p-input-icon-right">
                         <input pInputText type="text" formControlName="lastName" (input)="onFilter($event, 'lastName')" placeholder="Keresés..."/>
@@ -911,7 +914,7 @@
                 </div>
 
                 <!-- firstName -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="firstName" class="font-medium text-900">Keresztnév</label>
                     <span class="p-input-icon-right">
                         <input pInputText type="text" formControlName="firstName" (input)="onFilter($event, 'firstName')" placeholder="Keresés..."/>
@@ -923,15 +926,15 @@
                 </div>
 
                 <!-- gender -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="gender" class="font-medium text-900">Neme</label>
                     <div class="flex flex-wrap gap-3 my-3">
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <p-radioButton name="gender" value="1" formControlName="gender" (onClick)="onFilter($event, 'gender')"></p-radioButton>
                             <label for="gender1" class="ml-2">Férfi</label>
                         </div>
 
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <p-radioButton name="gender" value="2" formControlName="gender" (onClick)="onFilter($event, 'gender')"></p-radioButton>
                             <label for="gender2" class="ml-2">Nő</label>
                         </div>
@@ -939,7 +942,7 @@
                 </div>
 
                 <!-- birthDate -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="birthDate" class="font-medium text-900">Születési dátum</label>
                     <p-datepicker
                         formControlName="birthDate"
@@ -954,7 +957,7 @@
                 </div>
 
                 <!-- nationality -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="nationality" class="font-medium text-900">Állampolgárság</label>
                     <app-nationality-selector
                         formControlName="nationality"
@@ -964,7 +967,7 @@
                 </div>
 
                 <!-- country -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="country" class="font-medium text-900">Lakóhely - ország</label>
                     <app-country-selector 
                         formControlName="country"
@@ -974,7 +977,7 @@
                 </div>
 
                 <!-- zipCode -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="zipCode" class="font-medium text-900">Lakóhely - irányítószám</label>
                     <span class="p-input-icon-right">
                         <input pInputText type="text" formControlName="zipCode" (input)="onFilter($event, 'zipCode')" placeholder="Keresés..."/>
@@ -986,7 +989,7 @@
                 </div>
 
                 <!-- email -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="email" class="font-medium text-900">Email</label>
                     <span class="p-input-icon-right">
                         <input pInputText type="text" formControlName="email" (input)="onFilter($event, 'email')" placeholder="Keresés..."/>
@@ -998,7 +1001,7 @@
                 </div>
 
                 <!-- telephone -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="telephone" class="font-medium text-900">Telefon</label>
                     <span class="p-input-icon-right">
                         <input pInputText type="text" formControlName="telephone" (input)="onFilter($event, 'telephone')" placeholder="Keresés..."/>
@@ -1010,7 +1013,7 @@
                 </div>
 
                 <!-- firstMeal -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="firstMeal" class="font-medium text-900">Első étkezés</label>
                     <app-meal-selector 
                         formControlName="firstMeal"
@@ -1021,7 +1024,7 @@
                 </div>
 
                 <!-- lastMeal -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="lastMeal" class="font-medium text-900">Utolsó étkezés</label>
                     <app-meal-selector 
                         formControlName="lastMeal"
@@ -1032,14 +1035,14 @@
                 </div>
 
                 <!-- babyBed -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="babyBed" class="font-medium text-900">Babaágyat kérsz?</label>
                     <div class="flex flex-wrap gap-3 my-3">
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <p-radioButton name="babyBed" value="1" formControlName="babyBed" inputId="baby-bed-yes" (onClick)="onFilter($event, 'babyBed')"></p-radioButton>
                             <label for="baby-bed-yes" class="ml-2">Igen</label>
                         </div>
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <p-radioButton name="babyBed" value="0" formControlName="babyBed" inputId="baby-bed-no" (onClick)="onFilter($event, 'babyBed')"></p-radioButton>
                             <label for="baby-bed-no" class="ml-2">Nem</label>
                         </div>
@@ -1047,7 +1050,7 @@
                 </div>
 
                 <!-- roomType -->
-                <div class="field mb-4 col-12 lg:col-8">
+                <div class="mb-4 w-full lg:w-2/3">
                     <label for="roomType" class="font-medium text-900">Szállástípus</label>
                     <app-roomtype-selector 
                         formControlName="roomType"
@@ -1057,14 +1060,14 @@
                 </div>
 
                 <!-- climate -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="climate" class="font-medium text-900">Klímát kérsz?</label>
                     <div class="flex flex-wrap gap-3 my-3">
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes" (onClick)="onFilter($event, 'climate')"></p-radioButton>
                             <label for="climate-yes" class="ml-2">Igen</label>
                         </div>
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no" (onClick)="onFilter($event, 'climate')"></p-radioButton>
                             <label for="climate-no" class="ml-2">Nem</label>
                         </div>
@@ -1072,7 +1075,7 @@
                 </div>
 
                 <!-- payment -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="payment" class="font-medium text-900">Fizetési mód</label>
                     <app-payment-selector 
                         formControlName="payment"
@@ -1082,7 +1085,7 @@
                 </div>
 
                 <!-- roomMate -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="roomMate" class="font-medium text-900">Kivel laknál egy szobában?</label>
                     <span class="p-input-icon-right">
                         <input
@@ -1100,14 +1103,14 @@
                 </div>
 
                 <!-- prepaid -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="climate" class="font-medium text-900">Előleget fizetett?</label>
                     <div class="flex flex-wrap gap-3 my-3">
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <p-radioButton name="prepaid" value="1" formControlName="prepaid" inputId="prepaid-yes" (onClick)="onFilter($event, 'prepaid')"></p-radioButton>
                             <label for="prepaid-yes" class="ml-2">Igen</label>
                         </div>
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <p-radioButton name="prepaid" value="0" formControlName="prepaid" inputId="prepaid-no" (onClick)="onFilter($event, 'prepaid')"></p-radioButton>
                             <label for="prepaid-no" class="ml-2">Nem</label>
                         </div>
@@ -1115,7 +1118,7 @@
                 </div>
 
                 <!-- roomKeyIssued -->
-                <div class="field mb-4 col-12 lg:col-4">
+                <div class="mb-4 w-full lg:w-1/3">
                     <label for="roomKeyIssued" class="font-medium text-900">Szobakulcs státusz</label>
                     <app-roomkey-selector
                         [parentForm]="dialogFiltersForm"
@@ -1127,7 +1130,7 @@
             </form>
 
             <ng-template pTemplate="footer">
-                <div class="flex justify-content-end ap-2">
+                <div class="flex justify-end ap-2">
                     <button pButton 
                             pRipple 
                             label="Szűrők törlése" 
@@ -1143,54 +1146,63 @@
     <!-- Room key dialog -->
     <p-dialog [(visible)]="roomKeyDialog" [style]="{width: '420px'}" header="Szobakulcs státusz" [modal]="true">
         <ng-template pTemplate="content">
-            <div class="surface-50 border-1 border-200 border-round p-3">
-                <div class="grid m-0 row-gap-2">
-                    <div class="col-5 text-600 font-medium py-2 border-bottom-1 border-200">
-                        <i class="pi pi-user mr-2"></i>
-                        Vendég
-                    </div>
-                    <div class="col-7 text-900 py-2 border-bottom-1 border-200">
-                        <span class="color-badge gray">
-                            <i class="pi pi-user mr-1"></i>
-                            {{guest?.lastName}} {{guest?.firstName}}
-                        </span>
-                    </div>
-                    <div class="col-5 text-600 font-medium py-2 border-bottom-1 border-200">
-                        <i class="pi pi-key mr-2"></i>
-                        Státusz
-                    </div>
-                    <div class="col-7 text-900 py-2 border-bottom-1 border-200">
-                        <span *ngIf="guest?.roomKeyReturnedAt" class="color-badge green"><i class="pi pi-sign-in mr-2"></i>{{ getRoomKeyStatusLabel(guest || {}) }}</span>
-                        <span *ngIf="!guest?.roomKeyReturnedAt && isRoomKeyCurrentlyIssued(guest)" class="color-badge orange"><i class="pi pi-sign-out mr-2"></i>{{ getRoomKeyStatusLabel(guest || {}) }}</span>
-                        <span *ngIf="!guest?.roomKeyReturnedAt && !isRoomKeyCurrentlyIssued(guest)" class="color-badge indigo"><i class="pi pi pi-times mr-2"></i>{{ getRoomKeyStatusLabel(guest || {}) }}</span>
+            <div class="stone-50 border border-stone-200 rounded-lg p-3">
+                <div class="divide-y divide-stone-200">
+                    <div class="flex items-center py-2">
+                        <div class="w-5/12 text-600 font-medium">
+                            <i class="pi pi-user mr-2"></i>
+                            Vendég
+                        </div>
+                        <div class="w-7/12 text-900">
+                            <span class="color-badge gray">
+                                <i class="pi pi-user mr-1"></i>
+                                {{guest?.lastName}} {{guest?.firstName}}
+                            </span>
+                        </div>
                     </div>
 
-                    <div class="col-5 text-600 font-medium py-2 border-bottom-1 border-200">
-                        <i class="pi pi-sign-in mr-2"></i>
-                        Kiadva
-                    </div>
-                    <div class="col-7 text-900 py-2 border-bottom-1 border-200">
-                        <span class="calendar-badge">
-                            <i class="pi pi-calendar mr-1"></i>
-                            {{ guest?.roomKeyIssuedAt ? (guest?.roomKeyIssuedAt | date:'yyyy.MM.dd HH:mm:ss') : '-' }}
-                        </span>
+                    <div class="flex items-center py-2">
+                        <div class="w-5/12 text-600 font-medium">
+                            <i class="pi pi-key mr-2"></i>
+                            Státusz
+                        </div>
+                        <div class="w-7/12 text-900">
+                            <span *ngIf="guest?.roomKeyReturnedAt" class="color-badge green"><i class="pi pi-sign-in mr-2"></i>{{ getRoomKeyStatusLabel(guest || {}) }}</span>
+                            <span *ngIf="!guest?.roomKeyReturnedAt && isRoomKeyCurrentlyIssued(guest)" class="color-badge orange"><i class="pi pi-sign-out mr-2"></i>{{ getRoomKeyStatusLabel(guest || {}) }}</span>
+                            <span *ngIf="!guest?.roomKeyReturnedAt && !isRoomKeyCurrentlyIssued(guest)" class="color-badge indigo"><i class="pi pi pi-times mr-2"></i>{{ getRoomKeyStatusLabel(guest || {}) }}</span>
+                        </div>
                     </div>
 
-                    <div class="col-5 text-600 font-medium py-2">
-                        <i class="pi pi-sign-out mr-2"></i>
-                        Visszaadva
+                    <div class="flex items-center py-2">
+                        <div class="w-5/12 text-600 font-medium">
+                            <i class="pi pi-sign-in mr-2"></i>
+                            Kiadva
+                        </div>
+                        <div class="w-7/12 text-900">
+                            <span class="calendar-badge">
+                                <i class="pi pi-calendar mr-1"></i>
+                                {{ guest?.roomKeyIssuedAt ? (guest?.roomKeyIssuedAt | date:'yyyy.MM.dd HH:mm:ss') : '-' }}
+                            </span>
+                        </div>
                     </div>
-                    <div class="col-7 text-900 py-2">
-                        <span class="calendar-badge">
-                            <i class="pi pi-calendar mr-1"></i>
-                            {{ guest?.roomKeyReturnedAt ? (guest?.roomKeyReturnedAt | date:'yyyy.MM.dd HH:mm:ss') : '-' }}
-                        </span>
+
+                    <div class="flex items-center py-2">
+                        <div class="w-5/12 text-600 font-medium">
+                            <i class="pi pi-sign-out mr-2"></i>
+                            Visszaadva
+                        </div>
+                        <div class="w-7/12 text-900">
+                            <span class="calendar-badge">
+                                <i class="pi pi-calendar mr-1"></i>
+                                {{ guest?.roomKeyReturnedAt ? (guest?.roomKeyReturnedAt | date:'yyyy.MM.dd HH:mm:ss') : '-' }}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
         </ng-template>
         <ng-template pTemplate="footer">
-            <div class="flex justify-content-between align-items-center w-full m-0 p-0">
+            <div class="flex justify-between items-center w-full m-0 p-0">
                 <button pButton pRipple label="Kulcs kiadása" icon="pi pi-key" class="p-button-warning ml-0" (click)="issueRoomKey()" [disabled]="!canIssueRoomKey(guest)"></button>
                 <button pButton pRipple label="Kulcs visszavétele" icon="pi pi-sign-out" class="p-button-success mr-0" (click)="returnRoomKey()" [disabled]="!canReturnRoomKey(guest)"></button>
             </div>
@@ -1199,7 +1211,7 @@
 </div>
 
 <!-- Loading Overlay -->
-<p-blockUI [autoZIndex]="true" [blocked]="loading">
+<p-blockUI [autoZIndex]="true" [blocked]="loading && !roomKeyDialog && !tagDialog">
     <p-progressSpinner></p-progressSpinner>
 </p-blockUI>
 

@@ -41,7 +41,7 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
     @Input() style: { [key: string]: string } = {}  // outer style for the dropdown
     @Input() styleClass: string = ''                // extra css classes for wrapper
     @Input() panelStyle: { [key: string]: string }  // style for the overlay panel
-    @Input() panelStyleClass: string = ''           // css class for the overlay panel
+    @Input() panelStyleClass: string = 'conference-selector-panel' // css class for the overlay panel
     @Input() disabledOptions: Conference[] = []     // List of disabled conference IDs
     @Input() emitOnSelectFirstOption = false        // only turn it on where you really need it
     @Input() emitOnPreselectId = false

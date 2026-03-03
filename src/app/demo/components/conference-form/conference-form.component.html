@@ -1,38 +1,38 @@
-<div class="relative overflow-hidden flex flex-column justify-content-center">
+<div class="relative overflow-hidden flex flex-col justify-center">
     <div class="bg-circle opacity-50" style="top: -200px; left: -700px;"></div>
     <div class="bg-circle hidden lg:flex" style="top: 50px; right:-800px; transform: rotate(60deg)"></div>
     <div class="landing-wrapper">
 
-        <div class="absolute top-0 right-0 flex align-items-center px-3 py-3">
+        <div class="absolute top-0 right-0 flex items-center px-3 py-3">
             <app-language-selector></app-language-selector>
         </div>
 
         <div class="py-6 px-4 mx-0 md:mx-6 lg:mx-8 lg:px-8 z-2">
             <div id="home"
-                class="grid grid-nogutter justify-content-between align-items-center mb-6">
+                class="grid gap-0 justify-between items-center mb-6">
                 <div
-                    class="col-12 lg:col-4 flex flex-column gap-4 flex-order-1 md:flex-order-0 align-items-center md:align-items-start text-center md:text-left mb-3">
+                    class="w-full lg:w-1/3 flex flex-col gap-4 flex-order-1 md:flex-order-0 items-center md:items-start text-center md:text-left mb-3">
                     <span class="block text-900 font-bold text-4xl">{{ 'Welcome' | translate }}!</span>
                     <span class="block text-700 text-lg">{{ 'A regisztrációval' | translate }}</span>
                     <ul class="flex flex-wrap gap-5 list-none p-0">
-                        <li class="flex align-items-center">
-                            <div class="p-1 border-circle bg-green-400 inline-block mr-2"></div>
+                        <li class="flex items-center">
+                            <div class="p-1 rounded-full bg-green-400 inline-block mr-2"></div>
                             <span class="text-900 font-semibold">{{ 'nagyban segíted a rendezvényszerveződ munkáját' | translate }}</span>
                         </li>
-                        <li class="flex align-items-center">
-                            <div class="p-1 border-circle bg-green-400 inline-block mr-2"></div>
+                        <li class="flex items-center">
+                            <div class="p-1 rounded-full bg-green-400 inline-block mr-2"></div>
                             <span class="text-900 font-semibold">{{ 'és törvényi kötelezettségednek is eleget teszel' | translate }}</span>
                         </li>
-                        <li class="flex align-items-center">
-                            <div class="p-1 border-circle bg-green-400 inline-block mr-2"></div>
+                        <li class="flex items-center">
+                            <div class="p-1 rounded-full bg-green-400 inline-block mr-2"></div>
                             <span class="text-900 font-semibold">{{ 'Kérdés esetén kérjük fordulj a rendezvény szerveződhöz' | translate }}!</span>
                         </li>
                     </ul>
                     <span class="block text-700 text-lg">{{ 'Köszönjük a figyelmes kitöltést' | translate }}! 😊</span>
                 </div>
 
-                <div class="col-12 lg:col-7 md:col-12 flex-order-1 md:flex-order-1 mb-6 md:mb-0 border-round">
-                    <div class="card w-full h-full border-round shadow-2 animation-duration-1000 animation-ease-out" animateEnter="moveinright">
+                <div class="w-full lg:w-7/12 md:w-full flex-order-1 md:flex-order-1 mb-6 md:mb-0 rounded-md">
+                    <div class="card w-full h-full rounded-md shadow-2 animation-duration-1000 animation-ease-out" animateEnter="moveinright">
                         <div class="card-title block text-900 font-bold text-2xl">
                             {{ conference && conference.name }}
                         </div>
@@ -40,7 +40,7 @@
                             {{ 'Vendég Regisztrációs Űrlap' | translate }}
                         </div>
                         <div class="grid mt-2">
-                            <div class="col-12 lg:col-12 pb-0">
+                            <div class="w-full lg:w-full pb-0">
 
                                 <!-- SYSTEM MESSAGE -->
                                 <p-message [closable]="false"></p-message>
@@ -49,10 +49,10 @@
                                 <div *ngIf="showForm && (!registrationEnded || (registrationEnded && canFillFormAfterDeadline))">
 
                                     <!-- Registration form -->
-                                    <form [formGroup]="conferenceForm" (ngSubmit)="onSubmit()" novalidate class="grid formgrid p-fluid">
+                                    <form [formGroup]="conferenceForm" (ngSubmit)="onSubmit()" novalidate class="grid grid">
 
                                         <!-- Vezetéknév -->
-                                        <div class="field mb-4 col-12 lg:col-4 md:col-12">
+                                        <div class="mb-4 w-full lg:w-1/3 md:w-full">
                                             <label for="lastName" class="font-medium text-900">
                                                 {{'Vezetéknév' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('lastName') === 'bubble'"
@@ -73,7 +73,7 @@
                                         </div>
 
                                         <!-- Keresztnév -->
-                                        <div class="field mb-4 col-12 lg:col-4 md:col-12" >
+                                        <div class="mb-4 w-full lg:w-1/3 md:w-full" >
                                             <label for="firstName" class="font-medium text-900">
                                                 {{'Keresztnév' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('firstName') === 'bubble'"
@@ -94,7 +94,7 @@
                                         </div>
 
                                         <!-- Neme -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="mb-4 w-full lg:w-1/3">
                                             <label for="gender" class="font-medium text-900">
                                                 {{'Neme' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('gender') === 'bubble'"
@@ -106,11 +106,11 @@
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
                                             <div class="flex flex-wrap gap-3 my-3">
-                                                <div class="flex align-items-center">
+                                                <div class="flex items-center">
                                                     <p-radioButton name="gender" value="1" formControlName="gender" inputId="gender1"></p-radioButton>
                                                     <label for="gender1" class="ml-2">{{'Férfi' | translate }}</label>
                                                 </div>
-                                                <div class="flex align-items-center">
+                                                <div class="flex items-center">
                                                     <p-radioButton name="gender" value="2" formControlName="gender" inputId="gender2"></p-radioButton>
                                                     <label for="gender2" class="ml-2">{{'Nő' | translate }}</label>
                                                 </div>
@@ -124,7 +124,7 @@
                                         </div>
 
                                         <!-- Születési dátum -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="mb-4 w-full lg:w-1/3">
                                             <label for="birthDate" class="font-medium text-900">
                                                 {{'Születési dátum' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('birthDate') === 'bubble'"
@@ -153,7 +153,7 @@
                                         </div>
 
                                         <!-- Állampolgárság -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="mb-4 w-full lg:w-1/3">
                                             <label for="nationality" class="font-medium text-900">
                                                 {{'Állampolgárság' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('nationality') === 'bubble'"
@@ -174,7 +174,7 @@
                                         </div>
 
                                         <!-- Lakóhely - ország -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="mb-4 w-full lg:w-1/3">
                                             <label for="country" class="font-medium text-900">
                                                 {{'Lakóhely - ország' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('country') === 'bubble'"
@@ -195,7 +195,7 @@
                                         </div>
 
                                         <!-- Lakóhely - irányítószám -->
-                                        <div class="field mb-4 col-12 lg:col-4 md:col-12" >
+                                        <div class="mb-4 w-full lg:w-1/3 md:w-full" >
                                             <label for="zipCode" class="font-medium text-900">
                                                 {{'Lakóhely - irányítószám' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('zipCode') === 'bubble'"
@@ -236,7 +236,7 @@
                                         </div>
 
                                         <!-- Email -->
-                                        <div class="field mb-4 col-12 lg:col-4 md:col-12" >
+                                        <div class="mb-4 w-full lg:w-1/3 md:w-full" >
                                             <label for="email" class="font-medium text-900">
                                                 {{'Email' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('email') === 'bubble'"
@@ -262,7 +262,7 @@
                                         </div>
 
                                         <!-- Telefon -->
-                                        <div class="field mb-4 col-12 lg:col-4 md:col-12" >
+                                        <div class="mb-4 w-full lg:w-1/3 md:w-full" >
                                             <label for="telephone" class="font-medium text-900">
                                                 {{'Telefon' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('telephone') === 'bubble'"
@@ -287,7 +287,7 @@
                                         </div>
 
                                         <!-- Érkezés dátuma -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="mb-4 w-full lg:w-1/3">
                                             <label for="dateOfArrival" class="font-medium text-900">
                                                 {{'Érkezés dátuma' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('dateOfArrival') === 'bubble'"
@@ -320,7 +320,7 @@
                                         </div>
 
                                         <!-- Első étkezés -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="mb-4 w-full lg:w-1/3">
                                             <label for="firstMeal" class="font-medium text-900">
                                                 {{'Első étkezés' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('firstMeal') === 'bubble'"
@@ -347,7 +347,7 @@
                                         </div>
 
                                         <!-- Étrend -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="mb-4 w-full lg:w-1/3">
                                             <label for="diet" class="font-medium text-900">
                                                 {{'Étrend' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('diet') === 'bubble'"
@@ -368,7 +368,7 @@
                                         </div>
 
                                         <!-- Távozás dátuma -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="mb-4 w-full lg:w-1/3">
                                             <label for="dateOfDeparture" class="font-medium text-900">
                                                 {{'Távozás dátuma' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('dateOfDeparture') === 'bubble'"
@@ -401,7 +401,7 @@
                                         </div>
 
                                         <!-- Utolsó étkezés -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="mb-4 w-full lg:w-1/3">
                                             <label for="lastMeal" class="font-medium text-900">
                                                 {{'Utolsó étkezés' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('lastMeal') === 'bubble'"
@@ -428,7 +428,7 @@
                                         </div>
 
                                         <!-- Szállástípus -->
-                                        <div class="field mb-4 col-12 lg:col-8">
+                                        <div class="mb-4 w-full lg:w-2/3">
                                             <label for="roomType" class="font-medium text-900">
                                                 {{'Szállástípus' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('roomType') === 'bubble'"
@@ -456,7 +456,7 @@
                                         </div>
 
                                         <!-- Babaágyat kérsz? -->
-                                        <div class="field mb-4 col-12 lg:col-4" *ngIf="needsRoom">
+                                        <div class="mb-4 w-full lg:w-1/3" *ngIf="needsRoom">
                                             <label for="babyBed" class="font-medium text-900">
                                                 {{'Babaágyat kérsz' | translate }}?
                                                 <i *ngIf="getFormFieldInfoPosition('babyBed') === 'bubble'"
@@ -468,11 +468,11 @@
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
                                             <div class="flex flex-wrap gap-3 my-3">
-                                                <div class="flex align-items-center">
+                                                <div class="flex items-center">
                                                     <p-radioButton name="babyBed" value="1" formControlName="babyBed" inputId="baby-bed-yes"></p-radioButton>
                                                     <label for="baby-bed-yes" class="ml-2">{{'Igen' | translate }}</label>
                                                 </div>
-                                                <div class="flex align-items-center">
+                                                <div class="flex items-center">
                                                     <p-radioButton name="babyBed" value="0" formControlName="babyBed" inputId="baby-bed-no"></p-radioButton>
                                                     <label for="baby-bed-no" class="ml-2">{{'Nem' | translate }}</label>
                                                 </div>
@@ -486,7 +486,7 @@
                                         </div>
 
                                         <!-- Kivel laknál egy szobában -->
-                                        <div class="field mb-4 col-12 lg:col-8" *ngIf="needsRoom">
+                                        <div class="mb-4 w-full lg:w-2/3" *ngIf="needsRoom">
                                             <label for="roomMate" class="font-medium text-900">
                                                 {{'Kivel laknál egy szobában' | translate }}?
                                                 <i *ngIf="getFormFieldInfoPosition('roomMate') === 'bubble'"
@@ -519,7 +519,7 @@
                                         </div>
 
                                         <!-- Fizetési mód -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="mb-4 w-full lg:w-1/3">
                                             <label for="payment" class="font-medium text-900">
                                                 {{'Fizetési mód' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('payment') === 'bubble'"
@@ -548,12 +548,12 @@
                                         </div>
 
                                         <!-- Figyelmeztetés SZÉP kártyás fizetés esetén -->
-                                        <div *ngIf="payment?.value === 2" class="field mb-4 col-12">
+                                        <div *ngIf="payment?.value === 2" class="mb-4 w-full">
                                             <p-message [closable]="false"></p-message>
                                         </div>
 
                                         <!-- Extra kérdések -->
-                                        <div formArrayName="answers" class="field col-12 mb-0">
+                                        <div formArrayName="answers" class="w-full mb-0">
                                             <div *ngFor="let answer of answers.controls; let i = index">
                                                 <ng-container *ngIf="getTranslatedQuestion(i) as tq">
                                                     <div class="mb-4">
@@ -574,7 +574,7 @@
                                         </div>
 
                                         <!-- Személyi igazolvány -->
-                                        <div *ngIf="showIdCardField" class="field mb-4 col-12 lg:col-12">
+                                        <div *ngIf="showIdCardField" class="mb-4 w-full lg:w-full">
                                             <label for="idCard" class="font-medium text-900">
                                                 {{'Személyi igazolvány hátoldala' | translate }}
                                                 <i pTooltip="<img src='/assets/demo/images/eszemelyi-back.jpg' alt='ID Card back' style='max-width: 30vw;'/>"
@@ -597,7 +597,7 @@
                                         </div>
 
                                         <!-- Adatvédelem + Felhasználói feltételek -->
-                                        <div class="field mb-4 col-12">
+                                        <div class="mb-4 w-full">
                                             <p-checkbox formControlName="privacy" [binary]="true" inputId="privacy"></p-checkbox>
                                             <span class="ml-2">
                                                 {{'Elfogadom az' | translate }}
@@ -608,7 +608,7 @@
                                                 </a> 
                                                 <span *ngIf="conference.acceptanceCriteriaUrl?.length">
                                                     {{'és az' | translate }}
-                                                    <a class="cursor-pointer text-primary-700 "
+                                                    <a class="cursor-pointer text-primary-700"
                                                         [href]="conference.acceptanceCriteriaUrl"
                                                         target="_blank">
                                                         {{'Adatvédelmi/Hozzájárulási Nyilatkozatot' | translate }}
@@ -616,7 +616,7 @@
                                                 </span>
                                                 <span>
                                                     {{'és a' | translate }}
-                                                    <a class="cursor-pointer text-primary-700 "
+                                                    <a class="cursor-pointer text-primary-700"
                                                         href="https://www.zichy-vajta.com/hazirend"
                                                         target="_blank">
                                                         {{'ZVKK házirendet' | translate }}
@@ -640,7 +640,7 @@
 
                                 <!-- New registration -->
                                 <div *ngIf="(!registrationEnded || (registrationEnded && canFillFormAfterDeadline)) && !showForm"
-                                     class="flex col-12 align-items-center justify-content-center">
+                                     class="flex w-full items-center justify-center">
                                     
                                      <p-button class="white-space-nowrap mt-3" 
                                                icon="pi pi-plus"
@@ -654,16 +654,16 @@
                 </div>
             </div>
 
-            <div class="grid justify-content-between my-6 pt-4 md:my-8">
-                <div class="col-12 md:col-2 text-center md:text-left">
+            <div class="grid justify-between my-6 pt-4 md:my-8">
+                <div class="w-full md:w-1/6 text-center md:text-left">
                     <h4 class="font-medium text-xl line-height-3 mb-3 text-900">Zichy-Vajta Konferencia Központ Nonprofit Közhasznú Kft</h4>
                     <a class="line-height-3 block cursor-pointer mb-2 text-700">7041 Vajta, Petőfi Sándor utca 562</a>
                     <a class="line-height-3 block cursor-pointer text-700">NTAK szám: KO22054588</a>
                 </div>
 
-                <div class="col-12 md:col-10 lg:col-7">
+                <div class="w-full md:w-5/6 lg:w-7/12">
                     <div class="grid text-center md:text-left">
-                        <div class="col-12 md:col-3">
+                        <div class="w-full md:w-1/4">
                             <h4 class="font-medium text-xl line-height-3 mb-3 text-900">Rólunk</h4>
                             <a class="line-height-3 block cursor-pointer mb-2 text-700">Történet</a>
                             <a class="line-height-3 block cursor-pointer mb-2 text-700">Kastély</a>
@@ -671,7 +671,7 @@
                             <a class="line-height-3 block cursor-pointer text-700">Önkéntesség</a>
                         </div>
 
-                        <div class="col-12 md:col-3 mt-4 md:mt-0">
+                        <div class="w-full md:w-1/4 mt-4 md:mt-0">
                             <h4 class="font-medium text-xl line-height-3 mb-3 text-900">Szolgáltatások</h4>
                             <a class="line-height-3 block cursor-pointer mb-2 text-700">Konferencia termek</a>
                             <a class="line-height-3 block cursor-pointer mb-2 text-700">Teljes panziós ellátás</a>
@@ -680,7 +680,7 @@
                             <a class="line-height-3 block cursor-pointer text-700">Sportpályák</a>
                         </div>
 
-                        <div class="col-12 md:col-3 mt-4 md:mt-0">
+                        <div class="w-full md:w-1/4 mt-4 md:mt-0">
                             <h4 class="font-medium text-xl line-height-3 mb-3 text-900">Rendezvények</h4>
                             <a class="line-height-3 block cursor-pointer mb-2 text-700">Konferenciák</a>
                             <a class="line-height-3 block cursor-pointer mb-2 text-700">Esküvők</a>
@@ -689,7 +689,7 @@
                             <a class="line-height-3 block cursor-pointer text-700">Forgatási helyszín</a>
                         </div>
 
-                        <div class="col-12 md:col-3 mt-4 md:mt-0">
+                        <div class="w-full md:w-1/4 mt-4 md:mt-0">
                             <h4 class="font-medium text-xl line-height-3 mb-3 text-900">Jog</h4>
                             <a class="line-height-3 block cursor-pointer mb-2 text-700"
                                href="https://www.zichy-vajta.com/gdpr"

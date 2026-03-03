@@ -106,6 +106,7 @@ export class GuestComponent implements OnInit {
     guestReservations: Reservation[] = []        // Guest reservations
     acutalReservation: any | null = null         // Actual guest reservation
     firstRowIndex: number = 0                    // Helper for rows
+    expandedRowKeys: { [key: string]: boolean } = {}
 
     private static readonly NONE_CONF_ID = -1
     noConferenceMode: boolean = false
@@ -309,7 +310,10 @@ export class GuestComponent implements OnInit {
                 map(v => (v ?? []).map(x => x.id).sort().join(',')),
                 distinctUntilChanged()
             )
-            .subscribe(() => this.doQuery())
+            .subscribe(() => {
+                // Run querying in a separate tick to avoid NG0100 during selector -> parent updates.
+                setTimeout(() => this.doQuery())
+            })
 
         // Guests
         this.guestObs$ = this.guestService.guestObs
@@ -364,6 +368,7 @@ export class GuestComponent implements OnInit {
                         roomNum: computedRoomNum
                     }
                 })
+                this.syncExpandedRowsWithCurrentData()
 
                 this.totalRecords = data.totalItems || 0
                 this.page = data.currentPage || 0
@@ -708,12 +713,50 @@ export class GuestComponent implements OnInit {
      * @param conference The guest object for the row that was expanded.
      */
     onRowExpand(guest: Guest): void {
-        // Load idCard image
-        // this.imageUrl = null
+        const rowKey = String(guest?.id ?? '')
+        if (!rowKey) return
+
+        // Open row immediately; image loads in background and skeleton is shown meanwhile.
+        this.expandedRowKeys = { ...this.expandedRowKeys, [rowKey]: true }
 
         if (guest.idcard) {
-            this.getIdCardImage(guest)
+            setTimeout(() => this.getIdCardImage(guest))
         }
+    }
+
+    toggleRow(guest: Guest): void {
+        const rowKey = String(guest?.id ?? '')
+        if (!rowKey) return
+
+        const nextExpanded = { ...this.expandedRowKeys }
+        if (nextExpanded[rowKey]) {
+            delete nextExpanded[rowKey]
+            this.expandedRowKeys = nextExpanded
+        } else {
+            this.onRowExpand(guest)
+            return
+        }
+    }
+
+    isRowExpanded(guest: Guest): boolean {
+        const rowKey = String(guest?.id ?? '')
+        return !!rowKey && !!this.expandedRowKeys[rowKey]
+    }
+
+    private syncExpandedRowsWithCurrentData(): void {
+        const validKeys = new Set(
+            (this.tableData ?? [])
+                .map((row) => String(row?.id ?? ''))
+                .filter((k) => k.length > 0)
+        )
+
+        const next: { [key: string]: boolean } = {}
+        Object.keys(this.expandedRowKeys).forEach((key) => {
+            if (validKeys.has(key) && this.expandedRowKeys[key]) {
+                next[key] = true
+            }
+        })
+        this.expandedRowKeys = next
     }
 
     /**
@@ -735,7 +778,7 @@ export class GuestComponent implements OnInit {
     edit(guest: Guest) {
         this.guestForm.reset(this.initialFormValues)
         this.currentIdCardUrl = guest.idcard ? `${this.apiURL}/guest/idcard/${guest.id}` : null
-        if (this.currentIdCardUrl) {
+        if (guest.idcard) {
             this.getIdCardImage(guest)
         }
 
@@ -1214,8 +1257,9 @@ export class GuestComponent implements OnInit {
 
     getIdCardImage(guest: Guest) {
         const id = guest.id;
-        if (!id || !guest.idcard) return;
-        if (this.idCardImageUrls[id]) return;
+        if (!id || !guest.idcard) return
+        if (this.idCardImageUrls[id]) return
+        if (this.loadingIdCard[id]) return
 
         this.loadingIdCard[id] = true;
 
@@ -1224,12 +1268,16 @@ export class GuestComponent implements OnInit {
         this.http.get(this.apiURL + '/guest/idcardimage/' + cleanedIdCardName, { responseType: 'blob' })
             .subscribe({
                 next: (blob) => {
-                    this.idCardImageUrls[id] = window.URL.createObjectURL(blob);
-                    this.loadingIdCard[id] = false;
+                    setTimeout(() => {
+                        this.idCardImageUrls[id] = window.URL.createObjectURL(blob)
+                        this.loadingIdCard[id] = false
+                    })
                 },
                 error: () => {
-                    this.idCardImageUrls[id] = '';
-                    this.loadingIdCard[id] = false;
+                    setTimeout(() => {
+                        this.idCardImageUrls[id] = ''
+                        this.loadingIdCard[id] = false
+                    })
                 }
             });
     }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
@@ -85,7 +85,8 @@ export class RoomComponent implements OnInit {
         private conferenceService: ConferenceService,
         private messageService: MessageService,
         private responsiveService: ResponsiveService,
-        private fb: FormBuilder) {
+        private fb: FormBuilder,
+        private cdr: ChangeDetectorRef) {
 
         // Room form fields and validators
         this.roomForm = this.fb.group({
@@ -118,13 +119,16 @@ export class RoomComponent implements OnInit {
         // Rooms
         this.roomObs$ = this.roomService.roomObs
         this.roomObs$.subscribe((data: ApiResponse) => {
-            this.loading = false
-            if (data) {
-                this.tableData = data.rows || []
-                this.totalRecords = data.totalItems || 0
-                this.page = data.currentPage || 0
-                this.numberOfBeds = data.numberOfBeds || 0
-            }
+            queueMicrotask(() => {
+                this.loading = false
+                if (data) {
+                    this.tableData = data.rows || []
+                    this.totalRecords = data.totalItems || 0
+                    this.page = data.currentPage || 0
+                    this.numberOfBeds = data.numberOfBeds || 0
+                }
+                this.cdr.detectChanges()
+            })
         })
 
         // Monitor the changes of the window size
@@ -243,7 +247,7 @@ export class RoomComponent implements OnInit {
         this.sortField = event.sortField ?? ''
         this.sortOrder = event.sortOrder ?? 1
         this.globalFilter = event.globalFilter ?? ''
-        this.doQuery()
+        queueMicrotask(() => this.doQuery())
     }
 
     /**

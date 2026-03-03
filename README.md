@@ -81,5 +81,11 @@ The user can maintain their own data on the profile page.
 **Logs**  
 Allows you to view events/logs that have occurred in the system. You can trace a guest's entire journey from registration to wristband assignment/removal to all meals.  
 
+## Development notes
+
+- Apollo integration routing guide: `docs/apollo-routing.md`
+- Apollo route constants: `src/app/apollo/apollo-routes.ts`
+- Apollo sidebar menu uses these constants: `src/app/layout/components/app.menu.ts`
+
 ## Future plans  
 NFC Reserve is under continuous development and will be expanded with additional modules in the near future...

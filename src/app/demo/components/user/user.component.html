@@ -1,5 +1,5 @@
 <div class="grid">
-    <div class="col-12">
+    <div class="w-full">
         <div class="card px-0 py-0">
             <p-table #dt
                      dataKey="id"
@@ -20,7 +20,7 @@
                      [lazy]="true">
 
                 <ng-template pTemplate="caption">
-                    <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center">
                         <h5 class="m-0">Felhasználók</h5>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
                             <i class="pi pi-search"></i>
@@ -80,23 +80,19 @@
                             <p-tableCheckbox [value]="user"></p-tableCheckbox>
                         </td>
                         <td>
-                            <span class="p-column-title">Név</span>
                             {{user.fullname}}
                         </td>
                         <td>
-                            <span class="p-column-title">Szerepkör</span>
                             <span [ngClass]="getRoleStyleClass(user.user_rolesid)">
                                 {{getRoleName(user.user_rolesid)}}
                             </span>
                         </td>
                         <td>
-                            <span class="p-column-title">Email</span>
                             <a href="mailto:{{user.email}}">
                                 <button pButton pRipple icon="pi pi-envelope" label="{{user.email}}" size="small" class="p-button-outlined p-button-info"></button>
                             </a>
                         </td>
                         <td>
-                            <span class="p-column-title">Telefon</span>
                             <a href="tel:{{user.phone}}">
                                 <button pButton pRipple icon="pi pi-phone" label="{{user.phone}}" size="small" class="p-button-outlined p-button-info"></button>
                             </a>
@@ -136,7 +132,7 @@
             
             <!-- Render content only after first open -->
             <ng-container *ngIf="sidebar">
-                <form [formGroup]="userForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
+                <form [formGroup]="userForm" (ngSubmit)="save()" novalidate class="grid grid">
                     
                     <!-- User Id -->
                     <input formControlName="id" type="hidden">
@@ -145,7 +141,7 @@
                     <input formControlName="username" type="hidden">
 
                     <!-- Fullname -->
-                    <div class="field mb-4 col-12">
+                    <div class="mb-4 w-full">
                         <label for="fullname" class="font-medium text-900">Név</label>
                         <input id="fullname" type="text" pInputText formControlName="fullname">
                         <div *ngIf="fullname?.dirty && fullname?.errors?.['required']" class="block p-error">
@@ -154,7 +150,7 @@
                     </div>
 
                     <!-- Roles -->
-                    <div class="field mb-4 col-12">
+                    <div class="mb-4 w-full">
                         <label for="user_rolesid" class="font-medium text-900">Szerepkör</label>
                         <app-role-selector [parentForm]="userForm" controlName="user_rolesid"></app-role-selector>
                         <div *ngIf="user_rolesid?.dirty && user_rolesid?.errors?.['required']" class="block p-error">
@@ -163,7 +159,7 @@
                     </div>
 
                     <!-- Email -->
-                    <div class="field mb-4 col-12">
+                    <div class="mb-4 w-full">
                         <label for="email" class="font-medium text-900">Email</label>
                         <input id="email" type="text" pInputText formControlName="email">
                         <div *ngIf="email?.dirty && email?.errors?.['required']" class="block p-error">
@@ -175,7 +171,7 @@
                     </div>
                     
                     <!-- Phone -->
-                    <div class="field mb-4 col-12">
+                    <div class="mb-4 w-full">
                         <label for="phone" class="font-medium text-900">Telefon</label>
                         <input id="phone" type="text" pInputText formControlName="phone">
                         <div *ngIf="phone?.dirty && phone?.errors?.['required']" class="block p-error">
@@ -184,7 +180,7 @@
                     </div>
 
                     <!-- Password -->
-                    <div class="field mb-4 col-12">
+                    <div class="mb-4 w-full">
                         <label for="password" class="font-medium text-900">Jelszó</label>
                         <p-password id="password"
                                     formControlName="password"
@@ -201,7 +197,7 @@
             </ng-container>
 
             <ng-template pTemplate="footer">
-                <div class="flex justify-content-end ap-2">
+                <div class="flex justify-end ap-2">
                     <button pButton 
                             pRipple 
                             label="Mégsem" 
@@ -224,7 +220,7 @@
 
         <!-- Delete dialog -->
         <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
-            <div class="flex align-items-center justify-content-center">
+            <div class="flex items-center justify-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
                 <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.fullname}}</b> felhasználót?</span>
             </div>
@@ -236,7 +232,7 @@
 
         <!-- Bulk Delete dialog -->
         <p-dialog [(visible)]="bulkDeleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
-            <div class="flex align-items-center justify-content-center">
+            <div class="flex items-center justify-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
                 <span>Biztosan törölni akarja a kiválasztott felhasználókat?</span>
             </div>

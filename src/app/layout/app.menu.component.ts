@@ -1,6 +1,16 @@
 import { OnInit, isDevMode } from '@angular/core';
 import { Component } from '@angular/core';
 import { UserService } from '../demo/service/user.service';
+import { APOLLO_ROUTES } from '../apollo/apollo-routes';
+
+interface MenuNode {
+    label?: string
+    icon?: string
+    routerLink?: any[]
+    items?: MenuNode[]
+    requiredRoles?: string[]
+    separator?: boolean
+}
 
 @Component({
     selector: 'app-menu',
@@ -9,8 +19,9 @@ import { UserService } from '../demo/service/user.service';
 })
 export class AppMenuComponent implements OnInit {
 
-    model: any[] = []
+    model: MenuNode[] = []
     userRoles: string[] = []
+    apolloRoutes = APOLLO_ROUTES
 
     constructor(public userService: UserService) { }
 
@@ -20,7 +31,7 @@ export class AppMenuComponent implements OnInit {
             this.userRoles = roles
 
             // Prepare menu items, with submenus already filtered by permissions
-            const menuModel = [
+            const menuModel: MenuNode[] = [
                 {
                     label: '',
                     items: [
@@ -97,17 +108,166 @@ export class AppMenuComponent implements OnInit {
                             icon: 'pi pi-fw pi-list',
                             routerLink: ['/logs'],
                             requiredRoles: ['Super Admin', 'Nagy Admin']
+                        },
+                        {
+                            label: 'Apollo Demo Apps (csak megtekintés)',
+                            icon: 'pi pi-fw pi-th-large',
+                            items: [
+                                {
+                                    label: 'Chat',
+                                    icon: 'pi pi-fw pi-comments',
+                                    routerLink: [this.apolloRoutes.apps.chat]
+                                },
+                                {
+                                    label: 'CMS',
+                                    icon: 'pi pi-fw pi-file-edit',
+                                    routerLink: [this.apolloRoutes.apps.cmsList]
+                                },
+                                {
+                                    label: 'Files',
+                                    icon: 'pi pi-fw pi-folder',
+                                    routerLink: [this.apolloRoutes.apps.files]
+                                },
+                                {
+                                    label: 'Mail',
+                                    icon: 'pi pi-fw pi-envelope',
+                                    routerLink: [this.apolloRoutes.apps.mailInbox]
+                                },
+                                {
+                                    label: 'Task List',
+                                    icon: 'pi pi-fw pi-check-square',
+                                    routerLink: [this.apolloRoutes.apps.taskList]
+                                }
+                            ],
+                            requiredRoles: ['Super Admin', 'Nagy Admin']
+                        }
+                    ])
+                },
+                {
+                    label: 'Arculati Demo (Apollo)',
+                    items: this.getFilteredItems([
+                        {
+                            label: 'Apollo Dashboard (demo)',
+                            icon: 'pi pi-fw pi-chart-line',
+                            routerLink: [this.apolloRoutes.root],
+                            requiredRoles: ['Super Admin', 'Nagy Admin']
+                        },
+                        {
+                            label: 'Apollo UI Kit',
+                            icon: 'pi pi-fw pi-star',
+                            items: [
+                                {
+                                    label: 'Form Layout',
+                                    icon: 'pi pi-fw pi-id-card',
+                                    routerLink: [this.apolloRoutes.uikit.formLayout]
+                                },
+                                {
+                                    label: 'Input',
+                                    icon: 'pi pi-fw pi-pencil',
+                                    routerLink: [this.apolloRoutes.uikit.input]
+                                },
+                                {
+                                    label: 'Table',
+                                    icon: 'pi pi-fw pi-table',
+                                    routerLink: [this.apolloRoutes.uikit.table]
+                                }
+                            ],
+                            requiredRoles: ['Super Admin', 'Nagy Admin']
+                        },
+                        {
+                            label: 'Apollo E-Commerce',
+                            icon: 'pi pi-fw pi-shopping-cart',
+                            items: [
+                                {
+                                    label: 'Product List',
+                                    icon: 'pi pi-fw pi-list',
+                                    routerLink: [this.apolloRoutes.ecommerce.productList]
+                                },
+                                {
+                                    label: 'Shopping Cart',
+                                    icon: 'pi pi-fw pi-shopping-cart',
+                                    routerLink: [this.apolloRoutes.ecommerce.shoppingCart]
+                                },
+                                {
+                                    label: 'Order History',
+                                    icon: 'pi pi-fw pi-history',
+                                    routerLink: [this.apolloRoutes.ecommerce.orderHistory]
+                                }
+                            ],
+                            requiredRoles: ['Super Admin', 'Nagy Admin']
+                        },
+                        {
+                            label: 'Apollo Pages',
+                            icon: 'pi pi-fw pi-briefcase',
+                            items: [
+                                {
+                                    label: 'Documentation',
+                                    icon: 'pi pi-fw pi-info-circle',
+                                    routerLink: [this.apolloRoutes.pages.documentation]
+                                },
+                                {
+                                    label: 'About Us',
+                                    icon: 'pi pi-fw pi-users',
+                                    routerLink: [this.apolloRoutes.pages.aboutUs]
+                                },
+                                {
+                                    label: 'Contact',
+                                    icon: 'pi pi-fw pi-phone',
+                                    routerLink: [this.apolloRoutes.pages.contact]
+                                }
+                            ],
+                            requiredRoles: ['Super Admin', 'Nagy Admin']
+                        },
+                        {
+                            label: 'Apollo Blocks',
+                            icon: 'pi pi-fw pi-th-large',
+                            routerLink: [this.apolloRoutes.blocks],
+                            requiredRoles: ['Super Admin', 'Nagy Admin']
+                        },
+                        {
+                            label: 'Apollo Profile',
+                            icon: 'pi pi-fw pi-user-edit',
+                            routerLink: [this.apolloRoutes.profile.list],
+                            requiredRoles: ['Super Admin', 'Nagy Admin']
+                        },
+                        {
+                            label: 'Apollo Landing',
+                            icon: 'pi pi-fw pi-globe',
+                            routerLink: [this.apolloRoutes.landing],
+                            requiredRoles: ['Super Admin', 'Nagy Admin']
+                        },
+                        {
+                            label: 'Apollo Auth',
+                            icon: 'pi pi-fw pi-sign-in',
+                            items: [
+                                {
+                                    label: 'Login',
+                                    icon: 'pi pi-fw pi-sign-in',
+                                    routerLink: [this.apolloRoutes.auth.login]
+                                },
+                                {
+                                    label: 'Register',
+                                    icon: 'pi pi-fw pi-user-plus',
+                                    routerLink: [this.apolloRoutes.auth.register]
+                                },
+                                {
+                                    label: 'Forgot Password',
+                                    icon: 'pi pi-fw pi-question-circle',
+                                    routerLink: [this.apolloRoutes.auth.forgotPassword]
+                                }
+                            ],
+                            requiredRoles: ['Super Admin', 'Nagy Admin']
                         }
                     ])
                 }
             ];
 
-            // Only include groups that have at least one permitted submenu item
-            this.model = menuModel.filter(group => group.items && group.items.length > 0)
+            // Only include groups/items that are visible for current role set.
+            this.model = this.getFilteredItems(menuModel)
 
             // Add developer menu items only when in dev mode
             if (isDevMode()) {
-                let devModel = [
+                const devModel: MenuNode[] = [
                     {
                         label: '',
                         items: [
@@ -147,9 +307,8 @@ export class AppMenuComponent implements OnInit {
                     // Additional developer menu items...
                 ]
 
-                // Similarly, only include groups that are not empty
-                devModel = devModel.filter(group => group.items && group.items.length > 0)
-                this.model = this.model.concat(devModel)
+                // Apply the same recursive filtering for dev menu items as well.
+                this.model = this.model.concat(this.getFilteredItems(devModel))
             }
         });
     }
@@ -160,10 +319,20 @@ export class AppMenuComponent implements OnInit {
      * @param items - the array of menu items to filter
      * @returns the filtered array based on permissions
      */
-    getFilteredItems(items: any[]): any[] {
-        return items.filter(item =>
-            item.requiredRoles.length === 0 ||
-            item.requiredRoles.some((role: string) => this.userRoles.includes(role))
-        )
+    getFilteredItems(items: MenuNode[]): MenuNode[] {
+        return items
+            .map(item => {
+                const cloned = { ...item }
+                if (Array.isArray(cloned.items)) {
+                    cloned.items = this.getFilteredItems(cloned.items)
+                }
+                return cloned
+            })
+            .filter(item => {
+                const requiredRoles: string[] = item.requiredRoles ?? []
+                const hasRoleAccess = requiredRoles.length === 0 || requiredRoles.some((role: string) => this.userRoles.includes(role))
+                const hasVisibleChildren = !Array.isArray(item.items) || item.items.length > 0
+                return hasRoleAccess && hasVisibleChildren
+            })
     }
 }

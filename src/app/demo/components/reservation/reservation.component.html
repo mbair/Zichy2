@@ -1,6 +1,6 @@
-<div class="grid">
-    <div class="col-12">
-        <div class="card px-0 py-0">
+<div class="grid reservation-apollo-look">
+    <div class="w-full">
+        <div class="card px-0 py-0 reservation-shell">
             <p-table #dt
                      dataKey="id"
                      [value]="tableData"
@@ -20,7 +20,7 @@
                      [lazy]="true">
 
                 <ng-template pTemplate="caption">
-                    <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-2 reservation-toolbar">
                         <h5 class="m-0">Foglalások</h5>
                         <span class="block mt-2 md:mt-0">
                             <app-conference-selector
@@ -35,9 +35,9 @@
                             </app-conference-selector>
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
-                            <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Ágyak száma: {{ totalBeds }}" tooltipPosition="top">
-                                <div class="flex align-items-center justify-content-center py-1 px-1">
-                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
+                            <div class="rounded-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Ágyak száma: {{ totalBeds }}" tooltipPosition="top">
+                                <div class="flex items-center justify-center py-1 px-1">
+                                    <div class="flex items-center justify-center gap-2 px-2">
                                         <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
                                             <g id="SVGRepo_bgCarrier" stroke-width="0"/>
                                             <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
@@ -58,9 +58,9 @@
                             </div>
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
-                            <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Regisztrált vendégek: {{ registeredGuests }}" tooltipPosition="top">
-                                <div class="flex align-items-center justify-content-center py-1 px-1">
-                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
+                            <div class="rounded-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Regisztrált vendégek: {{ registeredGuests }}" tooltipPosition="top">
+                                <div class="flex items-center justify-center py-1 px-1">
+                                    <div class="flex items-center justify-center gap-2 px-2">
                                         <i class="pi pi-users" style="font-size: 1.5rem"></i>
                                         <span class="text-2xl font-normal white-space-nowrap vertical-align-middle">
                                             {{ registeredGuests }}
@@ -70,9 +70,9 @@
                             </div>
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
-                            <div class="border-round-xl w-min p-0 bg-green-100" pTooltip="Vendégek foglalással: {{ reservedGuests }}" tooltipPosition="top">
-                                <div class="flex align-items-center justify-content-center py-1 px-1">
-                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
+                            <div class="rounded-xl w-min p-0 bg-green-100" pTooltip="Vendégek foglalással: {{ reservedGuests }}" tooltipPosition="top">
+                                <div class="flex items-center justify-center py-1 px-1">
+                                    <div class="flex items-center justify-center gap-2 px-2">
                                         <i class="pi pi-users" style="font-size: 1.5rem"></i>
                                         <span class="text-2xl font-normal white-space-nowrap vertical-align-middle">
                                             {{ reservedGuests }}
@@ -82,9 +82,9 @@
                             </div>
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
-                            <div class="border-round-xl w-min p-0 bg-yellow-100" pTooltip="Szobára várók: {{ waitingForRoom }}" tooltipPosition="top">
-                                <div class="flex align-items-center justify-content-center py-1 px-1">
-                                    <div class="flex align-items-center justify-content-center gap-2 px-2">
+                            <div class="rounded-xl w-min p-0 bg-yellow-100" pTooltip="Szobára várók: {{ waitingForRoom }}" tooltipPosition="top">
+                                <div class="flex items-center justify-center py-1 px-1">
+                                    <div class="flex items-center justify-center gap-2 px-2">
                                         <i class="pi pi-users" style="font-size: 1.5rem"></i>
                                         <span class="text-2xl font-normal white-space-nowrap vertical-align-middle">
                                             {{ waitingForRoom }}
@@ -94,8 +94,8 @@
                             </div>
                         </span>
                         <span class="block mt-2 md:mt-0">
-                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2" (click)="create()" [disabled]="!canCreate"></button>
-                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2" (click)="bulkDeleteDialog = true" [disabled]="!selected || !selected.length || !canDelete"></button>
+                            <button pButton pRipple label="Új" icon="pi pi-plus" class="p-button-success mr-2 reservation-cta" (click)="create()" [disabled]="!canCreate"></button>
+                            <button pButton pRipple label="Törlés" icon="pi pi-trash" class="p-button-danger mr-2 reservation-cta" (click)="bulkDeleteDialog = true" [disabled]="!selected || !selected.length || !canDelete"></button>
                             <!-- <button pButton pRipple label="Export" icon="pi pi-download" class="p-button-help mr-2" (click)="exportExcel()"></button> -->
                         </span>
                     </div>
@@ -112,7 +112,7 @@
                         <th></th>
                     </tr>
                     <tr>
-                        <th styleClass="w-3rem">
+                        <th styleClass="w-[3rem]">
                             <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                         </th>
                         <th>
@@ -149,7 +149,7 @@
                                 dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true"
-                                inputStyleClass="w-6rem">
+                                inputStyleClass="w-[6rem]">
                             </p-datepicker>
                         </th>
                         <th>
@@ -160,7 +160,7 @@
                                 dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true"
-                                inputStyleClass="w-6rem">
+                                inputStyleClass="w-[6rem]">
                             </p-datepicker>
                         </th>
                         <th>
@@ -186,20 +186,19 @@
                             <p-tableCheckbox [value]="reservation"></p-tableCheckbox>
                         </td>
                         <td>
-                            <span class="p-column-title">Szoba</span>
 
-                            <div class="flex align-items-center gap-2">
+                            <div class="flex items-center gap-2">
                                 <!-- Szoba badge -->
-                                <div class="building-badge {{reservation.room.building}} border-round-xl w-min p-0">
-                                    <div class="flex align-items-center justify-content-center py-1 px-1">
-                                        <div class="flex align-items-center justify-content-center gap-2 px-2">
+                                <div class="building-badge {{reservation.room.building}} rounded-xl w-min p-0">
+                                    <div class="flex items-center justify-center py-1 px-1">
+                                        <div class="flex items-center justify-center gap-2 px-2">
                                             <i class="pi pi-key vertical-align-middle"></i>
                                             <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ reservation.room.roomNum }}" tooltipPosition="top">
                                                 {{ reservation.room.roomNum }}
                                             </span>
                                         </div>
                                         <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ reservation.room.roomCode }}" tooltipPosition="top">
-                                            <div class="flex flex-column align-items-left justify-content-center">
+                                            <div class="flex flex-col items-start justify-center">
                                                 <span class="text-base font-semibold uppercase">
                                                     {{ 'BUILDINGS.' + reservation.room.building.toUpperCase() | translate }} <span *ngIf="reservation.room.floor" class="font-normal text-sm uppercase">({{ reservation.room.floor }})</span>
                                                     <span *ngIf="reservation.room.climate" class="pl-1">❄️</span>
@@ -215,9 +214,9 @@
                                 <!-- Babybed indicator – 0–3 years old guests need baby bed -->
                                 <ng-container *ngIf="getBabyBedGuests(reservation) as babyGuests">
                                     <div *ngIf="babyGuests.length > 0"
-                                        class="border-round-xl w-min p-0 bg-purple-100">
-                                        <div class="flex align-items-center justify-content-center py-1 px-1">
-                                            <div class="flex align-items-center justify-content-center gap-1 px-2">
+                                        class="rounded-xl w-min p-0 bg-purple-100">
+                                        <div class="flex items-center justify-center py-1 px-1">
+                                            <div class="flex items-center justify-center gap-1 px-2">
                                                 <!-- Exactly one baby: show a single icon with direct tooltip -->
                                                 <ng-container *ngIf="babyGuests.length === 1; else multipleBabyBeds">
                                                     <img src="/assets/demo/images/baby-bed.svg"
@@ -246,10 +245,10 @@
                                 <!-- Mattress indicator – 3+ years old over hard beds -->
                                 <ng-container *ngIf="getMattressCount(reservation) as mattressCount">
                                     <div *ngIf="mattressCount > 0"
-                                         class="border-round-xl w-min p-0"
+                                         class="rounded-xl w-min p-0"
                                          style="background-color: #FFEDD5;">
-                                        <div class="flex align-items-center justify-content-center py-1 px-1">
-                                            <div class="flex align-items-center justify-content-center gap-1 px-2">
+                                        <div class="flex items-center justify-center py-1 px-1">
+                                            <div class="flex items-center justify-center gap-1 px-2">
                                                 <img src="/assets/demo/images/mattress.svg"
                                                      alt="Matrac"
                                                      style="max-width: 20px"
@@ -272,7 +271,6 @@
                             </div>
                         </td>
                         <td>
-                            <span class="p-column-title">Vendégek</span>
                             <p-avatarGroup >
                                 <p-avatar *ngFor="let guest of reservation.guests" 
                                            icon="pi pi-user" 
@@ -294,27 +292,23 @@
                             </p-avatarGroup>
                         </td>
                         <td style="max-width: 300px;">
-                            <span class="p-column-title">Érkezés</span>
                             <span class="calendar-badge">
                                 <i class="pi pi-calendar mr-1"></i>
                                 {{ reservation.startDate | date:'yyyy.MM.dd' }}
                             </span>
                         </td>
                         <td style="max-width: 300px;">
-                            <span class="p-column-title">Távozás</span>
                             <span class="calendar-badge">
                                 <i class="pi pi-calendar mr-1"></i>
                                 {{ reservation.endDate | date:'yyyy.MM.dd' }}
                             </span>
                         </td>
                         <td style="max-width: 300px;">
-                            <span class="p-column-title">Státusz</span>
                             <span *ngIf="reservation.status" class="reservation-status-badge {{ reservation.status }}">
                                 {{ 'RESERVATION_STATUSES.' + reservation.status?.toUpperCase() | translate }}
                             </span>
                         </td>
                         <td>
-                            <span class="p-column-title">Megjegyzés</span>
                             {{ reservation.notes }}
                         </td>
                         <td>
@@ -354,7 +348,7 @@
 
             <!-- Render content only after first open -->
             <ng-container *ngIf="sidebar">
-                <form [formGroup]="reservationForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
+                <form [formGroup]="reservationForm" (ngSubmit)="save()" novalidate class="grid grid">
                     
                     <!-- Reservation Id -->
                     <input formControlName="id" type="hidden">
@@ -363,7 +357,7 @@
                     <input formControlName="guestIds" type="hidden">
 
                     <!-- Conference -->
-                    <div class="field mb-4 col-12">
+                    <div class="mb-4 w-full">
                         <label for="conference" class="font-medium text-900">Konferencia</label>
                         <app-conference-selector
                             formControlName="conference"
@@ -379,7 +373,7 @@
                     </div>
 
                     <!-- Guests -->
-                    <div class="field mb-4 col-12">
+                    <div class="mb-4 w-full">
                         <label for="guest" class="font-medium text-900">Vendég</label>
                         <app-guest-selector
                             formControlName="guests"
@@ -397,7 +391,7 @@
                     </div>
 
                     <!-- Room -->
-                    <div class="field mb-4 col-12">
+                    <div class="mb-4 w-full">
                         <label for="room_id" class="font-medium text-900">Szoba</label>
                         <app-room-selector
                             formControlName="room"
@@ -415,7 +409,7 @@
                     </div>
 
                     <!-- startDate -->
-                    <div class="field mb-4 col-6">
+                    <div class="mb-4 w-1/2">
                         <label for="startDate" class="font-medium text-900">
                             {{'Érkezés dátuma' | translate }}
                         </label>
@@ -435,7 +429,7 @@
                     </div>
 
                     <!-- endDate -->
-                    <div class="field mb-4 col-6">
+                    <div class="mb-4 w-1/2">
                         <label for="endDate" class="font-medium text-900">
                             {{'Távozás dátuma' | translate }}
                         </label>
@@ -455,7 +449,7 @@
                     </div>
 
                     <!-- Status -->
-                    <div class="field mb-4 col-12">
+                    <div class="mb-4 w-full">
                         <label for="status" class="font-medium text-900">Státusz</label>
                         <app-reservation-status-selector
                                 formControlName="status"
@@ -468,7 +462,7 @@
                     </div>
 
                     <!-- notes -->
-                    <div class="field mb-4 col-12">
+                    <div class="mb-4 w-full">
                         <label for="notes" class="font-medium text-900">Megjegyzés</label>
                         <textarea id="notes" type="text" formControlName="notes" pInputTextarea rows="5"></textarea>
                         <div *ngIf="notes?.dirty && notes?.errors?.['required']" class="block p-error">
@@ -479,7 +473,7 @@
             </ng-container>
 
             <ng-template pTemplate="footer">
-                <div class="flex justify-content-end ap-2">
+                <div class="flex justify-end gap-2">
                     <button pButton 
                             pRipple 
                             label="Mégsem" 
@@ -502,7 +496,7 @@
 
         <!-- Delete dialog -->
         <p-dialog [(visible)]="deleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
-            <div class="flex align-items-center justify-content-center">
+            <div class="flex items-center justify-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
                 <span *ngIf="tableItem">Biztosan törölni akarja a(z) <b>{{tableItem.room?.roomNum}}</b> szoba foglalását?</span>
             </div>
@@ -514,7 +508,7 @@
 
         <!-- Bulk Delete dialog -->
         <p-dialog [(visible)]="bulkDeleteDialog" header="Törlés" [modal]="true" [style]="{width:'450px'}">
-            <div class="flex align-items-center justify-content-center">
+            <div class="flex items-center justify-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
                 <span>Biztosan törölni akarja a kiválasztott foglalásokat?</span>
             </div>

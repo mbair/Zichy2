@@ -47,11 +47,11 @@
 
                 <!-- Number of Guests -->
                 <span class="block ml-2 mt-2 md:mt-0 p-input-icon-left">
-                    <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Vendégek száma: {{ numberOfGuests }}" tooltipPosition="top">
-                        <div class="flex align-items-center justify-content-center py-1 px-1">
-                            <div class="flex align-items-center justify-content-center gap-2 px-2">
+                    <div class="rounded-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Vendégek száma: {{ numberOfGuests }}" tooltipPosition="top">
+                        <div class="flex items-center justify-center py-1 px-1">
+                            <div class="flex items-center justify-center gap-2 px-2">
                                 <i class="pi pi-users" style="font-size: 1.5rem"></i>
-                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left">
+                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-[2rem] text-left">
                                     {{ numberOfGuests }}
                                 </span>
                             </div>
@@ -61,9 +61,9 @@
 
                 <!-- Number of Beds -->
                 <span class="block ml-2 mt-2 md:mt-0 p-input-icon-left">
-                    <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Ágyak száma: {{ numberOfBeds }}" tooltipPosition="top">
-                        <div class="flex align-items-center justify-content-center py-1 px-1">
-                            <div class="flex align-items-center justify-content-center gap-2 px-2">
+                    <div class="rounded-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Ágyak száma: {{ numberOfBeds }}" tooltipPosition="top">
+                        <div class="flex items-center justify-center py-1 px-1">
+                            <div class="flex items-center justify-center gap-2 px-2">
                                 <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
                                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                                     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -75,7 +75,7 @@
                                         </g> 
                                     </g>
                                 </svg>
-                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left">
+                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-[2rem] text-left">
                                     {{ numberOfBeds }}
                                 </span>
                             </div>
@@ -140,7 +140,7 @@
                                 <span class="vertical-align-middle">
                                     <i class="pi pi-users" style="font-size: 1.5rem"></i>
                                 </span>
-                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left">
+                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-[2rem] text-left">
                                     {{ numberOfFilteredGuests }}
                                 </span>
                                 <span class="ml-2 mt-2 md:mt-0 p-input-icon-left">
@@ -157,14 +157,14 @@
                                             </g>
                                         </svg>
                                     </span>
-                                    <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left">
+                                    <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-[2rem] text-left">
                                         {{ numberOfFilteredBeds }}
                                     </span>
                                 </span>
                             </th>
                         </tr>
                         <tr>
-                            <th styleClass="w-3rem">
+                            <th styleClass="w-[3rem]">
                                 <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                             </th>
                             <th>
@@ -214,18 +214,17 @@
                                 <p-tableCheckbox [value]="room"></p-tableCheckbox>
                             </td>
                             <td>
-                                <span class="p-column-title">Szoba szám</span>
 
-                                <div class="building-badge {{room.building}} border-round-xl w-min p-0">
-                                    <div class="flex align-items-center justify-content-center py-1 px-1">
-                                        <div class="flex align-items-center justify-content-center gap-2 px-2">
+                                <div class="building-badge {{room.building}} rounded-xl w-min p-0">
+                                    <div class="flex items-center justify-center py-1 px-1">
+                                        <div class="flex items-center justify-center gap-2 px-2">
                                             <i class="pi pi-key vertical-align-middle"></i>
                                             <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ room.roomNum }}" tooltipPosition="top">
                                                 {{ room.roomNum }}
                                             </span>
                                         </div>
                                         <div class="block min-w-max border-left-1 px-2" pTooltip="Szoba kód: {{ room.roomCode }}" tooltipPosition="top">
-                                            <div class="flex flex-column align-items-left justify-content-center">
+                                            <div class="flex flex-col items-start justify-center">
                                                 <span class="text-base font-semibold uppercase">
                                                     {{ 'BUILDINGS.' + room.building.toUpperCase() | translate }} <span *ngIf="room.floor" class="font-normal text-sm uppercase">({{ room.floor }})</span>
                                                     <span *ngIf="room.climate" class="pl-1">❄️</span>
@@ -239,14 +238,12 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="p-column-title">Pótágy</span>
                                 <span *ngIf="room.spareBeds" class="sparebed-badge {{ room.spareBeds }}">
                                     {{ 'SPAREBEDS.' + room.spareBeds?.toUpperCase() | translate }}
                                 </span>
                             </td>
                             <td>
-                                <span class="p-column-title">Konferenciák</span>
-                                <div class="flex flex-column gap-2">
+                                <div class="flex flex-col gap-2">
                                     <!-- Show only enabled conferences -->
                                     <ng-container *ngFor="let conference of (room.conferences || []); trackBy: trackById">
                                         <p-chip
