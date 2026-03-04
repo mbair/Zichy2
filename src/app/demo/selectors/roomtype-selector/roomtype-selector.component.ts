@@ -131,7 +131,7 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
 
         // Optional filtering by room type IDs.
         // Keep "no accommodation" visible even when filtered.
-        if (Array.isArray(this.allowedRoomTypeIds)) {
+        if (Array.isArray(this.allowedRoomTypeIds) && this.allowedRoomTypeIds.length > 0) {
             const allowed = new Set(
                 this.allowedRoomTypeIds
                     .map((id) => Number(id))
