@@ -46,6 +46,7 @@ export class ConferenceFormComponent implements OnInit {
     registrationEnded: boolean = false           // Registration ended
     darkMode: boolean = false                    // Dark mode
     showIdCardField: boolean = false             // IdCard field visibility
+    showBabyBedField: boolean = false            // Baby bed field visibility
     szepCardMessage: Message[]                   // Message for szep card payment
     idCardTemplateVisible: boolean = false       // ID card template visible
     canFillFormAfterDeadline: boolean = false    // User has permission to fill form after deadline
@@ -388,6 +389,7 @@ export class ConferenceFormComponent implements OnInit {
             this.subs.add(
                 birthDateCtrl.valueChanges.subscribe(() => {
                     this.updateIdCardVisibility()
+                    this.updateBabyBedVisibility()
                 })
             )
         }
@@ -777,13 +779,32 @@ export class ConferenceFormComponent implements OnInit {
     }
 
     /**
-     * Updates babyBed visibility + validators based on whether accommodation is needed.
+     * Returns true when baby bed question should be available:
+     * room is needed + age is 0-3 years.
+     */
+    private isBabyBedEligibleByBirthDate(): boolean {
+        const birthDateValue = this.conferenceForm.get('birthDate')?.value
+        if (!birthDateValue) return false
+
+        const strictBirth = moment(birthDateValue, 'YYYY-MM-DD', true)
+        const birth = strictBirth.isValid() ? strictBirth : moment(birthDateValue)
+        if (!birth.isValid()) return false
+
+        const ageYears = moment().diff(birth, 'years')
+        return ageYears >= 0 && ageYears <= 3
+    }
+
+    /**
+     * Updates babyBed visibility + validators based on accommodation and age.
      */
     private updateBabyBedVisibility(): void {
         const babyBedControl = this.conferenceForm.get('babyBed')
         if (!babyBedControl) return
 
-        if (this.needsRoom) {
+        const canAskForBabyBed = this.needsRoom && this.isBabyBedEligibleByBirthDate()
+        this.showBabyBedField = canAskForBabyBed
+
+        if (canAskForBabyBed) {
             babyBedControl.enable({ emitEvent: false })
             babyBedControl.setValidators([Validators.required])
 
