@@ -456,7 +456,7 @@
                                         </div>
 
                                         <!-- Babaágyat kérsz? -->
-                                        <div class="field mb-4 col-12 lg:col-4" *ngIf="needsRoom">
+                                        <div class="field mb-4 col-12 lg:col-4" *ngIf="showBabyBedField">
                                             <label for="babyBed" class="font-medium text-900">
                                                 {{'Babaágyat kérsz' | translate }}?
                                                 <i *ngIf="getFormFieldInfoPosition('babyBed') === 'bubble'"
