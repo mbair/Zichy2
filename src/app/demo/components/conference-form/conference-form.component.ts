@@ -52,7 +52,7 @@ export class ConferenceFormComponent implements OnInit {
     canFillFormAfterDeadline: boolean = false    // User has permission to fill form after deadline
     formFieldInfosMap: { [key: string]: FormFieldInfo } = {}
     allowedPaymentMethodIds: number[] | null | undefined = undefined
-    allowedConferenceRoomTypeIds: number[] = []
+    allowedConferenceRoomTypeIds: number[] | null | undefined = undefined
 
     private guestServiceMessageObs$: Observable<any>
     private answerServiceMessageObs$: Observable<any>
@@ -836,18 +836,22 @@ export class ConferenceFormComponent implements OnInit {
         return [];
     }
 
-    private extractConferenceRoomTypeIds(conf: Conference | null | undefined): number[] {
-        const rooms = conf?.rooms
-        if (!Array.isArray(rooms)) {
-            return []
-        }
+    private extractConferenceRoomTypeIds(conf: Conference | null | undefined): number[] | undefined {
+        if (!conf) return undefined
 
-        const ids = rooms
-            .map((room) => Number(room?.room_typeid))
-            .filter((id) => Number.isFinite(id))
-            .filter((id) => id > 0)
+        const fromDirectIds = [
+            ...(Array.isArray((conf as any).roomTypeIds) ? (conf as any).roomTypeIds : []),
+            ...(Array.isArray((conf as any).conferenceRoomTypeIds) ? (conf as any).conferenceRoomTypeIds : [])
+        ]
+            .map((v: any) => Number(v?.id ?? v))
+            .filter((id: number) => Number.isFinite(id) && id > 0)
 
-        return Array.from(new Set(ids))
+        const fromRooms = (Array.isArray(conf?.rooms) ? conf.rooms : [])
+            .map((room: any) => Number(room?.room_typeid ?? room?.roomTypeId ?? room?.roomType?.id))
+            .filter((id: number) => Number.isFinite(id) && id > 0)
+
+        const ids = Array.from(new Set([...fromDirectIds, ...fromRooms]))
+        return ids.length > 0 ? ids : undefined
     }
 
     /**
