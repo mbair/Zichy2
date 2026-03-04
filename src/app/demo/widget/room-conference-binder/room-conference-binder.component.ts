@@ -43,6 +43,7 @@ export class RoomConferenceBinderComponent {
     numberOfFilteredBeds: number = 0             // Number of filtered beds
     numberOfFilteredGuests: number = 0           // Number of filtered guests
     showOnlyFreeRooms: boolean = false           // Toggle: show only rooms which are free (no overlap with selected conferences)
+    private readonly FULL_FETCH_ROWS = 9999
 
     private roomObs$: Observable<any> | undefined
 
@@ -99,7 +100,13 @@ export class RoomConferenceBinderComponent {
             return this.roomService.getBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
         }
 
-        return this.roomService.get(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
+        const shouldFetchFullSetForFreeFilter =
+            this.showOnlyFreeRooms && !!this.selectedConferences?.length
+
+        const fetchPage = shouldFetchFullSetForFreeFilter ? 0 : this.page
+        const fetchRows = shouldFetchFullSetForFreeFilter ? this.FULL_FETCH_ROWS : this.rowsPerPage
+
+        return this.roomService.get(fetchPage, fetchRows, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
     }
 
     /**
@@ -169,7 +176,15 @@ export class RoomConferenceBinderComponent {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains')
     }
 
+    onShowOnlyFreeRoomsChange(): void {
+        this.doQuery()
+    }
+
     onConferenceSelection(selectedConferences: Conference[]) {
+        if (!selectedConferences?.length && this.showOnlyFreeRooms) {
+            this.showOnlyFreeRooms = false
+        }
+
         this.loadConferenceStats(selectedConferences, 'selected')
         this.doQuery()
     }
