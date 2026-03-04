@@ -3,6 +3,11 @@ if [ "$SKIP_VERSION_BUMP" = "1" ]; then
     exit 0
 fi
 
+# Skip version bump during cherry-pick to avoid polluting backport commits
+if git rev-parse -q --verify CHERRY_PICK_HEAD >/dev/null 2>&1; then
+    exit 0
+fi
+
 npm run bump:patch
 
 # Ensure the bumped files are included in the commit
