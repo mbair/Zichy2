@@ -89,6 +89,7 @@
                     onLabel="Szabad-szobák"
                     offLabel="Összes szoba"
                     [(ngModel)]="showOnlyFreeRooms"
+                    (ngModelChange)="onShowOnlyFreeRoomsChange()"
                     [disabled]="!selectedConferences || !selectedConferences.length"
                     pTooltip="Csak azokat a szobákat mutatja, amelyeknek nincs átfedő konferenciája a kiválasztottal."
                     tooltipPosition="top">
