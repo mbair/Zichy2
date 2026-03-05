@@ -124,7 +124,7 @@ export class ConferenceFormComponent implements OnInit {
     ngOnInit() {
         // Permissions
         this.subs.add(
-            this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canFillFormAfterDeadline => this.canFillFormAfterDeadline = canFillFormAfterDeadline)
+            this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canFillFormAfterDeadline => this.canFillFormAfterDeadline = canFillFormAfterDeadline)
         )
         this.subs.add(
             this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => {
