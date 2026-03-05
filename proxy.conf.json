@@ -1,0 +1,15 @@
+{
+  "/api": {
+    "target": "https://test.nfcreserve.hu",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "info"
+  },
+  "/socket.io": {
+    "target": "https://test.nfcreserve.hu",
+    "secure": true,
+    "changeOrigin": true,
+    "ws": true,
+    "logLevel": "info"
+  }
+}

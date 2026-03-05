@@ -16,9 +16,11 @@ export class ApiService {
     public developmentURL = 'https://test.nfcreserve.hu'
 
     constructor(@Inject(DOCUMENT) private document: any, private http: HttpClient) {
-        // API URL starts with "test." when App is in Dev or in Test
+        // In local ng serve use relative /api so Angular dev-server proxy can avoid CORS.
         this.hostname = this.document.location.hostname;
-        if (isDevMode() || this.hostname == 'test.nfcreserve.hu') {
+        if (isDevMode()) {
+            this.apiURL = '/api'
+        } else if (this.hostname == 'test.nfcreserve.hu') {
             this.apiURL = `${this.developmentURL}/api`
         } else {
             this.apiURL = `${this.productionURL}/api`
