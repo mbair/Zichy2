@@ -67,10 +67,10 @@
                                 [disabled]="!canImport"
                                 pTooltip="Kizárólag a táblázathoz tartozó Excel fájl importálható"
                                 tooltipPosition="top"/>
-                            <p-splitButton 
-                                icon="pi pi-download" 
-                                label="Export" 
-                                [model]="exportButtonItems" 
+                            <p-splitButton
+                                icon="pi pi-download"
+                                label="Export"
+                                [model]="exportButtonItems"
                                 styleClass="p-button-help"
                                 severity="help" />
                         </span>
@@ -112,8 +112,8 @@
                                    style="width:8%; min-width:6rem;"/>
                         </th>
                         <th>
-                            <app-diet-selector 
-                                (change)="onFilter($event, 'diet')" 
+                            <app-diet-selector
+                                (change)="onFilter($event, 'diet')"
                                 [showClear]="true">
                             </app-diet-selector>
                         </th>
@@ -128,9 +128,9 @@
                                    tooltipPosition="top"
                                    style="width:12%; min-width:9rem;"/>
 
-                            <p-select 
+                            <p-select
                                 *ngIf="isOrganizer"
-                                [options]="prepaidOptions" 
+                                [options]="prepaidOptions"
                                 [(ngModel)]="prepaidFilterValue"
                                 optionLabel="name"
                                 optionValue="value"
@@ -170,11 +170,11 @@
                             </p-datepicker>
                         </th>
                         <th>
-                            <button pButton 
-                                    pRipple 
-                                    label="Szűrők" 
-                                    icon="pi pi-filter" 
-                                    class="p-button-default mr-2" 
+                            <button pButton
+                                    pRipple
+                                    label="Szűrők"
+                                    icon="pi pi-filter"
+                                    class="p-button-default mr-2"
                                     (click)="filtersDialog = true">
                             </button>
                         </th>
@@ -208,7 +208,7 @@
                                 pButton
                                 type="button"
                                 class="p-button p-1"
-                                [label]="res?.room?.roomNum || guest.displayRoomNum || guest.roomNum || 'nincs beállítva'"
+                                [label]="res?.room?.roomNum || guest.displayRoomNum || guest.roomNum || 'nincs foglalása'"
                                 [routerLink]="['/reservation']"
                                 [queryParams]="{
                                     reservation_id: res?.id,
@@ -247,7 +247,7 @@
                                     (click)="openRoomKeyDialog(guest)">
                                 </button>
                                 <ng-template #noRoom>
-                                <span class="text-500">nincs beállítva</span>
+                                <span class="text-500">nincs foglalása</span>
                                 </ng-template>
                             </ng-template>
                             </td>
@@ -369,7 +369,7 @@
                                             </table>
                                         </div>
                                         <div class="w-7/12">
-                                            
+
                                             <!-- Kérdések - Válaszok -->
                                             <div *ngIf="isArray(guest.answers)">
                                                 <div *ngFor="let answer of guest.answers">
@@ -421,10 +421,10 @@
         </div>
 
         <!-- New / Update sidebar -->
-        <p-drawer 
-            id="sidebar" 
-            [(visible)]="sidebar" 
-            position="right" 
+        <p-drawer
+            id="sidebar"
+            [(visible)]="sidebar"
+            position="right"
             styleClass="p-sidebar-lg"
             [style]="isMobile ? {'width': '100vw'} : {'width': '74rem', 'max-width': '96vw'}"
             [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
@@ -441,7 +441,7 @@
             <!-- Render content only after first open -->
             <ng-container *ngIf="sidebar">
                 <form [formGroup]="guestForm" (ngSubmit)="save()" novalidate class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-2">
-                    
+
                     <!-- Guest Id -->
                     <input formControlName="id" type="hidden">
 
@@ -488,9 +488,9 @@
                         <p-datepicker id="birthDate"
                                     formControlName="birthDate"
                                     [defaultDate]="birthDateMax"
-                                    [minDate]="birthDateMin" 
-                                    [maxDate]="birthDateMax" 
-                                    dateFormat="yy-mm-dd" 
+                                    [minDate]="birthDateMin"
+                                    [maxDate]="birthDateMax"
+                                    dateFormat="yy-mm-dd"
                                     dataType="string"
                                     appendTo="body">
                         </p-datepicker>
@@ -573,7 +573,7 @@
                                 type="button"
                                 class="p-button p-1"
                                 icon="pi pi-external-link"
-                                [label]="primaryReservation?.room?.roomNum || 'nincs beállítva'"
+                                [label]="primaryReservation?.room?.roomNum || 'nincs foglalása'"
                                 [routerLink]="['/reservation']"
                                 [queryParams]="primaryReservation ? {
                                     reservation_id: primaryReservation.id,
@@ -594,7 +594,7 @@
                                     formControlName="dateOfArrival"
                                     [ngClass]="{'ng-invalid': guestForm.errors?.['dateRangeInvalid']}"
                                     [defaultDate]="beginDate"
-                                    [minDate]="beginDate" 
+                                    [minDate]="beginDate"
                                     [maxDate]="endDate"
                                     dateFormat="yy-mm-dd"
                                     dataType="string"
@@ -611,11 +611,11 @@
                     <!-- firstMeal -->
                     <div class="mb-4 col-span-1">
                         <label for="firstMeal" class="font-medium text-900">Első étkezés</label>
-                        <app-meal-selector 
-                            [parentForm]="guestForm" 
+                        <app-meal-selector
+                            [parentForm]="guestForm"
                             controlName="firstMeal"
                             [earliestMeal]="getEarliestFirstMeal()"
-                            [latestMeal]="getLatestFirstMeal()"  
+                            [latestMeal]="getLatestFirstMeal()"
                             [showNothing]="true">
                         </app-meal-selector>
                         <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
@@ -639,7 +639,7 @@
                                     formControlName="dateOfDeparture"
                                     [ngClass]="{'ng-invalid': guestForm.errors?.['dateRangeInvalid']}"
                                     [defaultDate]="beginDate"
-                                    [minDate]="beginDate" 
+                                    [minDate]="beginDate"
                                     [maxDate]="endDate"
                                     dateFormat="yy-mm-dd"
                                     dataType="string"
@@ -652,15 +652,15 @@
                             A távozás dátumának későbbinek kell lennie, mint az érkezési dátum!
                         </div>
                     </div>
-                    
+
                     <!-- lastMeal -->
                     <div class="mb-4 col-span-1">
                         <label for="lastMeal" class="font-medium text-900">Utolsó étkezés</label>
-                        <app-meal-selector 
-                            [parentForm]="guestForm" 
-                            controlName="lastMeal" 
-                            [earliestMeal]="getEarliestLastMeal()" 
-                            [latestMeal]="getLatestLastMeal()" 
+                        <app-meal-selector
+                            [parentForm]="guestForm"
+                            controlName="lastMeal"
+                            [earliestMeal]="getEarliestLastMeal()"
+                            [latestMeal]="getLatestLastMeal()"
                             [showNothing]="true">
                         </app-meal-selector>
                         <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="p-error">
@@ -689,8 +689,8 @@
                     <!-- roomType -->
                     <div class="mb-4 col-span-1 lg:col-span-2">
                         <label for="roomType" class="font-medium text-900">Szállástípus</label>
-                        <app-roomtype-selector 
-                            [parentForm]="guestForm" 
+                        <app-roomtype-selector
+                            [parentForm]="guestForm"
                             controlName="roomType">
                         </app-roomtype-selector>
                         <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
@@ -701,8 +701,8 @@
                     <!-- payment -->
                     <div class="mb-4 col-span-1">
                         <label for="payment" class="font-medium text-900">Fizetési mód</label>
-                        <app-payment-selector 
-                            [parentForm]="guestForm" 
+                        <app-payment-selector
+                            [parentForm]="guestForm"
                             controlName="payment">
                         </app-payment-selector>
                         <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
@@ -742,9 +742,9 @@
                             </div>
                             <!-- ID card preview for edit -->
                             <div *ngIf="guestForm.get('id')?.value && idCardImageUrls[guestForm.get('id')?.value] && !showUploadBlock" class="mt-3">
-                                <p-image 
-                                    [src]="idCardImageUrls[guestForm.get('id')?.value]" 
-                                    alt="idcard" 
+                                <p-image
+                                    [src]="idCardImageUrls[guestForm.get('id')?.value]"
+                                    alt="idcard"
                                     width="250"
                                     [preview]="true">
                                 </p-image>
@@ -813,19 +813,19 @@
 
             <ng-template pTemplate="footer">
                 <div class="flex justify-end gap-2">
-                    <button pButton 
-                            pRipple 
-                            label="Mégsem" 
-                            icon="pi pi-times" 
+                    <button pButton
+                            pRipple
+                            label="Mégsem"
+                            icon="pi pi-times"
                             class="p-button-outlined"
-                            (click)="cancel()" 
+                            (click)="cancel()"
                             [disabled]="!guestForm.dirty">
                     </button>
-                    <button pButton 
-                            pRipple 
-                            label="Mentés" 
-                            icon="pi pi-check" 
-                            class="p-button" 
+                    <button pButton
+                            pRipple
+                            label="Mentés"
+                            icon="pi pi-check"
+                            class="p-button"
                             (click)="save()"
                             [disabled]="!guestForm.valid || !guestForm.dirty">
                     </button>
@@ -883,10 +883,10 @@
         </p-dialog>
 
         <!-- Table filters dialog -->
-        <p-drawer 
-            id="sidebar" 
-            [(visible)]="filtersDialog" 
-            position="right" 
+        <p-drawer
+            id="sidebar"
+            [(visible)]="filtersDialog"
+            position="right"
             styleClass="p-sidebar-lg"
             [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
             [fullScreen]="isMobile"
@@ -900,14 +900,14 @@
             </ng-template>
 
             <form [formGroup]="dialogFiltersForm" novalidate class="grid grid">
-                
+
                 <!-- lastName -->
                 <div class="mb-4 w-full lg:w-1/3">
                     <label for="lastName" class="font-medium text-900">Vezetéknév</label>
                     <span class="p-input-icon-right">
                         <input pInputText type="text" formControlName="lastName" (input)="onFilter($event, 'lastName')" placeholder="Keresés..."/>
-                        <i *ngIf="dialogFiltersForm.get('lastName')?.value" 
-                            class="pi pi-times cursor-pointer" 
+                        <i *ngIf="dialogFiltersForm.get('lastName')?.value"
+                            class="pi pi-times cursor-pointer"
                             (click)="dialogFiltersForm.get('lastName')?.setValue(null); onFilter($event, 'lastName')">
                         </i>
                     </span>
@@ -918,8 +918,8 @@
                     <label for="firstName" class="font-medium text-900">Keresztnév</label>
                     <span class="p-input-icon-right">
                         <input pInputText type="text" formControlName="firstName" (input)="onFilter($event, 'firstName')" placeholder="Keresés..."/>
-                        <i *ngIf="dialogFiltersForm.get('firstName')?.value" 
-                            class="pi pi-times cursor-pointer" 
+                        <i *ngIf="dialogFiltersForm.get('firstName')?.value"
+                            class="pi pi-times cursor-pointer"
                             (click)="dialogFiltersForm.get('firstName')?.setValue(null); onFilter($event, 'firstName')">
                         </i>
                     </span>
@@ -950,7 +950,7 @@
                         (onClearClick)="onFilter($event, 'birthDate')"
                         placeholder="Keresés..."
                         [showButtonBar]="true"
-                        dateFormat="yy-mm-dd" 
+                        dateFormat="yy-mm-dd"
                         dataType="string"
                         appendTo="body">
                     </p-datepicker>
@@ -961,7 +961,7 @@
                     <label for="nationality" class="font-medium text-900">Állampolgárság</label>
                     <app-nationality-selector
                         formControlName="nationality"
-                        (change)="onFilter($event, 'nationality')" 
+                        (change)="onFilter($event, 'nationality')"
                         [showClear]="true">
                     </app-nationality-selector>
                 </div>
@@ -969,9 +969,9 @@
                 <!-- country -->
                 <div class="mb-4 w-full lg:w-1/3">
                     <label for="country" class="font-medium text-900">Lakóhely - ország</label>
-                    <app-country-selector 
+                    <app-country-selector
                         formControlName="country"
-                        (change)="onFilter($event, 'country')" 
+                        (change)="onFilter($event, 'country')"
                         [showClear]="true">
                     </app-country-selector>
                 </div>
@@ -981,8 +981,8 @@
                     <label for="zipCode" class="font-medium text-900">Lakóhely - irányítószám</label>
                     <span class="p-input-icon-right">
                         <input pInputText type="text" formControlName="zipCode" (input)="onFilter($event, 'zipCode')" placeholder="Keresés..."/>
-                        <i *ngIf="dialogFiltersForm.get('zipCode')?.value" 
-                            class="pi pi-times cursor-pointer" 
+                        <i *ngIf="dialogFiltersForm.get('zipCode')?.value"
+                            class="pi pi-times cursor-pointer"
                             (click)="dialogFiltersForm.get('zipCode')?.setValue(null); onFilter($event, 'zipCode')">
                         </i>
                     </span>
@@ -993,8 +993,8 @@
                     <label for="email" class="font-medium text-900">Email</label>
                     <span class="p-input-icon-right">
                         <input pInputText type="text" formControlName="email" (input)="onFilter($event, 'email')" placeholder="Keresés..."/>
-                        <i *ngIf="dialogFiltersForm.get('email')?.value" 
-                            class="pi pi-times cursor-pointer" 
+                        <i *ngIf="dialogFiltersForm.get('email')?.value"
+                            class="pi pi-times cursor-pointer"
                             (click)="dialogFiltersForm.get('email')?.setValue(null); onFilter($event, 'email')">
                         </i>
                     </span>
@@ -1005,8 +1005,8 @@
                     <label for="telephone" class="font-medium text-900">Telefon</label>
                     <span class="p-input-icon-right">
                         <input pInputText type="text" formControlName="telephone" (input)="onFilter($event, 'telephone')" placeholder="Keresés..."/>
-                        <i *ngIf="dialogFiltersForm.get('telephone')?.value" 
-                            class="pi pi-times cursor-pointer" 
+                        <i *ngIf="dialogFiltersForm.get('telephone')?.value"
+                            class="pi pi-times cursor-pointer"
                             (click)="dialogFiltersForm.get('telephone')?.setValue(null); onFilter($event, 'telephone')">
                         </i>
                     </span>
@@ -1015,9 +1015,9 @@
                 <!-- firstMeal -->
                 <div class="mb-4 w-full lg:w-1/3">
                     <label for="firstMeal" class="font-medium text-900">Első étkezés</label>
-                    <app-meal-selector 
+                    <app-meal-selector
                         formControlName="firstMeal"
-                        (change)="onFilter($event, 'firstMeal')" 
+                        (change)="onFilter($event, 'firstMeal')"
                         [showNothing]="true"
                         [showClear]="true">
                     </app-meal-selector>
@@ -1026,9 +1026,9 @@
                 <!-- lastMeal -->
                 <div class="mb-4 w-full lg:w-1/3">
                     <label for="lastMeal" class="font-medium text-900">Utolsó étkezés</label>
-                    <app-meal-selector 
+                    <app-meal-selector
                         formControlName="lastMeal"
-                        (change)="onFilter($event, 'lastMeal')" 
+                        (change)="onFilter($event, 'lastMeal')"
                         [showNothing]="true"
                         [showClear]="true">
                     </app-meal-selector>
@@ -1052,7 +1052,7 @@
                 <!-- roomType -->
                 <div class="mb-4 w-full lg:w-2/3">
                     <label for="roomType" class="font-medium text-900">Szállástípus</label>
-                    <app-roomtype-selector 
+                    <app-roomtype-selector
                         formControlName="roomType"
                         (change)="onFilter($event, 'roomType')"
                         [showClear]="true">
@@ -1077,7 +1077,7 @@
                 <!-- payment -->
                 <div class="mb-4 w-full lg:w-1/3">
                     <label for="payment" class="font-medium text-900">Fizetési mód</label>
-                    <app-payment-selector 
+                    <app-payment-selector
                         formControlName="payment"
                         (change)="onFilter($event, 'payment')"
                         [showClear]="true">
@@ -1093,10 +1093,10 @@
                             pInputText
                             placeholder="Keresés..."
                             formControlName="roomMate"
-                            (input)="onFilter($event, 'roomMate')" 
+                            (input)="onFilter($event, 'roomMate')"
                         />
-                        <i *ngIf="dialogFiltersForm.get('roomMate')?.value" 
-                            class="pi pi-times cursor-pointer" 
+                        <i *ngIf="dialogFiltersForm.get('roomMate')?.value"
+                            class="pi pi-times cursor-pointer"
                             (click)="dialogFiltersForm.get('roomMate')?.setValue(null); onFilter($event, 'roomMate')">
                         </i>
                     </span>
@@ -1131,10 +1131,10 @@
 
             <ng-template pTemplate="footer">
                 <div class="flex justify-end ap-2">
-                    <button pButton 
-                            pRipple 
-                            label="Szűrők törlése" 
-                            icon="pi pi-times" 
+                    <button pButton
+                            pRipple
+                            label="Szűrők törlése"
+                            icon="pi pi-times"
                             class="p-button-outlined"
                             (click)="clearDialogFilters()">
                     </button>
