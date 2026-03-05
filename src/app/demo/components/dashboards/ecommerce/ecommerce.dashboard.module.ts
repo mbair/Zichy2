@@ -13,6 +13,7 @@ import { KnobModule } from 'primeng/knob';
 import { RatingModule } from 'primeng/rating';
 import { RippleModule } from 'primeng/ripple';
 import { CardModule } from 'primeng/card';
+import { SkeletonModule } from 'primeng/skeleton';
 import { SelectorsModule } from '../../../selectors/selectors.module';
 import { StyleClassModule } from "primeng/styleclass";
 
@@ -31,6 +32,7 @@ import { StyleClassModule } from "primeng/styleclass";
     RatingModule,
     KnobModule,
     CardModule,
+    SkeletonModule,
     SelectorsModule,
     StyleClassModule
 ],
