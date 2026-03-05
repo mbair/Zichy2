@@ -41,7 +41,7 @@ export class EcommerceDashboardComponent implements OnInit {
     cols: any[] = [];
     rfidPercentage: number = 85;
     prepaidPercentage: number = 0;
-    selectedConference: Conference;
+    selectedConference: Conference | null = null;
     selectedConferences: Conference[] = [];
     conferenceData: any;
     conferenceGuests: Guest[] = [];
@@ -310,19 +310,22 @@ export class EcommerceDashboardComponent implements OnInit {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
 
-    onConferenceChange(selectedConfs: Conference[]): void {
-        console.log('Selected conference:', selectedConfs);
-            this.selectedConference = selectedConfs[0];
-            const conferenceName = this.selectedConference?.name;
+    onConferenceChange(selectedConfs: Conference[] | null | undefined): void {
+        const selectedConference = Array.isArray(selectedConfs) ? selectedConfs[0] : null
+        const conferenceName = selectedConference?.name?.trim()
 
-        if (conferenceName) { // Ensure conferenceName is defined
-            this.guestService.getByConferenceName(conferenceName).subscribe((guests: any) => {
-                this.conferenceGuests = guests.rows || [];
-                this.prepaidPercentage = Math.round((this.prepaid / this.registrations) * 100) || 0
-            })
-        } else {
-            console.error('Conference name is undefined');
+        if (!selectedConference || !conferenceName) {
+            this.selectedConference = null
+            this.conferenceGuests = []
+            this.prepaidPercentage = 0
+            return
         }
+
+        this.selectedConference = selectedConference
+        this.guestService.getByConferenceName(conferenceName).subscribe((guests: any) => {
+            this.conferenceGuests = guests.rows || [];
+            this.prepaidPercentage = Math.round((this.prepaid / this.registrations) * 100) || 0
+        })
     }
 
     /**
