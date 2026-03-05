@@ -51,6 +51,8 @@ export class ConferenceFormComponent implements OnInit {
     szepCardMessage: ToastMessageOptions[]                   // Message for szep card payment
     idCardTemplateVisible: boolean = false       // ID card template visible
     canFillFormAfterDeadline: boolean = false    // User has permission to fill form after deadline
+    isOrganizer: boolean = false                 // User has organizer role
+    canOrganizerFillUntilGuestEditDeadline: boolean = false // Organizer can fill until guest edit deadline
     formFieldInfosMap: { [key: string]: FormFieldInfo } = {}
     allowedPaymentMethodIds: number[] | null | undefined = undefined
     allowedConferenceRoomTypeIds: number[] | null | undefined = undefined
@@ -124,6 +126,12 @@ export class ConferenceFormComponent implements OnInit {
         // Permissions
         this.subs.add(
             this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canFillFormAfterDeadline => this.canFillFormAfterDeadline = canFillFormAfterDeadline)
+        )
+        this.subs.add(
+            this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => {
+                this.isOrganizer = isOrganizer
+                this.recomputeOrganizerDeadlinePermission()
+            })
         )
 
         // Get conference by URL
@@ -264,9 +272,10 @@ export class ConferenceFormComponent implements OnInit {
                             const today = moment().startOf('day')
 
                             this.registrationEnded = registrationEnd.isBefore(today)
+                            this.recomputeOrganizerDeadlinePermission()
 
                             // If registration has ended, show error
-                            if (this.registrationEnded && !this.canFillFormAfterDeadline) {
+                            if (this.registrationEnded && !this.canFillAfterRegistrationDeadline) {
                                 this.setRegistrationEndMessage()
                             }
                         }
@@ -405,7 +414,7 @@ export class ConferenceFormComponent implements OnInit {
                 this.setSzepCardMessage()
 
                 // If registration has ended, show error
-                if (this.registrationEnded) {
+                if (this.registrationEnded && !this.canFillAfterRegistrationDeadline) {
                     this.setRegistrationEndMessage()
                 }
             })
@@ -435,6 +444,9 @@ export class ConferenceFormComponent implements OnInit {
     get babyBed() { return this.conferenceForm.get('babyBed') }
     get idCard() { return this.conferenceForm.get('idCard') }
     get privacy() { return this.conferenceForm.get('privacy') }
+    get canFillAfterRegistrationDeadline(): boolean {
+        return this.canFillFormAfterDeadline || this.canOrganizerFillUntilGuestEditDeadline
+    }
     get acceptanceCriteriaUrl() { return this.conferenceForm.get('acceptanceCriteriaUrl') }
 
     get needsRoom(): boolean {
@@ -458,8 +470,8 @@ export class ConferenceFormComponent implements OnInit {
 
     /**
      * Get form field information in current language
-     * @param key 
-     * @returns 
+     * @param key
+     * @returns
      */
     getFormFieldInfo(field: string): string | undefined {
         const info = this.formFieldInfosMap[field]
@@ -586,6 +598,22 @@ export class ConferenceFormComponent implements OnInit {
                 detail: translatedMessage,
             })
         })
+    }
+
+    private recomputeOrganizerDeadlinePermission(): void {
+        if (!this.isOrganizer) {
+            this.canOrganizerFillUntilGuestEditDeadline = false
+            return
+        }
+
+        const rawEnd = this.conference?.guestEditEndDate
+        if (!rawEnd) {
+            this.canOrganizerFillUntilGuestEditDeadline = false
+            return
+        }
+
+        const end = moment(rawEnd, [moment.ISO_8601, 'YYYY-MM-DD', 'YYYY.MM.DD'], true)
+        this.canOrganizerFillUntilGuestEditDeadline = end.isValid() && moment().isSameOrBefore(end, 'day')
     }
 
     /**
@@ -726,7 +754,7 @@ export class ConferenceFormComponent implements OnInit {
 
     /**
      * New guest registration
-     * 
+     *
      * Resets the form and shows it again, after a successful submission.
      * Also clears any messages, and reloads the conference data.
      */
@@ -746,7 +774,7 @@ export class ConferenceFormComponent implements OnInit {
 
     /**
      * Keypress monitor
-     * @param event 
+     * @param event
      */
     onlyAllowNumbers(event: KeyboardEvent) {
         const allowedKeys = /[0-9+]/
