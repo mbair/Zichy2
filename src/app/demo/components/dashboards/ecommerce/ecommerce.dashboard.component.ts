@@ -276,7 +276,13 @@ export class EcommerceDashboardComponent implements OnInit {
     }
 
     get guestsWithoutRoom(): number {
-        return this.conferenceGuests?.filter((guest: Guest) => guest.roomNum === null).length || 0
+        return (this.conferenceGuests ?? []).filter((guest: Guest) => !this.hasAssignedRoom(guest)).length
+    }
+
+    private hasAssignedRoom(guest: Guest): boolean {
+        const reservationRoomNum = guest.reservations?.find(reservation => reservation?.room?.roomNum)?.room?.roomNum
+        const roomNum = (guest.displayRoomNum ?? guest.roomNum ?? reservationRoomNum ?? '').trim()
+        return roomNum.length > 0
     }
 
     get registrationEndDate(): string {
