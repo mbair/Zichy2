@@ -42,6 +42,7 @@ export class EcommerceDashboardComponent implements OnInit {
     cols: any[] = [];
     rfidPercentage: number = 85;
     prepaidPercentage: number = 0;
+    conferenceStatsLoading: boolean = false;
     selectedConference: Conference | null = null;
     selectedConferences: Conference[] = [];
     conferenceData: any;
@@ -331,13 +332,23 @@ export class EcommerceDashboardComponent implements OnInit {
             this.selectedConference = null
             this.conferenceGuests = []
             this.prepaidPercentage = 0
+            this.conferenceStatsLoading = false
             return
         }
 
         this.selectedConference = selectedConference
-        this.guestService.getByConferenceName(conferenceName).subscribe((guests: any) => {
-            this.conferenceGuests = guests.rows || [];
-            this.prepaidPercentage = Math.round((this.prepaid / this.registrations) * 100) || 0
+        this.conferenceStatsLoading = true
+        this.guestService.getByConferenceName(conferenceName).subscribe({
+            next: (guests: any) => {
+                this.conferenceGuests = guests.rows || [];
+                this.prepaidPercentage = Math.round((this.prepaid / this.registrations) * 100) || 0
+                this.conferenceStatsLoading = false
+            },
+            error: () => {
+                this.conferenceGuests = []
+                this.prepaidPercentage = 0
+                this.conferenceStatsLoading = false
+            }
         })
     }
 
