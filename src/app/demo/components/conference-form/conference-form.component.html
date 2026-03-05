@@ -621,7 +621,7 @@
                                                     </a>
                                                 </span>
                                             </span>
-                                            <div *ngIf="privacy?.dirty && privacy?.errors?.['required']" class="p-error">
+                                            <div *ngIf="privacy?.dirty && (privacy?.errors?.['required'] || privacy?.errors?.['requiredTrue'])" class="p-error">
                                                 {{'Az adatvédelmi nyilatkozat(ok) elfogadása kötelező' | translate }}!
                                             </div>
                                         </div>
@@ -631,7 +631,8 @@
                                                   class="white-space-nowrap ml-3" 
                                                   icon="pi pi-check" 
                                                   label="{{'Elküldöm a regisztrációmat' | translate }}" 
-                                                  [loading]="loading">
+                                                  [loading]="loading"
+                                                  [disabled]="loading || conferenceForm.invalid">
                                         </p-button>
                                     </form>
                                 </div>
