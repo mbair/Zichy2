@@ -1,12 +1,12 @@
 {
     "name": "nfc-reserve",
-    "version": "1.15.40",
+    "version": "1.15.41",
     "scripts": {
         "ng": "ng",
-        "start": "ng serve",
+        "start": "ng serve --proxy-config proxy.conf.json",
         "build": "ng build && ng build --output-path docs --base-href /Zichy2/ --configuration production && git add .",
         "watch": "ng build --watch --configuration development",
-        "dev": "ng serve --ssl --ssl-cert ./localSslCertificate/server.crt --ssl-key ./localSslCertificate/server.key --open --host 0.0.0.0 --disable-host-check",
+        "dev": "ng serve --proxy-config proxy.conf.json --ssl --ssl-cert ./localSslCertificate/server.crt --ssl-key ./localSslCertificate/server.key --open --host 0.0.0.0 --disable-host-check",
         "test": "ng test",
         "lint": "ng lint",
         "prepare": "husky",
@@ -54,6 +54,7 @@
         "@types/file-saver": "^2.0.7",
         "@types/jasmine": "~4.3.0",
         "@types/lodash": "^4.17.15",
+        "@types/node": "~18.19.0",
         "husky": "^9.1.7",
         "jasmine-core": "~4.6.0",
         "karma": "~6.4.0",
