@@ -203,7 +203,12 @@
                 <span class="font-semibold text-lg">Regisztrációk száma</span>
                 <div class="flex justify-content-between align-items-start mt-3">
                     <div class="w-6">
-                        <span class="text-4xl font-bold text-900">{{ registrations }}</span>
+                        <ng-container *ngIf="!conferenceStatsLoading; else registrationsSkeleton">
+                            <span class="text-4xl font-bold text-900">{{ registrations }}</span>
+                        </ng-container>
+                        <ng-template #registrationsSkeleton>
+                            <p-skeleton width="6rem" height="2.5rem"></p-skeleton>
+                        </ng-template>
                     </div>
                 </div>
             </div>
@@ -213,9 +218,14 @@
                 <span class="font-semibold text-lg">Szobára várók</span>
                 <div class="flex justify-content-between align-items-start mt-3">
                     <div class="w-6">
-                        <span class="text-4xl font-bold text-900">
-                            {{ guestsWithoutRoom }}
-                        </span>
+                        <ng-container *ngIf="!conferenceStatsLoading; else guestsWithoutRoomSkeleton">
+                            <span class="text-4xl font-bold text-900">
+                                {{ guestsWithoutRoom }}
+                            </span>
+                        </ng-container>
+                        <ng-template #guestsWithoutRoomSkeleton>
+                            <p-skeleton width="6rem" height="2.5rem"></p-skeleton>
+                        </ng-template>
                     </div>
                 </div>
             </div>
@@ -249,12 +259,22 @@
                 <span class="font-semibold text-lg">Előleget fizetett / összes vendég</span>
                 <div class="flex justify-content-between align-items-start mt-3">
                     <div class="w-6">
-                        <span class="text-4xl font-bold text-900">
-                            {{ prepaid }} / {{ registrations }}
-                        </span>
+                        <ng-container *ngIf="!conferenceStatsLoading; else prepaidSummarySkeleton">
+                            <span class="text-4xl font-bold text-900">
+                                {{ prepaid }} / {{ registrations }}
+                            </span>
+                        </ng-container>
+                        <ng-template #prepaidSummarySkeleton>
+                            <p-skeleton width="10rem" height="2.5rem"></p-skeleton>
+                        </ng-template>
                     </div>
                     <div class="w-6 text-right">
-                        <p-knob [(ngModel)]="prepaidPercentage" valueTemplate="{value}%" [readonly]="true" [strokeWidth]="2" [size]="90" styleClass="-mt-5"></p-knob>
+                        <ng-container *ngIf="!conferenceStatsLoading; else prepaidKnobSkeleton">
+                            <p-knob [(ngModel)]="prepaidPercentage" valueTemplate="{value}%" [readonly]="true" [strokeWidth]="2" [size]="90" styleClass="-mt-5"></p-knob>
+                        </ng-container>
+                        <ng-template #prepaidKnobSkeleton>
+                            <p-skeleton width="5.75rem" height="5.75rem" styleClass="inline-block mt-1"></p-skeleton>
+                        </ng-template>
                     </div>
                 </div>
             </div>
