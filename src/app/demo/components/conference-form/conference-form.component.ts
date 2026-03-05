@@ -114,7 +114,7 @@ export class ConferenceFormComponent implements OnInit {
             payment: [null, Validators.required],
             babyBed: [null],
             idCard: [null],
-            privacy: ['', Validators.required],
+            privacy: [false, Validators.requiredTrue],
             acceptanceCriteriaUrl: [null],
             answers: this.formBuilder.array([]),
         }, {
@@ -330,7 +330,11 @@ export class ConferenceFormComponent implements OnInit {
                 // If message is a Toast
                 if (message?.severity) {
                     this.messageService.add(message)
-                    message.severity === 'success' ? this.saveSuccess() : this.saveFailed()
+                    if (message.summary === 'Vendég rögzítés sikertelen') {
+                        this.saveFailed()
+                    } else if (message.summary === 'Vendég rögzítve' && !this.conference?.questions?.length) {
+                        this.saveSuccess()
+                    }
                     return
                 }
 
@@ -645,14 +649,12 @@ export class ConferenceFormComponent implements OnInit {
 
             // Google Analytics event sending
             setTimeout(() => {
-                try {
+                if (typeof gtag === 'function') {
                     gtag('event', 'registration_submitted', {
                         'event_category': 'form',
                         'event_label': this.conference?.name || 'ismeretlen_konferencia',
                         'value': 1
                     })
-                } catch (err) {
-                    console.warn('GA event küldése sikertelen', err)
                 }
             })
 
@@ -671,7 +673,6 @@ export class ConferenceFormComponent implements OnInit {
 
             // Delete unnecessary fields
             delete guestData.idCard
-            delete guestData.privacy
 
             this.guestService.create(guestData, files)
 

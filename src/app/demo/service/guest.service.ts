@@ -131,7 +131,11 @@ export class GuestService {
      */
     public getByConferenceName(conferenceName: string): Observable<any> {
         // return this.apiService.get(`guest/getbyconferancename/${conferenceName}`) // TODO: typo in backend
-        return this.apiService.get(`guest/searchquery?conferenceName=${conferenceName}`)
+        return this.apiService.get(`guest/searchquery?conferenceName=${encodeURIComponent(conferenceName)}`)
+    }
+
+    public getByConferenceId(conferenceId: number): Observable<any> {
+        return this.apiService.get(`guest/searchquery?conferenceid=${encodeURIComponent(String(conferenceId))}`)
     }
 
     /**
@@ -172,9 +176,13 @@ export class GuestService {
      * @param files
      */
     public create(guest: Guest, files: File[]): void {
+        const guestPayload = {
+            ...guest,
+            privacy: (guest as any)?.privacy ?? true
+        }
 
         const formData = new FormData()
-        formData.append('guest', JSON.stringify(guest))
+        formData.append('guest', JSON.stringify(guestPayload))
 
         if (files && files.length > 0) {
             for (const file of files) {

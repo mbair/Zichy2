@@ -31,7 +31,7 @@ export class EcommerceDashboardComponent implements OnInit {
     userRole: string = '';
     activities: any[] = [];
     information: any;
-    selectedWeek: any;
+    selectedWeek: any = { data: [[], []] };
     weeks: any[] = [];
     barData: any;
     barOptions: any;
@@ -92,7 +92,6 @@ export class EcommerceDashboardComponent implements OnInit {
         this.userService.getUserRole().subscribe(role => {
             setTimeout(() => {
                 this.userRole = role
-                console.log('Updated userRole', this.userRole)
             })
         })
 
@@ -178,6 +177,9 @@ export class EcommerceDashboardComponent implements OnInit {
         const textColor = documentStyle.getPropertyValue('--text-color');
         const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
         const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
+        const weekData = Array.isArray(this.selectedWeek?.data) ? this.selectedWeek.data : [[], []]
+        const incomeData = Array.isArray(weekData[0]) ? weekData[0] : []
+        const profitData = Array.isArray(weekData[1]) ? weekData[1] : []
 
         this.barData = {
             labels: ['HÉT', 'KED', 'SZE', 'CSÜ', 'PÉN', 'SZO', 'VAS'],
@@ -187,14 +189,14 @@ export class EcommerceDashboardComponent implements OnInit {
                     backgroundColor: documentStyle.getPropertyValue('--primary-500'),
                     barThickness: 12,
                     borderRadius: 12,
-                    data: this.selectedWeek.data[0]
+                    data: incomeData
                 },
                 {
                     label: 'Profit',
                     backgroundColor: documentStyle.getPropertyValue('--primary-200'),
                     barThickness: 12,
                     borderRadius: 12,
-                    data: this.selectedWeek.data[1]
+                    data: profitData
                 }
             ]
         };
@@ -314,9 +316,17 @@ export class EcommerceDashboardComponent implements OnInit {
     }
 
     onWeekChange() {
+        if (!this.barData?.datasets?.length) {
+            this.initCharts()
+            return
+        }
+
+        const weekData = Array.isArray(this.selectedWeek?.data) ? this.selectedWeek.data : [[], []]
+        const incomeData = Array.isArray(weekData[0]) ? weekData[0] : []
+        const profitData = Array.isArray(weekData[1]) ? weekData[1] : []
         let newBarData = {...this.barData};
-        newBarData.datasets[0].data = this.selectedWeek.data[0];
-        newBarData.datasets[1].data = this.selectedWeek.data[1];
+        newBarData.datasets[0].data = incomeData;
+        newBarData.datasets[1].data = profitData;
         this.barData = newBarData;
     }
 
@@ -326,9 +336,10 @@ export class EcommerceDashboardComponent implements OnInit {
 
     onConferenceChange(selectedConfs: Conference[] | null | undefined): void {
         const selectedConference = Array.isArray(selectedConfs) ? selectedConfs[0] : null
+        const conferenceId = selectedConference?.id
         const conferenceName = selectedConference?.name?.trim()
 
-        if (!selectedConference || !conferenceName) {
+        if (!selectedConference || (!conferenceId && !conferenceName)) {
             this.selectedConference = null
             this.conferenceGuests = []
             this.prepaidPercentage = 0
@@ -338,10 +349,17 @@ export class EcommerceDashboardComponent implements OnInit {
 
         this.selectedConference = selectedConference
         this.conferenceStatsLoading = true
-        this.guestService.getByConferenceName(conferenceName).subscribe({
+        const guestsRequest$ = conferenceId
+            ? this.guestService.getByConferenceId(conferenceId)
+            : this.guestService.getByConferenceName(conferenceName!)
+
+        guestsRequest$.subscribe({
             next: (guests: any) => {
-                this.conferenceGuests = guests.rows || [];
-                this.prepaidPercentage = Math.round((this.prepaid / this.registrations) * 100) || 0
+                this.conferenceGuests = Array.isArray(guests?.rows) ? guests.rows : []
+                const registrations = this.registrations
+                this.prepaidPercentage = registrations > 0
+                    ? Math.round((this.prepaid / registrations) * 100)
+                    : 0
                 this.conferenceStatsLoading = false
             },
             error: () => {
