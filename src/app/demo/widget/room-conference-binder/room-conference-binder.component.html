@@ -29,7 +29,7 @@
 
         <!-- WRAPPER: a teljes tartalom flex-elrendezésű és 100% magas,
              így csak a táblázat törzse fog görögni, a fejlécek látszódnak -->
-        <div style="display:flex; flex-direction:column; height:100%; overflow:hidden;">
+        <div class="binder-dialog-content">
 
             <!-- Felső vezérlősor (fixen marad) -->
             <div class="flex w-full mb-2" style="flex:0 0 auto;">
@@ -97,7 +97,7 @@
 
                 <!-- Save button -->
                 <button pButton pRipple label="Összerendelés" icon="pi pi-check" class="p-button ml-2" (click)="onAssign()"
-                        [disabled]="!selectedRooms || !selectedRooms.length || !selectedConferences || !selectedConferences.length">
+                        [disabled]="loading || !selectedRooms || !selectedRooms.length || !selectedConferences || !selectedConferences.length">
                 </button>
             </div>
 
@@ -106,10 +106,10 @@
                 <p-table 
                     #dt 
                     dataKey="id" 
-                    [value]="displayedRooms" 
+                    [value]="tableRows" 
                     responsiveLayout="scroll" 
                     [rows]="rowsPerPage"
-                    [totalRecords]="showOnlyFreeRooms ? displayedRooms.length : totalRecords" 
+                    [totalRecords]="tableTotalRecords" 
                     [globalFilterFields]="['roomNum']" 
                     [paginator]="true"
                     [rowsPerPageOptions]="rowsPerPageOptions" 
@@ -270,15 +270,15 @@
                         </tr>
                     </ng-template>
                 </p-table>
+
+            </div>
+
+            <div *ngIf="loading" class="binder-loading-overlay">
+                <p-progressSpinner></p-progressSpinner>
             </div>
         </div>
     </p-drawer>
 </ng-container>
-
-<!-- Loading Overlay -->
-<p-blockUI [autoZIndex]="true" [blocked]="loading">
-    <p-progressSpinner></p-progressSpinner>
-</p-blockUI>
 
 <p-toast></p-toast>
 <p-confirmDialog></p-confirmDialog>

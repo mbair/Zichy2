@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable, Subject, Subscription, catchError, filter, map, switchMap, tap } from 'rxjs';
 import { Table } from 'primeng/table';
 import { Room } from '../../api/room';
 import { Conference } from '../../api/conference';
@@ -18,11 +18,9 @@ moment.locale('hu')
     providers: [MessageService, ConfirmationService],
     standalone: false
 })
-export class RoomConferenceBinderComponent {
+export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
     visible: boolean = false                     // Visibility of the component
-    loading: boolean = true                      // Loading overlay trigger value
-    loadingConferences: boolean = true           // Loading overlay trigger value
-    tableItem: Room = {}                         // One guest object
+    loading: boolean = false                     // Loading overlay trigger value
     tableData: Room[] = []                       // Data set displayed in a table
     rowsPerPageOptions = [20, 50, 100, 9999]     // Possible rows per page
     rowsPerPage: number = 20                     // Default rows per page
@@ -33,7 +31,6 @@ export class RoomConferenceBinderComponent {
     globalFilter: string = ''                    // Global filter
     filterValues: { [key: string]: string } = {} // Table filter conditions
     debounce: { [key: string]: any } = {}        // Search delay in filter field
-    selected: Room[] = []                        // Table items chosen by user
     selectedConferences: Conference[] = []
     selectedFilterConferences: Conference[] = []
     selectedRooms: Room[] = []                   // Selected rooms
@@ -44,8 +41,9 @@ export class RoomConferenceBinderComponent {
     numberOfFilteredGuests: number = 0           // Number of filtered guests
     showOnlyFreeRooms: boolean = false           // Toggle: show only rooms which are free (no overlap with selected conferences)
     private readonly FULL_FETCH_ROWS = 9999
-
-    private roomObs$: Observable<any> | undefined
+    private readonly queryTrigger$ = new Subject<{ force: boolean }>()
+    private readonly subs = new Subscription()
+    private lastQueryKey = ''
 
     constructor(
         private roomService: RoomService,
@@ -61,33 +59,82 @@ export class RoomConferenceBinderComponent {
         return this.tableData.filter(room => !this.roomHasOverlapWithSelected(room));
     }
 
+    /** Table rows: hide stale rows while a fresh query is in-flight */
+    get tableRows(): Room[] {
+        return this.loading ? [] : this.displayedRooms;
+    }
+
+    /** Keep paginator/report consistent with the currently rendered list */
+    get tableTotalRecords(): number {
+        if (this.loading) return 0;
+        return this.showOnlyFreeRooms ? this.displayedRooms.length : this.totalRecords;
+    }
+
     ngOnInit() {
         // Permissions
-        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canBindRoomToConference => this.canBindRoomToConference = canBindRoomToConference)
+        this.subs.add(
+            this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canBindRoomToConference => this.canBindRoomToConference = canBindRoomToConference)
+        )
 
-        // Rooms
-        this.roomObs$ = this.roomService.roomObs
-        this.roomObs$.subscribe((data: ApiResponse) => {
-            this.loading = false
-            if (data) {
-                this.tableData = data.rows || []
-                this.totalRecords = data.totalItems || 0
-                this.page = data.currentPage || 0
-            }
-        })
+        // Query pipeline with switchMap: latest query wins and stale responses are ignored
+        this.subs.add(
+            this.queryTrigger$
+                .pipe(
+                    map(trigger => ({
+                        trigger,
+                        request: this.buildQueryRequest()
+                    })),
+                    filter(({ trigger, request }) =>
+                        trigger.force || request.key !== this.lastQueryKey
+                    ),
+                    tap(({ request }) => {
+                        this.lastQueryKey = request.key
+                        this.loading = true
+                    }),
+                    switchMap(({ request }) => request.request$.pipe(
+                        catchError((error: any) => {
+                            this.loading = false
+                            this.lastQueryKey = ''
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Szobák lekérdezése sikertelen',
+                                detail: `Hiba: ${error?.message || error}`,
+                            })
+                            return EMPTY
+                        })
+                    ))
+                )
+                .subscribe((data: ApiResponse) => {
+                    this.loading = false
+                    if (!data) return
+
+                    this.tableData = data.rows || []
+                    this.totalRecords = data.totalItems || 0
+                    this.page = data.currentPage || 0
+                    this.syncSelectedRoomsWithCurrentData()
+                })
+        )
+    }
+
+    ngOnDestroy(): void {
+        this.subs.unsubscribe()
+        Object.keys(this.debounce).forEach(key => clearTimeout(this.debounce[key]))
     }
 
     showDialog() {
         this.visible = true
+        this.doQuery(true)
     }
 
     /**
      * Load filtered room data into the Table
      * @returns
      */
-    doQuery() {
-        this.loading = true
+    doQuery(force = false) {
+        this.queryTrigger$.next({ force })
+    }
 
+    private buildQueryRequest(): { key: string, request$: Observable<ApiResponse> } {
         if (this.selectedConferences) {
             this.filterValues['notAssignedConferences'] = this.selectedConferences.map((item: any) => item.id).join(',')
         }
@@ -97,7 +144,17 @@ export class RoomConferenceBinderComponent {
         const queryParams = filters.filter(x => x.length > 0).join('&')
 
         if (this.globalFilter !== '') {
-            return this.roomService.getBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
+            const key = JSON.stringify({
+                mode: 'search',
+                globalFilter: this.globalFilter,
+                sortField: this.sortField,
+                sortOrder: this.sortOrder
+            })
+
+            return {
+                key,
+                request$: this.roomService.getBySearch$(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
+            }
         }
 
         const shouldFetchFullSetForFreeFilter =
@@ -106,7 +163,19 @@ export class RoomConferenceBinderComponent {
         const fetchPage = shouldFetchFullSetForFreeFilter ? 0 : this.page
         const fetchRows = shouldFetchFullSetForFreeFilter ? this.FULL_FETCH_ROWS : this.rowsPerPage
 
-        return this.roomService.get(fetchPage, fetchRows, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
+        const key = JSON.stringify({
+            mode: 'list',
+            fetchPage,
+            fetchRows,
+            sortField: this.sortField,
+            sortOrder: this.sortOrder,
+            queryParams
+        })
+
+        return {
+            key,
+            request$: this.roomService.get$(fetchPage, fetchRows, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
+        }
     }
 
     /**
@@ -120,7 +189,7 @@ export class RoomConferenceBinderComponent {
 
         // For enabled field convert true to "1" and false to "0"
         if (field === 'conferences') {
-            filterValue = event.map((item: any) => item.id).join(',')
+            filterValue = Array.isArray(event) ? event.map((item: any) => item.id).join(',') : ''
         }
 
         // Calendar date as String
@@ -137,6 +206,7 @@ export class RoomConferenceBinderComponent {
         }
 
         this.filterValues[field] = filterValue
+        this.page = 0
 
         // Handle immediate query or debounced query
         if (noWaitFields.includes(field)) {
@@ -177,6 +247,7 @@ export class RoomConferenceBinderComponent {
     }
 
     onShowOnlyFreeRoomsChange(): void {
+        this.page = 0
         this.doQuery()
     }
 
@@ -185,6 +256,7 @@ export class RoomConferenceBinderComponent {
             this.showOnlyFreeRooms = false
         }
 
+        this.page = 0
         this.loadConferenceStats(selectedConferences, 'selected')
         this.doQuery()
     }
@@ -195,7 +267,7 @@ export class RoomConferenceBinderComponent {
 
     /**
      * Assign Rooms with Conference
-     * @returns 
+     * @returns
      */
     onAssign(): void {
         if (!this.selectedConferences || this.selectedConferences.length === 0) {
@@ -262,7 +334,7 @@ export class RoomConferenceBinderComponent {
                 this.numberOfBeds += additionalBeds
                 this.selectedRooms = []
                 this.refreshSelectedConferenceStats()
-                this.doQuery()
+                this.doQuery(true)
             },
             error: (error: any) => {
                 this.messageService.add({
@@ -276,8 +348,8 @@ export class RoomConferenceBinderComponent {
 
     /**
      * unAssign Rooms from Conference
-     * @param conference 
-     * @param room 
+     * @param conference
+     * @param room
      */
     onRemove(conference: any, room: any) {
         this.conferenceService.removeRoomsFromConference(conference.id, [room.id]).subscribe({
@@ -288,7 +360,7 @@ export class RoomConferenceBinderComponent {
                     detail: `Szoba-konferencia összerendelés törölve`,
                 })
                 this.refreshSelectedConferenceStats() // update Guests/Beds from /stats
-                this.doQuery()                        // reload table
+                this.doQuery(true)                   // reload table
             },
             error: (error: any) => {
                 this.messageService.add({
@@ -302,8 +374,8 @@ export class RoomConferenceBinderComponent {
 
     /**
      * Calculate Conference Guests and Beds
-     * @param selectedConferences 
-     * @returns 
+     * @param selectedConferences
+     * @returns
      */
     private calculateConferenceGuestsAndBeds(selectedConferences: Conference[]): { guests: number, beds: number } {
         // If no conference are selected we return with 0
@@ -380,10 +452,10 @@ export class RoomConferenceBinderComponent {
     }
 
     /**
-     * Check if there is an overlap between the given conference and 
+     * Check if there is an overlap between the given conference and
      * the one for which we would like to assign the room
-     * @param conference 
-     * @returns 
+     * @param conference
+     * @returns
      */
     isConferenceOverlapping(conference: Conference): boolean {
         // Check whether both dates are specified for the current conference
@@ -392,29 +464,35 @@ export class RoomConferenceBinderComponent {
         }
 
         // Check whether both dates are specified for the selected conference
-        return this.selectedConferences.some(selected => {
-            if (!selected.beginDate || !selected.endDate) {
-                return false
-            }
-
-            // Convert string values ​​to Date objects
-            const conferenceBegin = new Date(conference.beginDate!)
-            const conferenceEnd = new Date(conference.endDate!)
-            const selectedBegin = new Date(selected.beginDate!)
-            const selectedEnd = new Date(selected.endDate!)
-
-            return conferenceBegin < selectedEnd && conferenceEnd > selectedBegin
-        })
+        return this.selectedConferences.some(selected => this.overlaps(conference, selected))
     }
 
     /** Date overlap helper (zárt, lokális segédfv.) */
     private overlaps(a: Conference, b: Conference): boolean {
         if (!a?.beginDate || !a?.endDate || !b?.beginDate || !b?.endDate) return false;
-        const aStart = new Date(a.beginDate);
-        const aEnd = new Date(a.endDate);
-        const bStart = new Date(b.beginDate);
-        const bEnd = new Date(b.endDate);
+        const aStart = this.toEpoch(a.beginDate)
+        const aEnd = this.toEpoch(a.endDate)
+        const bStart = this.toEpoch(b.beginDate)
+        const bEnd = this.toEpoch(b.endDate)
+
+        if (aStart == null || aEnd == null || bStart == null || bEnd == null) return false;
         return aStart < bEnd && aEnd > bStart; // strict overlap
+    }
+
+    private toEpoch(dateValue: string | null | undefined): number | null {
+        if (!dateValue) return null
+
+        // Parse date-only values as local midnight (half-open interval compatibility).
+        const dateOnly = moment(dateValue, 'YYYY-MM-DD', true)
+        if (dateOnly.isValid()) {
+            return dateOnly.startOf('day').valueOf()
+        }
+
+        const iso = moment(dateValue, moment.ISO_8601, true)
+        if (iso.isValid()) return iso.valueOf()
+
+        const fallback = moment(new Date(dateValue))
+        return fallback.isValid() ? fallback.valueOf() : null
     }
 
     /** Room has ANY enabled conference overlapping with ANY selected conference? */
@@ -422,6 +500,23 @@ export class RoomConferenceBinderComponent {
         if (!this.selectedConferences?.length) return false;
         const enabledConfs = (room?.conferences ?? []).filter((c: any) => c?.enabled);
         return enabledConfs.some((rc: any) => this.selectedConferences.some(sc => this.overlaps(rc, sc)));
+    }
+
+    private syncSelectedRoomsWithCurrentData(): void {
+        if (!this.selectedRooms?.length || !this.tableData?.length) {
+            if (!this.tableData?.length) this.selectedRooms = []
+            return
+        }
+
+        const byId = new Map<string, Room>(
+            this.tableData
+                .filter(room => room?.id != null)
+                .map(room => [String(room.id), room] as [string, Room])
+        )
+
+        this.selectedRooms = this.selectedRooms
+            .map(room => byId.get(String(room?.id)))
+            .filter((room): room is Room => !!room)
     }
 
     /**
