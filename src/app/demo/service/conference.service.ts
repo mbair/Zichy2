@@ -124,6 +124,18 @@ export class ConferenceService {
             })
     }
 
+    public getByFormSlug(slug: string): void {
+        this.apiService.get<ApiResponse>(`conference/form/${encodeURIComponent(slug)}`)
+            .subscribe({
+                next: (response: ApiResponse) => {
+                    this.data$.next(response)
+                },
+                error: (error: any) => {
+                    this.message$.next(error)
+                }
+            })
+    }
+
     /**
      * Conference create
      * @param conference
