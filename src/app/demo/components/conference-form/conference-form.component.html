@@ -586,11 +586,15 @@
                                                 name="idCard"
                                                 formControlName="idCard" 
                                                 accept=".jpg,.jpeg,.png" 
+                                                [maxFileSize]="idCardMaxFileSizeBytes"
                                                 chooseLabel="{{'Tallózás' | translate }}" 
                                                 cancelLabel="{{'Mégsem' | translate }}">
                                             </app-reactive-file-upload>
                                             <div *ngIf="idCard?.dirty && idCard?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, töltse fel a személyi igazolványának hátoldalát' | translate }}!
+                                            </div>
+                                            <div *ngIf="idCard?.dirty && idCard?.errors?.['maxFileSize']" class="p-error">
+                                                A feltöltött kép túl nagy. Maximum {{ idCardMaxFileSizeMb }} MB.
                                             </div>
                                         </div>
 
