@@ -18,6 +18,7 @@ export class ReactiveFileUploadComponent implements ControlValueAccessor {
     @Input() accept: string
     @Input() chooseLabel: string
     @Input() cancelLabel: string
+    @Input() maxFileSize: number | null = null
 
     value: any
     onChange: (value: any) => void = () => {}

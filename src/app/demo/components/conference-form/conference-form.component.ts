@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, FormControl, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Subscription, Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { TranslateService } from '@ngx-translate/core';
@@ -61,6 +61,8 @@ export class ConferenceFormComponent implements OnInit {
 
     private readonly subs = new Subscription()
     private readonly ROOMTYPE_NO_ACCOMMODATION = 'Nem kérek szállást'
+    readonly idCardMaxFileSizeBytes = 15 * 1024 * 1024
+    readonly idCardMaxFileSizeMb = 15
 
     constructor(public router: Router,
         public userService: UserService,
@@ -659,7 +661,7 @@ export class ConferenceFormComponent implements OnInit {
 
             const guestData = { ...this.conferenceForm.value }
             const rawIdCard = this.conferenceForm.get('idCard')?.value
-            const files: File[] = rawIdCard ? [rawIdCard] : []
+            const files: File[] = rawIdCard instanceof File ? [rawIdCard] : []
             const lang = this.translate.currentLang === 'gb' ? 'en' : this.translate.currentLang
 
             // Add questions to formdata
@@ -796,7 +798,7 @@ export class ConferenceFormComponent implements OnInit {
         // Required if needs room and older than 14
         if (needsRoom && age >= 14) {
             this.showIdCardField = true
-            idCardControl?.setValidators([Validators.required])
+            idCardControl?.setValidators([Validators.required, this.idCardMaxFileSizeValidator.bind(this)])
             idCardControl?.enable({ emitEvent: false })
         } else {
             this.showIdCardField = false
@@ -805,6 +807,22 @@ export class ConferenceFormComponent implements OnInit {
             idCardControl?.disable({ emitEvent: false })
         }
         idCardControl?.updateValueAndValidity({ emitEvent: false })
+    }
+
+    private idCardMaxFileSizeValidator(control: AbstractControl): ValidationErrors | null {
+        const value = control.value
+        if (!value || !(value instanceof File)) {
+            return null
+        }
+
+        return value.size <= this.idCardMaxFileSizeBytes
+            ? null
+            : {
+                maxFileSize: {
+                    max: this.idCardMaxFileSizeBytes,
+                    actual: value.size
+                }
+            }
     }
 
     /**
