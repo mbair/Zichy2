@@ -44,6 +44,7 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
     private readonly queryTrigger$ = new Subject<{ force: boolean }>()
     private readonly subs = new Subscription()
     private lastQueryKey = ''
+    private readonly localBedsOverrides = new Map<number, number>()
 
     constructor(
         private roomService: RoomService,
@@ -123,6 +124,8 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
 
     showDialog() {
         this.visible = true
+        this.localBedsOverrides.clear()
+        this.selectedRooms = []
         this.doQuery(true)
     }
 
@@ -257,6 +260,7 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
         }
 
         this.page = 0
+        this.selectedRooms = []
         this.loadConferenceStats(selectedConferences, 'selected')
         this.doQuery()
     }
@@ -325,15 +329,17 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
                     detail: 'Szobák hozzárendelve',
                 })
 
-                // Recalculate beds
-                let additionalBeds = 0
-                rooms.forEach((room: Room) => {
-                    additionalBeds += room.beds || 0
-                })
-
-                this.numberOfBeds += additionalBeds
+                // Optimistic UI: immediately reflect newly added beds.
+                const additionalBeds = this.sumBeds(rooms)
+                if (this.hasConferenceId(this.selectedConferences, conferenceId)) {
+                    this.numberOfBeds += additionalBeds
+                    this.setLocalBedsOverride(conferenceId, this.numberOfBeds)
+                }
+                if (this.hasConferenceId(this.selectedFilterConferences, conferenceId)) {
+                    this.numberOfFilteredBeds += additionalBeds
+                    this.setLocalBedsOverride(conferenceId, this.numberOfFilteredBeds)
+                }
                 this.selectedRooms = []
-                this.refreshSelectedConferenceStats()
                 this.doQuery(true)
             },
             error: (error: any) => {
@@ -359,7 +365,24 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
                     summary: 'Összerendelés törölve',
                     detail: `Szoba-konferencia összerendelés törölve`,
                 })
-                this.refreshSelectedConferenceStats() // update Guests/Beds from /stats
+
+                const removedConferenceId = Number(conference?.id)
+                if (!Number.isFinite(removedConferenceId)) {
+                    this.doQuery(true)
+                    return
+                }
+
+                if (this.hasConferenceId(this.selectedConferences, removedConferenceId)) {
+                    const removedBeds = Number(room?.beds) || 0
+                    this.numberOfBeds = Math.max(0, this.numberOfBeds - removedBeds)
+                    this.setLocalBedsOverride(removedConferenceId, this.numberOfBeds)
+                }
+                if (this.hasConferenceId(this.selectedFilterConferences, removedConferenceId)) {
+                    const removedBeds = Number(room?.beds) || 0
+                    this.numberOfFilteredBeds = Math.max(0, this.numberOfFilteredBeds - removedBeds)
+                    this.setLocalBedsOverride(removedConferenceId, this.numberOfFilteredBeds)
+                }
+
                 this.doQuery(true)                   // reload table
             },
             error: (error: any) => {
@@ -401,8 +424,9 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
     private applyStatsToTarget(stats: ConferenceStatsMap, ids: number[], target: 'selected' | 'filter'): void {
         const totals = ids.reduce((acc, id) => {
             const s = stats[id] ?? stats[String(id)];
+            const overrideBeds = this.localBedsOverrides.get(Number(id))
             acc.guests += s?.guests ?? 0;
-            acc.beds += s?.beds ?? 0;
+            acc.beds += overrideBeds ?? s?.beds ?? 0;
             return acc;
         }, { guests: 0, beds: 0 });
 
@@ -449,6 +473,20 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
     /** Convenience refresher for currently selected conference(s) */
     private refreshSelectedConferenceStats(): void {
         this.loadConferenceStats(this.selectedConferences, 'selected');
+    }
+
+    private sumBeds(rooms: Room[]): number {
+        return (rooms ?? []).reduce((sum, room) => sum + (Number(room?.beds) || 0), 0)
+    }
+
+    private hasConferenceId(conferences: Conference[] | null | undefined, conferenceId: number): boolean {
+        if (!Number.isFinite(conferenceId)) return false
+        return (conferences ?? []).some(conf => Number(conf?.id) === conferenceId)
+    }
+
+    private setLocalBedsOverride(conferenceId: number, beds: number): void {
+        if (!Number.isFinite(conferenceId)) return
+        this.localBedsOverrides.set(conferenceId, Math.max(0, Number(beds) || 0))
     }
 
     /**
