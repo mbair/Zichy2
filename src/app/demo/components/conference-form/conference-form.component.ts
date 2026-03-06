@@ -469,7 +469,7 @@ export class ConferenceFormComponent implements OnInit {
     getConferenceBySlug() {
         this.loading = true
         const slug = this.router.url.split('/').pop()
-        this.conferenceService.getBySearchQuery(`formUrl=${slug}`)
+        this.conferenceService.getByFormSlug(slug || '')
     }
 
     /**
