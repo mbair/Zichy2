@@ -10,3 +10,21 @@
 :host ::ng-deep .binder-sidebar .p-sidebar-content {
     padding-bottom: 0 !important;
 }
+
+.binder-dialog-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.binder-loading-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.68);
+}
