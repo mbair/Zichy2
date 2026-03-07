@@ -89,7 +89,7 @@ export class ConferenceComponent implements OnInit {
         { field: 'dateOfDeparture', label: 'Távozás dátuma' },
         { field: 'lastMeal', label: 'Utolsó étkezés' },
         { field: 'babyBed', label: 'Babaágyat kérsz?' },
-        { field: 'roomType', label: 'Szállástípus' },
+        { field: 'roomType', label: 'Szobatípus' },
         { field: 'climate', label: 'Klímát kérsz?' },
         { field: 'roomMate', label: 'Kivel laknál egy szobában' },
         { field: 'payment', label: 'Fizetési mód' },
@@ -604,7 +604,7 @@ export class ConferenceComponent implements OnInit {
     /**
      * Navigates to the conference form page, with the formUrl slugified from the
      * conference name.
-     * 
+     *
      * @param conference the conference object
      */
     navigateToConferenceForm(conference: any) {

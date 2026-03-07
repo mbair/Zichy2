@@ -29,9 +29,9 @@
     "Távozás dátuma": "Date of Departure",
     "A távozás dátumának későbbinek kell lennie, mint az érkezési dátum": "The date of departure should be earlier than the date of arrival",
     "Utolsó étkezés": "Last Meal",
-    "Szállástípus": "Accommodation Type",
+    "Szobatípus": "Accommodation Type",
     "Normáltól eltérő menü rendelésének felára 10 év felettieknek 1300 Ft/fő/éj, 3-10 év közöttiek esetén 800 Ft/fő/éj": "Extra charge for ordering a menu other than the Normal one 1300 HUF/person/night for children over 10 years, 800 HUF/person/night for children between 3-10 years",
-    "Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szállástípusra osztunk be": "We will try to take your choice into account, as there are a limited number of room types and air-conditioned rooms available, we cannot guarantee that we will allocate you to the type of accommodation you have indicated",
+    "Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szobatípusra osztunk be": "We will try to take your choice into account, as there are a limited number of room types and air-conditioned rooms available, we cannot guarantee that we will allocate you to the type of accommodation you have indicated",
     "Klímával felszerelt szoba felára 1000 Ft/fő/éj": "Room with air conditioning 1000 HUF/person/night",
     "Kivel laknál egy szobában": "Roommate Preference",
     "Kérjük a regisztrációkor megadott nevet tüntesse itt fel": "Please enter the name entered during registration here",
@@ -65,7 +65,7 @@
     "Kérjük, válassza ki az étrendjét": "Please select your diet",
     "Kérjük, adja meg a távozás dátumát": "Please provide the date of departure",
     "Kérjük, válassza ki az utolsó étkezését": "Please select your last meal",
-    "Kérjük válassza ki a szállástípust": "Please select the accommodation type",
+    "Kérjük válassza ki a szobatípust": "Please select the accommodation type",
     "Kérjük válassza ki a fizetési módot": "Please select the payment method",
     "HIBA": "ERROR",
     "Hiba történt": "Something went wrong",
@@ -108,7 +108,7 @@
     },
     "PAYMENTS": {
         "BANK-TRANSFER": "Bank transfer",
-        "SZEP-CARD": "SZEP card",    
+        "SZEP-CARD": "SZEP card",
         "CASH": "Cash"
     },
     "SPAREBEDS": {

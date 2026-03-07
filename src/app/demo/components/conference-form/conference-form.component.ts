@@ -694,7 +694,7 @@ export class ConferenceFormComponent implements OnInit {
                 diet: this.translate.instant('Étrend'),
                 dateOfDeparture: this.translate.instant('Távozás dátuma'),
                 lastMeal: this.translate.instant('Utolsó étkezés'),
-                roomType: this.translate.instant('Szállástípus'),
+                roomType: this.translate.instant('Szobatípus'),
                 roomMate: this.translate.instant('Szobatárs'),
                 payment: this.translate.instant('Fizetési mód'),
                 babyBed: this.translate.instant('Babaágy'),
