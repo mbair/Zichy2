@@ -29,9 +29,9 @@
     "Távozás dátuma": "Távozás dátuma",
     "A távozás dátumának későbbinek kell lennie, mint az érkezési dátum": "A távozás dátumának későbbinek kell lennie, mint az érkezési dátum",
     "Utolsó étkezés": "Utolsó étkezés",
-    "Szállástípus": "Szállástípus",
+    "Szobatípus": "Szobatípus",
     "Normáltól eltérő menü rendelésének felára 10 év felettieknek 1300 Ft/fő/éj, 3-10 év közöttiek esetén 800 Ft/fő/éj": "Normáltól eltérő menü rendelésének felára 10 év felettieknek 1300 Ft/fő/éj, 3-10 év közöttiek esetén 800 Ft/fő/éj",
-    "Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szállástípusra osztunk be": "Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szállástípusra osztunk be",
+    "Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szobatípusra osztunk be": "Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szobatípusra osztunk be",
     "Klímával felszerelt szoba felára 1000 Ft/fő/éj": "Klímával felszerelt szoba felára 1000 Ft/fő/éj",
     "Kivel laknál egy szobában": "Kivel laknál egy szobában",
     "Kérjük a regisztrációkor megadott nevet tüntesse itt fel": "Kérjük a regisztrációkor megadott nevet tüntesse itt fel",
@@ -65,7 +65,7 @@
     "Kérjük, válassza ki az étrendjét": "Kérjük, válassza ki az étrendjét",
     "Kérjük, adja meg a távozás dátumát": "Kérjük, adja meg a távozás dátumát",
     "Kérjük, válassza ki az utolsó étkezését": "Kérjük, válassza ki az utolsó étkezését",
-    "Kérjük válassza ki a szállástípust": "Kérjük válassza ki a szállástípust",
+    "Kérjük válassza ki a szobatípust": "Kérjük válassza ki a szobatípust",
     "Kérjük válassza ki a fizetési módot": "Kérjük válassza ki a fizetési módot",
     "HIBA": "HIBA",
     "Hiba történt": "Hiba történt",
@@ -108,7 +108,7 @@
     },
     "PAYMENTS": {
         "BANK-TRANSFER": "Banki átutalás",
-        "SZEP-CARD": "SZÉP kártya",    
+        "SZEP-CARD": "SZÉP kártya",
         "CASH": "Készpénz"
     },
     "SPAREBEDS": {

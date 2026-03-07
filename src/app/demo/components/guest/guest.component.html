@@ -688,13 +688,13 @@
 
                     <!-- roomType -->
                     <div class="mb-4 col-span-1 lg:col-span-2">
-                        <label for="roomType" class="font-medium text-900">Szállástípus</label>
+                        <label for="roomType" class="font-medium text-900">Szobatípus</label>
                         <app-roomtype-selector
                             [parentForm]="guestForm"
                             controlName="roomType">
                         </app-roomtype-selector>
                         <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
-                            Kérjük válassza ki a szállástípust!
+                            Kérjük válassza ki a szobatípust!
                         </div>
                     </div>
 
@@ -1051,7 +1051,7 @@
 
                 <!-- roomType -->
                 <div class="mb-4 w-full lg:w-2/3">
-                    <label for="roomType" class="font-medium text-900">Szállástípus</label>
+                    <label for="roomType" class="font-medium text-900">Szobatípus</label>
                     <app-roomtype-selector
                         formControlName="roomType"
                         (change)="onFilter($event, 'roomType')"

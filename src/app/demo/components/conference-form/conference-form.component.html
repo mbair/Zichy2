@@ -427,10 +427,10 @@
                                             </small>
                                         </div>
 
-                                        <!-- Szállástípus -->
+                                        <!-- Szobatípus -->
                                         <div class="mb-4 w-full lg:w-2/3">
                                             <label for="roomType" class="font-medium text-900">
-                                                {{'Szállástípus' | translate }}
+                                                {{'Szobatípus' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('roomType') === 'bubble'"
                                                     [pTooltip]="getFormFieldInfo('roomType')"                                                    
                                                     [escape]="false"
@@ -445,10 +445,10 @@
                                                 [allowedRoomTypeIds]="allowedConferenceRoomTypeIds">
                                             </app-roomtype-selector>
                                             <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
-                                                {{'Kérjük válassza ki a szállástípust' | translate }}!
+                                                {{'Kérjük válassza ki a szobatípust' | translate }}!
                                             </div>
                                             <small id="roomType-help">
-                                                {{'Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szállástípusra osztunk be' | translate }}.
+                                                {{'Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szobatípusra osztunk be' | translate }}.
                                             </small>
                                             <small *ngIf="getFormFieldInfoPosition('roomType') === 'text' && getFormFieldInfo('roomType')" id="roomType-info">
                                                 {{ getFormFieldInfo('roomType') }}
