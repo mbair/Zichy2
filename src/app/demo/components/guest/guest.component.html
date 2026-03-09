@@ -1176,14 +1176,36 @@
                         </span>
                     </div>
 
-                    <div class="col-5 text-600 font-medium py-2">
+                    <div class="col-5 text-600 font-medium py-2 border-bottom-1 border-200">
+                        <i class="pi pi-user mr-2"></i>
+                        Kiadta
+                    </div>
+                    <div class="col-7 text-900 py-2 border-bottom-1 border-200">
+                        <span class="color-badge gray">
+                            <i class="pi pi-user mr-1"></i>
+                            {{ guest?.roomKeyIssuedByUserName || '-' }}
+                        </span>
+                    </div>
+
+                    <div class="col-5 text-600 font-medium py-2 border-bottom-1 border-200">
                         <i class="pi pi-sign-out mr-2"></i>
                         Visszaadva
                     </div>
-                    <div class="col-7 text-900 py-2">
+                    <div class="col-7 text-900 py-2 border-bottom-1 border-200">
                         <span class="calendar-badge">
                             <i class="pi pi-calendar mr-1"></i>
                             {{ guest?.roomKeyReturnedAt ? (guest?.roomKeyReturnedAt | date:'yyyy.MM.dd HH:mm:ss') : '-' }}
+                        </span>
+                    </div>
+
+                    <div class="col-5 text-600 font-medium py-2">
+                        <i class="pi pi-user mr-2"></i>
+                        Visszavette
+                    </div>
+                    <div class="col-7 text-900 py-2">
+                        <span class="color-badge gray">
+                            <i class="pi pi-user mr-1"></i>
+                            {{ guest?.roomKeyReturnedByUserName || '-' }}
                         </span>
                     </div>
                 </div>
