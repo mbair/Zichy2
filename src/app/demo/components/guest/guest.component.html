@@ -216,7 +216,7 @@
                                     pButton
                                     type="button"
                                     class="p-button-rounded p-button-text ml-1"
-                                    *ngIf="guest.roomKeyIssued || guest.roomKeyIssuedAt || guest.roomKeyReturnedAt"
+                                    *ngIf="canManageRoomKey && (guest.roomKeyIssued || guest.roomKeyIssuedAt || guest.roomKeyReturnedAt)"
                                     [icon]="getRoomKeyIconClass(guest)"
                                     pTooltip="Szobakulcs státusz"
                                     tooltipPosition="top"
@@ -233,7 +233,7 @@
                                     pButton
                                     type="button"
                                     class="p-button-rounded p-button-text ml-1"
-                                    *ngIf="guest.roomKeyIssued || guest.roomKeyIssuedAt || guest.roomKeyReturnedAt"
+                                    *ngIf="canManageRoomKey && (guest.roomKeyIssued || guest.roomKeyIssuedAt || guest.roomKeyReturnedAt)"
                                     [icon]="getRoomKeyIconClass(guest)"
                                     pTooltip="Szobakulcs státusz"
                                     tooltipPosition="top"
@@ -285,7 +285,7 @@
                         <td>
                             <div class="flex">
                                 <button pButton pRipple icon="pi pi-tags" class="p-button-rounded p-button-success mr-2" (click)="assignTag(guest)" [disabled]="!canAssign" pTooltip="NFC címke vendéghez rendelés" tooltipPosition="top"></button>
-                                <button pButton pRipple icon="pi pi-key" class="p-button-rounded p-button-success mr-2" (click)="openRoomKeyDialog(guest)" pTooltip="Szobakulcs státusz és kezelés" tooltipPosition="top"></button>
+                                <button pButton pRipple icon="pi pi-key" class="p-button-rounded p-button-success mr-2" (click)="openRoomKeyDialog(guest)" [disabled]="!canManageRoomKey" pTooltip="Szobakulcs státusz és kezelés" tooltipPosition="top"></button>
                                 <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(guest)" [disabled]="!canEdit" pTooltip="Vendég szerkesztés" tooltipPosition="top"></button>
                                 <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = guest; deleteDialog = true" [disabled]="!canDelete" pTooltip="Vendég törlés" tooltipPosition="top"></button>
                             </div>
