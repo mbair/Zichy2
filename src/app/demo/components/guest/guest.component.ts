@@ -1513,8 +1513,6 @@ export class GuestComponent implements OnInit {
                 const {
                     id,
                     answers,
-                    roomKeyIssuedByUserId,
-                    roomKeyReturnedByUserId,
                     roomKeyIssuedByUserName,
                     roomKeyReturnedByUserName,
                     ...rest
@@ -1523,10 +1521,21 @@ export class GuestComponent implements OnInit {
                 const baseRow: { [key: string]: any } = { ...rest }
                 const issuedByUser = baseRow['roomKeyIssuedByUser']
                 const returnedByUser = baseRow['roomKeyReturnedByUser']
+                const paymentText = baseRow['paymentMethodName'] || baseRow['payment'] || null
+                const exportedRoomNum = baseRow['displayRoomNum'] ?? baseRow['roomNum'] ?? null
 
                 delete baseRow['roomKeyIssued']
+                delete baseRow['roomKeyIssuedAt']
+                delete baseRow['roomKeyReturnedAt']
+                delete baseRow['roomKeyIssuedByUserId']
+                delete baseRow['roomKeyReturnedByUserId']
                 delete baseRow['roomKeyIssuedByUser']
                 delete baseRow['roomKeyReturnedByUser']
+                delete baseRow['reservations']
+                delete baseRow['actualReservation']
+                delete baseRow['paymentMethodName']
+                delete baseRow['displayRoomNum']
+                baseRow['roomNum'] = exportedRoomNum
 
                 const issuedByName = roomKeyIssuedByUserName ?? issuedByUser?.fullname ?? issuedByUser?.username ?? ''
                 const returnedByName = roomKeyReturnedByUserName ?? returnedByUser?.fullname ?? returnedByUser?.username ?? ''
@@ -1557,11 +1566,12 @@ export class GuestComponent implements OnInit {
 
                 return {
                     ...baseRow,
-                    roomKeyIssuedByUserId: roomKeyIssuedByUserId ?? null,
-                    roomKeyIssuedByUserName: issuedByName,
-                    roomKeyReturnedByUserId: roomKeyReturnedByUserId ?? null,
-                    roomKeyReturnedByUserName: returnedByName,
+                    payment: paymentText,
                     roomKeyStatus: this.getRoomKeyStatusLabel(row),
+                    roomKeyIssuedAt: row?.roomKeyIssuedAt ?? null,
+                    roomKeyIssuedByUserName: issuedByName,
+                    roomKeyReturnedAt: row?.roomKeyReturnedAt ?? null,
+                    roomKeyReturnedByUserName: returnedByName,
                     ...qnaColumns
                 } as { [key: string]: any }
             }
@@ -1599,6 +1609,7 @@ export class GuestComponent implements OnInit {
 
             // Delete unnecessary columns
             data.forEach((row: any) => {
+                delete row.id
                 delete row.is_test
                 delete row.userid
                 delete row.rfid_id
@@ -1606,6 +1617,14 @@ export class GuestComponent implements OnInit {
                 delete row.room_id
                 delete row.conferenceid
                 delete row.dietDetails
+                delete row.reservations
+                delete row.actualReservation
+                delete row.paymentMethodName
+                delete row.accommodationExtra
+                delete row.enabled
+                delete row.idcardtype
+                delete row.idcard
+                delete row.climate
             })
 
             // Creating an Excel worksheet and file
