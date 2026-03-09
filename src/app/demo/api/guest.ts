@@ -55,6 +55,8 @@ export interface Guest {
     roomKeyReturnedAt?: string | null;
     roomKeyIssuedByUserId?: number | null;
     roomKeyReturnedByUserId?: number | null;
+    roomKeyIssuedByUserName?: string | null;
+    roomKeyReturnedByUserName?: string | null;
 }
 
 export type GuestFilter = {
