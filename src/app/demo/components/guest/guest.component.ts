@@ -70,6 +70,7 @@ export class GuestComponent implements OnInit {
     canEditByRole: boolean = false               // Edit permission by Role
     canDelete: boolean = false                   // User has permission to delete guest
     canAssign: boolean = false                   // User has permission to assign Tag to guest
+    canManageRoomKey: boolean = false            // User has permission to manage room keys
     canImport: boolean = false                   // User has permission to import Excel
     isMobile: boolean = false                    // Mobile screen detection
     messages: ToastMessageOptions[] = []                     // A message used for notifications and displaying errors
@@ -293,6 +294,9 @@ export class GuestComponent implements OnInit {
         })
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canAssign => {
             setTimeout(() => this.canAssign = canAssign)
+        })
+        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo']).subscribe(canManageRoomKey => {
+            setTimeout(() => this.canManageRoomKey = canManageRoomKey)
         })
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canImport => {
             setTimeout(() => this.canImport = canImport)
@@ -991,6 +995,7 @@ export class GuestComponent implements OnInit {
 
 
     openRoomKeyDialog(guest: Guest) {
+        if (!this.canManageRoomKey) return
         this.guest = { ...guest }
         this.roomKeyDialog = true
     }
@@ -1017,11 +1022,11 @@ export class GuestComponent implements OnInit {
     }
 
     canIssueRoomKey(guest: Partial<Guest> | null | undefined): boolean {
-        return !!guest && !this.isRoomKeyCurrentlyIssued(guest)
+        return this.canManageRoomKey && !!guest && !this.isRoomKeyCurrentlyIssued(guest)
     }
 
     canReturnRoomKey(guest: Partial<Guest> | null | undefined): boolean {
-        return !!guest && this.isRoomKeyCurrentlyIssued(guest)
+        return this.canManageRoomKey && !!guest && this.isRoomKeyCurrentlyIssued(guest)
     }
 
     getRoomKeyActionHint(guest: Partial<Guest> | null | undefined): string {
@@ -1066,8 +1071,12 @@ export class GuestComponent implements OnInit {
                 this.messageService.add({ severity: 'success', summary: 'Szobakulcs kiadva' })
                 this.doQuery()
             },
-            error: () => {
-                this.messageService.add({ severity: 'error', summary: 'Hiba', detail: 'A szobakulcs kiadása nem sikerült.' })
+            error: (error: any) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Hiba',
+                    detail: error?.error?.message || 'A szobakulcs kiadása nem sikerült.'
+                })
             }
         })
     }
@@ -1100,8 +1109,12 @@ export class GuestComponent implements OnInit {
                         this.messageService.add({ severity: 'success', summary: 'Szobakulcs visszavéve' })
                         this.doQuery()
                     },
-                    error: () => {
-                        this.messageService.add({ severity: 'error', summary: 'Hiba', detail: 'A szobakulcs visszavétele nem sikerült.' })
+                    error: (error: any) => {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Hiba',
+                            detail: error?.error?.message || 'A szobakulcs visszavétele nem sikerült.'
+                        })
                     }
                 })
             }
