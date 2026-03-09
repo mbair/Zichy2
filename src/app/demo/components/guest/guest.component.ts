@@ -1484,9 +1484,27 @@ export class GuestComponent implements OnInit {
      */
     exportExcel() {
         loadXlsx().then(xlsx => {
-            let data = this.selected.map(row => {
-                // Remove id column and keep the rest columns
-                const { id, answers, ...rest } = row
+            const mapGuestRowForExport = (row: any): { [key: string]: any } => {
+                const {
+                    id,
+                    answers,
+                    roomKeyIssuedByUserId,
+                    roomKeyReturnedByUserId,
+                    roomKeyIssuedByUserName,
+                    roomKeyReturnedByUserName,
+                    ...rest
+                } = row || {}
+
+                const baseRow: { [key: string]: any } = { ...rest }
+                const issuedByUser = baseRow['roomKeyIssuedByUser']
+                const returnedByUser = baseRow['roomKeyReturnedByUser']
+
+                delete baseRow['roomKeyIssued']
+                delete baseRow['roomKeyIssuedByUser']
+                delete baseRow['roomKeyReturnedByUser']
+
+                const issuedByName = roomKeyIssuedByUserName ?? issuedByUser?.fullname ?? issuedByUser?.username ?? ''
+                const returnedByName = roomKeyReturnedByUserName ?? returnedByUser?.fullname ?? returnedByUser?.username ?? ''
                 const qnaColumns: { [key: string]: any } = {}
                 let qaIndex = 1
 
@@ -1513,45 +1531,22 @@ export class GuestComponent implements OnInit {
                 }
 
                 return {
-                    ...rest,
+                    ...baseRow,
+                    roomKeyIssuedByUserId: roomKeyIssuedByUserId ?? null,
+                    roomKeyIssuedByUserName: issuedByName,
+                    roomKeyReturnedByUserId: roomKeyReturnedByUserId ?? null,
+                    roomKeyReturnedByUserName: returnedByName,
                     roomKeyStatus: this.getRoomKeyStatusLabel(row),
                     ...qnaColumns
                 } as { [key: string]: any }
-            })
+            }
+
+            let data = this.selected.map(mapGuestRowForExport)
 
             // If the selected array is empty, we work from the filtered or full dataset as a fallback
             if (data.length === 0) {
                 console.warn("No rows selected for export. Exporting filtered or full data.")
-                data = (this.table.filteredValue || this.tableData).map(row => {
-                    const { id, answers, ...rest } = row
-                    const qnaColumns: { [key: string]: any } = {}
-                    let qaIndex = 1
-                    if (Array.isArray(answers)) {
-                        answers.forEach(answer => {
-                            if (Array.isArray(answer.translations)) {
-                                answer.translations.forEach((translation: any) => {
-                                    const rawQuestion = translation.hu || ''
-                                    // Delete the parenthetical comment and the section that follows it
-                                    let questionText = rawQuestion.split('(')[0].trim();
-
-                                    // Add question mark at the end of the question
-                                    if (!questionText.endsWith('?')) {
-                                        questionText += '?'
-                                    }
-                                    const answerText = translation.answers
-                                    qnaColumns[`question_${qaIndex}`] = questionText
-                                    qnaColumns[`answer_${qaIndex}`] = answerText
-                                    qaIndex++
-                                })
-                            }
-                        })
-                    }
-                    return {
-                        ...rest,
-                        roomKeyStatus: this.getRoomKeyStatusLabel(row),
-                        ...qnaColumns
-                    } as { [key: string]: any }
-                })
+                data = (this.table.filteredValue || this.tableData).map(mapGuestRowForExport)
             }
 
             // Find the maximum number of question/answer pairs in all rows
