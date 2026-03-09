@@ -1173,6 +1173,7 @@
                         </div>
                     </div>
 
+<<<<<<< HEAD
                     <div class="flex items-center py-2">
                         <div class="w-5/12 text-600 font-medium">
                             <i class="pi pi-sign-in mr-2"></i>
@@ -1188,6 +1189,19 @@
 
                     <div class="flex items-center py-2">
                         <div class="w-5/12 text-600 font-medium">
+                            <i class="pi pi-user mr-2"></i>
+                            Kiadta
+                        </div>
+                        <div class="w-7/12 text-900">
+                            <span class="color-badge gray">
+                                <i class="pi pi-user mr-1"></i>
+                                {{ guest?.roomKeyIssuedByUserName || '-' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center py-2">
+                        <div class="w-5/12 text-600 font-medium">
                             <i class="pi pi-sign-out mr-2"></i>
                             Visszaadva
                         </div>
@@ -1195,6 +1209,19 @@
                             <span class="calendar-badge">
                                 <i class="pi pi-calendar mr-1"></i>
                                 {{ guest?.roomKeyReturnedAt ? (guest?.roomKeyReturnedAt | date:'yyyy.MM.dd HH:mm:ss') : '-' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center py-2">
+                        <div class="w-5/12 text-600 font-medium">
+                            <i class="pi pi-user mr-2"></i>
+                            Visszavette
+                        </div>
+                        <div class="w-7/12 text-900">
+                            <span class="color-badge gray">
+                                <i class="pi pi-user mr-1"></i>
+                                {{ guest?.roomKeyReturnedByUserName || '-' }}
                             </span>
                         </div>
                     </div>

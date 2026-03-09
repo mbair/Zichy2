@@ -1043,11 +1043,15 @@ export class GuestComponent implements OnInit {
         if (!this.guest?.id) return
 
         this.guestService.issueRoomKey(this.guest.id).subscribe({
-            next: () => {
+            next: (updatedGuest: Partial<Guest>) => {
                 this.updateRoomKeyStateLocally({
-                    roomKeyIssued: true,
-                    roomKeyIssuedAt: this.guest?.roomKeyIssuedAt || new Date().toISOString(),
-                    roomKeyReturnedAt: null
+                    roomKeyIssued: updatedGuest?.roomKeyIssued ?? true,
+                    roomKeyIssuedAt: updatedGuest?.roomKeyIssuedAt || this.guest?.roomKeyIssuedAt || new Date().toISOString(),
+                    roomKeyReturnedAt: updatedGuest?.roomKeyReturnedAt ?? null,
+                    roomKeyIssuedByUserId: updatedGuest?.roomKeyIssuedByUserId ?? null,
+                    roomKeyIssuedByUserName: updatedGuest?.roomKeyIssuedByUserName ?? null,
+                    roomKeyReturnedByUserId: updatedGuest?.roomKeyReturnedByUserId ?? null,
+                    roomKeyReturnedByUserName: updatedGuest?.roomKeyReturnedByUserName ?? null
                 })
                 this.messageService.add({ severity: 'success', summary: 'Szobakulcs kiadva' })
                 this.doQuery()
@@ -1067,10 +1071,15 @@ export class GuestComponent implements OnInit {
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
                 this.guestService.returnRoomKey(this.guest!.id!).subscribe({
-                    next: () => {
+                    next: (updatedGuest: Partial<Guest>) => {
                         this.updateRoomKeyStateLocally({
-                            roomKeyIssued: false,
-                            roomKeyReturnedAt: new Date().toISOString()
+                            roomKeyIssued: updatedGuest?.roomKeyIssued ?? false,
+                            roomKeyIssuedAt: updatedGuest?.roomKeyIssuedAt || this.guest?.roomKeyIssuedAt || null,
+                            roomKeyReturnedAt: updatedGuest?.roomKeyReturnedAt || new Date().toISOString(),
+                            roomKeyIssuedByUserId: updatedGuest?.roomKeyIssuedByUserId ?? this.guest?.roomKeyIssuedByUserId ?? null,
+                            roomKeyIssuedByUserName: updatedGuest?.roomKeyIssuedByUserName ?? this.guest?.roomKeyIssuedByUserName ?? null,
+                            roomKeyReturnedByUserId: updatedGuest?.roomKeyReturnedByUserId ?? null,
+                            roomKeyReturnedByUserName: updatedGuest?.roomKeyReturnedByUserName ?? null
                         })
                         this.messageService.add({ severity: 'success', summary: 'Szobakulcs visszavéve' })
                         this.doQuery()
