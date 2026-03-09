@@ -1024,6 +1024,16 @@ export class GuestComponent implements OnInit {
         return !!guest && this.isRoomKeyCurrentlyIssued(guest)
     }
 
+    getRoomKeyActionHint(guest: Partial<Guest> | null | undefined): string {
+        if (!guest) return 'Nincs kiválasztott vendég.'
+
+        if (this.canReturnRoomKey(guest)) {
+            return 'A kulcs jelenleg ki van adva, visszavehető.'
+        }
+
+        return 'A kulcs jelenleg nincs kiadva, kiadható.'
+    }
+
     private updateRoomKeyStateLocally(nextFields: Partial<Guest>): void {
         if (!this.guest?.id) return
 
@@ -1069,6 +1079,12 @@ export class GuestComponent implements OnInit {
             message: 'Biztosan visszaveszi a szobakulcsot?',
             header: 'Megerősítés',
             icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Igen',
+            rejectLabel: 'Nem',
+            acceptIcon: 'pi pi-check mr-2',
+            rejectIcon: 'pi pi-times mr-2',
+            acceptButtonStyleClass: 'p-button',
+            rejectButtonStyleClass: 'p-button-outlined',
             accept: () => {
                 this.guestService.returnRoomKey(this.guest!.id!).subscribe({
                     next: (updatedGuest: Partial<Guest>) => {
