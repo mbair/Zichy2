@@ -1141,7 +1141,13 @@
     </div>
 
     <!-- Room key dialog -->
-    <p-dialog [(visible)]="roomKeyDialog" [style]="{width: '420px'}" header="Szobakulcs státusz" [modal]="true">
+    <p-dialog [(visible)]="roomKeyDialog" [style]="{width: '420px'}" [modal]="true">
+        <ng-template pTemplate="header">
+            <div class="flex align-items-center gap-2">
+                <i class="pi pi-key text-primary text-xl"></i>
+                <span class="font-semibold text-xl">Szobakulcs státusz</span>
+            </div>
+        </ng-template>
         <ng-template pTemplate="content">
             <div class="surface-50 border-1 border-200 border-round p-3">
                 <div class="grid m-0 row-gap-2">
@@ -1150,10 +1156,7 @@
                         Vendég
                     </div>
                     <div class="col-7 text-900 py-2 border-bottom-1 border-200">
-                        <span class="color-badge gray">
-                            <i class="pi pi-user mr-1"></i>
-                            {{guest?.lastName}} {{guest?.firstName}}
-                        </span>
+                        <span class="font-medium text-800">{{guest?.lastName}} {{guest?.firstName}}</span>
                     </div>
                     <div class="col-5 text-600 font-medium py-2 border-bottom-1 border-200">
                         <i class="pi pi-key mr-2"></i>
@@ -1172,7 +1175,7 @@
                     <div class="col-7 text-900 py-2 border-bottom-1 border-200">
                         <span class="calendar-badge">
                             <i class="pi pi-calendar mr-1"></i>
-                            {{ guest?.roomKeyIssuedAt ? (guest?.roomKeyIssuedAt | date:'yyyy.MM.dd HH:mm:ss') : '-' }}
+                            {{ guest?.roomKeyIssuedAt ? (guest?.roomKeyIssuedAt | date:'yyyy.MM.dd HH:mm') : '-' }}
                         </span>
                     </div>
 
@@ -1181,10 +1184,7 @@
                         Kiadta
                     </div>
                     <div class="col-7 text-900 py-2 border-bottom-1 border-200">
-                        <span class="color-badge gray">
-                            <i class="pi pi-user mr-1"></i>
-                            {{ guest?.roomKeyIssuedByUserName || '-' }}
-                        </span>
+                        <span class="text-700">{{ guest?.roomKeyIssuedByUserName || '-' }}</span>
                     </div>
 
                     <div class="col-5 text-600 font-medium py-2 border-bottom-1 border-200">
@@ -1194,7 +1194,7 @@
                     <div class="col-7 text-900 py-2 border-bottom-1 border-200">
                         <span class="calendar-badge">
                             <i class="pi pi-calendar mr-1"></i>
-                            {{ guest?.roomKeyReturnedAt ? (guest?.roomKeyReturnedAt | date:'yyyy.MM.dd HH:mm:ss') : '-' }}
+                            {{ guest?.roomKeyReturnedAt ? (guest?.roomKeyReturnedAt | date:'yyyy.MM.dd HH:mm') : '-' }}
                         </span>
                     </div>
 
@@ -1203,18 +1203,37 @@
                         Visszavette
                     </div>
                     <div class="col-7 text-900 py-2">
-                        <span class="color-badge gray">
-                            <i class="pi pi-user mr-1"></i>
-                            {{ guest?.roomKeyReturnedByUserName || '-' }}
-                        </span>
+                        <span class="text-700">{{ guest?.roomKeyReturnedByUserName || '-' }}</span>
                     </div>
                 </div>
             </div>
         </ng-template>
         <ng-template pTemplate="footer">
-            <div class="flex justify-content-between align-items-center w-full m-0 p-0">
-                <button pButton pRipple label="Kulcs kiadása" icon="pi pi-key" class="p-button-warning ml-0" (click)="issueRoomKey()" [disabled]="!canIssueRoomKey(guest)"></button>
-                <button pButton pRipple label="Kulcs visszavétele" icon="pi pi-sign-out" class="p-button-success mr-0" (click)="returnRoomKey()" [disabled]="!canReturnRoomKey(guest)"></button>
+            <div class="w-full m-0 p-0">
+                <div class="text-600 text-sm mb-3 flex align-items-center">
+                    <i class="pi pi-info-circle mr-2"></i>
+                    {{ getRoomKeyActionHint(guest) }}
+                </div>
+                <div class="flex justify-content-between align-items-center w-full m-0 p-0 gap-2">
+                    <button
+                        *ngIf="canIssueRoomKey(guest)"
+                        pButton
+                        pRipple
+                        label="Kulcs kiadása"
+                        icon="pi pi-key"
+                        class="w-full"
+                        (click)="issueRoomKey()">
+                    </button>
+                    <button
+                        *ngIf="canReturnRoomKey(guest)"
+                        pButton
+                        pRipple
+                        label="Kulcs visszavétele"
+                        icon="pi pi-sign-out"
+                        class="w-full"
+                        (click)="returnRoomKey()">
+                    </button>
+                </div>
             </div>
         </ng-template>
     </p-dialog>
