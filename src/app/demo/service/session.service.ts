@@ -106,6 +106,20 @@ export class SessionService {
         return true;
     }
 
+    hasActiveSessionSnapshot(): boolean {
+        const token = this.getToken();
+        if (!token) {
+            return false;
+        }
+
+        const expiresAt = this.getStoredExpiry();
+        if (expiresAt === null) {
+            return false;
+        }
+
+        return Date.now() < expiresAt;
+    }
+
     logout(reason: SessionEndReason = 'manual'): void {
         this.endSession(reason);
     }

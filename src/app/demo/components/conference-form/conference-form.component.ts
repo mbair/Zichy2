@@ -13,6 +13,7 @@ import { ConferenceService } from '../../service/conference.service';
 import { AnswerService } from '../../service/answer.service';
 import { GuestService } from '../../service/guest.service';
 import { UserService } from '../../service/user.service';
+import { SessionService } from '../../service/session.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference, FormFieldInfo } from '../../api/conference';
 import { Answer } from '../../api/answer';
@@ -70,6 +71,7 @@ export class ConferenceFormComponent implements OnInit {
         private conferenceService: ConferenceService,
         private answerService: AnswerService,
         private guestService: GuestService,
+        private sessionService: SessionService,
         private formBuilder: FormBuilder,
         private translate: TranslateService,
         private cdRef: ChangeDetectorRef) {
@@ -125,11 +127,13 @@ export class ConferenceFormComponent implements OnInit {
     ngOnInit() {
         // Permissions
         this.subs.add(
-            this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canFillFormAfterDeadline => this.canFillFormAfterDeadline = canFillFormAfterDeadline)
+            this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canFillFormAfterDeadline => {
+                this.canFillFormAfterDeadline = canFillFormAfterDeadline && this.sessionService.hasActiveSessionSnapshot()
+            })
         )
         this.subs.add(
             this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => {
-                this.isOrganizer = isOrganizer
+                this.isOrganizer = isOrganizer && this.sessionService.hasActiveSessionSnapshot()
                 this.recomputeOrganizerDeadlinePermission()
             })
         )
