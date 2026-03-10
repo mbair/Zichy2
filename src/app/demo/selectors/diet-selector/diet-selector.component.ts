@@ -1,7 +1,8 @@
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit, OnDestroy } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
-import { SelectChangeEvent } from 'primeng/select';
-import { TranslateService } from '@ngx-translate/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { SelectChangeEvent, SelectModule } from 'primeng/select';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DietService } from '../../service/diet.service';
 import { Subscription } from 'rxjs';
 
@@ -13,14 +14,15 @@ export interface changeEvent {
 @Component({
     selector: 'app-diet-selector',
     templateUrl: './diet-selector.component.html',
+    standalone: true,
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, SelectModule],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
             useExisting: forwardRef(() => DietSelectorComponent),
             multi: true
         }
-    ],
-    standalone: false
+    ]
 })
 export class DietSelectorComponent implements OnInit, OnDestroy, ControlValueAccessor {
     @Input() parentForm: FormGroup

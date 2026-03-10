@@ -1,15 +1,18 @@
+import { CommonModule } from '@angular/common';
 import { Component, forwardRef, Input } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 
 @Component({
     selector: 'app-yes-no-selector',
     templateUrl: './yes-no-selector.component.html',
+    standalone: true,
+    imports: [CommonModule, FormsModule, ToggleSwitchModule],
     providers: [{
             provide: NG_VALUE_ACCESSOR,
             useExisting: forwardRef(() => YesNoSelectorComponent),
             multi: true
-        }],
-    standalone: false
+        }]
 })
 export class YesNoSelectorComponent implements ControlValueAccessor {
     @Input() yesText: string = 'Igen'

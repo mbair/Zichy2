@@ -1,7 +1,8 @@
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
-import { SelectChangeEvent } from 'primeng/select';
+import { ControlValueAccessor, FormControl, FormGroup, FormsModule, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { SelectChangeEvent, SelectModule } from 'primeng/select';
 
 export interface changeEvent {
     value: string;
@@ -11,14 +12,15 @@ export interface changeEvent {
 @Component({
     selector: 'app-enabled-selector',
     templateUrl: './enabled-selector.component.html',
+    standalone: true,
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, SelectModule],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
             useExisting: forwardRef(() => EnabledSelectorComponent),
             multi: true
         }
-    ],
-    standalone: false
+    ]
 })
 export class EnabledSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

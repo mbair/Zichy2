@@ -1,6 +1,8 @@
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit, OnDestroy } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
-import { SelectChangeEvent } from 'primeng/select';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
+import { SelectChangeEvent, SelectModule } from 'primeng/select';
 import { UserService } from '../../service/user.service';
 import { RoleService } from '../../service/role.service';
 import { Role } from '../../api/role';
@@ -9,14 +11,15 @@ import { Subscription } from 'rxjs';
 @Component({
     selector: 'app-user-selector',
     templateUrl: './user-selector.component.html',
+    standalone: true,
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, SelectModule],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
             useExisting: forwardRef(() => UserSelectorComponent),
             multi: true
         }
-    ],
-    standalone: false
+    ]
 })
 export class UserSelectorComponent implements OnInit, OnDestroy, ControlValueAccessor {
     @Input() parentForm: FormGroup

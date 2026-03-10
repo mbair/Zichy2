@@ -27,7 +27,12 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { ChipModule } from 'primeng/chip';
 import { TextareaModule } from 'primeng/textarea';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { SelectorsModule } from '../../selectors/selectors.module';
+import { BedtypeSelectorComponent } from '../../selectors/bedtype-selector/bedtype-selector.component';
+import { BuildingSelectorComponent } from '../../selectors/building-selector/building-selector.component';
+import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
+import { GuestSelectorComponent } from '../../selectors/guest-selector/guest-selector.component';
+import { ReservationStatusSelectorComponent } from '../../selectors/reservation-status-selector/reservation-status-selector.component';
+import { RoomSelectorComponent } from '../../selectors/room-selector/room-selector.component';
 import { ReservationService } from '../../service/reservation.service';
 
 @NgModule({
@@ -48,14 +53,19 @@ import { ReservationService } from '../../service/reservation.service';
         ProgressSpinnerModule,
         BlockUIModule,
         DrawerModule,
-        SelectorsModule,
         ToggleSwitchModule,
+        BedtypeSelectorComponent,
+        BuildingSelectorComponent,
+        ConferenceSelectorComponent,
+        GuestSelectorComponent,
         TooltipModule,
         ProgressBarModule,
         AvatarModule,
         AvatarGroupModule,
         SliderModule,
         RadioButtonModule,
+        ReservationStatusSelectorComponent,
+        RoomSelectorComponent,
         TranslateModule,
         DatePickerModule,
         ChipModule,

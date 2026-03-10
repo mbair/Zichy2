@@ -1,8 +1,9 @@
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ColorService } from '../../service/color.service';
-import { SelectChangeEvent } from 'primeng/select';
+import { SelectChangeEvent, SelectModule } from 'primeng/select';
 
 export interface changeEvent {
     value: string;
@@ -12,14 +13,15 @@ export interface changeEvent {
 @Component({
     selector: 'app-color-selector',
     templateUrl: './color-selector.component.html',
+    standalone: true,
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, SelectModule],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
             useExisting: forwardRef(() => ColorSelectorComponent),
             multi: true
         }
-    ],
-    standalone: false
+    ]
 })
 export class ColorSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

@@ -1,8 +1,13 @@
+import { CommonModule } from '@angular/common';
 import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { MultiSelect } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { TooltipModule } from 'primeng/tooltip';
 import { Room, RoomFilter } from '../../api/room';
 import { RoomService } from '../../service/room.service';
 
@@ -11,13 +16,14 @@ export type ChangeSource = 'user' | 'auto-select-first' | 'preselect-id' | 'prog
 @Component({
     selector: 'app-room-selector',
     templateUrl: './room-selector.component.html',
+    standalone: true,
+    imports: [CommonModule, FormsModule, TranslateModule, MultiSelectModule, TooltipModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [{
             provide: NG_VALUE_ACCESSOR,
             useExisting: forwardRef(() => RoomSelectorComponent),
             multi: true
-        }],
-    standalone: false
+        }]
 })
 export class RoomSelectorComponent implements OnInit, OnChanges, OnDestroy, ControlValueAccessor {
 

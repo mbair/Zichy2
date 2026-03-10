@@ -1,8 +1,9 @@
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, OnInit, Input, Output, ChangeDetectorRef, forwardRef  } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
-import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { LangChangeEvent, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CountryService } from '../../service/country.service';
-import { SelectChangeEvent } from 'primeng/select';
+import { SelectChangeEvent, SelectModule } from 'primeng/select';
 
 export interface changeEvent {
     value: string;
@@ -12,14 +13,15 @@ export interface changeEvent {
 @Component({
     selector: 'app-nationality-selector',
     templateUrl: './nationality-selector.component.html',
+    standalone: true,
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, SelectModule],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
             useExisting: forwardRef(() => NationalitySelectorComponent),
             multi: true
         }
-    ],
-    standalone: false
+    ]
 })
 export class NationalitySelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

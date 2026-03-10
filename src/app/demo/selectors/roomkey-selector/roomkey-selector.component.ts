@@ -1,6 +1,7 @@
+import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, EventEmitter, Input, Output, forwardRef } from '@angular/core';
-import { ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { SelectChangeEvent } from 'primeng/select';
+import { ControlValueAccessor, FormControl, FormGroup, FormsModule, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
+import { SelectChangeEvent, SelectModule } from 'primeng/select';
 
 export interface RoomKeySelectorChangeEvent {
     value: string;
@@ -17,14 +18,15 @@ interface RoomKeyOption {
 @Component({
     selector: 'app-roomkey-selector',
     templateUrl: './roomkey-selector.component.html',
+    standalone: true,
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, SelectModule],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
             useExisting: forwardRef(() => RoomKeySelectorComponent),
             multi: true
         }
-    ],
-    standalone: false
+    ]
 })
 export class RoomKeySelectorComponent implements ControlValueAccessor {
     @Input() parentForm: FormGroup

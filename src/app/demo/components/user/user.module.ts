@@ -22,7 +22,8 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { PasswordModule } from 'primeng/password';
 import { DrawerModule } from 'primeng/drawer';
-import { SelectorsModule } from '../../selectors/selectors.module';
+import { DrawerModule } from 'primeng/drawer';
+import { RoleSelectorComponent } from '../../selectors/role-selector/role-selector.component';
 import { UserService } from '../../service/user.service';
 
 @NgModule({
@@ -50,7 +51,7 @@ import { UserService } from '../../service/user.service';
         BlockUIModule,
         PasswordModule,
         DrawerModule,
-        SelectorsModule,
+        RoleSelectorComponent,
     ],
     declarations: [UserComponent],
     providers: [UserService]

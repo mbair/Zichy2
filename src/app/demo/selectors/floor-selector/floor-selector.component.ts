@@ -1,7 +1,8 @@
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
-import { SelectChangeEvent } from 'primeng/select';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { SelectChangeEvent, SelectModule } from 'primeng/select';
 
 export interface changeEvent {
     value: string;
@@ -11,14 +12,15 @@ export interface changeEvent {
 @Component({
     selector: 'app-floor-selector',
     templateUrl: './floor-selector.component.html',
+    standalone: true,
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, SelectModule],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
             useExisting: forwardRef(() => FloorSelectorComponent),
             multi: true
         }
-    ],
-    standalone: false
+    ]
 })
 export class FloorSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup

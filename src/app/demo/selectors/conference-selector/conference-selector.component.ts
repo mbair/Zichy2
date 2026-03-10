@@ -1,8 +1,12 @@
+import { CommonModule } from '@angular/common';
 import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { MultiSelect } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { Conference } from '../../api/conference';
 import { ConferenceService } from '../../service/conference.service';
 import { UserService } from '../../service/user.service';
@@ -19,13 +23,14 @@ const NONE_OPTION: ExtendedConference = {
 @Component({
     selector: 'app-conference-selector',
     templateUrl: './conference-selector.component.html',
+    standalone: true,
+    imports: [CommonModule, FormsModule, TranslateModule, MultiSelectModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [{
             provide: NG_VALUE_ACCESSOR,
             useExisting: forwardRef(() => ConferenceSelectorComponent),
             multi: true
-        }],
-    standalone: false
+        }]
 })
 export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy, ControlValueAccessor {
 

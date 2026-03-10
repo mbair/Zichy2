@@ -1,11 +1,15 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
+import { SelectModule } from 'primeng/select';
 import { Language } from '../../api/language';
 
 @Component({
     selector: 'app-language-selector',
     templateUrl: './language-selector.component.html',
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, FormsModule, SelectModule]
 })
 export class LanguageSelectorComponent {
     
