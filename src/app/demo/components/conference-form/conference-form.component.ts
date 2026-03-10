@@ -54,6 +54,7 @@ export class ConferenceFormComponent implements OnInit {
     canFillFormAfterDeadline: boolean = false    // User has permission to fill form after deadline
     isOrganizer: boolean = false                 // User has organizer role
     canOrganizerFillUntilGuestEditDeadline: boolean = false // Organizer can fill until guest edit deadline
+    currentUserRole: string = 'No Role'
     formFieldInfosMap: { [key: string]: FormFieldInfo } = {}
     allowedPaymentMethodIds: number[] | null | undefined = undefined
     allowedConferenceRoomTypeIds: number[] | null | undefined = undefined
@@ -125,6 +126,12 @@ export class ConferenceFormComponent implements OnInit {
     }
 
     ngOnInit() {
+        this.subs.add(
+            this.userService.getUserRole().subscribe(role => {
+                this.currentUserRole = role || 'No Role'
+            })
+        )
+
         // Permissions
         this.subs.add(
             this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canFillFormAfterDeadline => {
@@ -453,6 +460,88 @@ export class ConferenceFormComponent implements OnInit {
         return this.canFillFormAfterDeadline || this.canOrganizerFillUntilGuestEditDeadline
     }
     get acceptanceCriteriaUrl() { return this.conferenceForm.get('acceptanceCriteriaUrl') }
+    get hasRegistrationDeadline(): boolean { return !!this.conference?.registrationEndDate }
+    get hasGuestEditDeadline(): boolean { return !!this.conference?.guestEditEndDate }
+    get isPrivilegedViewer(): boolean { return this.isOrganizer || this.canFillFormAfterDeadline }
+    get conferencePanelLabel(): string {
+        return this.currentLang === 'en'
+            ? 'Conference - Guest Registration Form'
+            : 'Konferencia - Vendég Regisztrációs Űrlap'
+    }
+    get displayConferenceName(): string {
+        const name = this.conference?.name?.trim() ?? ''
+        return name.replace(/^\d{8}-\d{8}\s*/u, '')
+    }
+    get conferenceDateRangeText(): string {
+        if (this.conference?.beginDate && this.conference?.endDate) {
+            const start = this.formatDeadline(this.conference.beginDate)
+            const end = this.formatDeadline(this.conference.endDate)
+            return start === end ? start : `${start} - ${end}`
+        }
+
+        if (this.conference?.beginDate) return this.formatDeadline(this.conference.beginDate)
+        if (this.conference?.endDate) return this.formatDeadline(this.conference.endDate)
+
+        return this.localize('Dátum hamarosan', 'Date coming soon')
+    }
+    get publicDeadlineText(): string { return this.formatDeadline(this.conference?.registrationEndDate) }
+    get organizerDeadlineText(): string { return this.formatDeadline(this.conference?.guestEditEndDate) }
+    get effectiveDeadlineTitle(): string { return this.localize('Regisztrációs határidő', 'Registration deadline') }
+    get effectiveDeadlineText(): string {
+        if (this.canFillFormAfterDeadline) {
+            return ''
+        }
+
+        if (this.isOrganizer && this.conference?.guestEditEndDate) {
+            return this.organizerDeadlineText
+        }
+
+        return this.publicDeadlineText
+    }
+    get effectiveDeadlineDescription(): string {
+        if (this.canFillFormAfterDeadline) {
+            return this.currentLang === 'en'
+                ? `${this.currentUserRole} access can still fill the form after the registration deadline.`
+                : `${this.currentUserRole} jogosultsággal a regisztrációs zárás után is kitölthető az űrlap.`
+        }
+
+        if (this.isOrganizer && this.conference?.guestEditEndDate) {
+            return this.localize('Szervezőként eddig a napig kitölthető és módosítható az űrlap.', 'As an organizer the form can be filled and edited until this date.')
+        }
+
+        return this.localize('Vendégek számára eddig a napig kitölthető az űrlap.', 'The form can be filled by guests until this date.')
+    }
+    get showEffectiveDeadlineStatus(): boolean {
+        return !this.canFillFormAfterDeadline && (!!this.hasRegistrationDeadline || !!this.hasGuestEditDeadline)
+    }
+    get effectiveDeadlineStatusText(): string {
+        if (this.isOrganizer && this.conference?.guestEditEndDate) {
+            return this.organizerDeadlineStatusText
+        }
+
+        return this.publicDeadlineStatusText
+    }
+    get effectiveDeadlineStatusClosed(): boolean {
+        if (this.isOrganizer && this.conference?.guestEditEndDate) {
+            return !this.canOrganizerFillUntilGuestEditDeadline
+        }
+
+        return this.registrationEnded
+    }
+    get publicDeadlineStatusText(): string {
+        return this.registrationEnded
+            ? this.localize('Lezárult', 'Closed')
+            : this.localize('Nyitott', 'Open')
+    }
+    get organizerDeadlineStatusText(): string {
+        return this.isOrganizerDeadlineOpen
+            ? this.localize('Nyitott', 'Open')
+            : this.localize('Lezárult', 'Closed')
+    }
+    get isOrganizerDeadlineOpen(): boolean {
+        const rawEnd = this.conference?.guestEditEndDate
+        return !!rawEnd && isSameOrBeforeDay(new Date(), rawEnd)
+    }
 
     get needsRoom(): boolean {
         const roomType = this.conferenceForm.get('roomType')?.value as string | null
@@ -618,6 +707,27 @@ export class ConferenceFormComponent implements OnInit {
         }
 
         this.canOrganizerFillUntilGuestEditDeadline = isSameOrBeforeDay(new Date(), rawEnd)
+    }
+
+    private formatDeadline(value?: string | null): string {
+        if (!value) {
+            return this.localize('Nincs megadva', 'Not set')
+        }
+
+        const parsed = parseDateOnly(value)
+        if (!parsed) {
+            return value
+        }
+
+        return new Intl.DateTimeFormat(this.currentLang === 'en' ? 'en-GB' : 'hu-HU', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(parsed)
+    }
+
+    private localize(hu: string, en: string): string {
+        return this.currentLang === 'en' ? en : hu
     }
 
     /**
