@@ -1,8 +1,10 @@
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, OnInit, Input, Output, ChangeDetectorRef, forwardRef  } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
-import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { LangChangeEvent, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CountryService } from '../../service/country.service';
 import { DropdownChangeEvent } from 'primeng/dropdown';
+import { DropdownModule } from 'primeng/dropdown';
 
 export interface changeEvent {
     value: string;
@@ -12,6 +14,8 @@ export interface changeEvent {
 @Component({
     selector: 'app-country-selector',
     templateUrl: './country-selector.component.html',
+    standalone: true,
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, DropdownModule],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,

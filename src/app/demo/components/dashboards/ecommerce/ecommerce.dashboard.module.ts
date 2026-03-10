@@ -14,7 +14,7 @@ import { RatingModule } from 'primeng/rating';
 import { RippleModule } from 'primeng/ripple';
 import { CardModule } from 'primeng/card';
 import { SkeletonModule } from 'primeng/skeleton';
-import { SelectorsModule } from '../../../selectors/selectors.module';
+import { ConferenceSelectorComponent } from '../../../selectors/conference-selector/conference-selector.component';
 import { StyleClassModule } from "primeng/styleclass";
 
 @NgModule({
@@ -33,7 +33,7 @@ import { StyleClassModule } from "primeng/styleclass";
     KnobModule,
     CardModule,
     SkeletonModule,
-    SelectorsModule,
+    ConferenceSelectorComponent,
     StyleClassModule
 ],
 	declarations: [EcommerceDashboardComponent]

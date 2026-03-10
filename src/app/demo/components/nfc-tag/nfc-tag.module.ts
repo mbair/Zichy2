@@ -25,7 +25,8 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { CalendarModule } from 'primeng/calendar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { SidebarModule } from 'primeng/sidebar';
-import { SelectorsModule } from '../../selectors/selectors.module';
+import { ColorSelectorComponent } from '../../selectors/color-selector/color-selector.component';
+import { YesNoSelectorComponent } from '../../selectors/yes-no-selector/yes-no-selector.component';
 
 @NgModule({
     imports: [
@@ -55,7 +56,8 @@ import { SelectorsModule } from '../../selectors/selectors.module';
         CalendarModule,
         SkeletonModule,
         SidebarModule,
-        SelectorsModule,
+        ColorSelectorComponent,
+        YesNoSelectorComponent,
     ],
     declarations: [NFCTagComponent],
 })

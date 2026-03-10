@@ -24,8 +24,14 @@ import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
 import { TranslateModule } from '@ngx-translate/core';
 import { HttpClientModule } from '@angular/common/http';
-import { SelectorsModule } from '../../selectors/selectors.module';
-import { WidgetModule } from '../../widget/widget.module';
+import { CountrySelectorComponent } from '../../selectors/country-selector/country-selector.component';
+import { DietSelectorComponent } from '../../selectors/diet-selector/diet-selector.component';
+import { LanguageSelectorComponent } from '../../selectors/language-selector/language.component';
+import { MealSelectorComponent } from '../../selectors/meal-selector/meal-selector.component';
+import { NationalitySelectorComponent } from '../../selectors/nationality-selector/nationality-selector.component';
+import { PaymentSelectorComponent } from '../../selectors/payment-selector/payment-selector.component';
+import { RoomTypeSelectorComponent } from '../../selectors/roomtype-selector/roomtype-selector.component';
+import { ReactiveFileUploadModule } from '../../widget/reactive-file-upload/reactive-file-upload.module';
 
 @NgModule({
     imports: [
@@ -52,8 +58,14 @@ import { WidgetModule } from '../../widget/widget.module';
         DialogModule,
         HttpClientModule,
         TranslateModule,
-        SelectorsModule,
-        WidgetModule,
+        CountrySelectorComponent,
+        DietSelectorComponent,
+        LanguageSelectorComponent,
+        MealSelectorComponent,
+        NationalitySelectorComponent,
+        PaymentSelectorComponent,
+        RoomTypeSelectorComponent,
+        ReactiveFileUploadModule,
     ],
     declarations: [
         ConferenceFormComponent,

@@ -1,7 +1,8 @@
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit, OnDestroy } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
-import { DropdownChangeEvent } from 'primeng/dropdown';
-import { TranslateService } from '@ngx-translate/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DietService } from '../../service/diet.service';
 import { Subscription } from 'rxjs';
 
@@ -13,6 +14,8 @@ export interface changeEvent {
 @Component({
     selector: 'app-diet-selector',
     templateUrl: './diet-selector.component.html',
+    standalone: true,
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, DropdownModule],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,

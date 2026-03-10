@@ -27,7 +27,10 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { CalendarModule } from 'primeng/calendar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { SelectButtonModule } from 'primeng/selectbutton';
-import { SelectorsModule } from '../../selectors/selectors.module';
+import { MealSelectorComponent } from '../../selectors/meal-selector/meal-selector.component';
+import { PaymentSelectorComponent } from '../../selectors/payment-selector/payment-selector.component';
+import { UserSelectorComponent } from '../../selectors/user-selector/user-selector.component';
+import { YesNoSelectorComponent } from '../../selectors/yes-no-selector/yes-no-selector.component';
 import { WidgetModule } from '../../widget/widget.module';
 
 @NgModule({
@@ -59,7 +62,10 @@ import { WidgetModule } from '../../widget/widget.module';
         CalendarModule,
         SkeletonModule,
         SelectButtonModule,
-        SelectorsModule,
+        MealSelectorComponent,
+        PaymentSelectorComponent,
+        UserSelectorComponent,
+        YesNoSelectorComponent,
         WidgetModule,
 	],
 	declarations: [ConferenceComponent]

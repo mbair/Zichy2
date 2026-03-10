@@ -22,7 +22,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { PasswordModule } from 'primeng/password';
 import { SidebarModule } from 'primeng/sidebar';
-import { SelectorsModule } from '../../selectors/selectors.module';
+import { RoleSelectorComponent } from '../../selectors/role-selector/role-selector.component';
 import { UserService } from '../../service/user.service';
 
 @NgModule({
@@ -50,7 +50,7 @@ import { UserService } from '../../service/user.service';
         BlockUIModule,
         PasswordModule,
         SidebarModule,
-        SelectorsModule,
+        RoleSelectorComponent,
     ],
     declarations: [UserComponent],
     providers: [UserService]

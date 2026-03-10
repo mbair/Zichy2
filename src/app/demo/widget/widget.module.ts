@@ -1,9 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { FileUploadModule } from 'primeng/fileupload';
 import { DialogModule } from 'primeng/dialog';
 import { SidebarModule } from 'primeng/sidebar';
 import { TableModule } from 'primeng/table';
@@ -17,24 +15,27 @@ import { BlockUIModule } from 'primeng/blockui';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
 import { ToggleButtonModule } from 'primeng/togglebutton';
-import { ReactiveFileUploadComponent } from './reactive-file-upload/reactive-file-upload.component';
+import { BedtypeSelectorComponent } from '../selectors/bedtype-selector/bedtype-selector.component';
+import { BuildingSelectorComponent } from '../selectors/building-selector/building-selector.component';
+import { ConferenceSelectorComponent } from '../selectors/conference-selector/conference-selector.component';
+import { SparebedSelectorComponent } from '../selectors/sparebed-selector/sparebed-selector.component';
 import { RoomConferenceBinderComponent } from './room-conference-binder/room-conference-binder.component';
-import { SelectorsModule } from "../selectors/selectors.module";
+import { ReactiveFileUploadModule } from './reactive-file-upload/reactive-file-upload.module';
 
 @NgModule({
     declarations: [
-        ReactiveFileUploadComponent,
         RoomConferenceBinderComponent,
     ],
     imports: [
         CommonModule,
         FormsModule,
-        ReactiveFormsModule,
         TranslateModule,
-        FileUploadModule,
+        BedtypeSelectorComponent,
+        BuildingSelectorComponent,
+        ConferenceSelectorComponent,
         DialogModule,
         SidebarModule,
-        SelectorsModule,
+        SparebedSelectorComponent,
         TableModule,
         DropdownModule,
         MultiSelectModule,
@@ -46,10 +47,11 @@ import { SelectorsModule } from "../selectors/selectors.module";
         ProgressSpinnerModule,
         ToastModule,
         ToggleButtonModule,
+        ReactiveFileUploadModule,
     ],
     exports: [
-        ReactiveFileUploadComponent,
         RoomConferenceBinderComponent,
+        ReactiveFileUploadModule,
     ],
 })
 export class WidgetModule {}

@@ -15,7 +15,8 @@ import { MessagesModule } from 'primeng/messages';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { SidebarModule } from 'primeng/sidebar';
-import { SelectorsModule } from '../../selectors/selectors.module';
+import { ColorSelectorComponent } from '../../selectors/color-selector/color-selector.component';
+import { YesNoSelectorComponent } from '../../selectors/yes-no-selector/yes-no-selector.component';
 import { DietService } from '../../service/diet.service';
 
 @NgModule({
@@ -36,7 +37,8 @@ import { DietService } from '../../service/diet.service';
         ProgressSpinnerModule,
         BlockUIModule,
         SidebarModule,
-        SelectorsModule,
+        ColorSelectorComponent,
+        YesNoSelectorComponent,
     ],
     declarations: [DietComponent],
     providers: [DietService]

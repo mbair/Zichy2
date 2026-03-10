@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { LogsRoutingModule } from './logs-routing.module';
 import { LogsComponent } from './logs.component';
-import { SelectorsModule } from '../../selectors/selectors.module';
+import { UserSelectorComponent } from '../../selectors/user-selector/user-selector.component';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
@@ -28,7 +28,7 @@ import { LogService } from '../../service/log.service';
     imports: [
         CommonModule,
         LogsRoutingModule,
-        SelectorsModule,
+        UserSelectorComponent,
         TableModule,
         FormsModule,
         ReactiveFormsModule,

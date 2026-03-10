@@ -1,8 +1,14 @@
+import { CommonModule } from '@angular/common';
 import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { MultiSelect } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { TooltipModule } from 'primeng/tooltip';
+import { ChipModule } from 'primeng/chip';
 import { Guest, GuestFilter } from '../../api/guest';
 import { GuestService } from '../../service/guest.service';
 import * as moment from 'moment';
@@ -21,6 +27,8 @@ type GuestGroup = {
     selector: 'app-guest-selector',
     templateUrl: './guest-selector.component.html',
     styleUrls: ['./guest-selector.component.scss'],
+    standalone: true,
+    imports: [CommonModule, FormsModule, TranslateModule, MultiSelectModule, TooltipModule, ChipModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [{
         provide: NG_VALUE_ACCESSOR,
