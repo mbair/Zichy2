@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { RoleService } from '../demo/service/role.service';
 import { LayoutService } from './service/app.layout.service';
 import { LogService } from '../demo/service/log.service';
+import { AuthService } from '../demo/service/auth.service';
 
 @Component({
     selector: 'app-profilemenu',
@@ -17,7 +18,8 @@ export class AppProfileSidebarComponent {
     constructor(public router: Router,
                 public layoutService: LayoutService,
                 public roleService: RoleService,
-                private logService: LogService) {
+                private logService: LogService,
+                private authService: AuthService) {
 
         this.fullname = localStorage.getItem('fullname') || ''
         this.userrole = localStorage.getItem('userrole') || ''
@@ -39,13 +41,6 @@ export class AppProfileSidebarComponent {
             original_data: `${localStorage.getItem('email')} logged out`,
         })
 
-        localStorage.removeItem('email')
-        localStorage.removeItem('fullname')
-        localStorage.removeItem('phone')
-        localStorage.removeItem('token')
-        localStorage.removeItem('user_rolesid')
-        localStorage.removeItem('userid')
-        localStorage.removeItem('userrole')
-        this.router.navigate(['/auth/login'])
+        this.authService.logout()
     }
 }

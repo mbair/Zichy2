@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { PrimeNG } from 'primeng/config';
 import { TranslateService } from '@ngx-translate/core';
+import { SessionService } from './demo/service/session.service';
 
 declare const require: (path: string) => any;
 
@@ -18,7 +19,8 @@ declare const require: (path: string) => any;
 export class AppComponent implements OnInit, OnDestroy {
 
     constructor(private primengConfig: PrimeNG,
-        private translateService: TranslateService) {
+        private translateService: TranslateService,
+        private sessionService: SessionService) {
 
         // this language will be used as a fallback when a translation isn't found in the current language
         translateService.setDefaultLang('hu');
@@ -36,6 +38,7 @@ export class AppComponent implements OnInit, OnDestroy {
         }
 
         this.primengConfig.ripple.set(true);
+        this.sessionService.initializeMonitoring();
 
         this.translateService.setDefaultLang('hu');
 
