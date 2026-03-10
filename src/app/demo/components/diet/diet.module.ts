@@ -8,10 +8,7 @@ import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
 import { DialogModule } from 'primeng/dialog';
-import { TagModule } from 'primeng/tag';
-import { MessagesModule } from 'primeng/messages';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { SidebarModule } from 'primeng/sidebar';
@@ -30,10 +27,7 @@ import { DietService } from '../../service/diet.service';
         RippleModule,
         ToastModule,
         InputTextModule,
-        DropdownModule,
         DialogModule,
-        TagModule,
-        MessagesModule,
         ProgressSpinnerModule,
         BlockUIModule,
         SidebarModule,

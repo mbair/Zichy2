@@ -6,17 +6,8 @@ import { LogsComponent } from './logs.component';
 import { UserSelectorComponent } from '../../selectors/user-selector/user-selector.component';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
-import { RippleModule } from 'primeng/ripple';
-import { ToastModule } from 'primeng/toast';
-import { ToolbarModule } from 'primeng/toolbar';
 import { InputTextModule } from 'primeng/inputtext';
-import { InputTextareaModule } from 'primeng/inputtextarea';
 import { DropdownModule } from 'primeng/dropdown';
-import { RadioButtonModule } from 'primeng/radiobutton';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { DialogModule } from 'primeng/dialog';
-import { TagModule } from 'primeng/tag';
-import { MessagesModule } from 'primeng/messages';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { CalendarModule } from 'primeng/calendar';
@@ -33,17 +24,8 @@ import { LogService } from '../../service/log.service';
         FormsModule,
         ReactiveFormsModule,
         ButtonModule,
-        RippleModule,
-        ToastModule,
-        ToolbarModule,
         InputTextModule,
-        InputTextareaModule,
         DropdownModule,
-        RadioButtonModule,
-        InputNumberModule,
-        DialogModule,
-        TagModule,
-        MessagesModule,
         ProgressSpinnerModule,
         BlockUIModule,
         CalendarModule,

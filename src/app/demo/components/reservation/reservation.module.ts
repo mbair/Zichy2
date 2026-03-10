@@ -9,22 +9,14 @@ import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
 import { DialogModule } from 'primeng/dialog';
-import { TagModule } from 'primeng/tag';
-import { MessagesModule } from 'primeng/messages';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { SidebarModule } from 'primeng/sidebar';
-import { InputSwitchModule } from 'primeng/inputswitch';
 import { TooltipModule } from 'primeng/tooltip';
-import { ProgressBarModule } from 'primeng/progressbar';
 import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
-import { SliderModule } from 'primeng/slider';
-import { RadioButtonModule } from 'primeng/radiobutton';
 import { CalendarModule } from 'primeng/calendar';
-import { ChipModule } from 'primeng/chip';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { BedtypeSelectorComponent } from '../../selectors/bedtype-selector/bedtype-selector.component';
@@ -46,10 +38,7 @@ import { ReservationService } from '../../service/reservation.service';
         RippleModule,
         ToastModule,
         InputTextModule,
-        DropdownModule,
         DialogModule,
-        TagModule,
-        MessagesModule,
         ProgressSpinnerModule,
         BlockUIModule,
         SidebarModule,
@@ -57,18 +46,13 @@ import { ReservationService } from '../../service/reservation.service';
         BuildingSelectorComponent,
         ConferenceSelectorComponent,
         GuestSelectorComponent,
-        InputSwitchModule,
         TooltipModule,
-        ProgressBarModule,
         AvatarModule,
         AvatarGroupModule,
-        SliderModule,
-        RadioButtonModule,
         ReservationStatusSelectorComponent,
         RoomSelectorComponent,
         TranslateModule,
         CalendarModule,
-        ChipModule,
         InputTextareaModule,
         ConfirmDialogModule
     ],

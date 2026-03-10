@@ -10,10 +10,9 @@ import { ConferenceService } from 'src/app/demo/service/conference.service';
 import { GuestService } from 'src/app/demo/service/guest.service';
 import { UserService } from 'src/app/demo/service/user.service';
 import { Table } from 'primeng/table';
-import * as moment from 'moment';
 import { Conference } from 'src/app/demo/api/conference';
 import { Guest } from 'src/app/demo/api/guest';
-moment.locale('hu')
+import { formatDateDots } from 'src/app/demo/utils/date.utils';
 
 @Component({
     templateUrl: './ecommerce.dashboard.component.html',
@@ -289,7 +288,7 @@ export class EcommerceDashboardComponent implements OnInit {
     get registrationEndDate(): string {
         let endDate = ''
         if (this.selectedConference?.registrationEndDate) {
-            endDate = moment(this.selectedConference.registrationEndDate).format('YYYY.MM.DD')
+            endDate = formatDateDots(this.selectedConference.registrationEndDate)
         }
         return endDate
     }
@@ -297,7 +296,7 @@ export class EcommerceDashboardComponent implements OnInit {
     get guestEditEndDate(): string {
         let endDate = ''
         if (this.selectedConference?.guestEditEndDate) {
-            endDate = moment(this.selectedConference.guestEditEndDate).format('YYYY.MM.DD')
+            endDate = formatDateDots(this.selectedConference.guestEditEndDate)
         }
         return endDate
     }

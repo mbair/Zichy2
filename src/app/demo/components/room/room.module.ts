@@ -9,14 +9,10 @@ import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
 import { DialogModule } from 'primeng/dialog';
-import { TagModule } from 'primeng/tag';
-import { MessagesModule } from 'primeng/messages';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { SidebarModule } from 'primeng/sidebar';
-import { InputSwitchModule } from 'primeng/inputswitch';
 import { TooltipModule } from 'primeng/tooltip';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { AvatarModule } from 'primeng/avatar';
@@ -44,10 +40,7 @@ import { RoomService } from '../../service/room.service';
         RippleModule,
         ToastModule,
         InputTextModule,
-        DropdownModule,
         DialogModule,
-        TagModule,
-        MessagesModule,
         ProgressSpinnerModule,
         BlockUIModule,
         SidebarModule,
@@ -56,7 +49,6 @@ import { RoomService } from '../../service/room.service';
         BuildingSelectorComponent,
         ConferenceSelectorComponent,
         FloorSelectorComponent,
-        InputSwitchModule,
         TooltipModule,
         ProgressBarModule,
         AvatarModule,

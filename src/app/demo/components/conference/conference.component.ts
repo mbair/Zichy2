@@ -19,8 +19,7 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { Conference, FormFieldInfo } from '../../api/conference';
 import { User } from '../../api/user';
 import { Table } from 'primeng/table';
-import * as moment from 'moment';
-moment.locale('hu')
+import { formatDateDots } from '../../utils/date.utils';
 
 type Option = { label: string; value: string }
 
@@ -303,8 +302,7 @@ export class ConferenceComponent implements OnInit {
         }
         // Calendar date as String
         else if (event instanceof Date) {
-            const date = moment(event)
-            filterValue = date.format('YYYY.MM.DD')
+            filterValue = formatDateDots(event)
         } else {
             if (event && (event.value || event.target?.value)) {
                 filterValue = event.value || event.target?.value

@@ -11,9 +11,7 @@ import { ConferenceService } from '../../service/conference.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Room } from '../../api/room';
-import * as FileSaver from 'file-saver';
-import * as moment from 'moment';
-moment.locale('hu')
+import { formatDateCompact, formatDateDots } from '../../utils/date.utils';
 
 @Component({
     selector: 'room-component',
@@ -196,9 +194,7 @@ export class RoomComponent implements OnInit {
 
         // Calendar date as String
         if (event instanceof Date) {
-            const date = moment(event)
-            const formattedDate = date.format('YYYY.MM.DD')
-            filterValue = formattedDate
+            filterValue = formatDateDots(event)
         } else {
             if (event && (event.value || event.target?.value)) {
                 filterValue = event.value || event.target?.value
@@ -435,7 +431,9 @@ export class RoomComponent implements OnInit {
         const data: Blob = new Blob([buffer], {
             type: EXCEL_TYPE
         })
-        FileSaver.saveAs(data, fileName + '_export_' + moment().format('YYYYMMDD') + EXCEL_EXTENSION)
+        import('file-saver').then(FileSaver => {
+            FileSaver.saveAs(data, fileName + '_export_' + formatDateCompact(new Date()) + EXCEL_EXTENSION)
+        })
     }
 
     // Don't delete this, its needed from a performance point of view,

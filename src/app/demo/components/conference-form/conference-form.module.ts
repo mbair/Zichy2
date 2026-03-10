@@ -14,14 +14,10 @@ import { InputMaskModule } from 'primeng/inputmask';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ChipsModule } from 'primeng/chips';
 import { CalendarModule } from 'primeng/calendar';
-import { DropdownModule } from 'primeng/dropdown';
-import { CardModule } from 'primeng/card';
-import { FileUploadModule } from 'primeng/fileupload';
+import { MessagesModule } from 'primeng/messages';
 import { RadioButtonModule } from 'primeng/radiobutton';
-import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { DialogModule } from 'primeng/dialog';
 import { TranslateModule } from '@ngx-translate/core';
 import { HttpClientModule } from '@angular/common/http';
 import { CountrySelectorComponent } from '../../selectors/country-selector/country-selector.component';
@@ -44,18 +40,14 @@ import { ReactiveFileUploadModule } from '../../widget/reactive-file-upload/reac
         CheckboxModule,
         CalendarModule,
         ChipsModule,
-        DropdownModule,
-        CardModule,
-        FileUploadModule,
+        MessagesModule,
         ButtonModule,
         RadioButtonModule,
         RouterModule,
         StyleClassModule,
         AppConfigModule,
-        TagModule,
         ToastModule,
         TooltipModule,
-        DialogModule,
         HttpClientModule,
         TranslateModule,
         CountrySelectorComponent,

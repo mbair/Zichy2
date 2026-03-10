@@ -10,8 +10,7 @@ import { RoleService } from '../../service/role.service';
 import { ResponsiveService } from '../../service/responsive.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { User } from '../../api/user';
-import * as moment from 'moment';
-moment.locale('hu')
+import { formatDateDots } from '../../utils/date.utils';
 
 @Component({
     templateUrl: './user.component.html',
@@ -170,9 +169,7 @@ export class UserComponent implements OnInit {
 
         // Calendar date as String
         if (event instanceof Date) {
-            const date = moment(event)
-            const formattedDate = date.format('YYYY.MM.DD')
-            filterValue = formattedDate
+            filterValue = formatDateDots(event)
         } else {
             if (event && (event.value || event.target?.value)) {
                 filterValue = event.value || event.target?.value
