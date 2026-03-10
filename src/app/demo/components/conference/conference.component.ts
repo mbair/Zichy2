@@ -90,7 +90,6 @@ export class ConferenceComponent implements OnInit {
         { field: 'lastMeal', label: 'Utolsó étkezés' },
         { field: 'babyBed', label: 'Babaágyat kérsz?' },
         { field: 'roomType', label: 'Szobatípus' },
-        { field: 'climate', label: 'Klímát kérsz?' },
         { field: 'roomMate', label: 'Kivel laknál egy szobában' },
         { field: 'payment', label: 'Fizetési mód' },
     ]

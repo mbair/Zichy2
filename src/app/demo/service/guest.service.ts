@@ -315,7 +315,6 @@ export class GuestService {
         const parts: string[] = []
         if (f.conferenceId != null) parts.push(`conferenceid=${encodeURIComponent(String(f.conferenceId))}`)
         if (typeof f.minBeds === 'number') parts.push(`minBeds=${f.minBeds}`)
-        if (typeof f.climate === 'boolean') parts.push(`climate=${f.climate ? 1 : 0}`)
         if (f.onlyNotReserved) parts.push(`onlyNotReserved=true`);
         if (f.includeGuestIds?.length) parts.push(`includeGuestIds=${f.includeGuestIds.join(',')}`);
         if (f.enabled) parts.push(`enabled=1`)

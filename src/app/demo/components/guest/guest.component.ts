@@ -1544,7 +1544,6 @@ export class GuestComponent implements OnInit {
                 delete row.enabled
                 delete row.idcardtype
                 delete row.idcard
-                delete row.climate
             })
 
             // Creating an Excel worksheet and file
@@ -1615,7 +1614,6 @@ export class GuestComponent implements OnInit {
                 'idcardtype',
                 'idcard',
                 'prepaid',
-                'climate',
                 'createdAt',
                 'updatedAt'
             ]

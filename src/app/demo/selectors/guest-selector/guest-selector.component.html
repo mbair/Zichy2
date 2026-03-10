@@ -40,7 +40,6 @@
                         <span class="text-base font-semibold uppercase">
                             {{ option.lastName }} {{ option.firstName }}
                             <span class="font-normal text-sm uppercase">({{ getAge(option.birthDate) }})</span>
-                            <span *ngIf="option.climate" class="pl-1">❄️</span>
                         </span>
                         <span class="font-light text-xs uppercase">
                             {{ option.beds }} SZEMÉLYES ({{ option.bedType }}<span *ngIf="option.bathroom">, {{
