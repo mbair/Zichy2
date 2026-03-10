@@ -18,6 +18,7 @@
                     "builder": "@angular-devkit/build-angular:application",
                     "options": {
                         "allowedCommonJsDependencies": [
+                            "debug",
                             "file-saver",
                             "lodash",
                             "moment",

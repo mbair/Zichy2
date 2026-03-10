@@ -11,8 +11,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ChipModule } from 'primeng/chip';
 import { Guest, GuestFilter } from '../../api/guest';
 import { GuestService } from '../../service/guest.service';
-import moment from 'moment';
-moment.locale('hu')
+import { calculateAgeYears } from '../../utils/date.utils';
 
 export type ChangeSource = 'user' | 'auto-select-first' | 'preselect-id' | 'programmatic';
 
@@ -585,9 +584,7 @@ export class GuestSelectorComponent implements OnInit, OnChanges, OnDestroy, Con
 
     getAge(birthDate: string): string {
         if (!birthDate) return ""
-        const birth = moment(birthDate)
-        const today = moment()
-        return today.diff(birth, 'years').toString()
+        return calculateAgeYears(birthDate).toString()
     }
 
     private roomTypeColorMap = new Map<string, string>(

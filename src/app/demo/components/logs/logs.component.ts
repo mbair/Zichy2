@@ -8,8 +8,7 @@ import { LogService } from 'src/app/demo/service/log.service';
 import { UserService } from '../../service/user.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Log } from '../../api/log';
-import moment from 'moment-timezone'
-moment.locale('hu')
+import { formatDateDots, formatUtcToTimeZone } from '../../utils/date.utils';
 
 type DiffChangeType = 'unchanged' | 'changed' | 'added' | 'removed'
 interface DiffRow {
@@ -209,9 +208,7 @@ export class LogsComponent implements OnInit {
 
         // Calendar date as String
         if (event instanceof Date) {
-            const date = moment(event)
-            const formattedDate = date.format('YYYY.MM.DD')
-            filterValue = formattedDate
+            filterValue = formatDateDots(event)
         } else {
             if (event && (event.value || event.target?.value)) {
                 if (typeof event.value === 'object') {
@@ -395,7 +392,7 @@ export class LogsComponent implements OnInit {
      * @returns 
      */
     formatUTCToHungarian(createdAt: string): string {
-        return moment.utc(createdAt).tz('Europe/Budapest').format('YYYY.MM.DD HH:mm:ss')
+        return formatUtcToTimeZone(createdAt, 'Europe/Budapest')
     }
 
     private isUpdateAction(actionType: string | undefined | null): boolean {

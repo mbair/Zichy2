@@ -20,8 +20,8 @@ import { Conference } from '../../api/conference';
 import { Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
 import { loadXlsx } from '../../utils/xlsx-loader';
-import * as FileSaver from 'file-saver';
 import moment from 'moment';
+import { formatDateCompact } from '../../utils/date.utils';
 moment.locale('hu')
 
 import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
@@ -1682,7 +1682,9 @@ export class GuestComponent implements OnInit {
         const data: Blob = new Blob([buffer], {
             type: EXCEL_TYPE
         })
-        FileSaver.saveAs(data, fileName + '_export_' + moment().format('YYYYMMDD') + EXCEL_EXTENSION);
+        import('file-saver').then(FileSaver => {
+            FileSaver.saveAs(data, fileName + '_export_' + formatDateCompact(new Date()) + EXCEL_EXTENSION);
+        })
     }
 
     downloadImportTemplate() {
@@ -1740,7 +1742,9 @@ export class GuestComponent implements OnInit {
             const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
             const EXCEL_EXTENSION = '.xlsx'
             const data = new Blob([excelBuffer], { type: EXCEL_TYPE })
-            FileSaver.saveAs(data, 'NFCReserve_import_template' + EXCEL_EXTENSION)
+            import('file-saver').then(FileSaver => {
+                FileSaver.saveAs(data, 'NFCReserve_import_template' + EXCEL_EXTENSION)
+            })
         })
     }
 

@@ -21,8 +21,8 @@ import { dateRangeValidator } from '../../utils/date-range-validator';
 import { distinctByIds } from '../../utils/rx-ops';
 import { loadXlsx } from '../../utils/xlsx-loader';
 import { ChangeSource, ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
-import * as FileSaver from 'file-saver';
 import moment from 'moment';
+import { formatDateCompact } from '../../utils/date.utils';
 moment.locale('hu')
 
 type SortDir = 1 | -1
@@ -1321,7 +1321,9 @@ export class ReservationComponent implements OnInit {
         const data: Blob = new Blob([buffer], {
             type: EXCEL_TYPE
         })
-        FileSaver.saveAs(data, fileName + '_export_' + moment().format('YYYYMMDD') + EXCEL_EXTENSION)
+        import('file-saver').then(FileSaver => {
+            FileSaver.saveAs(data, fileName + '_export_' + formatDateCompact(new Date()) + EXCEL_EXTENSION)
+        })
     }
 
     // string "YYYY-MM-DD"  -> Date (timezone-secure)
