@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from 'src/app/demo/service/auth.service';
 import { MessageService } from 'primeng/api';
 import { LogService } from 'src/app/demo/service/log.service';
@@ -21,6 +21,7 @@ export class LoginComponent {
         private messageService: MessageService,
         private layoutService: LayoutService,
         private logService: LogService,
+        private route: ActivatedRoute,
         private router: Router) {
 
         this.loginForm = this.fb.group({
@@ -30,6 +31,7 @@ export class LoginComponent {
 
         // Set default theme
         this.changeTheme('indigo')
+        this.showSessionMessage()
     }
 
     login() {
@@ -78,6 +80,34 @@ export class LoginComponent {
                         })
                     }
                 })
+        }
+    }
+
+    private showSessionMessage() {
+        const reason = this.route.snapshot.queryParamMap.get('reason')
+
+        if (reason === 'session-expired') {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'A munkamenet lejárt',
+                detail: 'Jelentkezzen be újra a folytatáshoz.',
+            })
+        }
+
+        if (reason === 'session-invalid') {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Újra be kell jelentkezni',
+                detail: 'A bejelentkezés már nem érvényes.',
+            })
+        }
+
+        if (reason) {
+            void this.router.navigate([], {
+                relativeTo: this.route,
+                queryParams: {},
+                replaceUrl: true,
+            })
         }
     }
 

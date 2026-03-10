@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpResponse } from '@angul
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { DOCUMENT } from '@angular/common';
+import { SessionService } from './session.service';
 
 @Injectable({
     providedIn: 'root'
@@ -15,7 +16,11 @@ export class ApiService {
     public productionURL = 'https://nfcreserve.hu'
     public developmentURL = 'https://test.nfcreserve.hu'
 
-    constructor(@Inject(DOCUMENT) private document: any, private http: HttpClient) {
+    constructor(
+        @Inject(DOCUMENT) private document: any,
+        private http: HttpClient,
+        private sessionService: SessionService
+    ) {
         // In local ng serve use relative /api so Angular dev-server proxy can avoid CORS.
         this.hostname = this.document.location.hostname;
         if (isDevMode()) {
@@ -95,8 +100,7 @@ export class ApiService {
     }
 
     private refreshToken(response: any) {
-        const token = response.headers.get('Authorization')
-        if (token) localStorage.setItem("token", token)
+        this.sessionService.updateSessionFromResponse(response)
     }
 
     private handleError(error: HttpErrorResponse) {

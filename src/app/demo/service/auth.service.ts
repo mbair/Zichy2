@@ -1,12 +1,10 @@
-import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { Router } from '@angular/router';
 import { tap, shareReplay, catchError } from "rxjs/operators";
 import { ApiService } from "./api.service";
 import { UserService } from "./user.service";
-import * as moment from "moment";
 import { throwError } from "rxjs";
-moment.locale('hu')
+import { SessionService } from "./session.service";
 
 @Injectable()
 export class AuthService {
@@ -16,7 +14,7 @@ export class AuthService {
     constructor(private http: HttpClient, 
                 private apiService: ApiService, 
                 private userService: UserService,
-                private router: Router) {
+                private sessionService: SessionService) {
 
         // Set API URL
         this.apiURL = this.apiService.apiURL
@@ -32,16 +30,7 @@ export class AuthService {
     }
 
     public logout() {
-        localStorage.removeItem("token")
-        localStorage.removeItem("userid")
-        localStorage.removeItem("fullname")
-        localStorage.removeItem("email")
-        localStorage.removeItem("phone")
-        localStorage.removeItem("userrole")
-        localStorage.removeItem("user_rolesid")
-
-        // Update user role
-        this.userService.updateUserRole('No Role')
+        this.sessionService.logout()
     }
 
     public passwordReset(email: string) {
@@ -64,8 +53,7 @@ export class AuthService {
     }
 
     private setSession(authResult: any) {
-        console.log('authResult', authResult)
-        localStorage.setItem("token", authResult.headers.get('Authorization') || '')
+        this.sessionService.updateSessionFromResponse(authResult)
         localStorage.setItem("userid", authResult.body.id)
         localStorage.setItem("fullname", authResult.body.fullname)
         localStorage.setItem("email", authResult.body.email)
