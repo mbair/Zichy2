@@ -15,7 +15,7 @@ export class ErrorInterceptor implements HttpInterceptor {
                 console.log('ErrorInterceptor status', error.status)
 
                 // Unauthorized
-                if (error.status === 401) {
+                if (error.status === 401 && this.shouldHandleUnauthorized(req.url)) {
                     this.sessionService.handleUnauthorized()
                 }
 
@@ -23,5 +23,13 @@ export class ErrorInterceptor implements HttpInterceptor {
                 return throwError(() => error)
             })
         )
+    }
+
+    private shouldHandleUnauthorized(url: string): boolean {
+        if (url.includes('/users/login') || url.includes('/users/forgotpassrequest/')) {
+            return false
+        }
+
+        return this.sessionService.hasActiveSessionSnapshot()
     }
 }
