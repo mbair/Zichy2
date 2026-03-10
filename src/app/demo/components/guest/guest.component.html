@@ -362,10 +362,6 @@
                                                     <td class="font-medium">Babaágyat kér:</td>
                                                     <td>{{guest.babyBed == true ? 'Igen' : 'Nem'}}</td>
                                                 </tr>
-                                                <tr>
-                                                    <td class="font-medium">Klímát kér:</td>
-                                                    <td>{{guest.climate == true ? 'Igen' : 'Nem'}}</td>
-                                                </tr>
                                             </table>
                                         </div>
                                         <div class="w-7/12">
@@ -776,23 +772,6 @@
                     </div>
 
                     <div class="mb-4 col-span-1">
-                        <label for="climate" class="font-medium text-900">Klímát kérsz?</label>
-                        <div class="flex flex-wrap gap-3 my-3">
-                            <div class="flex items-center">
-                                <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes"></p-radioButton>
-                                <label for="climate-yes" class="ml-2">Igen</label>
-                            </div>
-                            <div class="flex items-center">
-                                <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no"></p-radioButton>
-                                <label for="climate-no" class="ml-2">Nem</label>
-                            </div>
-                        </div>
-                        <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
-                            Kérjük válassza ki, hogy kér-e klímát!
-                        </div>
-                    </div>
-
-                    <div class="mb-4 col-span-1">
                         <label for="prepaid" class="font-medium text-900">Előleget fizetett?</label>
                         <div class="flex flex-wrap gap-3 my-3">
                             <div class="flex items-center">
@@ -1059,21 +1038,6 @@
                     </app-roomtype-selector>
                 </div>
 
-                <!-- climate -->
-                <div class="mb-4 w-full lg:w-1/3">
-                    <label for="climate" class="font-medium text-900">Klímát kérsz?</label>
-                    <div class="flex flex-wrap gap-3 my-3">
-                        <div class="flex items-center">
-                            <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes" (onClick)="onFilter($event, 'climate')"></p-radioButton>
-                            <label for="climate-yes" class="ml-2">Igen</label>
-                        </div>
-                        <div class="flex items-center">
-                            <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no" (onClick)="onFilter($event, 'climate')"></p-radioButton>
-                            <label for="climate-no" class="ml-2">Nem</label>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- payment -->
                 <div class="mb-4 w-full lg:w-1/3">
                     <label for="payment" class="font-medium text-900">Fizetési mód</label>
@@ -1104,7 +1068,7 @@
 
                 <!-- prepaid -->
                 <div class="mb-4 w-full lg:w-1/3">
-                    <label for="climate" class="font-medium text-900">Előleget fizetett?</label>
+                    <label for="prepaid" class="font-medium text-900">Előleget fizetett?</label>
                     <div class="flex flex-wrap gap-3 my-3">
                         <div class="flex items-center">
                             <p-radioButton name="prepaid" value="1" formControlName="prepaid" inputId="prepaid-yes" (onClick)="onFilter($event, 'prepaid')"></p-radioButton>
