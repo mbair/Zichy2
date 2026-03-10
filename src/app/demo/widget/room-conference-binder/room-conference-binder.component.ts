@@ -8,8 +8,7 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { RoomService } from '../../service/room.service';
 import { UserService } from '../../service/user.service';
 import { ConferenceService, ConferenceStatsMap } from '../../service/conference.service';
-import * as moment from 'moment';
-moment.locale('hu')
+import { formatDateDots, toEpoch as toDateEpoch } from '../../utils/date.utils';
 
 @Component({
     selector: 'app-room-conference-binder',
@@ -196,8 +195,7 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
 
         // Calendar date as String
         else if (event instanceof Date) {
-            const date = moment(event)
-            filterValue = date.format('YYYY.MM.DD')
+            filterValue = formatDateDots(event)
         } else {
             if (event && (event.value || event.target?.value)) {
                 filterValue = event.value || event.target?.value
@@ -518,18 +516,7 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
 
     private toEpoch(dateValue: string | null | undefined): number | null {
         if (!dateValue) return null
-
-        // Parse date-only values as local midnight (half-open interval compatibility).
-        const dateOnly = moment(dateValue, 'YYYY-MM-DD', true)
-        if (dateOnly.isValid()) {
-            return dateOnly.startOf('day').valueOf()
-        }
-
-        const iso = moment(dateValue, moment.ISO_8601, true)
-        if (iso.isValid()) return iso.valueOf()
-
-        const fallback = moment(new Date(dateValue))
-        return fallback.isValid() ? fallback.valueOf() : null
+        return toDateEpoch(dateValue)
     }
 
     /** Room has ANY enabled conference overlapping with ANY selected conference? */

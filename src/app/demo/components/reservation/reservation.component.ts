@@ -20,9 +20,7 @@ import { Guest, GuestFilter } from '../../api/guest';
 import { dateRangeValidator } from '../../utils/date-range-validator';
 import { distinctByIds } from '../../utils/rx-ops';
 import { ChangeSource, ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
-import * as moment from 'moment';
-import { formatDateCompact } from '../../utils/date.utils';
-moment.locale('hu')
+import { calculateAgeYears, formatDateCompact, formatDateDots, formatDateYmd, parseDateOnly } from '../../utils/date.utils';
 
 type SortDir = 1 | -1
 
@@ -306,8 +304,8 @@ export class ReservationComponent implements OnInit {
             let nextEnd: string | null = null
 
             if (hasRange) {
-                nextStart = range.minArrival!.format('YYYY-MM-DD')
-                nextEnd = range.maxDeparture!.format('YYYY-MM-DD')
+                nextStart = formatDateYmd(range.minArrival)
+                nextEnd = formatDateYmd(range.maxDeparture)
             } else {
                 // No guests selected -> fall back to conference dates (if any)
                 const confArr = Array.isArray(this.conference?.value)
@@ -316,10 +314,10 @@ export class ReservationComponent implements OnInit {
                 const currentConf = confArr.length ? confArr[0] : null
 
                 nextStart = (currentConf as any)?.beginDate
-                    ? moment((currentConf as any).beginDate).format('YYYY-MM-DD')
+                    ? formatDateYmd((currentConf as any).beginDate)
                     : null
                 nextEnd = (currentConf as any)?.endDate
-                    ? moment((currentConf as any).endDate).format('YYYY-MM-DD')
+                    ? formatDateYmd((currentConf as any).endDate)
                     : null
             }
 
@@ -556,9 +554,7 @@ export class ReservationComponent implements OnInit {
 
         // Calendar date as String
         if (event instanceof Date) {
-            const date = moment(event)
-            const formattedDate = date.format('YYYY.MM.DD')
-            filterValue = formattedDate
+            filterValue = formatDateDots(event)
         } else {
             if (event && (event.value || event.target?.value)) {
                 filterValue = event.value || event.target?.value
@@ -1161,20 +1157,18 @@ export class ReservationComponent implements OnInit {
     // Get Age by birthdate
     getAge(birthDate?: string | null): string {
         if (!birthDate) return ""
-        const birth = moment(birthDate)
-        const today = moment()
-        return today.diff(birth, 'years').toString()
+        return calculateAgeYears(birthDate).toString()
     }
 
     // Returns how many guests are between 0–3 years old (need baby bed)
     getBabyBedCount(reservation: Reservation): number {
         if (!reservation?.guests || !reservation.guests.length) return 0
 
-        const today = moment();
+        const today = new Date();
         return reservation.guests.reduce((count, guest) => {
             if (!guest?.birthDate) return count
 
-            const ageYears = today.diff(moment(guest.birthDate), 'years')
+            const ageYears = calculateAgeYears(guest.birthDate, today)
             // 0–3 év közöttiek (3 év alatti / max 3 éves)
             if (ageYears >= 0 && ageYears < 3) {
                 return count + 1
@@ -1187,11 +1181,11 @@ export class ReservationComponent implements OnInit {
     getBabyBedGuests(reservation: Reservation): Guest[] {
         if (!reservation?.guests || !reservation.guests.length) return []
 
-        const today = moment();
+        const today = new Date();
         return reservation.guests.filter(guest => {
             if (!guest?.birthDate) return false
 
-            const ageYears = today.diff(moment(guest.birthDate), 'years')
+            const ageYears = calculateAgeYears(guest.birthDate, today)
             // 0–3 years old
             return ageYears >= 0 && ageYears < 3
         })
@@ -1425,7 +1419,7 @@ export class ReservationComponent implements OnInit {
                 : null)
 
         const isNew = !this.id?.value
-        const norm = (v: any) => (v ? moment(v).format('YYYY-MM-DD') : null)
+        const norm = (v: any) => (v ? formatDateYmd(v) : null)
 
         // Always keep conference_id and filters in sync
         this.reservationForm.patchValue({
@@ -1478,29 +1472,25 @@ export class ReservationComponent implements OnInit {
     // Calculates the earliest arrival and latest departure among the selected guests
     private computeGuestDateRange(
         guests: Guest[]
-    ): { minArrival: moment.Moment | null; maxDeparture: moment.Moment | null } {
-        let minArrival: moment.Moment | null = null
-        let maxDeparture: moment.Moment | null = null
+    ): { minArrival: Date | null; maxDeparture: Date | null } {
+        let minArrival: Date | null = null
+        let maxDeparture: Date | null = null
 
         for (const g of guests ?? []) {
             const rawArrival = (g as any).dateOfArrival
             const rawDeparture = (g as any).dateOfDeparture
 
-            const arrival = rawArrival
-                ? moment(rawArrival, 'YYYY-MM-DD', true)
-                : null
-            const departure = rawDeparture
-                ? moment(rawDeparture, 'YYYY-MM-DD', true)
-                : null
+            const arrival = rawArrival ? parseDateOnly(rawArrival) : null
+            const departure = rawDeparture ? parseDateOnly(rawDeparture) : null
 
-            if (arrival && arrival.isValid()) {
-                if (!minArrival || arrival.isBefore(minArrival)) {
+            if (arrival) {
+                if (!minArrival || arrival.getTime() < minArrival.getTime()) {
                     minArrival = arrival
                 }
             }
 
-            if (departure && departure.isValid()) {
-                if (!maxDeparture || departure.isAfter(maxDeparture)) {
+            if (departure) {
+                if (!maxDeparture || departure.getTime() > maxDeparture.getTime()) {
                     maxDeparture = departure
                 }
             }
@@ -1518,14 +1508,13 @@ export class ReservationComponent implements OnInit {
      *    which is the safer default for rooms where extra capacity is baby-bed-only.
      *
      * Note:
-     *  - Uses moment().diff(..., 'years') which returns full years (floored), not fractional years.
+     *  - Uses full-year age calculation, not fractional years.
      */
     private isBabyGuest(guest: Guest | null | undefined): boolean {
         // Missing birthDate => treat as 3+ (safer for baby-bed-only rules)
         if (!guest?.birthDate) return false
 
-        const today = moment()
-        const ageYears = today.diff(moment(guest.birthDate), 'years')
+        const ageYears = calculateAgeYears(guest.birthDate)
         return ageYears >= 0 && ageYears < 3
     }
 
