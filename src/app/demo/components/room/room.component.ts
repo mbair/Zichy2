@@ -259,6 +259,23 @@ export class RoomComponent implements OnInit {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains')
     }
 
+    onConferenceSelectionChange(selectedConferences: Conference[]): void {
+        const nextSelectedConferences = selectedConferences || []
+        const currentIds = (this.selectedConferences || []).map(conf => Number(conf?.id)).sort((a, b) => a - b)
+        const nextIds = nextSelectedConferences.map(conf => Number(conf?.id)).sort((a, b) => a - b)
+        const selectionChanged =
+            currentIds.length !== nextIds.length ||
+            currentIds.some((id, index) => id !== nextIds[index])
+
+        this.selectedConferences = nextSelectedConferences
+
+        if (!selectionChanged) {
+            return
+        }
+
+        this.doQuery()
+    }
+
     /**
      * Create new Room
      */

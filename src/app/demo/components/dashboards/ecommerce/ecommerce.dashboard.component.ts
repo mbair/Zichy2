@@ -30,7 +30,6 @@ export class EcommerceDashboardComponent implements OnInit {
     loading: boolean = true;                     // Loading overlay trigger value
     userRole: string = '';
     activities: any[] = [];
-    information: any;
     selectedWeek: any = { data: [[], []] };
     weeks: any[] = [];
     barData: any;
@@ -147,7 +146,6 @@ export class EcommerceDashboardComponent implements OnInit {
         ]
 
         this.activities = this.activityService.getActivities();
-        this.information = this.activityService.getInformation()
 
         this.weeks = [{
             label: 'Előző hét',
