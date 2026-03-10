@@ -94,6 +94,14 @@ export class LoginComponent {
             })
         }
 
+        if (reason === 'session-idle') {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Kijelentkeztette a rendszer',
+                detail: '30 perc inaktivitás után újra be kell jelentkezni.',
+            })
+        }
+
         if (reason === 'session-invalid') {
             this.messageService.add({
                 severity: 'warn',

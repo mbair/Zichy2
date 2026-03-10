@@ -1,12 +1,14 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { tap, shareReplay, catchError } from "rxjs/operators";
+import { tap, shareReplay, catchError, finalize } from "rxjs/operators";
 import { ApiService } from "./api.service";
 import { UserService } from "./user.service";
-import { throwError } from "rxjs";
+import { EMPTY, throwError } from "rxjs";
 import { SessionService } from "./session.service";
 
-@Injectable()
+@Injectable({
+    providedIn: 'root'
+})
 export class AuthService {
 
     public apiURL: string;
@@ -30,7 +32,18 @@ export class AuthService {
     }
 
     public logout() {
-        this.sessionService.logout()
+        const token = localStorage.getItem('token')
+        if (!token) {
+            this.sessionService.logout()
+            return
+        }
+
+        this.http.post(`${this.apiURL}/users/logout`, {}, { observe: 'response' })
+            .pipe(
+                finalize(() => this.sessionService.logout()),
+                catchError(() => EMPTY)
+            )
+            .subscribe()
     }
 
     public passwordReset(email: string) {

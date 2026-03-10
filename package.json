@@ -1,6 +1,6 @@
 {
     "name": "nfc-reserve",
-    "version": "1.15.69",
+    "version": "1.15.70",
     "scripts": {
         "ng": "ng",
         "start": "ng serve --proxy-config proxy.conf.json",
