@@ -141,7 +141,6 @@ export class GuestComponent implements OnInit {
         prepaid: '',
         roomMate: '',
         idCard: [null],
-        climate: '',
         enabled: true,
     }
 
@@ -200,8 +199,7 @@ export class GuestComponent implements OnInit {
             babyBed: [this.initialFormValues.babyBed],
             prepaid: [this.initialFormValues.prepaid],
             roomMate: [this.initialFormValues.roomMate],
-            idCard: [this.initialFormValues.idCard],
-            climate: [this.initialFormValues.climate]
+            idCard: [this.initialFormValues.idCard]
         }, {
             validators: dateRangeValidator('dateOfArrival', 'dateOfDeparture')
         })
@@ -234,7 +232,6 @@ export class GuestComponent implements OnInit {
             babyBed: [],
             prepaid: [],
             roomMate: [],
-            climate: [],
             roomKeyIssued: []
         })
 
@@ -509,7 +506,6 @@ export class GuestComponent implements OnInit {
     get prepaid() { return this.guestForm.get('prepaid') }
     get roomMate() { return this.guestForm.get('roomMate') }
     get idCard() { return this.guestForm.get('idCard') }
-    get climate() { return this.guestForm.get('climate') }
     
     // Helper for Guests primary reservation
     get primaryReservation(): Reservation | null {
@@ -834,7 +830,6 @@ export class GuestComponent implements OnInit {
         this.filterValues['babyBed'] = ''
         this.filterValues['roomType'] = ''
         this.filterValues['payment'] = ''
-        this.filterValues['climate'] = ''
         this.filterValues['prepaid'] = ''
         this.filterValues['roomMate'] = ''
         this.filterValues['roomKeyIssued'] = ''
