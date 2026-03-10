@@ -1407,14 +1407,27 @@ export class GuestComponent implements OnInit {
      * @param selectedConferences 
      */
     onConferenceSelectionChange(selectedConferences: Conference[]): void {
-        this.selectedConferences = selectedConferences || []
-        this.noConferenceMode = this.isNoneConferenceSelected(this.selectedConferences)
+        const nextSelectedConferences = selectedConferences || []
+        const nextNoConferenceMode = this.isNoneConferenceSelected(nextSelectedConferences)
+        const currentIds = (this.selectedConferences || []).map(conf => Number(conf?.id)).sort((a, b) => a - b)
+        const nextIds = nextSelectedConferences.map(conf => Number(conf?.id)).sort((a, b) => a - b)
+        const selectionChanged =
+            currentIds.length !== nextIds.length ||
+            currentIds.some((id, index) => id !== nextIds[index]) ||
+            this.noConferenceMode !== nextNoConferenceMode
+
+        this.selectedConferences = nextSelectedConferences
+        this.noConferenceMode = nextNoConferenceMode
 
         // Do NOT push the sentinel text into query params
         // We control conference filtering via noConference / conferenceIds
         delete this.filterValues['conferenceName']
 
         this.recomputeCanEdit()
+
+        if (!selectionChanged) {
+            return
+        }
 
         this.selectionChanges$.next(this.selectedConferences)
     }

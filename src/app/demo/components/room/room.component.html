@@ -24,12 +24,12 @@
                         <h5 class="m-0">Szobák</h5>
                         <span class="block mt-2 md:mt-0">
                             <app-conference-selector
-                                [(ngModel)]="selectedConferences"
+                                [ngModel]="selectedConferences"
                                 [showNoneOption]="false"
                                 [showClear]="true"
                                 [style]="{'minWidth': '35rem'}"
                                 placeholder="Válasszon konferenciát..."
-                                (ngModelChange)="doQuery()">
+                                (ngModelChange)="onConferenceSelectionChange($event)">
                             </app-conference-selector>
                         </span>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
