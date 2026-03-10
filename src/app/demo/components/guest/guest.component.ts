@@ -711,11 +711,15 @@ export class GuestComponent implements OnInit {
         }
 
         guest.conference = selectedConf ? [selectedConf] : []
+        const guestFormValue: Guest = {
+            ...guest,
+            payment: this.resolvePaymentMethodId(guest)
+        }
 
         if (selectedConf) {
             // Because side bar is not visible yet, we need to wait a bit
             setTimeout(() => {
-                this.guestForm.patchValue(guest)
+                this.guestForm.patchValue(guestFormValue)
 
                 // Store original values for Cancel (edit mode)
                 this.originalFormValues = this.guestForm.getRawValue()
@@ -733,6 +737,64 @@ export class GuestComponent implements OnInit {
         } else {
             console.warn('No conference found for guest:', guest);
         }
+    }
+
+    private resolvePaymentMethodId(guest: Guest): number | null {
+        const candidates = [
+            guest?.payment,
+            guest?.paymentName,
+            guest?.paymentMethodName
+        ]
+
+        for (const candidate of candidates) {
+            const normalized = this.normalizePaymentMethodValue(candidate)
+            if (normalized != null) {
+                return normalized
+            }
+        }
+
+        return null
+    }
+
+    private normalizePaymentMethodValue(value: unknown): number | null {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            return value
+        }
+
+        if (typeof value !== 'string') {
+            return null
+        }
+
+        const trimmed = value.trim()
+        if (!trimmed) {
+            return null
+        }
+
+        const numericValue = Number(trimmed)
+        if (Number.isFinite(numericValue)) {
+            return numericValue
+        }
+
+        const normalized = trimmed
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim()
+
+        if (normalized === 'banki atutalas' || normalized === 'bank transfer') {
+            return 1
+        }
+
+        if (normalized === 'szep kartya' || normalized === 'szep card') {
+            return 2
+        }
+
+        if (normalized === 'keszpenz' || normalized === 'cash') {
+            return 3
+        }
+
+        return null
     }
 
     /**
