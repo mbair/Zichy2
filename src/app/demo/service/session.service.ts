@@ -13,7 +13,10 @@ export class SessionService {
     private readonly tokenStorageKey = 'token';
     private readonly sessionExpiryStorageKey = 'session_expires_at';
     private readonly sessionExpiryHeader = 'X-Session-Expires-At';
+    private readonly idleTimeoutMs = 30 * 60 * 1000;
+    private readonly activityEvents: Array<keyof DocumentEventMap> = ['click', 'keydown', 'mousedown', 'scroll', 'touchstart'];
     private expirationTimer: ReturnType<typeof setTimeout> | null = null;
+    private idleTimer: ReturnType<typeof setTimeout> | null = null;
     private monitoringInitialized = false;
     private logoutInProgress = false;
 
@@ -34,6 +37,10 @@ export class SessionService {
 
     private readonly focusListener = () => {
         this.ensureSessionValidity();
+    };
+
+    private readonly activityListener = () => {
+        this.resetIdleTimer();
     };
 
     private readonly visibilityListener = () => {
@@ -57,6 +64,9 @@ export class SessionService {
         window.addEventListener('storage', this.storageListener);
         window.addEventListener('focus', this.focusListener);
         this.document.addEventListener('visibilitychange', this.visibilityListener);
+        this.activityEvents.forEach((eventName) => {
+            this.document.addEventListener(eventName, this.activityListener, true);
+        });
 
         this.ensureSessionValidity();
     }
@@ -83,6 +93,11 @@ export class SessionService {
         }
 
         const expiresAt = this.getStoredExpiry();
+        if (expiresAt === null) {
+            this.endSession('unauthorized');
+            return false;
+        }
+
         if (expiresAt !== null && Date.now() >= expiresAt) {
             this.endSession('expired');
             return false;
@@ -91,8 +106,8 @@ export class SessionService {
         return true;
     }
 
-    logout(): void {
-        this.endSession('manual');
+    logout(reason: SessionEndReason = 'manual'): void {
+        this.endSession(reason);
     }
 
     handleUnauthorized(): void {
@@ -103,12 +118,13 @@ export class SessionService {
         const token = this.getToken();
         if (!token) {
             this.cancelExpirationTimer();
+            this.cancelIdleTimer();
             return;
         }
 
         const expiresAt = this.getStoredExpiry();
         if (expiresAt === null) {
-            this.cancelExpirationTimer();
+            this.endSession('unauthorized');
             return;
         }
 
@@ -119,6 +135,7 @@ export class SessionService {
         }
 
         this.scheduleExpirationTimer(delay);
+        this.resetIdleTimer();
     }
 
     private scheduleExpirationTimer(delay: number): void {
@@ -135,13 +152,33 @@ export class SessionService {
         }
     }
 
-    private endSession(reason: SessionEndReason): void {
+    private resetIdleTimer(): void {
+        if (!this.getToken() || this.getStoredExpiry() === null) {
+            this.cancelIdleTimer();
+            return;
+        }
+
+        this.cancelIdleTimer();
+        this.idleTimer = setTimeout(() => {
+            this.endSession('unauthorized', 'session-idle');
+        }, this.idleTimeoutMs);
+    }
+
+    private cancelIdleTimer(): void {
+        if (this.idleTimer !== null) {
+            clearTimeout(this.idleTimer);
+            this.idleTimer = null;
+        }
+    }
+
+    private endSession(reason: SessionEndReason, redirectReason?: string): void {
         if (this.logoutInProgress) {
             return;
         }
 
         this.logoutInProgress = true;
         this.cancelExpirationTimer();
+        this.cancelIdleTimer();
 
         localStorage.removeItem('email');
         localStorage.removeItem('fullname');
@@ -153,7 +190,7 @@ export class SessionService {
         localStorage.removeItem('userrole');
 
         this.getUserService().updateUserRole('No Role');
-        this.redirectToLogin(this.getRedirectReason(reason));
+        this.redirectToLogin(redirectReason ?? this.getRedirectReason(reason));
 
         queueMicrotask(() => {
             this.logoutInProgress = false;
