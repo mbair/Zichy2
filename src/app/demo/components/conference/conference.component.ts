@@ -393,20 +393,30 @@ export class ConferenceComponent implements OnInit {
     private normalizeConferenceFromResponse(response: any, fallbackConference: Conference): Conference {
         if (response && typeof response === 'object') {
             if (response.rows && Array.isArray(response.rows) && response.rows.length > 0) {
-                return { ...fallbackConference, ...response.rows[0] }
+                return this.normalizeExpandedConference({ ...fallbackConference, ...response.rows[0] })
             }
             if (response.row && typeof response.row === 'object') {
-                return { ...fallbackConference, ...response.row }
+                return this.normalizeExpandedConference({ ...fallbackConference, ...response.row })
             }
-            return { ...fallbackConference, ...response }
+            return this.normalizeExpandedConference({ ...fallbackConference, ...response })
         }
-        return { ...fallbackConference }
+        return this.normalizeExpandedConference({ ...fallbackConference })
     }
 
     getExpandedConference(conference: Conference): Conference {
         const conferenceId = Number(conference?.id)
         if (!Number.isFinite(conferenceId)) return conference
         return this.expandedConferenceDetails[conferenceId] || conference
+    }
+
+    getExpandedConferenceQuestions(conference: Conference): any[] {
+        const questions = (this.getExpandedConference(conference) as any)?.questions
+        return Array.isArray(questions) ? questions : (questions ? [questions] : [])
+    }
+
+    getQuestionTranslations(question: any): any[] {
+        const translations = question?.translations
+        return Array.isArray(translations) ? translations : (translations ? [translations] : [])
     }
 
     isExpandedConferenceLoading(conference: Conference): boolean {
@@ -430,6 +440,25 @@ export class ConferenceComponent implements OnInit {
         const conferenceId = Number(conference?.id)
         if (!Number.isFinite(conferenceId)) return ''
         return this.organizerByConferenceId[conferenceId]?.fullname || ''
+    }
+
+    private normalizeExpandedConference(conference: Conference): Conference {
+        const normalized = { ...conference } as any
+
+        if (normalized.questions && !Array.isArray(normalized.questions)) {
+            normalized.questions = [normalized.questions]
+        }
+
+        if (Array.isArray(normalized.questions)) {
+            normalized.questions = normalized.questions.map((question: any) => ({
+                ...question,
+                translations: Array.isArray(question?.translations)
+                    ? question.translations
+                    : (question?.translations ? [question.translations] : [])
+            }))
+        }
+
+        return normalized
     }
 
     private withConferenceDetails(conference: Conference, onReady: (detailedConference: Conference) => void): void {

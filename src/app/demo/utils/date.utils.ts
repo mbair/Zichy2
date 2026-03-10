@@ -91,6 +91,15 @@ export function formatDateDots(value: DateInput): string {
     return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}`;
 }
 
+export function formatDateYmd(value: DateInput): string {
+    const date = toValidDate(value);
+    if (!date) {
+        return '';
+    }
+
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 export function formatDateCompact(value: DateInput): string {
     const date = toValidDate(value);
     if (!date) {
@@ -98,6 +107,24 @@ export function formatDateCompact(value: DateInput): string {
     }
 
     return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}`;
+}
+
+export function parseDate(value: DateInput): Date | null {
+    return toValidDate(value);
+}
+
+export function parseDateOnly(value: DateInput): Date | null {
+    const date = toValidDate(value);
+    if (!date) {
+        return null;
+    }
+
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+export function toEpoch(value: DateInput): number | null {
+    const date = toValidDate(value);
+    return date ? date.getTime() : null;
 }
 
 export function calculateAgeYears(value: DateInput, now: Date = new Date()): number {
@@ -114,6 +141,65 @@ export function calculateAgeYears(value: DateInput, now: Date = new Date()): num
     }
 
     return Math.max(age, 0);
+}
+
+export function isSameDay(left: DateInput, right: DateInput): boolean {
+    const leftDate = parseDateOnly(left);
+    const rightDate = parseDateOnly(right);
+
+    if (!leftDate || !rightDate) {
+        return false;
+    }
+
+    return leftDate.getTime() === rightDate.getTime();
+}
+
+export function isBeforeDay(left: DateInput, right: DateInput): boolean {
+    const leftDate = parseDateOnly(left);
+    const rightDate = parseDateOnly(right);
+
+    if (!leftDate || !rightDate) {
+        return false;
+    }
+
+    return leftDate.getTime() < rightDate.getTime();
+}
+
+export function isSameOrBeforeDay(left: DateInput, right: DateInput): boolean {
+    const leftDate = parseDateOnly(left);
+    const rightDate = parseDateOnly(right);
+
+    if (!leftDate || !rightDate) {
+        return false;
+    }
+
+    return leftDate.getTime() <= rightDate.getTime();
+}
+
+export function isDateBetweenDaysInclusive(
+    target: DateInput,
+    start: DateInput,
+    end: DateInput
+): boolean {
+    const targetDate = parseDateOnly(target);
+    const startDate = parseDateOnly(start);
+    const endDate = parseDateOnly(end);
+
+    if (!targetDate || !startDate || !endDate) {
+        return false;
+    }
+
+    const targetTime = targetDate.getTime();
+    return targetTime >= startDate.getTime() && targetTime <= endDate.getTime();
+}
+
+export function getWeekdayName(value: DateInput, locale: string = 'hu-HU'): string {
+    const date = toValidDate(value);
+    if (!date) {
+        return '';
+    }
+
+    return new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(date);
 }
 
 export function formatUtcToTimeZone(

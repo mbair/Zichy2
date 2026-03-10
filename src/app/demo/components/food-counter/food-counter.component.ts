@@ -7,8 +7,7 @@ import { GuestService } from '../../service/guest.service';
 import { MealService } from '../../service/meal.service';
 import { LogService } from '../../service/log.service';
 import { Observable } from 'rxjs';
-import moment from 'moment';
-moment.locale('hu')
+import { calculateAgeYears, isDateBetweenDaysInclusive, isSameDay, parseDateOnly } from '../../utils/date.utils';
 
 const ADULT_DOSAGE_AGE_LIMIT: number = 10;  // From the age of 10, we give an adult dose
 
@@ -253,11 +252,11 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 })
 
                 // Check whether the guest has already received food in the given meal cycle
-                const today = moment()
-                const dateOfArrival = moment(data.dateOfArrival, "YYYY-MM-DD", true).startOf("day")
-                const dateOfDeparture = moment(data.dateOfDeparture, "YYYY-MM-DD", true).endOf("day")
+                const today = new Date()
+                const dateOfArrival = parseDateOnly(data.dateOfArrival)
+                const dateOfDeparture = parseDateOnly(data.dateOfDeparture)
 
-                if (today.isBetween(dateOfArrival, dateOfDeparture, undefined, "[]")) {
+                if (isDateBetweenDaysInclusive(today, dateOfArrival, dateOfDeparture)) {
 
                     // Don't ask for meal, we will not investigate further
                     if (data.diet == 'nem kér étkezést') {
@@ -278,7 +277,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                             // If visitor eat today, or
                             // has used the RFID and it was not today
                             if (!data.lastRfidUsage ||
-                                (data.lastRfidUsage && !moment(data.lastRfidUsage).isSame(moment(), 'day'))) { // TODO: itt legyen azonos a firstMeal és lastMeal
+                                (data.lastRfidUsage && !isSameDay(data.lastRfidUsage, today))) { // TODO: itt legyen azonos a firstMeal és lastMeal
                                     this.canEat = true
                             }
                         }
@@ -297,7 +296,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                     } else {
 
                         // The arrival date is today
-                        if (dateOfArrival.isSame(today, 'day')) {
+                        if (isSameDay(dateOfArrival, today)) {
                             if (this.currentMeal == 'reggeli') {
                                 if (data.firstMeal == 'reggeli') {
                                     this.canEat = true
@@ -316,12 +315,12 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                         }
 
                         // Intermediate days
-                        if (!dateOfArrival.isSame(today, 'day') && !dateOfDeparture.isSame(today, 'day')) {
+                        if (!isSameDay(dateOfArrival, today) && !isSameDay(dateOfDeparture, today)) {
                             this.canEat = true
                         }
 
                         // The departure date is today
-                        if (dateOfDeparture.isSame(today, 'day')) {
+                        if (isSameDay(dateOfDeparture, today)) {
                             this.canEat = false // Needed when arrival and departure are same day
                             if (this.currentMeal == 'reggeli') {
                                 if (data.lastMeal == 'reggeli' || data.lastMeal == 'ebéd' || data.lastMeal == 'vacsora') {
@@ -349,13 +348,11 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 }
 
                 // If Guest has used the RFID and it was today
-                if (data.lastRfidUsage && moment(data.lastRfidUsage).isSame(moment(), 'day')) {
-                    let lastRfidUsage = new Date(data.lastRfidUsage),
-                        lastRfidMoment = moment(lastRfidUsage),
-                        oneMinuteAgo = moment().subtract(1, 'minutes')
+                if (data.lastRfidUsage && isSameDay(data.lastRfidUsage, today)) {
+                    const lastRfidUsage = new Date(data.lastRfidUsage)
 
                     // 1 minute has not yet passed since the last RFID use
-                    // if (!lastRfidMoment.isBefore(oneMinuteAgo)) {
+                    // if (lastRfidUsage.getTime() >= Date.now() - 60_000) {
                     //     this.logService.createLog({
                     //         name: "FoodCounter 1 minute has not yet passed since the last RFID use: " + this.guest.lastName + " " + this.guest.firstName + " " + this.guest.rfid + " | Lang: " + navigator.language,
                     //         capacity: 0
@@ -383,7 +380,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.sendMessage()
 
                 // Insert Timestamp to lastRfidUsage
-                // this.guest.lastRfidUsage = moment().format('YYYY-MM-DD HH:mm:ss')
+                // this.guest.lastRfidUsage = new Date().toISOString()
                 // this.guestService.update(this.guest)
                 if (this.guest) {
                     this.guestService.updateLastTagUsage(this.guest?.id)
@@ -414,9 +411,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
         if (!birthDate) {
             this.ageGroup = 'Hibás dátum'
         } else {
-            let birthDateD = moment(new Date(birthDate)),
-                duration = moment.duration(moment(new Date()).diff(birthDateD)),
-                age = duration.asYears()
+            const age = calculateAgeYears(birthDate)
 
             this.ageGroup = age >= ADULT_DOSAGE_AGE_LIMIT ? 'felnőtt' : 'gyermek'
         }
@@ -437,10 +432,10 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
     //         // Filter out test users
     //         if (guest.lastName !== "Gábris") {
     //             if (guest.lastRfidUsage) {
-    //                 let lastRfidUsage = moment(new Date(guest.lastRfidUsage))
+    //                 let lastRfidUsage = new Date(guest.lastRfidUsage)
 
     //                 // Usage was today
-    //                 let today = moment()
+    //                 let today = new Date()
     //                 if (lastRfidUsage.isSame(today, 'day')) {
     //                     let lastMeal = this.mealService.getMealNameByTime(new Date(guest.lastRfidUsage))
     //                     if (this.currentMeal == lastMeal) {

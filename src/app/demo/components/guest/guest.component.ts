@@ -20,9 +20,7 @@ import { Conference } from '../../api/conference';
 import { Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
 import { loadXlsx } from '../../utils/xlsx-loader';
-import moment from 'moment';
-import { formatDateCompact } from '../../utils/date.utils';
-moment.locale('hu')
+import { calculateAgeYears, formatDateCompact, formatDateDots, isSameDay, isSameOrBeforeDay, parseDateOnly } from '../../utils/date.utils';
 
 import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
 
@@ -633,9 +631,7 @@ export class GuestComponent implements OnInit {
 
         // Calendar date as String
         if (event instanceof Date) {
-            const date = moment(event);
-            const formattedDate = date.format('YYYY.MM.DD')
-            filterValue = formattedDate
+            filterValue = formatDateDots(event)
         } else {
             if (event && (event.value || event.target?.value)) {
                 if (field == "rfid") {
@@ -808,8 +804,8 @@ export class GuestComponent implements OnInit {
             })
 
             // Set arrival and departure date limitations
-            this.beginDate = selectedConf?.beginDate ? new Date(selectedConf.beginDate) : undefined
-            this.endDate = selectedConf?.endDate ? new Date(selectedConf.endDate) : undefined
+            this.beginDate = selectedConf?.beginDate ? parseDateOnly(selectedConf.beginDate) ?? undefined : undefined
+            this.endDate = selectedConf?.endDate ? parseDateOnly(selectedConf.endDate) ?? undefined : undefined
 
             this.getEarliestFirstMeal()
             this.getLatestFirstMeal()
@@ -1404,9 +1400,7 @@ export class GuestComponent implements OnInit {
 
     getAge(birthDate: string): string {
         if (!birthDate) return "";
-        const birth = moment(birthDate)
-        const today = moment()
-        return today.diff(birth, 'years').toString()
+        return calculateAgeYears(birthDate).toString()
     }
 
     getCountryCode(countryName: string): string | null {
@@ -1434,7 +1428,7 @@ export class GuestComponent implements OnInit {
         const beginDate = this.beginDate
 
         // If dateOfArrival is on the first day of the conference, the earliest first meal is the first meal of the conference
-        if (moment(dateOfArrival).isSame(beginDate, 'day')) {
+        if (isSameDay(dateOfArrival, beginDate)) {
             return this.guestConference?.firstMeal
         }
         return undefined
@@ -1450,7 +1444,7 @@ export class GuestComponent implements OnInit {
         const endDate = this.endDate
 
         // If dateOfArrival is on the last day of the conference, the latest first meal is the last meal of the conference
-        if (moment(dateOfArrival).isSame(endDate, 'day')) {
+        if (isSameDay(dateOfArrival, endDate)) {
             return this.guestConference?.lastMeal
         }
         return undefined
@@ -1466,7 +1460,7 @@ export class GuestComponent implements OnInit {
         const beginDate = this.beginDate
 
         // If dateOfDeparture is on the first day of the conference, the earliest last meal is the first meal of the conference
-        if (moment(dateOfDeparture).isSame(beginDate, 'day')) {
+        if (isSameDay(dateOfDeparture, beginDate)) {
             return this.guestConference?.firstMeal
         }
         return undefined
@@ -1482,7 +1476,7 @@ export class GuestComponent implements OnInit {
         const endDate = this.endDate
 
         // If dateOfDeparture is on the last day of the conference, the latest last meal is the last meal of the conference
-        if (moment(dateOfDeparture).isSame(endDate, 'day')) {
+        if (isSameDay(dateOfDeparture, endDate)) {
             return this.guestConference?.lastMeal
         }
         return undefined
@@ -1801,10 +1795,7 @@ export class GuestComponent implements OnInit {
             return
         }
 
-        // Parse end date strictly with multiple accepted formats
-        const end = moment(rawEnd, [moment.ISO_8601, 'YYYY-MM-DD', 'YYYY.MM.DD'], true)
-
-        this.canEdit = end.isValid() && moment().isSameOrBefore(end, 'day')
+        this.canEdit = isSameOrBeforeDay(new Date(), rawEnd)
     }
 
     isImage(url: string) {

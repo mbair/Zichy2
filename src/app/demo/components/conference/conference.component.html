@@ -267,8 +267,8 @@
                                             </div>
 
                                             <div *ngIf="!isExpandedConferenceLoading(conference)">
-                                                <div *ngFor="let question of getExpandedConference(conference).questions">
-                                                    <div *ngFor="let translation of question.translations; let i = index">
+                                                <div *ngFor="let question of getExpandedConferenceQuestions(conference)">
+                                                    <div *ngFor="let translation of getQuestionTranslations(question); let i = index">
                                                         <div *ngIf="translation.hu !== '' || translation.en !== ''" class="flex flex-col w-full mb-3">
                                                             <div class="font-medium text-900">{{ i+1 }}. kérdés</div>
                                                             <div>

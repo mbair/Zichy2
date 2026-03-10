@@ -16,7 +16,7 @@ import { UserService } from '../../service/user.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference, FormFieldInfo } from '../../api/conference';
 import { Answer } from '../../api/answer';
-import moment from 'moment';
+import { calculateAgeYears, isBeforeDay, isSameDay, isSameOrBeforeDay, parseDateOnly } from '../../utils/date.utils';
 
 // Google Analytics
 declare let gtag: Function;
@@ -235,8 +235,8 @@ export class ConferenceFormComponent implements OnInit {
                 if (data && data.rows) {
                     if (data.rows.length > 0) {
                         this.conference = data.rows[0]
-                        this.beginDate = this.conference.beginDate ? moment(this.conference.beginDate, 'YYYY-MM-DD').toDate() : undefined
-                        this.endDate = this.conference.endDate ? moment(this.conference.endDate, 'YYYY-MM-DD').toDate() : undefined
+                        this.beginDate = this.conference.beginDate ? parseDateOnly(this.conference.beginDate) ?? undefined : undefined
+                        this.endDate = this.conference.endDate ? parseDateOnly(this.conference.endDate) ?? undefined : undefined
                         this.allowedPaymentMethodIds = this.extractPaymentMethodIds(this.conference)
                         this.allowedConferenceRoomTypeIds = this.extractConferenceRoomTypeIds(this.conference)
 
@@ -268,10 +268,7 @@ export class ConferenceFormComponent implements OnInit {
 
                         // Check if registration has ended
                         if (this.conference?.registrationEndDate) {
-                            const registrationEnd = moment(this.conference.registrationEndDate).startOf('day')
-                            const today = moment().startOf('day')
-
-                            this.registrationEnded = registrationEnd.isBefore(today)
+                            this.registrationEnded = isBeforeDay(this.conference.registrationEndDate, new Date())
                             this.recomputeOrganizerDeadlinePermission()
 
                             // If registration has ended, show error
@@ -520,7 +517,7 @@ export class ConferenceFormComponent implements OnInit {
         const dateOfArrival = this.conferenceForm.get('dateOfArrival')?.value
         const beginDate = this.beginDate
 
-        if (moment(dateOfArrival).isSame(beginDate, 'day')) {
+        if (isSameDay(dateOfArrival, beginDate)) {
             return this.conference?.firstMeal
         }
         return undefined
@@ -535,7 +532,7 @@ export class ConferenceFormComponent implements OnInit {
         const dateOfArrival = this.conferenceForm.get('dateOfArrival')?.value
         const endDate = this.endDate
 
-        if (moment(dateOfArrival).isSame(endDate, 'day')) {
+        if (isSameDay(dateOfArrival, endDate)) {
             return this.conference?.lastMeal
         }
         return undefined
@@ -551,7 +548,7 @@ export class ConferenceFormComponent implements OnInit {
         const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value
         const beginDate = this.beginDate
 
-        if (moment(dateOfDeparture).isSame(beginDate, 'day')) {
+        if (isSameDay(dateOfDeparture, beginDate)) {
             return this.conference?.firstMeal
         }
         return undefined
@@ -566,7 +563,7 @@ export class ConferenceFormComponent implements OnInit {
         const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value
         const endDate = this.endDate
 
-        if (moment(dateOfDeparture).isSame(endDate, 'day')) {
+        if (isSameDay(dateOfDeparture, endDate)) {
             return this.conference?.lastMeal
         }
         return undefined
@@ -616,8 +613,7 @@ export class ConferenceFormComponent implements OnInit {
             return
         }
 
-        const end = moment(rawEnd, [moment.ISO_8601, 'YYYY-MM-DD', 'YYYY.MM.DD'], true)
-        this.canOrganizerFillUntilGuestEditDeadline = end.isValid() && moment().isSameOrBefore(end, 'day')
+        this.canOrganizerFillUntilGuestEditDeadline = isSameOrBeforeDay(new Date(), rawEnd)
     }
 
     /**
@@ -791,7 +787,7 @@ export class ConferenceFormComponent implements OnInit {
         const birthDate = this.conferenceForm.get('birthDate')?.value
         const idCardControl = this.conferenceForm.get('idCard')
 
-        const age = birthDate ? moment().diff(moment(birthDate, 'YYYY-MM-DD'), 'years') : 0
+        const age = calculateAgeYears(birthDate)
         const needsRoom = this.needsRoom
 
         // Required if needs room and older than 14
@@ -816,11 +812,7 @@ export class ConferenceFormComponent implements OnInit {
         const birthDateValue = this.conferenceForm.get('birthDate')?.value
         if (!birthDateValue) return false
 
-        const strictBirth = moment(birthDateValue, 'YYYY-MM-DD', true)
-        const birth = strictBirth.isValid() ? strictBirth : moment(birthDateValue)
-        if (!birth.isValid()) return false
-
-        const ageYears = moment().diff(birth, 'years')
+        const ageYears = calculateAgeYears(birthDateValue)
         return ageYears >= 0 && ageYears <= 3
     }
 
