@@ -33,11 +33,41 @@
 
                 <div class="col-12 lg:col-7 md:col-12 flex-order-1 md:flex-order-1 mb-6 md:mb-0 border-round">
                     <div class="card w-full h-full border-round shadow-2 animation-duration-1000 animation-ease-out" animateEnter="moveinright">
-                        <div class="card-title block text-900 font-bold text-2xl">
-                            {{ conference && conference.name }}
-                        </div>
-                        <div class="card-subtitle block text-600 font-bold text-lg">
-                            {{ 'Vendég Regisztrációs Űrlap' | translate }}
+                        <div class="header-panels">
+                            <div class="conference-panel">
+                                <div class="conference-header-row">
+                                    <div class="conference-heading">
+                                        <div class="deadline-label">{{ conferencePanelLabel }}</div>
+                                        <div class="conference-title">
+                                            {{ displayConferenceName }}
+                                        </div>
+                                        <div class="conference-period">
+                                            <i class="pi pi-calendar"></i>
+                                            <span>{{ conferenceDateRangeText }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="conference-deadline" *ngIf="hasRegistrationDeadline">
+                                        <div class="deadline-label">{{ effectiveDeadlineTitle }}</div>
+                                        <div class="deadline-main-row" *ngIf="!canFillFormAfterDeadline">
+                                            <div class="deadline-value">{{ effectiveDeadlineText }}</div>
+                                            <span class="deadline-status" *ngIf="showEffectiveDeadlineStatus" [class.deadline-status-closed]="effectiveDeadlineStatusClosed">{{ effectiveDeadlineStatusText }}</span>
+                                        </div>
+                                        <div class="deadline-description">
+                                            {{ effectiveDeadlineDescription }}
+                                        </div>
+                                        <div class="deadline-meta" *ngIf="isPrivilegedViewer && hasRegistrationDeadline">
+                                            <span class="deadline-meta-label">{{ currentLang === 'en' ? 'Guest deadline' : 'Vendég határidő' }}</span>
+                                            <span class="deadline-meta-value">{{ publicDeadlineText }}</span>
+                                            <span class="deadline-status" [class.deadline-status-closed]="registrationEnded">{{ publicDeadlineStatusText }}</span>
+                                        </div>
+                                        <div class="deadline-meta" *ngIf="isPrivilegedViewer && hasGuestEditDeadline">
+                                            <span class="deadline-meta-label">{{ currentLang === 'en' ? 'Organizer deadline' : 'Szervezői határidő' }}</span>
+                                            <span class="deadline-meta-value">{{ organizerDeadlineText }}</span>
+                                            <span class="deadline-status" [class.deadline-status-closed]="!isOrganizerDeadlineOpen">{{ organizerDeadlineStatusText }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="grid mt-2">
                             <div class="col-12 lg:col-12 pb-0">
