@@ -16,7 +16,7 @@ export default defineConfig({
         video: 'retain-on-failure'
     },
     webServer: {
-        command: 'bash -lc \'export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"; nvm use 20 >/dev/null; npm run start -- --host 127.0.0.1 --port 4217\'',
+        command: 'bash -lc \'export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"; nvm use 24 >/dev/null; npm run start -- --host 127.0.0.1 --port 4217\'',
         url: 'http://127.0.0.1:4217',
         reuseExistingServer: false,
         timeout: 120_000
