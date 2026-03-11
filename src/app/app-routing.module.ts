@@ -12,6 +12,10 @@ const routes: Routes = [
     {
         path: '', component: AppLayoutComponent,
         children: [
+            {
+                path: 'dev/localized-date-picker',
+                loadComponent: () => import('./devtools/localized-date-picker-debug.component').then(m => m.LocalizedDatePickerDebugComponent)
+            },
             // Need Authentication
             { 
                 path: '', 

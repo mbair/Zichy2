@@ -1,6 +1,6 @@
 {
     "name": "nfc-reserve",
-    "version": "1.15.86",
+    "version": "1.15.87",
     "scripts": {
         "ng": "ng",
         "start": "ng serve --proxy-config proxy.conf.json",
@@ -8,6 +8,15 @@
         "watch": "ng build --watch --configuration development",
         "dev": "ng serve --proxy-config proxy.conf.json --ssl --ssl-cert ./localSslCertificate/server.crt --ssl-key ./localSslCertificate/server.key --open --host 0.0.0.0 --disable-host-check",
         "test": "ng test",
+        "e2e": "playwright test",
+        "e2e:headed": "playwright test --headed",
+        "e2e:debug": "PWDEBUG=1 playwright test --project=chromium",
+        "e2e:picker": "playwright test playwright/localized-date-picker.spec.ts --project=chromium",
+        "e2e:picker:headed": "playwright test playwright/localized-date-picker.spec.ts --project=chromium --headed",
+        "e2e:picker:debug": "PWDEBUG=1 playwright test playwright/localized-date-picker.spec.ts --project=chromium",
+        "e2e:conference-form": "playwright test playwright/conference-form-date-inputs.spec.ts --project=chromium",
+        "e2e:conference-form:headed": "playwright test playwright/conference-form-date-inputs.spec.ts --project=chromium --headed",
+        "e2e:install": "playwright install chromium",
         "lint": "ng lint",
         "prepare": "husky",
         "bump:patch": "npm version patch --no-git-tag-version --force"
@@ -51,6 +60,7 @@
         "@angular-devkit/build-angular": "^16.1.5",
         "@angular/cli": "~16.1.5",
         "@angular/compiler-cli": "^16.1.0",
+        "@playwright/test": "^1.58.2",
         "@types/file-saver": "^2.0.7",
         "@types/jasmine": "~4.3.0",
         "@types/lodash": "^4.17.15",
