@@ -85,7 +85,7 @@
                                             <label for="lastName" class="font-medium text-900">
                                                 {{'Vezetéknév' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('lastName') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('lastName')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('lastName')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -106,7 +106,7 @@
                                             <label for="firstName" class="font-medium text-900">
                                                 {{'Keresztnév' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('firstName') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('firstName')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('firstName')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -127,7 +127,7 @@
                                             <label for="gender" class="font-medium text-900">
                                                 {{'Neme' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('gender') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('gender')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('gender')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -157,23 +157,20 @@
                                             <label for="birthDate" class="font-medium text-900">
                                                 {{'Születési dátum' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('birthDate') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('birthDate')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('birthDate')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <p-datepicker id="birthDate"
-                                                        formControlName="birthDate"
-                                                        [defaultDate]="birthDateMax"
-                                                        [minDate]="birthDateMin"
-                                                        [maxDate]="birthDateMax"
-                                                        [dateFormat]="currentLang === 'en' ? 'dd/mm/yy' : 'yy.mm.dd'"
-                                                        [placeholder]="currentLang === 'en' ? 'dd/mm/yyyy' : 'éééé.hh.nn'"
-                                                        dataType="date"
-                                                        appendTo="body">
-                                            </p-datepicker>
+
+                                            <app-localized-date-picker inputId="birthDate"
+                                                                       formControlName="birthDate"
+                                                                       [defaultDate]="birthDateMax"
+                                                                       [minDate]="birthDateMin"
+                                                                       [maxDate]="birthDateMax">
+                                            </app-localized-date-picker>
                                             <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
                                                 {{'Születési dátum' | translate }} {{'kötelező' | translate }}
                                             </div>
@@ -187,7 +184,7 @@
                                             <label for="nationality" class="font-medium text-900">
                                                 {{'Állampolgárság' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('nationality') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('nationality')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('nationality')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -208,7 +205,7 @@
                                             <label for="country" class="font-medium text-900">
                                                 {{'Lakóhely - ország' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('country') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('country')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('country')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -229,18 +226,18 @@
                                             <label for="zipCode" class="font-medium text-900">
                                                 {{'Lakóhely - irányítószám' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('zipCode') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('zipCode')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('zipCode')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            
+
                                             <!-- Hungary esetén -->
                                             <p-inputMask *ngIf="conferenceForm.get('country')?.value === 'Hungary'"
                                                          id="zipCode"
-                                                         mask="9999" 
+                                                         mask="9999"
                                                          formControlName="zipCode"
                                                          class="w-full" />
 
@@ -251,7 +248,7 @@
                                                     formControlName="zipCode"
                                                     pInputText
                                                     class="w-full" />
-                                            
+
                                             <div *ngIf="zipCode?.dirty || zipCode?.touched" class="p-error">
                                                 <div *ngIf="zipCode?.errors?.['required']">
                                                     {{'Irányítószám' | translate }} {{'kötelező' | translate }}
@@ -270,7 +267,7 @@
                                             <label for="email" class="font-medium text-900">
                                                 {{'Email' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('email') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('email')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('email')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -296,7 +293,7 @@
                                             <label for="telephone" class="font-medium text-900">
                                                 {{'Telefon' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('telephone') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('telephone')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('telephone')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -304,7 +301,7 @@
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
                                             <input id="telephone"
-                                                   pInputText       
+                                                   pInputText
                                                    formControlName="telephone"
                                                    (keypress)="onlyAllowNumbers($event)"
                                                    maxlength="15" />
@@ -321,23 +318,21 @@
                                             <label for="dateOfArrival" class="font-medium text-900">
                                                 {{'Érkezés dátuma' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('dateOfArrival') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('dateOfArrival')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('dateOfArrival')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <p-datepicker id="dateOfArrival"
-                                                        formControlName="dateOfArrival"
-                                                        [ngClass]="{'ng-invalid': conferenceForm.errors?.['dateRangeInvalid']}"
-                                                        [defaultDate]="beginDate"
-                                                        [minDate]="beginDate" 
-                                                        [maxDate]="endDate"
-                                                        dateFormat="yy-mm-dd"
-                                                        dataType="string"
-                                                        appendTo="body">
-                                            </p-datepicker>
+
+                                            <app-localized-date-picker inputId="dateOfArrival"
+                                                                       formControlName="dateOfArrival"
+                                                                       [invalid]="!!conferenceForm.errors?.['dateRangeInvalid']"
+                                                                       [defaultDate]="beginDate"
+                                                                       [minDate]="beginDate"
+                                                                       [maxDate]="endDate">
+                                            </app-localized-date-picker>
                                             <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
                                             </div>
@@ -354,18 +349,18 @@
                                             <label for="firstMeal" class="font-medium text-900">
                                                 {{'Első étkezés' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('firstMeal') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('firstMeal')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('firstMeal')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <app-meal-selector 
-                                                [parentForm]="conferenceForm" 
+                                            <app-meal-selector
+                                                [parentForm]="conferenceForm"
                                                 controlName="firstMeal"
                                                 [earliestMeal]="getEarliestFirstMeal()"
-                                                [latestMeal]="getLatestFirstMeal()"  
+                                                [latestMeal]="getLatestFirstMeal()"
                                                 [showNothing]="true">
                                             </app-meal-selector>
                                             <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
@@ -381,7 +376,7 @@
                                             <label for="diet" class="font-medium text-900">
                                                 {{'Étrend' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('diet') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('diet')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('diet')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -402,23 +397,21 @@
                                             <label for="dateOfDeparture" class="font-medium text-900">
                                                 {{'Távozás dátuma' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('dateOfDeparture') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('dateOfDeparture')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('dateOfDeparture')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <p-datepicker id="dateOfDeparture"
-                                                        formControlName="dateOfDeparture"
-                                                        [ngClass]="{'ng-invalid': conferenceForm.errors?.['dateRangeInvalid']}"
-                                                        [defaultDate]="beginDate"
-                                                        [minDate]="beginDate" 
-                                                        [maxDate]="endDate"
-                                                        dateFormat="yy-mm-dd"
-                                                        dataType="string"
-                                                        appendTo="body">
-                                            </p-datepicker>
+
+                                            <app-localized-date-picker inputId="dateOfDeparture"
+                                                                       formControlName="dateOfDeparture"
+                                                                       [invalid]="!!conferenceForm.errors?.['dateRangeInvalid']"
+                                                                       [defaultDate]="beginDate"
+                                                                       [minDate]="beginDate"
+                                                                       [maxDate]="endDate">
+                                            </app-localized-date-picker>
                                             <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, adja meg a távozás dátumát' | translate }}!
                                             </div>
@@ -435,18 +428,18 @@
                                             <label for="lastMeal" class="font-medium text-900">
                                                 {{'Utolsó étkezés' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('lastMeal') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('lastMeal')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('lastMeal')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <app-meal-selector 
-                                                [parentForm]="conferenceForm" 
-                                                controlName="lastMeal" 
-                                                [earliestMeal]="getEarliestLastMeal()" 
-                                                [latestMeal]="getLatestLastMeal()" 
+                                            <app-meal-selector
+                                                [parentForm]="conferenceForm"
+                                                controlName="lastMeal"
+                                                [earliestMeal]="getEarliestLastMeal()"
+                                                [latestMeal]="getLatestLastMeal()"
                                                 [showNothing]="true">
                                             </app-meal-selector>
                                             <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="p-error">
@@ -462,15 +455,15 @@
                                             <label for="roomType" class="font-medium text-900">
                                                 {{'Szobatípus' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('roomType') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('roomType')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('roomType')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <app-roomtype-selector 
-                                                [parentForm]="conferenceForm" 
+                                            <app-roomtype-selector
+                                                [parentForm]="conferenceForm"
                                                 controlName="roomType"
                                                 [allowedRoomTypeIds]="allowedConferenceRoomTypeIds">
                                             </app-roomtype-selector>
@@ -490,7 +483,7 @@
                                             <label for="babyBed" class="font-medium text-900">
                                                 {{'Babaágyat kérsz' | translate }}?
                                                 <i *ngIf="getFormFieldInfoPosition('babyBed') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('babyBed')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('babyBed')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -520,7 +513,7 @@
                                             <label for="roomMate" class="font-medium text-900">
                                                 {{'Kivel laknál egy szobában' | translate }}?
                                                 <i *ngIf="getFormFieldInfoPosition('roomMate') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('roomMate')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('roomMate')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
@@ -553,15 +546,15 @@
                                             <label for="payment" class="font-medium text-900">
                                                 {{'Fizetési mód' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('payment') === 'bubble'"
-                                                    [pTooltip]="getFormFieldInfo('payment')"                                                    
+                                                    [pTooltip]="getFormFieldInfo('payment')"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <app-payment-selector 
-                                                [parentForm]="conferenceForm" 
+                                            <app-payment-selector
+                                                [parentForm]="conferenceForm"
                                                 controlName="payment"
                                                 [allowedPaymentMethodIds]="allowedPaymentMethodIds"
                                                 [optionSelectable]="(allowedPaymentMethodIds?.length ?? 0) > 0">
@@ -616,9 +609,9 @@
                                             </label>
                                             <app-reactive-file-upload
                                                 name="idCard"
-                                                formControlName="idCard" 
-                                                accept=".jpg,.jpeg,.png" 
-                                                chooseLabel="{{'Tallózás' | translate }}" 
+                                                formControlName="idCard"
+                                                accept=".jpg,.jpeg,.png"
+                                                chooseLabel="{{'Tallózás' | translate }}"
                                                 cancelLabel="{{'Mégsem' | translate }}">
                                             </app-reactive-file-upload>
                                             <div *ngIf="idCard?.dirty && idCard?.errors?.['required']" class="p-error">
@@ -635,7 +628,7 @@
                                                     href="https://www.zichy-vajta.com/gdpr"
                                                     target="_blank">
                                                     {{'ZVKK Adatvédelmi Nyilatkozatot' | translate }}
-                                                </a> 
+                                                </a>
                                                 <span *ngIf="conference.acceptanceCriteriaUrl?.length">
                                                     {{'és az' | translate }}
                                                     <a class="cursor-pointer text-primary-700"
@@ -659,10 +652,10 @@
                                         </div>
 
                                         <!-- SUBMIT -->
-                                        <p-button type="submit" 
-                                                  class="white-space-nowrap ml-3" 
-                                                  icon="pi pi-check" 
-                                                  label="{{'Elküldöm a regisztrációmat' | translate }}" 
+                                        <p-button type="submit"
+                                                  class="white-space-nowrap ml-3"
+                                                  icon="pi pi-check"
+                                                  label="{{'Elküldöm a regisztrációmat' | translate }}"
                                                   [loading]="loading"
                                                   [disabled]="loading || conferenceForm.invalid">
                                         </p-button>
@@ -672,8 +665,8 @@
                                 <!-- New registration -->
                                 <div *ngIf="(!registrationEnded || (registrationEnded && canFillAfterRegistrationDeadline)) && !showForm"
                                      class="flex w-full items-center justify-center">
-                                    
-                                     <p-button class="white-space-nowrap mt-3" 
+
+                                     <p-button class="white-space-nowrap mt-3"
                                                icon="pi pi-plus"
                                                label="{{'Új vendéget regisztrálok' | translate }}"
                                                (onClick)="newRegistration()">

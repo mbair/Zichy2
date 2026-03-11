@@ -774,6 +774,8 @@ export class ConferenceFormComponent implements OnInit {
             const lang = this.translate.currentLang === 'gb' ? 'en' : this.translate.currentLang
 
             guestData.birthDate = formatDateYmd(guestData.birthDate)
+            guestData.dateOfArrival = formatDateYmd(guestData.dateOfArrival)
+            guestData.dateOfDeparture = formatDateYmd(guestData.dateOfDeparture)
 
             // Add questions to formdata
             guestData.questions = this.conference?.questions?.[0]?.translations?.map((t: any) => t[lang] || 'Ismeretlen kérdés') || []

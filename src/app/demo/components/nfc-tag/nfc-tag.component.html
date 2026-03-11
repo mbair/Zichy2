@@ -58,8 +58,8 @@
                                    style="width: 6rem"/>
                         </th>
                         <th>
-                            <app-color-selector 
-                                (change)="onFilter($event, 'color')" 
+                            <app-color-selector
+                                (change)="onFilter($event, 'color')"
                                 [showClear]="true">
                             </app-color-selector>
                         </th>
@@ -81,7 +81,7 @@
                                    style="min-width: 8rem"/>
                         </th>
                         <th>
-                            <app-yes-no-selector 
+                            <app-yes-no-selector
                                 [ngModel]="filterValues['enabled']"
                                 (ngModelChange)="onFilter($event, 'enabled')"
                                 [yesText]="'Igen'"
@@ -92,24 +92,23 @@
                             </app-yes-no-selector>
                         </th>
                         <th>
-                            <p-datepicker 
+
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'createdAt')"
-                                (onClearClick)="onFilter($event, 'createdAt')" 
-                                appendTo="body" 
-                                dataType="string"
-                                placeholder="Keresés..." 
+                                (onClearClick)="onFilter($event, 'createdAt')"
+                                placeholder="Keresés..."
                                 [showButtonBar]="true">
-                            </p-datepicker>
+
+                            </app-localized-date-picker>
                         </th>
                         <th>
-                            <p-datepicker 
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'updatedAt')"
-                                (onClearClick)="onFilter($event, 'updatedAt')" 
-                                appendTo="body" 
-                                dataType="string"
-                                placeholder="Keresés..." 
+                                (onClearClick)="onFilter($event, 'updatedAt')"
+                                placeholder="Keresés..."
                                 [showButtonBar]="true">
-                            </p-datepicker>
+
+                            </app-localized-date-picker>
                         </th>
                         <th></th>
                     </tr>
@@ -172,10 +171,10 @@
         </div>
 
         <!-- New / Update sidebar -->
-        <p-drawer 
-            id="sidebar" 
-            [(visible)]="sidebar" 
-            position="right" 
+        <p-drawer
+            id="sidebar"
+            [(visible)]="sidebar"
+            position="right"
             styleClass="p-sidebar-md"
             [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
             [fullScreen]="isMobile"
@@ -207,11 +206,11 @@
                     <!-- Identifier -->
                     <div class="mb-4 w-full">
                         <label for="rfid" class="font-medium text-900">Azonosító</label>
-                        <input 
-                            id="rfid" 
-                            type="text" 
-                            pInputText 
-                            formControlName="rfid" 
+                        <input
+                            id="rfid"
+                            type="text"
+                            pInputText
+                            formControlName="rfid"
                             pTooltip="Érintse a kártyaolvasóhoz az NFC címkét"
                             tooltipPosition="top"
                             readonly>
@@ -223,7 +222,7 @@
                     <!-- Enabled -->
                     <div class="mb-4 w-full">
                         <label for="enabled" class="font-medium text-900">Engedélyezve</label>
-                        <app-yes-no-selector 
+                        <app-yes-no-selector
                             formControlName="enabled"
                             [yesText]="'Igen'"
                             [noText]="'Nem'"
@@ -240,19 +239,19 @@
 
             <ng-template pTemplate="footer">
                 <div class="flex justify-end ap-2">
-                    <button pButton 
-                            pRipple 
-                            label="Mégsem" 
-                            icon="pi pi-times" 
+                    <button pButton
+                            pRipple
+                            label="Mégsem"
+                            icon="pi pi-times"
                             class="p-button-outlined"
-                            (click)="cancel()" 
+                            (click)="cancel()"
                             [disabled]="!tagForm.dirty">
                     </button>
-                    <button pButton 
-                            pRipple 
-                            label="Mentés" 
-                            icon="pi pi-check" 
-                            class="p-button ml-2" 
+                    <button pButton
+                            pRipple
+                            label="Mentés"
+                            icon="pi pi-check"
+                            class="p-button ml-2"
                             (click)="save()"
                             [disabled]="!tagForm.valid || !tagForm.dirty">
                     </button>

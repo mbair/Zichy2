@@ -33,6 +33,7 @@ import { NationalitySelectorComponent } from '../../selectors/nationality-select
 import { PaymentSelectorComponent } from '../../selectors/payment-selector/payment-selector.component';
 import { RoomTypeSelectorComponent } from '../../selectors/roomtype-selector/roomtype-selector.component';
 import { ReactiveFileUploadModule } from '../../widget/reactive-file-upload/reactive-file-upload.module';
+import { LocalizedDatePickerComponent } from '../../widget/localized-date-picker/localized-date-picker.component';
 
 @NgModule({ declarations: [
         ConferenceFormComponent,
@@ -69,6 +70,7 @@ import { ReactiveFileUploadModule } from '../../widget/reactive-file-upload/reac
         PaymentSelectorComponent,
         RoomTypeSelectorComponent,
         ReactiveFileUploadModule,
+        LocalizedDatePickerComponent,
     ],
     providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class ConferenceFormModule { }

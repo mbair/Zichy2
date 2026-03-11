@@ -1,35 +1,35 @@
 <div class="grid">
     <div class="w-full">
         <div class="card px-0 py-0">
-            <p-table #dt 
-                     dataKey="id" 
-                     [value]="tableData" 
-                     responsiveLayout="scroll" 
+            <p-table #dt
+                     dataKey="id"
+                     [value]="tableData"
+                     responsiveLayout="scroll"
                      [rows]="rowsPerPage"
-                     [totalRecords]="totalRecords" 
-                     [globalFilterFields]="['name','beginDate','endDate','contractorName','contactName']" 
+                     [totalRecords]="totalRecords"
+                     [globalFilterFields]="['name','beginDate','endDate','contractorName','contactName']"
                      [paginator]="true"
-                     [rowsPerPageOptions]="rowsPerPageOptions" 
+                     [rowsPerPageOptions]="rowsPerPageOptions"
                      [showCurrentPageReport]="true"
                      currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
-                     [(selection)]="selected" 
-                     selectionMode="multiple" 
+                     [(selection)]="selected"
+                     selectionMode="multiple"
                      [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
                      [rowHover]="true"
                      (onRowExpand)="onRowExpand($event.data)"
-                     (onLazyLoad)="onLazyLoad($event)" 
+                     (onLazyLoad)="onLazyLoad($event)"
                      [lazy]="true">
 
                 <ng-template pTemplate="caption">
                     <div class="flex flex-col md:flex-row md:justify-between md:items-center">
                         <h5 class="m-0">Konferenciák</h5>
-                        
+
                         <!-- Hide globalfiter from Organizers -->
                         <span *ngIf="!isOrganizer" class="block mt-2 md:mt-0 p-input-icon-left">
                             <i class="pi pi-search"></i>
-                            <input pInputText 
-                                   type="text" 
-                                   (input)="onGlobalFilter(dt, $event)" 
+                            <input pInputText
+                                   type="text"
+                                   (input)="onGlobalFilter(dt, $event)"
                                    placeholder="Keresés..."
                                    class="w-full sm:w-auto"/>
                         </span>
@@ -39,10 +39,10 @@
                             <app-room-conference-binder>
                             </app-room-conference-binder>
 
-                            <button pButton 
-                                    pRipple 
-                                    label="Új" 
-                                    icon="pi pi-plus" 
+                            <button pButton
+                                    pRipple
+                                    label="Új"
+                                    icon="pi pi-plus"
                                     class="p-button-success mr-2"
                                     (click)="create()"
                                     [disabled]="!canCreate">
@@ -64,58 +64,56 @@
                         <th pSortableColumn="lastMeal">Utolsó étkezés <p-sortIcon field="endDate"></p-sortIcon></th>
                         <th>Engedélyezve </th>
                     </tr>
-                    
+
                     <!-- Filters -->
                     <tr>
                         <th>
                             <!-- <p-tableHeaderCheckbox></p-tableHeaderCheckbox> -->
                         </th>
                         <th>
-                            <input 
-                                pInputText 
-                                type="text" (input)="onFilter($event, 'name')" 
+                            <input
+                                pInputText
+                                type="text" (input)="onFilter($event, 'name')"
                                 placeholder="Keresés..."
                                 style="width:40%; min-width:22rem;" />
                         </th>
                         <th>
-                            <p-datepicker 
+
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'beginDate')"
-                                (onClearClick)="onFilter($event, 'beginDate')" 
-                                appendTo="body" 
-                                dataType="string"
-                                placeholder="Keresés..." 
+                                (onClearClick)="onFilter($event, 'beginDate')"
+                                placeholder="Keresés..."
                                 [showButtonBar]="true">
-                            </p-datepicker>
+
+                            </app-localized-date-picker>
                         </th>
                         <th>
-                            <app-meal-selector 
-                                (change)="onFilter($event, 'firstMeal')" 
-                                placeholder="Keresés..." 
-                                [showNothing]="false" 
+                            <app-meal-selector
+                                (change)="onFilter($event, 'firstMeal')"
+                                placeholder="Keresés..."
+                                [showNothing]="false"
                                 [showClear]="true">
                             </app-meal-selector>
                         </th>
                         <th>
-                            <p-datepicker 
+
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'endDate')"
-                                (onClearClick)="onFilter($event, 'endDate')" 
-                                appendTo="body" 
-                                dataType="string"
-                                placeholder="Keresés..." 
-                                [showButtonBar]="true"
-                                inputStyleClass="w-[6rem]">
-                            </p-datepicker>
+                                (onClearClick)="onFilter($event, 'endDate')"
+                                placeholder="Keresés..."
+                                [showButtonBar]="true">
+                            </app-localized-date-picker>
                         </th>
                         <th>
-                            <app-meal-selector 
-                                (change)="onFilter($event, 'lastMeal')" 
-                                placeholder="Keresés..." 
-                                [showNothing]="false" 
+                            <app-meal-selector
+                                (change)="onFilter($event, 'lastMeal')"
+                                placeholder="Keresés..."
+                                [showNothing]="false"
                                 [showClear]="true">
                             </app-meal-selector>
                         </th>
                         <th>
-                            <app-yes-no-selector 
+                            <app-yes-no-selector
                                 [ngModel]="filterValues['enabled']"
                                 (ngModelChange)="onFilter($event, 'enabled')"
                                 [yesText]="'Igen'"
@@ -175,13 +173,13 @@
                                 </button>
                                 <button pButton pRipple icon="pi pi-info-circle"
                                     class="p-button-rounded p-button-success mr-2" pTooltip="Űrlap mező információk beállítása"
-                                    tooltipPosition="top" 
+                                    tooltipPosition="top"
                                     (click)="editFormFieldInfos(conference)"
                                     [disabled]="isOrganizer && conference.organizer_user_id !== loggedInUserId">
                                 </button>
                                 <button pButton pRipple icon="pi pi-question"
                                     class="p-button-rounded p-button-success mr-2" pTooltip="Extra kérdések beállítása"
-                                    tooltipPosition="top" 
+                                    tooltipPosition="top"
                                     (click)="editQuestions(conference)"
                                     [disabled]="isOrganizer && conference.organizer_user_id !== loggedInUserId">
                                 </button>
@@ -301,10 +299,11 @@
         </div>
 
         <!-- Sidebar -->
+
         <p-drawer
-            id="sidebar" 
-            [(visible)]="sidebar" 
-            position="right" 
+            id="sidebar"
+            [(visible)]="sidebar"
+            position="right"
             styleClass="p-sidebar-md"
             [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
             [fullScreen]="isMobile"
@@ -347,9 +346,10 @@
                     <!-- Kezdete -->
                     <div class="mb-4 w-full lg:w-1/2">
                         <label for="beginDate" class="font-medium text-900">Kezdete</label>
-                        <p-datepicker formControlName="beginDate" appendTo="body" dataType="string" dateFormat="yy-mm-dd"
+
+                        <app-localized-date-picker formControlName="beginDate"
                             [showButtonBar]="true">
-                        </p-datepicker>
+                        </app-localized-date-picker>
                         <div *ngIf="beginDate?.dirty && beginDate?.errors?.['required']" class="block p-error">Kötelező
                             kitölteni</div>
                     </div>
@@ -365,9 +365,10 @@
                     <!-- Vége -->
                     <div class="mb-4 w-full lg:w-1/2">
                         <label for="endDate" class="font-medium text-900">Vége</label>
-                        <p-datepicker formControlName="endDate" appendTo="body" dataType="string" dateFormat="yy-mm-dd"
+
+                        <app-localized-date-picker formControlName="endDate"
                             [showButtonBar]="true">
-                        </p-datepicker>
+                        </app-localized-date-picker>
                         <div *ngIf="endDate?.dirty && endDate?.errors?.['required']" class="block p-error">Kötelező
                             kitölteni</div>
                     </div>
@@ -440,9 +441,10 @@
                     <!-- Regisztráció vége -->
                     <div class="mb-4 w-full lg:w-1/2">
                         <label for="registrationEndDate" class="font-medium text-900">Regisztráció vége</label>
-                        <p-datepicker formControlName="registrationEndDate" appendTo="body" dataType="string"
-                            dateFormat="yy-mm-dd" [showButtonBar]="true">
-                        </p-datepicker>
+
+                        <app-localized-date-picker formControlName="registrationEndDate"
+                            [showButtonBar]="true">
+                        </app-localized-date-picker>
                         <div *ngIf="registrationEndDate?.dirty && registrationEndDate?.errors?.['required']"
                             class="block p-error">Kötelező kitölteni</div>
                     </div>
@@ -450,12 +452,10 @@
                     <!-- Vendég módosítás határideje -->
                     <div class="mb-4 w-full lg:w-1/2">
                         <label for="guestEditEndDate" class="font-medium text-900">Vendég módosítás határideje</label>
-                        <p-datepicker formControlName="guestEditEndDate" 
-                                    appendTo="body" 
-                                    dataType="string" 
-                                    dateFormat="yy-mm-dd" 
+
+                        <app-localized-date-picker formControlName="guestEditEndDate"
                                     [showButtonBar]="true">
-                        </p-datepicker>
+                        </app-localized-date-picker>
                         <div *ngIf="guestEditEndDate?.dirty && guestEditEndDate?.errors?.['required']"
                             class="block p-error">Kötelező kitölteni</div>
                     </div>
@@ -463,8 +463,8 @@
                     <!-- Fizetési módok -->
                     <div class="mb-4 w-full lg:w-1/2">
                         <label for="paymentMethod" class="font-medium text-900">Fizetési módok</label>
-                        <app-payment-selector 
-                            [parentForm]="conferenceForm" 
+                        <app-payment-selector
+                            [parentForm]="conferenceForm"
                             controlName="paymentMethodIds"
                             [multiple]="true"
                             [optionSelectable]="true"
@@ -489,7 +489,7 @@
                     <!-- Enabled -->
                     <div class="mb-4 w-full lg:w-1/2">
                         <label for="enabled" class="font-medium text-900">Engedélyezve</label>
-                        <app-yes-no-selector 
+                        <app-yes-no-selector
                             formControlName="enabled"
                             [yesText]="'Igen'"
                             [noText]="'Nem'"
@@ -514,10 +514,11 @@
         </p-drawer>
 
         <!-- Form Field Infos sidebar -->
-        <p-drawer 
-            id="formFieldsSidebar" 
-            [(visible)]="formFieldsInfosSidebar" 
-            position="right" 
+
+        <p-drawer
+            id="formFieldsSidebar"
+            [(visible)]="formFieldsInfosSidebar"
+            position="right"
             styleClass="p-sidebar-md"
             [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
             [fullScreen]="isMobile"
@@ -545,7 +546,7 @@
                         <label class="font-medium text-900 mb-2">
                             {{FORM_FIELD_INFOS_CONFIG[i].label}} információ
                         </label>
-                        
+
                         <div formGroupName="info" class="block mt-2 p-input-icon-left">
                             <i><img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-hu" style="width: 18px; margin-top:-8px" /></i>
                             <input type="text" pInputText formControlName="hu" class="w-full" />
@@ -562,10 +563,10 @@
                         </div>
 
                         <div class="block mt-2">
-                            <p-selectButton 
-                                [options]="formFieldsInfosPosition" 
-                                formControlName="position" 
-                                optionLabel="label" 
+                            <p-selectButton
+                                [options]="formFieldsInfosPosition"
+                                formControlName="position"
+                                optionLabel="label"
                                 optionValue="value" />
                         </div>
                     </div>
@@ -582,10 +583,11 @@
         </p-drawer>
 
         <!-- Questions sidebar -->
-        <p-drawer 
-            id="questionsSidebar" 
-            [(visible)]="questionsSidebar" 
-            position="right" 
+
+        <p-drawer
+            id="questionsSidebar"
+            [(visible)]="questionsSidebar"
+            position="right"
             styleClass="p-sidebar-md"
             [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
             [fullScreen]="isMobile"

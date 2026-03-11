@@ -2,15 +2,17 @@
 
     <!-- Date picker for week selection -->
     <div class="grid">
+
         <div class="w-full pt-0 pb-2">
-            <p-datepicker 
+            <app-localized-date-picker
                 [(ngModel)]="selectedDate"
+                modelType="date"
                 [showIcon]="true"
                 [showButtonBar]="true"
                 (onSelect)="onDateSelect($event)"
-                appendTo="body"
-                pTooltip="A kiválasztott dátum hetének étrendje" 
-                tooltipPosition="right"/>
+                pTooltip="A kiválasztott dátum hetének étrendje"
+                tooltipPosition="right">
+            </app-localized-date-picker>
         </div>
     </div>
 
@@ -40,7 +42,7 @@
         <ng-template pTemplate="body">
             <tr>
                 <td class="font-semibold">Összesen</td>
-                
+
                 <!-- Total meals -->
                 <ng-container *ngFor="let day of firstWeek['normál']">
                     <td colspan="2" class="text-center" [ngClass]="{ 'bg-yellow-200': isTotalMealChanged(day, 'breakfast'), 'bg-indigo-100': isToday(day?.date) && !isTotalMealChanged(day, 'breakfast') }">
@@ -58,7 +60,7 @@
             <ng-container *ngFor="let dietType of getDietTypes()">
                 <tr>
                     <td class="font-medium">{{ dietType }}</td>
-                    
+
                     <!-- Breakfast, lunch, dinner for each day -->
                     <ng-container *ngFor="let day of firstWeek[dietType]">
                         <td *ngIf="day" class="text-center" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) && !isChanged(dietType, day, 'breakfast', 'child'), 'bg-yellow-200': isChanged(dietType, day, 'breakfast', 'child') }">
@@ -67,21 +69,21 @@
                         <td *ngIf="day" class="text-center" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) && !isChanged(dietType, day, 'breakfast', 'adult'), 'bg-yellow-200': isChanged(dietType, day, 'breakfast', 'adult') }">
                             {{ day?.breakfast?.adult || 0 }}
                         </td>
-                    
+
                         <td *ngIf="day" class="text-center" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) && !isChanged(dietType, day, 'lunch', 'child'), 'bg-yellow-200': isChanged(dietType, day, 'lunch', 'child') }">
                             {{ day?.lunch?.child || 0 }}
                         </td>
                         <td *ngIf="day" class="text-center" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) && !isChanged(dietType, day, 'lunch', 'adult'), 'bg-yellow-200': isChanged(dietType, day, 'lunch', 'adult') }">
                             {{ day?.lunch?.adult || 0 }}
                         </td>
-                    
+
                         <td *ngIf="day" class="text-center" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) && !isChanged(dietType, day, 'dinner', 'child'), 'bg-yellow-200': isChanged(dietType, day, 'dinner', 'child') }">
                             {{ day?.dinner?.child || 0 }}
                         </td>
                         <td *ngIf="day" class="text-center" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) && !isChanged(dietType, day, 'dinner', 'adult'), 'bg-yellow-200': isChanged(dietType, day, 'dinner', 'adult') }">
                             {{ day?.dinner?.adult || 0 }}
                         </td>
-                    </ng-container>                
+                    </ng-container>
                 </tr>
             </ng-container>
         </ng-template>
@@ -113,7 +115,7 @@
         <ng-template pTemplate="body">
             <tr>
                 <td class="font-semibold">Összesen</td>
-                
+
                 <!-- Total meals -->
                 <ng-container *ngFor="let day of secondWeek['normál']">
                     <td colspan="2" class="text-center" [ngClass]="{ 'bg-yellow-200': isTotalMealChanged(day, 'breakfast'), 'bg-indigo-100': isToday(day?.date) && !isTotalMealChanged(day, 'breakfast') }">
@@ -131,7 +133,7 @@
             <ng-container *ngFor="let dietType of getDietTypes()">
                 <tr>
                     <td class="font-medium">{{ dietType }}</td>
-                    
+
                     <!-- Breakfast, lunch, dinner for each day -->
                     <ng-container *ngFor="let day of secondWeek[dietType]">
                         <td *ngIf="day" class="text-center" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) && !isChanged(dietType, day, 'breakfast', 'child'), 'bg-yellow-200': isChanged(dietType, day, 'breakfast', 'child') }">
@@ -140,14 +142,14 @@
                         <td *ngIf="day" class="text-center" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) && !isChanged(dietType, day, 'breakfast', 'adult'), 'bg-yellow-200': isChanged(dietType, day, 'breakfast', 'adult') }">
                             {{ day?.breakfast?.adult || 0 }}
                         </td>
-                    
+
                         <td *ngIf="day" class="text-center" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) && !isChanged(dietType, day, 'lunch', 'child'), 'bg-yellow-200': isChanged(dietType, day, 'lunch', 'child') }">
                             {{ day?.lunch?.child || 0 }}
                         </td>
                         <td *ngIf="day" class="text-center" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) && !isChanged(dietType, day, 'lunch', 'adult'), 'bg-yellow-200': isChanged(dietType, day, 'lunch', 'adult') }">
                             {{ day?.lunch?.adult || 0 }}
                         </td>
-                    
+
                         <td *ngIf="day" class="text-center" [ngClass]="{ 'bg-indigo-100': isToday(day?.date) && !isChanged(dietType, day, 'dinner', 'child'), 'bg-yellow-200': isChanged(dietType, day, 'dinner', 'child') }">
                             {{ day?.dinner?.child || 0 }}
                         </td>

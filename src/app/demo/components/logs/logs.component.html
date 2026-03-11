@@ -68,16 +68,16 @@
                     <tr>
                         <th></th>
                         <th>
-                            <p-datepicker
+
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'createdAt')"
                                 (onClearClick)="onFilter($event, 'createdAt')"
                                 placeholder="Keresés..."
-                                appendTo="body"
-                                dataType="string"
                                 [showButtonBar]="true"
                                 [style]="{'width':'20%', 'minWidth':'7rem'}"
                                 [inputStyle]="{'minWidth':'5rem'}">
-                            </p-datepicker>
+
+                            </app-localized-date-picker>
                         </th>
                         <th>
                             <!-- TODO: Create an individual selector from this -->
@@ -132,7 +132,7 @@
                                    style="min-width:23rem"/>
                         </th>
                         <th>
-                            <app-user-selector 
+                            <app-user-selector
                                 (change)="onFilter($event, 'userid')"
                                 placeholder="Keresés..."
                                 [showClear]="true"

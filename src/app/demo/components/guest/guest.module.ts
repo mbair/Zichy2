@@ -25,7 +25,6 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageModule } from 'primeng/message';
-import { MessageModule } from 'primeng/message';
 import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
 import { CountrySelectorComponent } from '../../selectors/country-selector/country-selector.component';
 import { DietSelectorComponent } from '../../selectors/diet-selector/diet-selector.component';
@@ -35,6 +34,7 @@ import { PaymentSelectorComponent } from '../../selectors/payment-selector/payme
 import { RoomKeySelectorComponent } from '../../selectors/roomkey-selector/roomkey-selector.component';
 import { RoomTypeSelectorComponent } from '../../selectors/roomtype-selector/roomtype-selector.component';
 import { ReactiveFileUploadModule } from '../../widget/reactive-file-upload/reactive-file-upload.module';
+import { LocalizedDatePickerComponent } from '../../widget/localized-date-picker/localized-date-picker.component';
 
 @NgModule({
     imports: [
@@ -73,6 +73,7 @@ import { ReactiveFileUploadModule } from '../../widget/reactive-file-upload/reac
         RoomKeySelectorComponent,
         RoomTypeSelectorComponent,
         ReactiveFileUploadModule,
+        LocalizedDatePickerComponent,
     ],
     declarations: [GuestComponent]
 })

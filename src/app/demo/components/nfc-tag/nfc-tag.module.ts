@@ -25,9 +25,9 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { DatePickerModule } from 'primeng/datepicker';
 import { SkeletonModule } from 'primeng/skeleton';
 import { DrawerModule } from 'primeng/drawer';
-import { DrawerModule } from 'primeng/drawer';
 import { ColorSelectorComponent } from '../../selectors/color-selector/color-selector.component';
 import { YesNoSelectorComponent } from '../../selectors/yes-no-selector/yes-no-selector.component';
+import { LocalizedDatePickerComponent } from '../../widget/localized-date-picker/localized-date-picker.component';
 
 @NgModule({
     imports: [
@@ -55,6 +55,7 @@ import { YesNoSelectorComponent } from '../../selectors/yes-no-selector/yes-no-s
         TooltipModule,
         CheckboxModule,
         DatePickerModule,
+        LocalizedDatePickerComponent,
         SkeletonModule,
         DrawerModule,
         ColorSelectorComponent,
