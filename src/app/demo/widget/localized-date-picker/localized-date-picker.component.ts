@@ -12,6 +12,29 @@ type ModelType = 'string' | 'date';
     selector: 'app-localized-date-picker',
     standalone: true,
     imports: [CommonModule, ReactiveFormsModule, CalendarModule],
+    styles: [`
+        :host {
+            display: block;
+            width: 100%;
+        }
+
+        .localized-date-picker-native {
+            display: block;
+            width: 100%;
+            min-height: 3rem;
+            line-height: 1.5;
+            font: inherit;
+        }
+
+        .localized-date-picker-native::-webkit-date-and-time-value {
+            min-height: 1.5em;
+            text-align: left;
+        }
+
+        .localized-date-picker-native::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+        }
+    `],
     template: `
         <ng-container *ngIf="!useNativePicker; else nativePicker">
             <p-calendar
@@ -161,7 +184,7 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     }
 
     get resolvedNativeInputClass(): string {
-        const classes = ['p-inputtext', 'p-component'];
+        const classes = ['p-inputtext', 'p-component', 'w-full', 'localized-date-picker-native'];
 
         if (this.inputStyleClass) {
             classes.push(this.inputStyleClass);
