@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, debounceTime, distinctUntilChanged, firstValueFrom, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
@@ -172,14 +172,10 @@ export class RoomComponent implements OnInit {
     doQuery() {
         // Organizer need select conference
         if (this.isOrganizer && !this.selectedConferences.length) return
-
+	
         this.loading = true
-        this.filterValues['conferences'] = this.selectedConferences.map(conference => conference.id).join(',')
-
-        const filters = Object.keys(this.filterValues)
-            .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
-        const queryParams = filters.filter(x => x.length > 0).join('&')
-
+        const queryParams = this.buildQueryParams()
+	
         if (this.globalFilter !== '') {
             return this.roomService.getBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
         }
@@ -414,34 +410,21 @@ export class RoomComponent implements OnInit {
      */
     exportExcel() {
         import("xlsx").then(xlsx => {
-            // Hungarian header
-            const headerMap = [
-                { key: 'roomNum', label: 'Szoba-szám' },
-                { key: 'roomCode', label: 'Szoba kód' },
-                { key: 'beds', label: 'Ágyak száma' },
-                { key: 'spareBeds', label: 'Matrac / gyerekágy' },
-                { key: 'building', label: 'Épület / folyosó' },
-                { key: 'bedType', label: 'Ágy típus' },
-                { key: 'bathroom', label: 'Fürdőszoba' },
-                { key: 'comment', label: 'Megjegyzés' }
-            ]
-
-            let rows = this.selected.length > 0 ? this.selected : this.tableData
-
-            // Extract only the desired fields and Hungarian headers
-            const data = rows.map((row: any) => {
-                let obj: any = {}
-                headerMap.forEach(col => {
-                    obj[col.label] = row[col.key] ?? ''
+            this.getRowsForExport()
+                .then((rows) => {
+                    const data = rows.map((row: Room) => this.mapRoomForExport(row))
+                    const worksheet = xlsx.utils.json_to_sheet(data)
+                    const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
+                    const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
+                    this.saveAsExcelFile(excelBuffer, "rooms")
                 })
-                return obj
-            })
-
-            // The first row will be the Hungarian headers (by label)
-            const worksheet = xlsx.utils.json_to_sheet(data, { header: headerMap.map(h => h.label) })
-            const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
-            const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
-            this.saveAsExcelFile(excelBuffer, "rooms")
+                .catch(() => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Export hiba',
+                        detail: 'A szoba exportálása nem sikerült.'
+                    })
+                })
         })
     }
 
@@ -463,5 +446,77 @@ export class RoomComponent implements OnInit {
 
     // Don't delete this, its needed from a performance point of view,
     ngOnDestroy(): void {
+    }
+
+    private buildQueryParams(): string {
+        this.filterValues['conferences'] = this.selectedConferences.map(conference => conference.id).join(',')
+
+        return Object.keys(this.filterValues)
+            .map((key) => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
+            .filter((value) => value.length > 0)
+            .join('&')
+    }
+
+    private async getRowsForExport(): Promise<Room[]> {
+        if (this.selected.length > 0) {
+            return this.selected
+        }
+
+        if (this.globalFilter !== '') {
+            const response = await firstValueFrom(
+                this.roomService.getBySearch$(this.globalFilter, {
+                    sortField: this.sortField,
+                    sortOrder: this.sortOrder
+                })
+            )
+
+            return response?.rows ?? []
+        }
+
+        const response = await firstValueFrom(
+            this.roomService.get$(
+                0,
+                Math.max(this.totalRecords || 0, this.tableData.length || 0, 1),
+                { sortField: this.sortField, sortOrder: this.sortOrder },
+                this.buildQueryParams()
+            )
+        )
+
+        return response?.rows ?? []
+    }
+
+    private mapRoomForExport(room: Room): { [key: string]: any } {
+        const roomType = this.getRoomType(room)
+        const conferenceNames = Array.isArray(room?.conferences)
+            ? room.conferences
+                .map((conference: Conference) => conference?.name || '')
+                .filter((name: string) => name.length > 0)
+                .join(', ')
+            : ''
+        const translatedBuilding = room?.building
+            ? this.translate.instant(`BUILDINGS.${String(room.building).toUpperCase()}`)
+            : ''
+        const spareBeds = room?.spareBeds
+            ? this.translate.instant(`SPAREBEDS.${String(room.spareBeds).toUpperCase()}`)
+            : ''
+
+        return {
+            'Szoba-szám': room?.roomNum ?? '',
+            'Szoba kód': room?.roomCode ?? '',
+            'Szobatípus': roomType?.label ?? '',
+            'Szobatípus leírás': roomType?.description ?? '',
+            'Szobatípus státusz': roomType ? 'Megadva' : 'Nincs szobatípus megadva',
+            'Épület / folyosó': translatedBuilding,
+            'Emelet': room?.floor ?? '',
+            'Ágyak száma': room?.beds ?? '',
+            'Extra férőhely': room?.extraBeds ?? '',
+            'Ágy típus': room?.bedType ?? '',
+            'Fürdőszoba': room?.bathroom ?? '',
+            'Pótágy': spareBeds,
+            'Klimatizált': room?.climate ? 'Igen' : 'Nem',
+            'Családi szoba': room?.familyRoom ? 'Igen' : 'Nem',
+            'Konferenciák': conferenceNames,
+            'Megjegyzés': room?.comment ?? ''
+        }
     }
 }
