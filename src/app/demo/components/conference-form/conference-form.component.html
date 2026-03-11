@@ -169,7 +169,8 @@
                                                                        formControlName="birthDate"
                                                                        [defaultDate]="birthDateMax"
                                                                        [minDate]="birthDateMin"
-                                                                       [maxDate]="birthDateMax">
+                                                                       [maxDate]="birthDateMax"
+                                                                       [useNativePicker]="true">
                                             </app-localized-date-picker>
                                             <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
                                                 {{'Születési dátum' | translate }} {{'kötelező' | translate }}
@@ -331,7 +332,8 @@
                                                                        [invalid]="!!conferenceForm.errors?.['dateRangeInvalid']"
                                                                        [defaultDate]="beginDate"
                                                                        [minDate]="beginDate"
-                                                                       [maxDate]="endDate">
+                                                                       [maxDate]="endDate"
+                                                                       [useNativePicker]="true">
                                             </app-localized-date-picker>
                                             <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
@@ -410,7 +412,8 @@
                                                                        [invalid]="!!conferenceForm.errors?.['dateRangeInvalid']"
                                                                        [defaultDate]="beginDate"
                                                                        [minDate]="beginDate"
-                                                                       [maxDate]="endDate">
+                                                                       [maxDate]="endDate"
+                                                                       [useNativePicker]="true">
                                             </app-localized-date-picker>
                                             <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, adja meg a távozás dátumát' | translate }}!

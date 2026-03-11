@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { DatePickerModule } from 'primeng/datepicker';
 import { Subscription } from 'rxjs';
@@ -11,22 +11,20 @@ type ModelType = 'string' | 'date';
 @Component({
     selector: 'app-localized-date-picker',
     standalone: true,
-    imports: [CommonModule, FormsModule, DatePickerModule],
+    imports: [CommonModule, ReactiveFormsModule, DatePickerModule],
     template: `
-        <ng-container *ngIf="currentLang === 'en'; else localizedDatePickerHu">
+        <ng-container *ngIf="!useNativePicker; else nativePicker">
             <p-datepicker
                 [id]="inputId"
                 [inputId]="inputId"
-                [(ngModel)]="internalValue"
-                [ngModelOptions]="{ standalone: true }"
-                (ngModelChange)="handleModelChange($event)"
-                (onSelect)="handleSelect($event)"
-                (onClearClick)="handleClearClick()"
-                (onBlur)="handleBlur()"
+                [formControl]="calendarControl"
                 [appendTo]="appendTo"
                 [defaultDate]="$any(normalizedDefaultDate)"
                 [minDate]="$any(normalizedMinDate)"
                 [maxDate]="$any(normalizedMaxDate)"
+                (onSelect)="handleSelect($event)"
+                (onClearClick)="handleClearClick()"
+                (onBlur)="handleBlur()"
                 [placeholder]="resolvedPlaceholder"
                 [showButtonBar]="showButtonBar"
                 [showIcon]="showIcon"
@@ -36,36 +34,24 @@ type ModelType = 'string' | 'date';
                 [style]="style"
                 [styleClass]="resolvedStyleClass"
                 [disabled]="disabled"
-                dateFormat="dd/mm/yy"
+                [dateFormat]="resolvedDateFormat"
                 dataType="date">
             </p-datepicker>
         </ng-container>
-        <ng-template #localizedDatePickerHu>
-            <p-datepicker
+        <ng-template #nativePicker>
+            <input
                 [id]="inputId"
-                [inputId]="inputId"
-                [(ngModel)]="internalValue"
-                [ngModelOptions]="{ standalone: true }"
-                (ngModelChange)="handleModelChange($event)"
-                (onSelect)="handleSelect($event)"
-                (onClearClick)="handleClearClick()"
-                (onBlur)="handleBlur()"
-                [appendTo]="appendTo"
-                [defaultDate]="$any(normalizedDefaultDate)"
-                [minDate]="$any(normalizedMinDate)"
-                [maxDate]="$any(normalizedMaxDate)"
-                [placeholder]="resolvedPlaceholder"
-                [showButtonBar]="showButtonBar"
-                [showIcon]="showIcon"
-                [showClear]="showClear"
-                [inputStyle]="inputStyle"
-                [inputStyleClass]="inputStyleClass"
-                [style]="style"
-                [styleClass]="resolvedStyleClass"
+                type="date"
+                [value]="nativeInputValue"
+                [min]="nativeMinDate"
+                [max]="nativeMaxDate"
                 [disabled]="disabled"
-                dateFormat="yy.mm.dd"
-                dataType="date">
-            </p-datepicker>
+                [placeholder]="resolvedPlaceholder"
+                [class]="resolvedNativeInputClass"
+                [style]="inputStyle"
+                (input)="handleNativeInput($event)"
+                (change)="handleNativeChange($event)"
+                (blur)="handleBlur()">
         </ng-template>
     `,
     providers: [
@@ -92,6 +78,7 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     @Input() styleClass?: string;
     @Input() invalid = false;
     @Input() modelType: ModelType = 'string';
+    @Input() useNativePicker = false;
 
     @Output() onSelect = new EventEmitter<Date | null>();
     @Output() onClearClick = new EventEmitter<null>();
@@ -99,9 +86,11 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     currentLang = 'hu';
     disabled = false;
     internalValue: Date | null = null;
+    readonly calendarControl = new FormControl<Date | null>(null);
 
     private readonly subs = new Subscription();
-    private lastInteractionValue: number | null = null;
+    private blurCommitTimeoutId: ReturnType<typeof setTimeout> | null = null;
+    private lastCommittedValue: number | null = null;
     private onChange: (value: string | Date | null) => void = () => {};
     private onTouched: () => void = () => {};
 
@@ -110,6 +99,11 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     ngOnInit(): void {
         this.currentLang = this.resolveLang(this.translate.currentLang);
         this.subs.add(
+            this.calendarControl.valueChanges.subscribe((value) => {
+                this.internalValue = parseDateOnly(value);
+            })
+        );
+        this.subs.add(
             this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
                 this.currentLang = this.resolveLang(event.lang);
             })
@@ -117,6 +111,9 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     }
 
     ngOnDestroy(): void {
+        if (this.blurCommitTimeoutId !== null) {
+            clearTimeout(this.blurCommitTimeoutId);
+        }
         this.subs.unsubscribe();
     }
 
@@ -140,6 +137,10 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         return this.currentLang === 'en' ? 'dd/mm/yyyy' : 'éééé.hh.nn';
     }
 
+    get resolvedDateFormat(): string {
+        return this.currentLang === 'en' ? 'dd/mm/yy' : 'yy.mm.dd';
+    }
+
     get resolvedStyleClass(): string | undefined {
         if (!this.invalid) {
             return this.styleClass;
@@ -148,9 +149,36 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         return this.styleClass ? `${this.styleClass} ng-invalid ng-dirty` : 'ng-invalid ng-dirty';
     }
 
+    get nativeInputValue(): string {
+        return this.internalValue ? formatDateYmd(this.internalValue) : '';
+    }
+
+    get nativeMinDate(): string | undefined {
+        return this.normalizedMinDate ? formatDateYmd(this.normalizedMinDate) : undefined;
+    }
+
+    get nativeMaxDate(): string | undefined {
+        return this.normalizedMaxDate ? formatDateYmd(this.normalizedMaxDate) : undefined;
+    }
+
+    get resolvedNativeInputClass(): string {
+        const classes = ['p-inputtext', 'p-component'];
+
+        if (this.inputStyleClass) {
+            classes.push(this.inputStyleClass);
+        }
+
+        if (this.invalid) {
+            classes.push('ng-invalid', 'ng-dirty');
+        }
+
+        return classes.join(' ');
+    }
+
     writeValue(value: string | Date | null | undefined): void {
         this.internalValue = parseDateOnly(value);
-        this.lastInteractionValue = this.toComparableValue(this.internalValue);
+        this.lastCommittedValue = this.toComparableValue(this.internalValue);
+        this.calendarControl.setValue(this.internalValue, { emitEvent: false });
     }
 
     registerOnChange(fn: (value: string | Date | null) => void): void {
@@ -163,33 +191,58 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
 
     setDisabledState(isDisabled: boolean): void {
         this.disabled = isDisabled;
+        if (isDisabled) {
+            this.calendarControl.disable({ emitEvent: false });
+        } else {
+            this.calendarControl.enable({ emitEvent: false });
+        }
     }
 
     handleModelChange(value: Date | null): void {
         this.internalValue = value;
-        this.onChange(this.toModelValue(value));
     }
 
     handleSelect(value: Date | null): void {
-        this.lastInteractionValue = this.toComparableValue(value ?? null);
-        this.onSelect.emit(value ?? null);
+        this.internalValue = value ?? null;
+        this.commitValue(value ?? null, true);
     }
 
     handleClearClick(): void {
         this.internalValue = null;
+        this.calendarControl.setValue(null, { emitEvent: false });
         this.onChange(this.toModelValue(null));
-        this.lastInteractionValue = null;
+        this.lastCommittedValue = null;
         this.onClearClick.emit(null);
     }
 
     handleBlur(): void {
         this.onTouched();
 
-        const comparableValue = this.toComparableValue(this.internalValue);
-        if (comparableValue !== this.lastInteractionValue) {
-            this.lastInteractionValue = comparableValue;
-            this.onSelect.emit(this.internalValue ?? null);
+        if (this.blurCommitTimeoutId !== null) {
+            clearTimeout(this.blurCommitTimeoutId);
         }
+
+        this.blurCommitTimeoutId = setTimeout(() => {
+            this.blurCommitTimeoutId = null;
+
+            const comparableValue = this.toComparableValue(this.internalValue);
+            if (comparableValue !== this.lastCommittedValue) {
+                this.commitValue(this.internalValue ?? null, true);
+            }
+        });
+    }
+
+    handleNativeInput(event: Event): void {
+        const value = (event.target as HTMLInputElement | null)?.value ?? '';
+        this.internalValue = parseDateOnly(value);
+    }
+
+    handleNativeChange(event: Event): void {
+        const value = (event.target as HTMLInputElement | null)?.value ?? '';
+        const parsedValue = parseDateOnly(value);
+
+        this.internalValue = parsedValue;
+        this.commitValue(parsedValue, true);
     }
 
     private resolveLang(lang?: string | null): string {
@@ -210,5 +263,14 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         }
 
         return value.getTime();
+    }
+
+    private commitValue(value: Date | null, emitSelect: boolean): void {
+        this.lastCommittedValue = this.toComparableValue(value);
+        this.onChange(this.toModelValue(value));
+
+        if (emitSelect) {
+            this.onSelect.emit(value);
+        }
     }
 }
