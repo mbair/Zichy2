@@ -13,6 +13,7 @@ import { Conference } from '../../api/conference';
 import { Room } from '../../api/room';
 import { loadXlsx } from '../../utils/xlsx-loader';
 import { formatDateCompact, formatDateDots } from '../../utils/date.utils';
+import { saveBlobAsFile } from '../../utils/file-saver.utils';
 
 @Component({
     selector: 'room-component',
@@ -437,9 +438,7 @@ export class RoomComponent implements OnInit {
         const data: Blob = new Blob([buffer], {
             type: EXCEL_TYPE
         })
-        import('file-saver').then(FileSaver => {
-            FileSaver.saveAs(data, fileName + '_export_' + formatDateCompact(new Date()) + EXCEL_EXTENSION)
-        })
+        saveBlobAsFile(data, fileName + '_export_' + formatDateCompact(new Date()) + EXCEL_EXTENSION)
     }
 
     // Don't delete this, its needed from a performance point of view,
