@@ -5,12 +5,14 @@ export interface Room {
     description?: string;
     beds?: number;
     extraBeds?: number;
+    spareBeds?: string;
     matracee?: string;
     bathroom?: string;
     building?: string;
     color?: string;
     floor?: string;
     bedtype?: string;
+    bedType?: string;
     comment?: string;
     climate?: boolean;
     familyRoom?: boolean;
