@@ -165,15 +165,30 @@
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <p-calendar id="birthDate"
-                                                        formControlName="birthDate"
-                                                        [defaultDate]="birthDateMax"
-                                                        [minDate]="birthDateMin"
-                                                        [maxDate]="birthDateMax"
-                                                        dateFormat="yy-mm-dd"
-                                                        dataType="string"
-                                                        appendTo="body">
-                                            </p-calendar>
+                                            <ng-container *ngIf="currentLang === 'en'; else birthDateHu">
+                                                <p-calendar id="birthDate"
+                                                            formControlName="birthDate"
+                                                            [defaultDate]="birthDateMax"
+                                                            [minDate]="birthDateMin"
+                                                            [maxDate]="birthDateMax"
+                                                            dateFormat="dd/mm/yy"
+                                                            placeholder="dd/mm/yyyy"
+                                                            dataType="date"
+                                                            appendTo="body">
+                                                </p-calendar>
+                                            </ng-container>
+                                            <ng-template #birthDateHu>
+                                                <p-calendar id="birthDate"
+                                                            formControlName="birthDate"
+                                                            [defaultDate]="birthDateMax"
+                                                            [minDate]="birthDateMin"
+                                                            [maxDate]="birthDateMax"
+                                                            dateFormat="yy.mm.dd"
+                                                            placeholder="éééé.hh.nn"
+                                                            dataType="date"
+                                                            appendTo="body">
+                                                </p-calendar>
+                                            </ng-template>
                                             <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
                                                 {{'Születési dátum' | translate }} {{'kötelező' | translate }}
                                             </div>
