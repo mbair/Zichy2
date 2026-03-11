@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, FormArray, Validators, FormControl, AbstractCon
 import { Subscription, Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { TranslateService } from '@ngx-translate/core';
+import { dateBoundsValidator } from '../../utils/date-bounds-validator';
 import { emailDomainValidator } from '../../utils/email-validator';
 import { dateRangeValidator } from '../../utils/date-range-validator';
 import { zipCodeValidator } from '../../utils/zipcode-validator';
@@ -249,6 +250,7 @@ export class ConferenceFormComponent implements OnInit {
                         this.conference = data.rows[0]
                         this.beginDate = this.conference.beginDate ? parseDateOnly(this.conference.beginDate) ?? undefined : undefined
                         this.endDate = this.conference.endDate ? parseDateOnly(this.conference.endDate) ?? undefined : undefined
+                        this.applyConferenceDateBoundsValidators()
                         this.allowedPaymentMethodIds = this.extractPaymentMethodIds(this.conference)
                         this.allowedConferenceRoomTypeIds = this.extractConferenceRoomTypeIds(this.conference)
 
@@ -542,6 +544,16 @@ export class ConferenceFormComponent implements OnInit {
     get isOrganizerDeadlineOpen(): boolean {
         const rawEnd = this.conference?.guestEditEndDate
         return !!rawEnd && isSameOrBeforeDay(new Date(), rawEnd)
+    }
+
+    private applyConferenceDateBoundsValidators(): void {
+        const conferenceDateValidators = [Validators.required, dateBoundsValidator(this.beginDate, this.endDate)]
+
+        this.dateOfArrival?.setValidators(conferenceDateValidators)
+        this.dateOfDeparture?.setValidators(conferenceDateValidators)
+        this.dateOfArrival?.updateValueAndValidity({ emitEvent: false })
+        this.dateOfDeparture?.updateValueAndValidity({ emitEvent: false })
+        this.conferenceForm.updateValueAndValidity({ emitEvent: false })
     }
 
     get needsRoom(): boolean {

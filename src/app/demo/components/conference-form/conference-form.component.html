@@ -328,7 +328,7 @@
                                             </label>
                                             <app-localized-date-picker inputId="dateOfArrival"
                                                                        formControlName="dateOfArrival"
-                                                                       [invalid]="!!conferenceForm.errors?.['dateRangeInvalid']"
+                                                                       [invalid]="!!conferenceForm.errors?.['dateRangeInvalid'] || !!dateOfArrival?.errors?.['dateOutOfRange']"
                                                                        [defaultDate]="beginDate"
                                                                        [minDate]="beginDate"
                                                                        [maxDate]="endDate"
@@ -336,6 +336,9 @@
                                             </app-localized-date-picker>
                                             <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
+                                            </div>
+                                            <div *ngIf="(dateOfArrival?.dirty || dateOfArrival?.touched) && dateOfArrival?.errors?.['dateOutOfRange']" class="p-error">
+                                                {{'Az érkezés dátumának a konferencia időtartamán belül kell lennie' | translate }}!
                                             </div>
                                             <div *ngIf="conferenceForm.errors?.['dateRangeInvalid']" class="p-error">
                                                 {{'Az érkezés dátumának korábbinak kell lennie, mint a távozási dátum' | translate }}!
@@ -407,7 +410,7 @@
                                             </label>
                                             <app-localized-date-picker inputId="dateOfDeparture"
                                                                        formControlName="dateOfDeparture"
-                                                                       [invalid]="!!conferenceForm.errors?.['dateRangeInvalid']"
+                                                                       [invalid]="!!conferenceForm.errors?.['dateRangeInvalid'] || !!dateOfDeparture?.errors?.['dateOutOfRange']"
                                                                        [defaultDate]="beginDate"
                                                                        [minDate]="beginDate"
                                                                        [maxDate]="endDate"
@@ -415,6 +418,9 @@
                                             </app-localized-date-picker>
                                             <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, adja meg a távozás dátumát' | translate }}!
+                                            </div>
+                                            <div *ngIf="(dateOfDeparture?.dirty || dateOfDeparture?.touched) && dateOfDeparture?.errors?.['dateOutOfRange']" class="p-error">
+                                                {{'A távozás dátumának a konferencia időtartamán belül kell lennie' | translate }}!
                                             </div>
                                             <div *ngIf="conferenceForm.errors?.['dateRangeInvalid']" class="p-error">
                                                 {{'A távozás dátumának későbbinek kell lennie, mint az érkezési dátum' | translate }}!
