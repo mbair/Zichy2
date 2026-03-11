@@ -181,6 +181,26 @@ describe('LocalizedDatePickerComponent', () => {
         expect(component.internalValue).toEqual(selectedDate);
     }));
 
+    it('stops overlay pointer events from bubbling to document listeners', fakeAsync(() => {
+        const calendar = getCalendar();
+        const overlay = document.createElement('div');
+        const bodyListener = jasmine.createSpy('bodyListener');
+
+        document.body.appendChild(overlay);
+        document.body.addEventListener('mousedown', bodyListener, { once: true });
+        (calendar as unknown as { overlay: HTMLDivElement }).overlay = overlay;
+
+        component.handleCalendarShow();
+        tick();
+
+        overlay.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+
+        expect(bodyListener).not.toHaveBeenCalled();
+
+        component.handleCalendarClose();
+        overlay.remove();
+    }));
+
     it('renders native picker value when enabled', () => {
         component.useNativePicker = true;
         component.writeValue('2026-03-11');

@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
-import { DatePickerModule } from 'primeng/datepicker';
+import { DatePicker, DatePickerModule } from 'primeng/datepicker';
 import { Subscription } from 'rxjs';
 import { formatDateYmd, parseDateOnly } from '../../utils/date.utils';
 
@@ -48,6 +48,8 @@ type ModelType = 'string' | 'date';
                 (onSelect)="handleSelect($event)"
                 (onClearClick)="handleClearClick()"
                 (onBlur)="handleBlur()"
+                (onShow)="handleCalendarShow()"
+                (onClose)="handleCalendarClose()"
                 [placeholder]="resolvedPlaceholder"
                 [showButtonBar]="showButtonBar"
                 [showIcon]="showIcon"
@@ -86,6 +88,8 @@ type ModelType = 'string' | 'date';
     ]
 })
 export class LocalizedDatePickerComponent implements ControlValueAccessor, OnInit, OnDestroy {
+    @ViewChild(DatePicker) calendar?: DatePicker;
+
     @Input() appendTo: any = 'body';
     @Input() defaultDate: Date | string | null | undefined;
     @Input() minDate: Date | string | null | undefined;
@@ -113,11 +117,18 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
 
     private readonly subs = new Subscription();
     private blurCommitTimeoutId: ReturnType<typeof setTimeout> | null = null;
+    private duplicateSelectionGuardTimeoutId: ReturnType<typeof setTimeout> | null = null;
+    private overlayBindTimeoutId: ReturnType<typeof setTimeout> | null = null;
     private lastCommittedValue: number | null = null;
+    private overlayPointerListeners: Array<() => void> = [];
+    private suppressNextDuplicateSelectionValue: number | null = null;
     private onChange: (value: string | Date | null) => void = () => {};
     private onTouched: () => void = () => {};
 
-    constructor(private translate: TranslateService) {}
+    constructor(
+        private translate: TranslateService,
+        private renderer: Renderer2
+    ) {}
 
     ngOnInit(): void {
         this.currentLang = this.resolveLang(this.translate.currentLang);
@@ -137,6 +148,13 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         if (this.blurCommitTimeoutId !== null) {
             clearTimeout(this.blurCommitTimeoutId);
         }
+        if (this.duplicateSelectionGuardTimeoutId !== null) {
+            clearTimeout(this.duplicateSelectionGuardTimeoutId);
+        }
+        if (this.overlayBindTimeoutId !== null) {
+            clearTimeout(this.overlayBindTimeoutId);
+        }
+        this.unbindOverlayPointerListeners();
         this.subs.unsubscribe();
     }
 
@@ -226,6 +244,16 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     }
 
     handleSelect(value: Date | null): void {
+        const comparableValue = this.toComparableValue(value ?? null);
+        if (
+            comparableValue !== null &&
+            this.suppressNextDuplicateSelectionValue === comparableValue &&
+            this.lastCommittedValue === comparableValue
+        ) {
+            this.clearDuplicateSelectionGuard();
+            return;
+        }
+
         this.internalValue = value ?? null;
         this.commitValue(value ?? null, true);
     }
@@ -268,6 +296,31 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         this.commitValue(parsedValue, true);
     }
 
+    handleCalendarShow(): void {
+        if (this.useNativePicker) {
+            return;
+        }
+
+        if (this.overlayBindTimeoutId !== null) {
+            clearTimeout(this.overlayBindTimeoutId);
+        }
+
+        this.overlayBindTimeoutId = setTimeout(() => {
+            this.overlayBindTimeoutId = null;
+            this.bindOverlayPointerListeners();
+        });
+    }
+
+    handleCalendarClose(): void {
+        if (this.overlayBindTimeoutId !== null) {
+            clearTimeout(this.overlayBindTimeoutId);
+            this.overlayBindTimeoutId = null;
+        }
+
+        this.clearDuplicateSelectionGuard();
+        this.unbindOverlayPointerListeners();
+    }
+
     private resolveLang(lang?: string | null): string {
         return lang === 'gb' ? 'en' : (lang || 'hu');
     }
@@ -294,6 +347,92 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
 
         if (emitSelect) {
             this.onSelect.emit(value);
+        }
+    }
+
+    private bindOverlayPointerListeners(): void {
+        this.unbindOverlayPointerListeners();
+
+        const overlay = this.calendar?.overlay;
+        if (!overlay) {
+            return;
+        }
+
+        const handleOverlayPointerDown = (event: Event): void => {
+            event.stopPropagation();
+
+            const dateMeta = this.resolveDateMetaFromOverlayEvent(event);
+            if (!dateMeta || !this.calendar) {
+                return;
+            }
+
+            event.preventDefault();
+            this.markDuplicateSelectionGuard(dateMeta);
+            this.calendar.onDateSelect({ preventDefault: () => {} } as Event, dateMeta);
+        };
+
+        this.overlayPointerListeners = [
+            this.renderer.listen(overlay, 'mousedown', handleOverlayPointerDown),
+            this.renderer.listen(overlay, 'touchstart', handleOverlayPointerDown)
+        ];
+    }
+
+    private unbindOverlayPointerListeners(): void {
+        this.overlayPointerListeners.forEach((unbindListener) => unbindListener());
+        this.overlayPointerListeners = [];
+    }
+
+    private resolveDateMetaFromOverlayEvent(event: Event): any | null {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            return null;
+        }
+
+        const overlay = this.calendar?.overlay;
+        const months = this.calendar?.months as Array<{ dates?: Array<Array<any>> }> | undefined;
+        if (!overlay || !months?.length) {
+            return null;
+        }
+
+        const cell = target.closest('td');
+        const row = cell?.parentElement;
+        const table = cell?.closest('table.p-datepicker-calendar');
+        if (!cell || !row || !table) {
+            return null;
+        }
+
+        const group = cell.closest('.p-datepicker-group');
+        const groupElements = Array.from(overlay.querySelectorAll('.p-datepicker-group'));
+        const groupIndex = group ? Math.max(groupElements.indexOf(group), 0) : 0;
+        const rowIndex = Array.from(row.parentElement?.children ?? []).indexOf(row);
+        const dateCells = Array.from(row.children).filter((column) => !column.classList.contains('p-datepicker-weeknumber'));
+        const columnIndex = dateCells.indexOf(cell);
+
+        if (rowIndex < 0 || columnIndex < 0) {
+            return null;
+        }
+
+        return months[groupIndex]?.dates?.[rowIndex]?.[columnIndex] ?? null;
+    }
+
+    private markDuplicateSelectionGuard(dateMeta: { year: number; month: number; day: number }): void {
+        this.suppressNextDuplicateSelectionValue = new Date(dateMeta.year, dateMeta.month, dateMeta.day).getTime();
+
+        if (this.duplicateSelectionGuardTimeoutId !== null) {
+            clearTimeout(this.duplicateSelectionGuardTimeoutId);
+        }
+
+        this.duplicateSelectionGuardTimeoutId = setTimeout(() => {
+            this.clearDuplicateSelectionGuard();
+        }, 300);
+    }
+
+    private clearDuplicateSelectionGuard(): void {
+        this.suppressNextDuplicateSelectionValue = null;
+
+        if (this.duplicateSelectionGuardTimeoutId !== null) {
+            clearTimeout(this.duplicateSelectionGuardTimeoutId);
+            this.duplicateSelectionGuardTimeoutId = null;
         }
     }
 }
