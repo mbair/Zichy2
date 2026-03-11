@@ -17,7 +17,7 @@ import { SessionService } from '../../service/session.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference, FormFieldInfo } from '../../api/conference';
 import { Answer } from '../../api/answer';
-import { calculateAgeYears, isBeforeDay, isSameDay, isSameOrBeforeDay, parseDateOnly } from '../../utils/date.utils';
+import { calculateAgeYears, formatDateYmd, isBeforeDay, isSameDay, isSameOrBeforeDay, parseDateOnly } from '../../utils/date.utils';
 
 // Google Analytics
 declare let gtag: Function;
@@ -772,6 +772,8 @@ export class ConferenceFormComponent implements OnInit {
             const rawIdCard = this.conferenceForm.get('idCard')?.value
             const files: File[] = rawIdCard ? [rawIdCard] : []
             const lang = this.translate.currentLang === 'gb' ? 'en' : this.translate.currentLang
+
+            guestData.birthDate = formatDateYmd(guestData.birthDate)
 
             // Add questions to formdata
             guestData.questions = this.conference?.questions?.[0]?.translations?.map((t: any) => t[lang] || 'Ismeretlen kérdés') || []

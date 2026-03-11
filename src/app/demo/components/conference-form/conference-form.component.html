@@ -167,10 +167,11 @@
                                             <p-datepicker id="birthDate"
                                                         formControlName="birthDate"
                                                         [defaultDate]="birthDateMax"
-                                                        [minDate]="birthDateMin" 
-                                                        [maxDate]="birthDateMax" 
-                                                        dateFormat="yy-mm-dd" 
-                                                        dataType="string"
+                                                        [minDate]="birthDateMin"
+                                                        [maxDate]="birthDateMax"
+                                                        [dateFormat]="currentLang === 'en' ? 'dd/mm/yy' : 'yy.mm.dd'"
+                                                        [placeholder]="currentLang === 'en' ? 'dd/mm/yyyy' : 'éééé.hh.nn'"
+                                                        dataType="date"
                                                         appendTo="body">
                                             </p-datepicker>
                                             <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
