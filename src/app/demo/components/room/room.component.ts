@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
+import { TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { RoomService } from '../../service/room.service';
@@ -13,6 +14,7 @@ import { Conference } from '../../api/conference';
 import { Room } from '../../api/room';
 import { formatDateCompact, formatDateDots } from '../../utils/date.utils';
 import { saveBlobAsFile } from '../../utils/file-saver.utils';
+import { getRoomTypeOptionById, getRoomTypeOptions, RoomTypeOption } from '../../utils/room-type.utils';
 
 @Component({
     selector: 'room-component',
@@ -49,9 +51,9 @@ export class RoomComponent implements OnInit {
     canDelete: boolean = false                   // User has permission to delete room
     isMobile: boolean = false                    // Mobile screen detection
     isOrganizer: boolean = false                 // User has organizer role
-    occupancyFilter: any                         // TODO: Not used yet  
     selectedConferences: Conference[] = []       // Selected conferences
     numberOfBeds: number = 0                     // Number of beds
+    roomTypes: RoomTypeOption[] = []             // Available room types for badges and filters
 
     private initialFormValues = {
         id: null,
@@ -82,6 +84,7 @@ export class RoomComponent implements OnInit {
         private conferenceService: ConferenceService,
         private messageService: MessageService,
         private responsiveService: ResponsiveService,
+        private translate: TranslateService,
         private fb: FormBuilder) {
 
         // Room form fields and validators
@@ -106,6 +109,9 @@ export class RoomComponent implements OnInit {
     }
 
     ngOnInit() {
+        this.setRoomTypes()
+        this.translate.onLangChange.subscribe(() => this.setRoomTypes())
+
         // Permissions
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canCreate => this.canCreate = canCreate)
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canEdit => this.canEdit = canEdit)
@@ -189,16 +195,18 @@ export class RoomComponent implements OnInit {
     onFilter(event: any, field: string) {
         // Organizer need select conference
         if (this.isOrganizer && !this.selectedConferences) return
-
-        const noWaitFields: string[] = ['conferenceName', 'building', 'bedType', 'spareBeds']
+	
+        const noWaitFields: string[] = ['conferenceName', 'building', 'bedType', 'spareBeds', 'room_typeid']
         let filterValue = ''
+        const hasEventValue = event && Object.prototype.hasOwnProperty.call(event, 'value') && event.value !== null && event.value !== undefined
+        const hasTargetValue = event?.target?.value !== null && event?.target?.value !== undefined
 
         // Calendar date as String
         if (event instanceof Date) {
             filterValue = formatDateDots(event)
         } else {
-            if (event && (event.value || event.target?.value)) {
-                filterValue = event.value || event.target?.value
+            if (hasEventValue || hasTargetValue) {
+                filterValue = hasEventValue ? event.value : event.target?.value
                 filterValue = filterValue.toString()
             } else {
                 this.filterValues[field] = ''
@@ -265,6 +273,24 @@ export class RoomComponent implements OnInit {
         }
 
         this.doQuery()
+    }
+
+    getRoomType(room: Room): RoomTypeOption | null {
+        const roomTypeId = room?.room_typeid
+
+        if (roomTypeId === null || roomTypeId === undefined || roomTypeId === '') {
+            return null
+        }
+
+        if (this.roomTypes.length === 0) {
+            return getRoomTypeOptionById(roomTypeId, this.translate)
+        }
+
+        return this.roomTypes.find((roomType) => roomType.id === Number(roomTypeId)) ?? null
+    }
+
+    private setRoomTypes(): void {
+        this.roomTypes = getRoomTypeOptions(this.translate)
     }
 
     /**

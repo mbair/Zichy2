@@ -14,10 +14,6 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { SidebarModule } from 'primeng/sidebar';
 import { TooltipModule } from 'primeng/tooltip';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { AvatarModule } from 'primeng/avatar';
-import { AvatarGroupModule } from 'primeng/avatargroup';
-import { SliderModule } from 'primeng/slider';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { ChipModule } from 'primeng/chip';
 import { BathroomSelectorComponent } from '../../selectors/bathroom-selector/bathroom-selector.component';
@@ -50,10 +46,6 @@ import { RoomService } from '../../service/room.service';
         ConferenceSelectorComponent,
         FloorSelectorComponent,
         TooltipModule,
-        ProgressBarModule,
-        AvatarModule,
-        AvatarGroupModule,
-        SliderModule,
         RadioButtonModule,
         RoomTypeSelectorComponent,
         SparebedSelectorComponent,

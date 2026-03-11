@@ -73,8 +73,7 @@
                         <th pSortableColumn="spareBeds">Pótágy <p-sortIcon field="spareBeds"></p-sortIcon></th>
                         <th pSortableColumn="comment">Komment <p-sortIcon field="comment"></p-sortIcon></th>
                         <th *ngIf="!selectedConferences.length">Konferenciák</th>
-                        <th pSortableColumn="guests" *ngIf="selectedConferences.length">Vendégek <p-sortIcon field="guests"></p-sortIcon></th>
-                        <th pSortableColumn="occupancy" *ngIf="selectedConferences.length">Telítettség <p-sortIcon field="occupancy"></p-sortIcon></th>
+                        <th *ngIf="selectedConferences.length">Szobatípus</th>
                         <th></th>
                     </tr>
                     <tr>
@@ -121,18 +120,12 @@
                         <th *ngIf="!selectedConferences.length">
                         </th>
                         <th *ngIf="selectedConferences.length">
-                            <input pInputText
-                                   type="text"
-                                   (input)="onFilter($event, 'guests')"
-                                   placeholder="Keresés..."
-                                   style="width:10rem"/>
-                        </th>
-                        <th *ngIf="selectedConferences.length">
-                            <p-slider 
-                                [(ngModel)]="occupancyFilter"
-                                (input)="onFilter($event, 'occupancy')" 
-                                [step]="20" 
-                                styleClass="w-7rem" />
+                            <app-roomtype-selector
+                                (change)="onFilter($event, 'room_typeid')"
+                                [includeNoAccommodation]="false"
+                                [optionValue]="'id'"
+                                [showClear]="true">
+                            </app-roomtype-selector>
                         </th>
                         <th></th>
                     </tr>
@@ -190,26 +183,20 @@
                             </div>
                         </td>
                         <td *ngIf="selectedConferences.length">
-                            <span class="p-column-title">Vendégek</span>
-                            <p-avatarGroup >
-                                <p-avatar *ngFor="let guest of room.guests" 
-                                           icon="pi pi-user" 
-                                           size="large" 
-                                           shape="circle"
-                                           pTooltip="{{guest.guestName}}" 
-                                           tooltipPosition="top">
-                                </p-avatar>
-                            </p-avatarGroup>
-                        </td>
-                        <td *ngIf="selectedConferences.length">
-                            <span class="p-column-title">Telítettség</span>
-                            <p-progressBar 
-                                [value]="(room.guests?.length / room.beds) * 100" 
-                                [showValue]="false" 
-                                [style]="{'height':'.5rem'}"
-                                pTooltip="Ágy/vendég: {{room.beds}}/{{room.guests?.length}}" 
-                                tooltipPosition="top">
-                            </p-progressBar>
+                            <span class="p-column-title">Szobatípus</span>
+                            <ng-container *ngIf="getRoomType(room) as roomType; else noRoomType">
+                                <div [ngClass]="'color-badge roomtype-badge ' + roomType.color">
+                                    <div>{{ roomType.label }}</div>
+                                    <small *ngIf="roomType.description">{{ roomType.description }}</small>
+                                </div>
+                            </ng-container>
+                            <ng-template #noRoomType>
+                                <div class="color-badge roomtype-badge yellow"
+                                     pTooltip="Ehhez a szobához még nincs szobatípus beállítva."
+                                     tooltipPosition="top">
+                                    <div><i class="pi pi-exclamation-triangle mr-2"></i>Szobatípus nincs megadva</div>
+                                </div>
+                            </ng-template>
                         </td>
                         <td>
                             <div class="flex">
@@ -347,6 +334,7 @@
                         <app-roomtype-selector 
                             [parentForm]="roomForm" 
                             controlName="room_typeid"
+                            [includeNoAccommodation]="false"
                             optionValue="id">
                         </app-roomtype-selector>
                         <div *ngIf="room_typeid?.dirty && room_typeid?.errors?.['required']" class="block p-error">
