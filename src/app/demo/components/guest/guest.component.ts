@@ -20,6 +20,7 @@ import { Conference } from '../../api/conference';
 import { Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
 import { calculateAgeYears, formatDateCompact, formatDateDots, isSameDay, isSameOrBeforeDay, parseDateOnly } from '../../utils/date.utils';
+import { saveBlobAsFile } from '../../utils/file-saver.utils';
 
 import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
 
@@ -1649,9 +1650,7 @@ export class GuestComponent implements OnInit {
         const data: Blob = new Blob([buffer], {
             type: EXCEL_TYPE
         })
-        import('file-saver').then(FileSaver => {
-            FileSaver.saveAs(data, fileName + '_export_' + formatDateCompact(new Date()) + EXCEL_EXTENSION);
-        })
+        saveBlobAsFile(data, fileName + '_export_' + formatDateCompact(new Date()) + EXCEL_EXTENSION)
     }
 
     downloadImportTemplate() {
@@ -1709,9 +1708,7 @@ export class GuestComponent implements OnInit {
             const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
             const EXCEL_EXTENSION = '.xlsx'
             const data = new Blob([excelBuffer], { type: EXCEL_TYPE })
-            import('file-saver').then(FileSaver => {
-                FileSaver.saveAs(data, 'NFCReserve_import_template' + EXCEL_EXTENSION)
-            })
+            saveBlobAsFile(data, 'NFCReserve_import_template' + EXCEL_EXTENSION)
         })
     }
 
