@@ -167,6 +167,7 @@
 
                                             <app-localized-date-picker inputId="birthDate"
                                                                        formControlName="birthDate"
+                                                                       [useNativePicker]="true"
                                                                        [defaultDate]="birthDateMax"
                                                                        [minDate]="birthDateMin"
                                                                        [maxDate]="birthDateMax">
@@ -328,6 +329,7 @@
 
                                             <app-localized-date-picker inputId="dateOfArrival"
                                                                        formControlName="dateOfArrival"
+                                                                       [useNativePicker]="true"
                                                                        [invalid]="!!conferenceForm.errors?.['dateRangeInvalid'] || !!dateOfArrival?.errors?.['dateOutOfRange']"
                                                                        [defaultDate]="beginDate"
                                                                        [minDate]="beginDate"
@@ -410,6 +412,7 @@
 
                                             <app-localized-date-picker inputId="dateOfDeparture"
                                                                        formControlName="dateOfDeparture"
+                                                                       [useNativePicker]="true"
                                                                        [invalid]="!!conferenceForm.errors?.['dateRangeInvalid'] || !!dateOfDeparture?.errors?.['dateOutOfRange']"
                                                                        [defaultDate]="beginDate"
                                                                        [minDate]="beginDate"
