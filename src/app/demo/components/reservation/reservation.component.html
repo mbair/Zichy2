@@ -142,26 +142,22 @@
                                    style="width: 10rem"/>
                         </th>
                         <th>
-                            <p-calendar
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'startDate')"
                                 (onClearClick)="onFilter($event, 'startDate')"
-                                appendTo="body"
-                                dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true"
                                 inputStyleClass="w-6rem">
-                            </p-calendar>
+                            </app-localized-date-picker>
                         </th>
                         <th>
-                            <p-calendar
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'endDate')"
                                 (onClearClick)="onFilter($event, 'endDate')"
-                                appendTo="body"
-                                dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true"
                                 inputStyleClass="w-6rem">
-                            </p-calendar>
+                            </app-localized-date-picker>
                         </th>
                         <th>
                             <app-reservation-status-selector
@@ -419,13 +415,10 @@
                         <label for="startDate" class="font-medium text-900">
                             {{'Érkezés dátuma' | translate }}
                         </label>
-                        <p-calendar id="startDate"
-                                    formControlName="startDate"
-                                    [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
-                                    dateFormat="yy-mm-dd"
-                                    dataType="string"
-                                    appendTo="body">
-                        </p-calendar>
+                        <app-localized-date-picker inputId="startDate"
+                                                   formControlName="startDate"
+                                                   [invalid]="!!reservationForm.errors?.['dateRangeInvalid']">
+                        </app-localized-date-picker>
                         <div *ngIf="startDate?.dirty && startDate?.errors?.['required']" class="p-error">
                             {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
                         </div>
@@ -439,13 +432,10 @@
                         <label for="endDate" class="font-medium text-900">
                             {{'Távozás dátuma' | translate }}
                         </label>
-                        <p-calendar id="endDate"
-                                    formControlName="endDate"
-                                    [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
-                                    dateFormat="yy-mm-dd"
-                                    dataType="string"
-                                    appendTo="body">
-                        </p-calendar>
+                        <app-localized-date-picker inputId="endDate"
+                                                   formControlName="endDate"
+                                                   [invalid]="!!reservationForm.errors?.['dateRangeInvalid']">
+                        </app-localized-date-picker>
                         <div *ngIf="endDate?.dirty && endDate?.errors?.['required']" class="p-error">
                             {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
                         </div>

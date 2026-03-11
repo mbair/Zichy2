@@ -26,6 +26,7 @@ import { GuestSelectorComponent } from '../../selectors/guest-selector/guest-sel
 import { ReservationStatusSelectorComponent } from '../../selectors/reservation-status-selector/reservation-status-selector.component';
 import { RoomSelectorComponent } from '../../selectors/room-selector/room-selector.component';
 import { ReservationService } from '../../service/reservation.service';
+import { LocalizedDatePickerComponent } from '../../widget/localized-date-picker/localized-date-picker.component';
 
 @NgModule({
     imports: [
@@ -53,6 +54,7 @@ import { ReservationService } from '../../service/reservation.service';
         RoomSelectorComponent,
         TranslateModule,
         CalendarModule,
+        LocalizedDatePickerComponent,
         InputTextareaModule,
         ConfirmDialogModule
     ],

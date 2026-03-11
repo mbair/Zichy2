@@ -17,6 +17,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { SidebarModule } from 'primeng/sidebar';
 import { ColorSelectorComponent } from '../../selectors/color-selector/color-selector.component';
 import { YesNoSelectorComponent } from '../../selectors/yes-no-selector/yes-no-selector.component';
+import { LocalizedDatePickerComponent } from '../../widget/localized-date-picker/localized-date-picker.component';
 
 @NgModule({
     imports: [
@@ -34,6 +35,7 @@ import { YesNoSelectorComponent } from '../../selectors/yes-no-selector/yes-no-s
         BlockUIModule,
         TooltipModule,
         CalendarModule,
+        LocalizedDatePickerComponent,
         SkeletonModule,
         SidebarModule,
         ColorSelectorComponent,

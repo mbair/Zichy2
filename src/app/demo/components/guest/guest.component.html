@@ -138,34 +138,28 @@
                             </p-dropdown>
                         </th>
                         <th>
-                            <p-calendar
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'lastRfidUsage')"
                                 (onClearClick)="onFilter($event, 'lastRfidUsage')"
-                                appendTo="body"
-                                dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true">
-                            </p-calendar>
+                            </app-localized-date-picker>
                         </th>
                         <th>
-                            <p-calendar
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'dateOfArrival')"
                                 (onClearClick)="onFilter($event, 'dateOfArrival')"
-                                appendTo="body"
-                                dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true">
-                            </p-calendar>
+                            </app-localized-date-picker>
                         </th>
                         <th>
-                            <p-calendar
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'dateOfDeparture')"
                                 (onClearClick)="onFilter($event, 'dateOfDeparture')"
-                                appendTo="body"
-                                dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true">
-                            </p-calendar>
+                            </app-localized-date-picker>
                         </th>
                         <th>
                             <button pButton
@@ -479,15 +473,12 @@
                     <!-- birthDate -->
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="birthDate" class="font-medium text-900">Születési dátum</label>
-                        <p-calendar id="birthDate"
-                                    formControlName="birthDate"
-                                    [defaultDate]="birthDateMax"
-                                    [minDate]="birthDateMin"
-                                    [maxDate]="birthDateMax"
-                                    dateFormat="yy-mm-dd"
-                                    dataType="string"
-                                    appendTo="body">
-                        </p-calendar>
+                        <app-localized-date-picker inputId="birthDate"
+                                                   formControlName="birthDate"
+                                                   [defaultDate]="birthDateMax"
+                                                   [minDate]="birthDateMin"
+                                                   [maxDate]="birthDateMax">
+                        </app-localized-date-picker>
                         <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
                             Születési dátum kötelező
                         </div>
@@ -584,16 +575,13 @@
                     <!-- dateOfArrival -->
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="dateOfArrival" class="font-medium text-900">Érkezés dátuma</label>
-                        <p-calendar id="dateOfArrival"
-                                    formControlName="dateOfArrival"
-                                    [ngClass]="{'ng-invalid': guestForm.errors?.['dateRangeInvalid']}"
-                                    [defaultDate]="beginDate"
-                                    [minDate]="beginDate"
-                                    [maxDate]="endDate"
-                                    dateFormat="yy-mm-dd"
-                                    dataType="string"
-                                    appendTo="body">
-                        </p-calendar>
+                        <app-localized-date-picker inputId="dateOfArrival"
+                                                   formControlName="dateOfArrival"
+                                                   [invalid]="!!guestForm.errors?.['dateRangeInvalid']"
+                                                   [defaultDate]="beginDate"
+                                                   [minDate]="beginDate"
+                                                   [maxDate]="endDate">
+                        </app-localized-date-picker>
                         <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['required']" class="p-error">
                             Kérjük, adja meg az érkezés dátumát!
                         </div>
@@ -629,16 +617,13 @@
                     <!-- dateOfDeparture -->
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="dateOfDeparture" class="font-medium text-900">Távozás dátuma</label>
-                        <p-calendar id="dateOfDeparture"
-                                    formControlName="dateOfDeparture"
-                                    [ngClass]="{'ng-invalid': guestForm.errors?.['dateRangeInvalid']}"
-                                    [defaultDate]="beginDate"
-                                    [minDate]="beginDate"
-                                    [maxDate]="endDate"
-                                    dateFormat="yy-mm-dd"
-                                    dataType="string"
-                                    appendTo="body">
-                        </p-calendar>
+                        <app-localized-date-picker inputId="dateOfDeparture"
+                                                   formControlName="dateOfDeparture"
+                                                   [invalid]="!!guestForm.errors?.['dateRangeInvalid']"
+                                                   [defaultDate]="beginDate"
+                                                   [minDate]="beginDate"
+                                                   [maxDate]="endDate">
+                        </app-localized-date-picker>
                         <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['required']" class="p-error">
                             Kérjük, adja meg a távozás dátumát!
                         </div>
@@ -920,16 +905,13 @@
                 <!-- birthDate -->
                 <div class="field mb-4 col-12 lg:col-4">
                     <label for="birthDate" class="font-medium text-900">Születési dátum</label>
-                    <p-calendar
+                    <app-localized-date-picker
                         formControlName="birthDate"
                         (onSelect)="onFilter($event, 'birthDate')"
                         (onClearClick)="onFilter($event, 'birthDate')"
                         placeholder="Keresés..."
-                        [showButtonBar]="true"
-                        dateFormat="yy-mm-dd"
-                        dataType="string"
-                        appendTo="body">
-                    </p-calendar>
+                        [showButtonBar]="true">
+                    </app-localized-date-picker>
                 </div>
 
                 <!-- nationality -->

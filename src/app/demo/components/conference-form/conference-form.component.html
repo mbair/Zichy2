@@ -165,30 +165,12 @@
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <ng-container *ngIf="currentLang === 'en'; else birthDateHu">
-                                                <p-calendar id="birthDate"
-                                                            formControlName="birthDate"
-                                                            [defaultDate]="birthDateMax"
-                                                            [minDate]="birthDateMin"
-                                                            [maxDate]="birthDateMax"
-                                                            dateFormat="dd/mm/yy"
-                                                            placeholder="dd/mm/yyyy"
-                                                            dataType="date"
-                                                            appendTo="body">
-                                                </p-calendar>
-                                            </ng-container>
-                                            <ng-template #birthDateHu>
-                                                <p-calendar id="birthDate"
-                                                            formControlName="birthDate"
-                                                            [defaultDate]="birthDateMax"
-                                                            [minDate]="birthDateMin"
-                                                            [maxDate]="birthDateMax"
-                                                            dateFormat="yy.mm.dd"
-                                                            placeholder="éééé.hh.nn"
-                                                            dataType="date"
-                                                            appendTo="body">
-                                                </p-calendar>
-                                            </ng-template>
+                                            <app-localized-date-picker inputId="birthDate"
+                                                                       formControlName="birthDate"
+                                                                       [defaultDate]="birthDateMax"
+                                                                       [minDate]="birthDateMin"
+                                                                       [maxDate]="birthDateMax">
+                                            </app-localized-date-picker>
                                             <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
                                                 {{'Születési dátum' | translate }} {{'kötelező' | translate }}
                                             </div>
@@ -343,16 +325,13 @@
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <p-calendar id="dateOfArrival"
-                                                        formControlName="dateOfArrival"
-                                                        [ngClass]="{'ng-invalid': conferenceForm.errors?.['dateRangeInvalid']}"
-                                                        [defaultDate]="beginDate"
-                                                        [minDate]="beginDate"
-                                                        [maxDate]="endDate"
-                                                        dateFormat="yy-mm-dd"
-                                                        dataType="string"
-                                                        appendTo="body">
-                                            </p-calendar>
+                                            <app-localized-date-picker inputId="dateOfArrival"
+                                                                       formControlName="dateOfArrival"
+                                                                       [invalid]="!!conferenceForm.errors?.['dateRangeInvalid']"
+                                                                       [defaultDate]="beginDate"
+                                                                       [minDate]="beginDate"
+                                                                       [maxDate]="endDate">
+                                            </app-localized-date-picker>
                                             <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
                                             </div>
@@ -424,16 +403,13 @@
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <p-calendar id="dateOfDeparture"
-                                                        formControlName="dateOfDeparture"
-                                                        [ngClass]="{'ng-invalid': conferenceForm.errors?.['dateRangeInvalid']}"
-                                                        [defaultDate]="beginDate"
-                                                        [minDate]="beginDate"
-                                                        [maxDate]="endDate"
-                                                        dateFormat="yy-mm-dd"
-                                                        dataType="string"
-                                                        appendTo="body">
-                                            </p-calendar>
+                                            <app-localized-date-picker inputId="dateOfDeparture"
+                                                                       formControlName="dateOfDeparture"
+                                                                       [invalid]="!!conferenceForm.errors?.['dateRangeInvalid']"
+                                                                       [defaultDate]="beginDate"
+                                                                       [minDate]="beginDate"
+                                                                       [maxDate]="endDate">
+                                            </app-localized-date-picker>
                                             <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['required']" class="p-error">
                                                 {{'Kérjük, adja meg a távozás dátumát' | translate }}!
                                             </div>

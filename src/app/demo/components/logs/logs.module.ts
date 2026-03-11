@@ -14,6 +14,7 @@ import { CalendarModule } from 'primeng/calendar';
 import { ChipModule } from 'primeng/chip';
 import { TooltipModule } from 'primeng/tooltip';
 import { LogService } from '../../service/log.service';
+import { LocalizedDatePickerComponent } from '../../widget/localized-date-picker/localized-date-picker.component';
 
 @NgModule({
     imports: [
@@ -29,6 +30,7 @@ import { LogService } from '../../service/log.service';
         ProgressSpinnerModule,
         BlockUIModule,
         CalendarModule,
+        LocalizedDatePickerComponent,
         ChipModule,
         TooltipModule,
     ],

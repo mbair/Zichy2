@@ -22,6 +22,7 @@ import { PaymentSelectorComponent } from '../../selectors/payment-selector/payme
 import { UserSelectorComponent } from '../../selectors/user-selector/user-selector.component';
 import { YesNoSelectorComponent } from '../../selectors/yes-no-selector/yes-no-selector.component';
 import { WidgetModule } from '../../widget/widget.module';
+import { LocalizedDatePickerComponent } from '../../widget/localized-date-picker/localized-date-picker.component';
 
 @NgModule({
 	imports: [
@@ -46,6 +47,7 @@ import { WidgetModule } from '../../widget/widget.module';
         PaymentSelectorComponent,
         UserSelectorComponent,
         YesNoSelectorComponent,
+        LocalizedDatePickerComponent,
         WidgetModule,
 	],
 	declarations: [ConferenceComponent]

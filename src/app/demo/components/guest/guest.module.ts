@@ -31,6 +31,7 @@ import { PaymentSelectorComponent } from '../../selectors/payment-selector/payme
 import { RoomKeySelectorComponent } from '../../selectors/roomkey-selector/roomkey-selector.component';
 import { RoomTypeSelectorComponent } from '../../selectors/roomtype-selector/roomtype-selector.component';
 import { ReactiveFileUploadModule } from '../../widget/reactive-file-upload/reactive-file-upload.module';
+import { LocalizedDatePickerComponent } from '../../widget/localized-date-picker/localized-date-picker.component';
 
 @NgModule({
     imports: [
@@ -66,6 +67,7 @@ import { ReactiveFileUploadModule } from '../../widget/reactive-file-upload/reac
         RoomKeySelectorComponent,
         RoomTypeSelectorComponent,
         ReactiveFileUploadModule,
+        LocalizedDatePickerComponent,
     ],
     declarations: [GuestComponent]
 })
