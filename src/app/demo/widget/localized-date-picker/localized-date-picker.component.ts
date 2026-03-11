@@ -118,6 +118,7 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     private blurCommitTimeoutId: ReturnType<typeof setTimeout> | null = null;
     private duplicateSelectionGuardTimeoutId: ReturnType<typeof setTimeout> | null = null;
     private overlayBindTimeoutId: ReturnType<typeof setTimeout> | null = null;
+    private inputRefreshTimeoutId: ReturnType<typeof setTimeout> | null = null;
     private lastCommittedValue: number | null = null;
     private overlayPointerListeners: Array<() => void> = [];
     private suppressNextDuplicateSelectionValue: number | null = null;
@@ -139,6 +140,7 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         this.subs.add(
             this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
                 this.currentLang = this.resolveLang(event.lang);
+                this.scheduleInputRefresh();
             })
         );
     }
@@ -152,6 +154,9 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         }
         if (this.overlayBindTimeoutId !== null) {
             clearTimeout(this.overlayBindTimeoutId);
+        }
+        if (this.inputRefreshTimeoutId !== null) {
+            clearTimeout(this.inputRefreshTimeoutId);
         }
         this.unbindOverlayPointerListeners();
         this.subs.unsubscribe();
@@ -433,5 +438,20 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
             clearTimeout(this.duplicateSelectionGuardTimeoutId);
             this.duplicateSelectionGuardTimeoutId = null;
         }
+    }
+
+    private scheduleInputRefresh(): void {
+        if (this.useNativePicker) {
+            return;
+        }
+
+        if (this.inputRefreshTimeoutId !== null) {
+            clearTimeout(this.inputRefreshTimeoutId);
+        }
+
+        this.inputRefreshTimeoutId = setTimeout(() => {
+            this.inputRefreshTimeoutId = null;
+            this.calendar?.updateInputfield();
+        });
     }
 }

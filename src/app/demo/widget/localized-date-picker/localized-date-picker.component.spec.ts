@@ -64,6 +64,22 @@ describe('LocalizedDatePickerComponent', () => {
         expect(calendar.placeholder).toBe('dd/mm/yyyy');
     });
 
+    it('reformats the rendered input value on language change', fakeAsync(() => {
+        component.writeValue('2026-03-11');
+        fixture.detectChanges();
+
+        let input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+        expect(input.value).toBe('2026.03.11');
+
+        translate.emitLangChange('gb');
+        fixture.detectChanges();
+        tick();
+        fixture.detectChanges();
+
+        input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+        expect(input.value).toBe('11/03/2026');
+    }));
+
     it('writes string model values as Date internally', () => {
         component.writeValue('2026-03-11');
 
