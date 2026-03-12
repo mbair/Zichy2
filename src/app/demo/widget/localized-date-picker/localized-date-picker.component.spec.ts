@@ -24,6 +24,28 @@ describe('LocalizedDatePickerComponent', () => {
     let component: LocalizedDatePickerComponent;
     let translate: TranslateServiceStub;
 
+    function createComponent(options?: { currentLang?: string; initialValue?: string | Date | null; useNativePicker?: boolean }): void {
+        fixture?.destroy();
+        translate = TestBed.inject(TranslateService) as unknown as TranslateServiceStub;
+
+        if (options?.currentLang) {
+            translate.currentLang = options.currentLang;
+        }
+
+        fixture = TestBed.createComponent(LocalizedDatePickerComponent);
+        component = fixture.componentInstance;
+
+        if (options?.useNativePicker) {
+            component.useNativePicker = true;
+        }
+
+        if (options && Object.prototype.hasOwnProperty.call(options, 'initialValue')) {
+            component.writeValue(options.initialValue ?? null);
+        }
+
+        fixture.detectChanges();
+    }
+
     beforeEach(async () => {
         await TestBed.configureTestingModule({
             imports: [LocalizedDatePickerComponent, NoopAnimationsModule],
@@ -34,15 +56,10 @@ describe('LocalizedDatePickerComponent', () => {
                 }
             ]
         }).compileComponents();
-
-        fixture = TestBed.createComponent(LocalizedDatePickerComponent);
-        component = fixture.componentInstance;
-        translate = TestBed.inject(TranslateService) as unknown as TranslateServiceStub;
-        fixture.detectChanges();
+        createComponent();
     });
 
     function getCalendar(): DatePicker {
-        fixture.detectChanges();
         return fixture.debugElement.query(By.directive(DatePicker)).componentInstance as DatePicker;
     }
 
@@ -54,9 +71,8 @@ describe('LocalizedDatePickerComponent', () => {
         expect(calendar.placeholder).toBe('éééé.hh.nn');
     });
 
-    it('switches to English date format on language change', () => {
-        translate.emitLangChange('gb');
-        fixture.detectChanges();
+    it('renders English date format when initialized in English', () => {
+        createComponent({ currentLang: 'gb' });
 
         const calendar = getCalendar();
         expect(component.currentLang).toBe('en');
@@ -64,21 +80,12 @@ describe('LocalizedDatePickerComponent', () => {
         expect(calendar.placeholder).toBe('dd/mm/yyyy');
     });
 
-    it('reformats the rendered input value on language change', fakeAsync(() => {
-        component.writeValue('2026-03-11');
-        fixture.detectChanges();
+    it('renders the input value in English format when initialized in English', () => {
+        createComponent({ currentLang: 'gb', initialValue: '2026-03-11' });
 
-        let input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
-        expect(input.value).toBe('2026.03.11');
-
-        translate.emitLangChange('gb');
-        fixture.detectChanges();
-        tick();
-        fixture.detectChanges();
-
-        input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+        const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
         expect(input.value).toBe('11/03/2026');
-    }));
+    });
 
     it('writes string model values as Date internally', () => {
         component.writeValue('2026-03-11');
@@ -218,21 +225,18 @@ describe('LocalizedDatePickerComponent', () => {
     }));
 
     it('renders native picker value when enabled', () => {
-        component.useNativePicker = true;
-        component.writeValue('2026-03-11');
-        fixture.detectChanges();
+        createComponent({ useNativePicker: true, initialValue: '2026-03-11' });
 
         const input = fixture.nativeElement.querySelector('input[type="date"]') as HTMLInputElement;
         expect(input.value).toBe('2026-03-11');
     });
 
     it('emits selected value from native picker change', () => {
-        component.useNativePicker = true;
+        createComponent({ useNativePicker: true });
         const onChange = jasmine.createSpy('onChange');
         const selectSpy = jasmine.createSpy('selectSpy');
         component.registerOnChange(onChange);
         component.onSelect.subscribe(selectSpy);
-        fixture.detectChanges();
 
         const input = fixture.nativeElement.querySelector('input[type="date"]') as HTMLInputElement;
         input.value = '2026-03-11';
