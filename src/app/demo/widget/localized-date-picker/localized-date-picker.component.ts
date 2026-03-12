@@ -58,7 +58,6 @@ type ModelType = 'string' | 'date';
                 [inputStyleClass]="inputStyleClass"
                 [style]="style"
                 [styleClass]="resolvedStyleClass"
-                [disabled]="disabled"
                 [dateFormat]="resolvedDateFormat"
                 dataType="date">
             </p-datepicker>
@@ -110,7 +109,6 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     @Output() onSelect = new EventEmitter<Date | null>();
     @Output() onClearClick = new EventEmitter<null>();
 
-    currentLang = 'hu';
     disabled = false;
     internalValue: Date | null = null;
     readonly calendarControl = new FormControl<Date | null>(null);
@@ -132,15 +130,13 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     ) {}
 
     ngOnInit(): void {
-        this.currentLang = this.resolveLang(this.translate.currentLang);
         this.subs.add(
             this.calendarControl.valueChanges.subscribe((value) => {
                 this.internalValue = parseDateOnly(value);
             })
         );
         this.subs.add(
-            this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
-                this.currentLang = this.resolveLang(event.lang);
+            this.translate.onLangChange.subscribe((_event: LangChangeEvent) => {
                 this.scheduleInputRefresh();
             })
         );
@@ -173,6 +169,10 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
 
     get normalizedMaxDate(): Date | undefined {
         return parseDateOnly(this.maxDate) ?? undefined;
+    }
+
+    get currentLang(): string {
+        return this.resolveLang(this.translate.currentLang);
     }
 
     get resolvedPlaceholder(): string {

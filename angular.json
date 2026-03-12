@@ -31,13 +31,6 @@
                         "index": "src/index.html",
                         "tsConfig": "tsconfig.app.json",
                         "inlineStyleLanguage": "scss",
-                        "stylePreprocessorOptions": {
-                            "sass": {
-                                "silenceDeprecations": [
-                                    "import"
-                                ]
-                            }
-                        },
                         "assets": [
                             "src/favicon.ico",
                             "src/assets",
@@ -47,6 +40,10 @@
                             }
                         ],
                         "styles": [
+                            "node_modules/primeicons/primeicons.css",
+                            "node_modules/quill/dist/quill.core.css",
+                            "node_modules/quill/dist/quill.snow.css",
+                            "src/assets/demo/styles/flags/flags.css",
                             "src/styles.scss",
                             "src/assets/tailwind.css"
                         ],
@@ -102,16 +99,10 @@
                 "test": {
                     "builder": "@angular-devkit/build-angular:karma",
                     "options": {
+                        "main": "src/test.ts",
                         "tsConfig": "tsconfig.spec.json",
                         "karmaConfig": "karma.conf.js",
                         "inlineStyleLanguage": "scss",
-                        "stylePreprocessorOptions": {
-                            "sass": {
-                                "silenceDeprecations": [
-                                    "import"
-                                ]
-                            }
-                        },
                         "assets": [
                             "src/favicon.ico",
                             "src/assets",
@@ -121,6 +112,10 @@
                             }
                         ],
                         "styles": [
+                            "node_modules/primeicons/primeicons.css",
+                            "node_modules/quill/dist/quill.core.css",
+                            "node_modules/quill/dist/quill.snow.css",
+                            "src/assets/demo/styles/flags/flags.css",
                             "src/styles.scss",
                             "src/assets/tailwind.css"
                         ],

@@ -5,17 +5,6 @@
 @use "assets/demo/styles/badges.scss";
 @use "assets/demo/styles/code.scss";
 
-/* Layout */
-/* PrimeNG */
-@import "primeicons/primeicons.css";
-
-/* Quill Text Editor for p-editor */
-@import "../node_modules/quill/dist/quill.core.css";
-@import "../node_modules/quill/dist/quill.snow.css";
-
-/* Demos */
-@import "./assets/demo/styles/flags/flags.css";
-
 /* PrimeNG v20 spinner fallback styles (class rename: p-progress-spinner -> p-progressspinner) */
 .p-progressspinner,
 .p-progress-spinner {

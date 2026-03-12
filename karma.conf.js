@@ -1,18 +1,30 @@
 // Karma configuration for Angular CLI test runs.
 module.exports = function (config) {
     const defaultBrowser = process.env.KARMA_BROWSER || 'ChromeHeadless';
+    let specReporterPlugin = null;
+
+    try {
+        specReporterPlugin = require('karma-spec-reporter');
+    } catch {
+        specReporterPlugin = null;
+    }
+
+    const plugins = [
+        require('karma-jasmine'),
+        require('karma-chrome-launcher'),
+        require('karma-jasmine-html-reporter'),
+        require('karma-coverage'),
+        require('@angular-devkit/build-angular/plugins/karma')
+    ];
+
+    if (specReporterPlugin) {
+        plugins.push(specReporterPlugin);
+    }
 
     config.set({
         basePath: '',
         frameworks: ['jasmine', '@angular-devkit/build-angular'],
-        plugins: [
-            require('karma-jasmine'),
-            require('karma-chrome-launcher'),
-            require('karma-jasmine-html-reporter'),
-            require('karma-coverage'),
-            require('karma-spec-reporter'),
-            require('@angular-devkit/build-angular/plugins/karma')
-        ],
+        plugins,
         client: {
             jasmine: {
             },
@@ -33,7 +45,7 @@ module.exports = function (config) {
                 { type: 'text-summary' }
             ]
         },
-        reporters: ['spec', 'kjhtml'],
+        reporters: specReporterPlugin ? ['spec', 'kjhtml'] : ['kjhtml'],
         port: 9876,
         colors: true,
         logLevel: config.LOG_INFO,

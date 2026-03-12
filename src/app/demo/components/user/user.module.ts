@@ -22,7 +22,6 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { PasswordModule } from 'primeng/password';
 import { DrawerModule } from 'primeng/drawer';
-import { DrawerModule } from 'primeng/drawer';
 import { RoleSelectorComponent } from '../../selectors/role-selector/role-selector.component';
 import { UserService } from '../../service/user.service';
 
