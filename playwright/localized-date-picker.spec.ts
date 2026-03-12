@@ -8,7 +8,7 @@ test('mouse selection updates the input and emitted model', async ({ page }) => 
     const input = page.locator('input#debug-localized-date-picker');
     await input.click();
 
-    const overlay = page.locator('div.p-datepicker');
+    const overlay = page.locator('.p-datepicker-panel');
     await expect(overlay).toBeVisible();
 
     await overlay.getByText('11', { exact: true }).click();
@@ -25,7 +25,7 @@ test('raw PrimeNG calendar still reacts to mouse selection', async ({ page }) =>
     const input = page.locator('input#debug-raw-date-picker');
     await input.click();
 
-    const overlay = page.locator('div.p-datepicker');
+    const overlay = page.locator('.p-datepicker-panel');
     await expect(overlay).toBeVisible();
 
     await overlay.getByText('11', { exact: true }).click();
