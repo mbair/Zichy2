@@ -20,6 +20,7 @@ import { AppMenuitemComponent } from './app.menuitem.component';
 import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
 
 @NgModule({ declarations: [
         AppLayoutComponent,
@@ -41,5 +42,6 @@ import { TagModule } from 'primeng/tag';
         RippleModule,
         RouterModule,
         AppConfigModule,
-        TagModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
+        TagModule,
+        ToastModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class AppLayoutModule { }

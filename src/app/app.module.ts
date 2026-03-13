@@ -6,6 +6,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import Aura from '@primeuix/themes/aura';
+import { MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -35,6 +36,7 @@ export function HttpLoaderFactory(http: HttpClient) {
             useDefaultLang: true
         })], providers: [
         ApiService,
+        MessageService,
         { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
         { provide: LocationStrategy, useClass: HashLocationStrategy },
