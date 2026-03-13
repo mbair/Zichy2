@@ -21,6 +21,7 @@ import { AppMenuitemComponent } from './app.menuitem.component';
 import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
 
 @NgModule({
     declarations: [
@@ -47,7 +48,8 @@ import { TagModule } from 'primeng/tag';
         RippleModule,
         RouterModule,
         AppConfigModule,
-        TagModule
+        TagModule,
+        ToastModule
     ]
 })
 export class AppLayoutModule { }

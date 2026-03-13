@@ -207,6 +207,10 @@ export class UserService {
             })
     }
 
+    public getOwnData$(): Observable<any> {
+        return this.apiService.get(`users/getowndata`)
+    }
+
     /**
      * Get User Role
      * @returns

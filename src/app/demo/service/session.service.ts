@@ -1,6 +1,8 @@
 import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable, Injector } from '@angular/core';
 import { Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
+import { formatRemainingSessionTime, getRemainingSessionMs, parseSessionExpiry } from '../utils/session-time.utils';
 import { UserService } from './user.service';
 
 type SessionEndReason = 'manual' | 'expired' | 'unauthorized';
@@ -14,11 +16,17 @@ export class SessionService {
     private readonly sessionExpiryStorageKey = 'session_expires_at';
     private readonly sessionExpiryHeader = 'X-Session-Expires-At';
     private readonly idleTimeoutMs = 30 * 60 * 1000;
+    private readonly keepAliveBeforeExpiryMs = 5 * 60 * 1000;
+    private readonly warningBeforeExpiryMs = 2 * 60 * 1000;
+    private readonly sessionWarningToastKey = 'session-warning';
     private readonly activityEvents: Array<keyof DocumentEventMap> = ['click', 'keydown', 'mousedown', 'scroll', 'touchstart'];
     private expirationTimer: ReturnType<typeof setTimeout> | null = null;
+    private keepAliveTimer: ReturnType<typeof setTimeout> | null = null;
+    private warningTimer: ReturnType<typeof setTimeout> | null = null;
     private idleTimer: ReturnType<typeof setTimeout> | null = null;
     private monitoringInitialized = false;
     private logoutInProgress = false;
+    private keepAliveInFlight = false;
 
     private readonly storageListener = (event: StorageEvent) => {
         if (!event.key || ![this.tokenStorageKey, this.sessionExpiryStorageKey].includes(event.key)) {
@@ -27,6 +35,7 @@ export class SessionService {
 
         if (!this.getToken()) {
             this.cancelExpirationTimer();
+            this.cancelKeepAliveTimer();
             this.getUserService().updateUserRole('No Role');
             this.redirectToLogin('session-invalid');
             return;
@@ -52,7 +61,8 @@ export class SessionService {
     constructor(
         @Inject(DOCUMENT) private document: Document,
         private router: Router,
-        private injector: Injector
+        private injector: Injector,
+        private messageService: MessageService
     ) { }
 
     initializeMonitoring(): void {
@@ -132,6 +142,8 @@ export class SessionService {
         const token = this.getToken();
         if (!token) {
             this.cancelExpirationTimer();
+            this.cancelKeepAliveTimer();
+            this.cancelWarningTimer();
             this.cancelIdleTimer();
             return;
         }
@@ -149,6 +161,8 @@ export class SessionService {
         }
 
         this.scheduleExpirationTimer(delay);
+        this.scheduleKeepAliveTimer(delay);
+        this.scheduleWarningTimer(delay);
         this.resetIdleTimer();
     }
 
@@ -164,6 +178,51 @@ export class SessionService {
             clearTimeout(this.expirationTimer);
             this.expirationTimer = null;
         }
+    }
+
+    private scheduleKeepAliveTimer(delay: number): void {
+        this.cancelKeepAliveTimer();
+
+        if (delay <= 0) {
+            return;
+        }
+
+        const keepAliveDelay = Math.max(delay - this.keepAliveBeforeExpiryMs, 0);
+        this.keepAliveTimer = setTimeout(() => {
+            this.triggerKeepAlive();
+        }, keepAliveDelay);
+    }
+
+    private cancelKeepAliveTimer(): void {
+        if (this.keepAliveTimer !== null) {
+            clearTimeout(this.keepAliveTimer);
+            this.keepAliveTimer = null;
+        }
+    }
+
+    private scheduleWarningTimer(delay: number): void {
+        this.cancelWarningTimer();
+        this.messageService.clear(this.sessionWarningToastKey);
+
+        const warningDelay = delay - this.warningBeforeExpiryMs;
+        if (warningDelay <= 0) {
+            this.showSessionExpiringToast(delay);
+            return;
+        }
+
+        this.warningTimer = setTimeout(() => {
+            const remaining = getRemainingSessionMs(this.getStoredExpiry(), Date.now());
+            this.showSessionExpiringToast(remaining);
+        }, warningDelay);
+    }
+
+    private cancelWarningTimer(): void {
+        if (this.warningTimer !== null) {
+            clearTimeout(this.warningTimer);
+            this.warningTimer = null;
+        }
+
+        this.messageService.clear(this.sessionWarningToastKey);
     }
 
     private resetIdleTimer(): void {
@@ -192,7 +251,10 @@ export class SessionService {
 
         this.logoutInProgress = true;
         this.cancelExpirationTimer();
+        this.cancelKeepAliveTimer();
+        this.cancelWarningTimer();
         this.cancelIdleTimer();
+        this.keepAliveInFlight = false;
 
         localStorage.removeItem('email');
         localStorage.removeItem('fullname');
@@ -242,15 +304,46 @@ export class SessionService {
     }
 
     private parseExpiry(value: string | null): number | null {
-        if (!value) {
-            return null;
-        }
+        return parseSessionExpiry(value);
+    }
 
-        const expiresAt = Number(value);
-        return Number.isFinite(expiresAt) ? expiresAt : null;
+    private showSessionExpiringToast(remainingMs: number): void {
+        const detail = `A munkamenet hamarosan lejár. Várható kijelentkeztetés: ${formatRemainingSessionTime(remainingMs)} múlva.`
+
+        this.messageService.add({
+            key: this.sessionWarningToastKey,
+            severity: 'warn',
+            summary: 'Közeleg a munkamenet vége',
+            detail,
+            sticky: true,
+        })
     }
 
     private getUserService(): UserService {
         return this.injector.get(UserService);
+    }
+
+    private triggerKeepAlive(): void {
+        if (this.keepAliveInFlight || this.logoutInProgress) {
+            return;
+        }
+
+        if (!this.getToken() || !this.hasActiveSessionSnapshot()) {
+            return;
+        }
+
+        if (this.document.visibilityState !== 'visible') {
+            return;
+        }
+
+        this.keepAliveInFlight = true;
+        this.getUserService().getOwnData$().subscribe({
+            next: () => {
+                this.keepAliveInFlight = false;
+            },
+            error: () => {
+                this.keepAliveInFlight = false;
+            }
+        });
     }
 }
