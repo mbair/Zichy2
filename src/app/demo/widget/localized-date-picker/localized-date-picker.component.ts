@@ -57,7 +57,6 @@ type ModelType = 'string' | 'date';
                 [inputStyleClass]="inputStyleClass"
                 [style]="style"
                 [styleClass]="resolvedStyleClass"
-                [disabled]="disabled"
                 [dateFormat]="resolvedDateFormat"
                 dataType="date">
             </p-calendar>

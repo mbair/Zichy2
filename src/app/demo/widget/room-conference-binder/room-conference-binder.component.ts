@@ -5,6 +5,8 @@ import { Table } from 'primeng/table';
 import { Room } from '../../api/room';
 import { Conference } from '../../api/conference';
 import { ApiResponse } from '../../api/ApiResponse';
+import { Guest } from '../../api/guest';
+import { GuestService } from '../../service/guest.service';
 import { RoomService } from '../../service/room.service';
 import { UserService } from '../../service/user.service';
 import { ConferenceService, ConferenceStatsMap } from '../../service/conference.service';
@@ -35,16 +37,125 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
     canBindRoomToConference: boolean = true      // User has permission to bind Room to Conference
     numberOfBeds: number = 0                     // Number of beds
     numberOfGuests: number = 0                   // Number of guests
+    numberOfGuestsWaitingForRoom: number = 0     // Guests without assigned room
     numberOfFilteredBeds: number = 0             // Number of filtered beds
     numberOfFilteredGuests: number = 0           // Number of filtered guests
     showOnlyFreeRooms: boolean = false           // Toggle: show only rooms which are free (no overlap with selected conferences)
+    selectedStatsLoading: boolean = false
+    selectedWaitingLoading: boolean = false
     private readonly FULL_FETCH_ROWS = 9999
     private readonly queryTrigger$ = new Subject<{ force: boolean }>()
     private readonly subs = new Subscription()
     private lastQueryKey = ''
-    private readonly localBedsOverrides = new Map<number, number>()
+    private selectedStatsRequestId = 0
+    private filteredStatsRequestId = 0
+    private waitingForRoomRequestId = 0
+    private selectedStatsLastSuccessKey = ''
+    private filteredStatsLastSuccessKey = ''
+    private pendingSummaryRefreshAfterTableReload = false
+
+    get guestSummaryTooltip(): string {
+        return `Vendég összesen: ${this.numberOfGuests} Ebből szobára vár: ${this.numberOfGuestsWaitingForRoom}`
+    }
+
+    get filteredGuestSummaryTooltip(): string {
+        return `Szobához rendelt konferenciák vendégei: ${this.numberOfFilteredGuests}`
+    }
+
+    get bedAvailabilityValue(): number {
+        return this.numberOfMissingBeds > 0 ? this.numberOfMissingBeds : this.numberOfFreeBeds
+    }
+
+    get bedAvailabilityTooltip(): string {
+        if (this.numberOfMissingBeds > 0) {
+            return `Ágyak összesen: ${this.numberOfBeds} Hiányzó ágyak: ${this.numberOfMissingBeds}`
+        }
+
+        return `Ágyak összesen: ${this.numberOfBeds} Szabad ágyak: ${this.numberOfFreeBeds}`
+    }
+
+    get filteredBedSummaryTooltip(): string {
+        if (this.numberOfFilteredFreeBeds > 0) {
+            return `Szobához rendelt konferenciák ágyai: ${this.numberOfFilteredBeds}\nSzabad ágyak: ${this.numberOfFilteredFreeBeds}`
+        }
+
+        return `Szobához rendelt konferenciák ágyai: ${this.numberOfFilteredBeds}`
+    }
+
+    get numberOfFreeBeds(): number {
+        return Math.max(this.numberOfBeds - this.numberOfGuests, 0)
+    }
+
+    get numberOfMissingBeds(): number {
+        return Math.max(this.numberOfGuests - this.numberOfBeds, 0)
+    }
+
+    get numberOfFilteredFreeBeds(): number {
+        return Math.max(this.numberOfFilteredBeds - this.numberOfFilteredGuests, 0)
+    }
+
+    get bedAvailabilityLabel(): string {
+        if (this.numberOfMissingBeds > 0) {
+            return `Hiány: ${this.numberOfMissingBeds}`
+        }
+
+        return `Szabad: ${this.numberOfFreeBeds}`
+    }
+
+    get assignmentAdvice(): string {
+        if (!this.selectedConferences?.length) {
+            return 'Válasszon konferenciát, majd rendeljen hozzá szobákat. A felső számok mutatják a kapacitást és a szobára váró vendégeket.'
+        }
+
+        if (this.numberOfMissingBeds > 0) {
+            if (this.numberOfGuestsWaitingForRoom > 0) {
+                return `Még ${this.numberOfMissingBeds} ágy hozzárendelése szükséges, és ${this.numberOfGuestsWaitingForRoom} vendég még szobára vár.`
+            }
+
+            return `Még ${this.numberOfMissingBeds} ágy hozzárendelése szükséges.`
+        }
+
+        if (this.numberOfGuestsWaitingForRoom > 0) {
+            if (this.numberOfFreeBeds > 0) {
+                return `A kapacitás elegendő, még ${this.numberOfFreeBeds} szabad ágy marad, de ${this.numberOfGuestsWaitingForRoom} vendég még szobára vár.`
+            }
+
+            return `A kapacitás elegendő, de ${this.numberOfGuestsWaitingForRoom} vendég még szobára vár.`
+        }
+
+        if (this.numberOfFreeBeds > 0) {
+            return `A kapacitás elegendő, még ${this.numberOfFreeBeds} szabad ágy marad.`
+        }
+
+        return 'A kapacitás pontosan kitöltött.'
+    }
+
+    get assignmentAdviceVariant(): 'info' | 'warning' | 'attention' | 'success' {
+        if (!this.selectedConferences?.length) {
+            return 'info'
+        }
+
+        if (this.numberOfMissingBeds > 0) {
+            return 'warning'
+        }
+
+        if (this.numberOfGuestsWaitingForRoom > 0) {
+            return 'attention'
+        }
+
+        return 'success'
+    }
+
+    get isAssignmentAdviceLoading(): boolean {
+        if (!this.selectedConferences?.length) {
+            return false
+        }
+
+        return this.selectedStatsLoading || this.selectedWaitingLoading
+    }
 
     constructor(
+        private guestService: GuestService,
         private roomService: RoomService,
         private conferenceService: ConferenceService,
         private userService: UserService,
@@ -94,6 +205,7 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
                         catchError((error: any) => {
                             this.loading = false
                             this.lastQueryKey = ''
+                            this.pendingSummaryRefreshAfterTableReload = false
                             this.messageService.add({
                                 severity: 'error',
                                 summary: 'Szobák lekérdezése sikertelen',
@@ -111,6 +223,11 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
                     this.totalRecords = data.totalItems || 0
                     this.page = data.currentPage || 0
                     this.syncSelectedRoomsWithCurrentData()
+
+                    if (this.pendingSummaryRefreshAfterTableReload) {
+                        this.pendingSummaryRefreshAfterTableReload = false
+                        this.refreshConferenceSummaries()
+                    }
                 })
         )
     }
@@ -122,8 +239,8 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
 
     showDialog() {
         this.visible = true
-        this.localBedsOverrides.clear()
         this.selectedRooms = []
+        this.refreshConferenceSummaries()
         this.doQuery(true)
     }
 
@@ -259,6 +376,7 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
         this.page = 0
         this.selectedRooms = []
         this.loadConferenceStats(selectedConferences, 'selected')
+        this.loadWaitingForRoomCount(selectedConferences)
         this.doQuery()
     }
 
@@ -297,12 +415,12 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
                 icon: 'pi pi-exclamation-triangle',
                 acceptLabel: 'Igen',
                 rejectLabel: 'Mégsem',
-                accept: () => this.executeAssign(selectedConferenceId, rooms, roomIds)
+                accept: () => this.executeAssign(selectedConferenceId, roomIds)
             })
             return
         }
 
-        this.executeAssign(selectedConferenceId, rooms, roomIds)
+        this.executeAssign(selectedConferenceId, roomIds)
     }
 
     /**
@@ -310,14 +428,13 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
      *
      * - Calls backend to bind the given roomIds to the given conferenceId
      * - Shows a success/error toast
-     * - On success: recalculates and increments the displayed bed count, clears selection,
-     *   refreshes conference stats, and reloads the table data
+     * - On success: clears selection, refreshes conference-related header stats,
+     *   and reloads the table data
      *
      * @param conferenceId Target conference ID to which rooms will be assigned
-     * @param rooms        The selected Room objects (used for local bed count recalculation)
      * @param roomIds      The selected room IDs sent to the backend
      */
-    private executeAssign(conferenceId: number, rooms: Room[], roomIds: number[]): void {
+    private executeAssign(conferenceId: number, roomIds: number[]): void {
         this.conferenceService.assignRoomsToConference(conferenceId, roomIds).subscribe({
             next: () => {
                 this.messageService.add({
@@ -326,17 +443,8 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
                     detail: 'Szobák hozzárendelve',
                 })
 
-                // Optimistic UI: immediately reflect newly added beds.
-                const additionalBeds = this.sumBeds(rooms)
-                if (this.hasConferenceId(this.selectedConferences, conferenceId)) {
-                    this.numberOfBeds += additionalBeds
-                    this.setLocalBedsOverride(conferenceId, this.numberOfBeds)
-                }
-                if (this.hasConferenceId(this.selectedFilterConferences, conferenceId)) {
-                    this.numberOfFilteredBeds += additionalBeds
-                    this.setLocalBedsOverride(conferenceId, this.numberOfFilteredBeds)
-                }
                 this.selectedRooms = []
+                this.pendingSummaryRefreshAfterTableReload = true
                 this.doQuery(true)
             },
             error: (error: any) => {
@@ -363,23 +471,7 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
                     detail: `Szoba-konferencia összerendelés törölve`,
                 })
 
-                const removedConferenceId = Number(conference?.id)
-                if (!Number.isFinite(removedConferenceId)) {
-                    this.doQuery(true)
-                    return
-                }
-
-                if (this.hasConferenceId(this.selectedConferences, removedConferenceId)) {
-                    const removedBeds = Number(room?.beds) || 0
-                    this.numberOfBeds = Math.max(0, this.numberOfBeds - removedBeds)
-                    this.setLocalBedsOverride(removedConferenceId, this.numberOfBeds)
-                }
-                if (this.hasConferenceId(this.selectedFilterConferences, removedConferenceId)) {
-                    const removedBeds = Number(room?.beds) || 0
-                    this.numberOfFilteredBeds = Math.max(0, this.numberOfFilteredBeds - removedBeds)
-                    this.setLocalBedsOverride(removedConferenceId, this.numberOfFilteredBeds)
-                }
-
+                this.pendingSummaryRefreshAfterTableReload = true
                 this.doQuery(true)                   // reload table
             },
             error: (error: any) => {
@@ -392,38 +484,12 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
         })
     }
 
-    /**
-     * Calculate Conference Guests and Beds
-     * @param selectedConferences
-     * @returns
-     */
-    private calculateConferenceGuestsAndBeds(selectedConferences: Conference[]): { guests: number, beds: number } {
-        // If no conference are selected we return with 0
-        if (!selectedConferences || selectedConferences.length === 0) {
-            return { guests: 0, beds: 0 }
-        }
-
-        // Calculate Guests number
-        const guests = selectedConferences.reduce((total, conference) =>
-            total + (conference.guestsNumber || 0), 0)
-
-        // Calculate Beds number
-        const beds = selectedConferences.reduce((total, conference) => {
-            const conferenceBeds = conference?.rooms?.reduce((roomTotal, room) =>
-                roomTotal + (room.beds || 0), 0) || 0
-            return total + conferenceBeds
-        }, 0)
-
-        return { guests, beds }
-    }
-
     /** Sum stats coming from /conference/stats for the given ids */
     private applyStatsToTarget(stats: ConferenceStatsMap, ids: number[], target: 'selected' | 'filter'): void {
         const totals = ids.reduce((acc, id) => {
             const s = stats[id] ?? stats[String(id)];
-            const overrideBeds = this.localBedsOverrides.get(Number(id))
             acc.guests += s?.guests ?? 0;
-            acc.beds += overrideBeds ?? s?.beds ?? 0;
+            acc.beds += s?.beds ?? 0;
             return acc;
         }, { guests: 0, beds: 0 });
 
@@ -438,52 +504,145 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
 
     /** Load stats from backend for conference list and write into the proper target fields. */
     private loadConferenceStats(confs: Conference[] | null | undefined, target: 'selected' | 'filter'): void {
+        const requestId = target === 'selected' ? ++this.selectedStatsRequestId : ++this.filteredStatsRequestId
         const ids = (confs ?? []).map(c => Number(c?.id)).filter(Boolean);
+        const statsKey = ids.join(',')
 
         if (!ids.length) {
             if (target === 'selected') {
+                this.selectedStatsLoading = false
+                this.selectedStatsLastSuccessKey = ''
                 this.numberOfGuests = 0;
                 this.numberOfBeds = 0;
             } else {
+                this.filteredStatsLastSuccessKey = ''
                 this.numberOfFilteredGuests = 0;
                 this.numberOfFilteredBeds = 0;
             }
             return;
         }
 
+        if (target === 'selected') {
+            this.selectedStatsLoading = true
+        }
+
         this.conferenceService.getConferenceStatsByIds(ids).subscribe({
-            next: (stats) => this.applyStatsToTarget(stats, ids, target),
-            error: () => {
-                // Safe fallback: keep old client-side calc if API fails for any reason
-                const calc = this.calculateConferenceGuestsAndBeds(confs as Conference[]);
+            next: (stats) => {
+                if (target === 'selected' && requestId !== this.selectedStatsRequestId) return
+                if (target === 'filter' && requestId !== this.filteredStatsRequestId) return
+                this.applyStatsToTarget(stats, ids, target)
                 if (target === 'selected') {
-                    this.numberOfGuests = calc.guests;
-                    this.numberOfBeds = calc.beds;
+                    this.selectedStatsLastSuccessKey = statsKey
+                    this.selectedStatsLoading = false
                 } else {
-                    this.numberOfFilteredGuests = calc.guests;
-                    this.numberOfFilteredBeds = calc.beds;
+                    this.filteredStatsLastSuccessKey = statsKey
+                }
+            },
+            error: () => {
+                if (target === 'selected' && requestId !== this.selectedStatsRequestId) return
+                if (target === 'filter' && requestId !== this.filteredStatsRequestId) return
+                if (target === 'selected') {
+                    if (this.selectedStatsLastSuccessKey !== statsKey) {
+                        this.numberOfGuests = 0;
+                        this.numberOfBeds = 0;
+                    }
+                    this.selectedStatsLoading = false
+                } else {
+                    if (this.filteredStatsLastSuccessKey !== statsKey) {
+                        this.numberOfFilteredGuests = 0;
+                        this.numberOfFilteredBeds = 0;
+                    }
                 }
             }
         });
     }
 
-    /** Convenience refresher for currently selected conference(s) */
-    private refreshSelectedConferenceStats(): void {
-        this.loadConferenceStats(this.selectedConferences, 'selected');
+    private refreshConferenceSummaries(): void {
+        this.loadConferenceStats(this.selectedConferences, 'selected')
+        this.loadConferenceStats(this.selectedFilterConferences, 'filter')
+        this.loadWaitingForRoomCount(this.selectedConferences)
     }
 
-    private sumBeds(rooms: Room[]): number {
-        return (rooms ?? []).reduce((sum, room) => sum + (Number(room?.beds) || 0), 0)
+    private loadWaitingForRoomCount(confs: Conference[] | null | undefined): void {
+        const requestId = ++this.waitingForRoomRequestId
+        const conferenceId = Number(confs?.[0]?.id)
+
+        if (!Number.isFinite(conferenceId)) {
+            this.selectedWaitingLoading = false
+            this.numberOfGuestsWaitingForRoom = 0
+            return
+        }
+
+        this.selectedWaitingLoading = true
+        this.guestService.searchGuestsForSelector$({
+            conferenceId,
+            enabled: true,
+            onlyNotReserved: true
+        }).subscribe({
+            next: (guests: Guest[]) => {
+                if (requestId !== this.waitingForRoomRequestId) return
+
+                this.numberOfGuestsWaitingForRoom = guests.filter((guest: Guest) => !this.hasAssignedRoom(guest)).length
+                this.selectedWaitingLoading = false
+            },
+            error: () => {
+                if (requestId !== this.waitingForRoomRequestId) return
+                this.numberOfGuestsWaitingForRoom = 0
+                this.selectedWaitingLoading = false
+            }
+        })
     }
 
-    private hasConferenceId(conferences: Conference[] | null | undefined, conferenceId: number): boolean {
-        if (!Number.isFinite(conferenceId)) return false
-        return (conferences ?? []).some(conf => Number(conf?.id) === conferenceId)
+    private hasAssignedRoom(guest: Guest): boolean {
+        const reservationRoomNum = guest.reservations?.find(reservation => reservation?.room?.roomNum)?.room?.roomNum
+        const roomNum = (guest.displayRoomNum ?? guest.roomNum ?? reservationRoomNum ?? '').trim()
+        return roomNum.length > 0
     }
 
-    private setLocalBedsOverride(conferenceId: number, beds: number): void {
-        if (!Number.isFinite(conferenceId)) return
-        this.localBedsOverrides.set(conferenceId, Math.max(0, Number(beds) || 0))
+    getConferenceChipStyleClass(room: Room, conference: any): string {
+        if (this.isConferenceOverlapping(conference)) {
+            return 'bg-red-100'
+        }
+
+        if (this.isPotentiallyRemovableConference(room, conference)) {
+            return 'binder-conference-chip--removable'
+        }
+
+        return ''
+    }
+
+    getConferenceChipTooltip(room: Room, conference: any): string | undefined {
+        if (this.isConferenceOverlapping(conference)) {
+            return 'Átfedés van a konferenciával, amihez szobát rendelne'
+        }
+
+        if (this.isPotentiallyRemovableConference(room, conference)) {
+            return 'A jelenlegi kapacitás alapján ez a szoba eltávolítható lehet erről a konferenciáról.'
+        }
+
+        return undefined
+    }
+
+    private isPotentiallyRemovableConference(room: Room, conference: any): boolean {
+        const filterConferenceId = this.getSingleSelectedFilterConferenceId()
+        const chipConferenceId = this.getConferenceId(conference)
+        const roomBeds = Number(room?.beds) || 0
+
+        if (!Number.isFinite(filterConferenceId) || !Number.isFinite(chipConferenceId)) return false
+        if (filterConferenceId !== chipConferenceId) return false
+        if (roomBeds <= 0 || this.numberOfFilteredFreeBeds <= 0) return false
+
+        return (this.numberOfFilteredBeds - roomBeds) >= this.numberOfFilteredGuests
+    }
+
+    private getSingleSelectedFilterConferenceId(): number {
+        if ((this.selectedFilterConferences?.length ?? 0) !== 1) return NaN
+        return this.getConferenceId(this.selectedFilterConferences[0])
+    }
+
+    private getConferenceId(conference: any): number {
+        const conferenceId = Number(conference?.id ?? conference?.conferenceId)
+        return Number.isFinite(conferenceId) ? conferenceId : NaN
     }
 
     /**

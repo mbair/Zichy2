@@ -13,6 +13,7 @@ import { ChipModule } from 'primeng/chip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { BlockUIModule } from 'primeng/blockui';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { SkeletonModule } from 'primeng/skeleton';
 import { ToastModule } from 'primeng/toast';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 import { BedtypeSelectorComponent } from '../selectors/bedtype-selector/bedtype-selector.component';
@@ -45,6 +46,7 @@ import { ReactiveFileUploadModule } from './reactive-file-upload/reactive-file-u
         ConfirmDialogModule,
         BlockUIModule,
         ProgressSpinnerModule,
+        SkeletonModule,
         ToastModule,
         ToggleButtonModule,
         ReactiveFileUploadModule,
