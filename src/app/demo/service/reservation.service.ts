@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
@@ -43,6 +44,27 @@ export class ReservationService {
 
     getBySearchQuery$(filters: string): Observable<ApiResponse> {
         return this.apiService.get<ApiResponse>(`reservation/searchquery?${filters}`)
+    }
+
+    getConferenceSummary$(conferenceId: number): Observable<ConferenceReservationSummary> {
+        const headers = new HttpHeaders({
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+        })
+
+        return this.apiService
+            .get<ApiResponse>(`reservation/get/0/1?conference_id=${encodeURIComponent(String(conferenceId))}`, { headers })
+            .pipe(
+                map((response: ApiResponse | null | undefined) => {
+                    const summary = response?.summary ?? {}
+                    return {
+                        registeredGuests: Number(summary.registeredGuests) || 0,
+                        reservedGuests: Number(summary.reservedGuests) || 0,
+                        totalBeds: Number(summary.totalBeds) || 0,
+                        waitingForRoom: Number(summary.waitingForRoom) || 0,
+                    }
+                })
+            )
     }
 
     // For Selectors (dont write to common stream)
@@ -164,4 +186,11 @@ export class ReservationService {
     private localizeError(err: any): string {
         return this.localize(this.getRawBackendMessage(err))
     }
+}
+
+export interface ConferenceReservationSummary {
+    registeredGuests: number;
+    reservedGuests: number;
+    totalBeds: number;
+    waitingForRoom: number;
 }
