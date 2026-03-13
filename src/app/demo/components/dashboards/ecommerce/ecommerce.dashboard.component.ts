@@ -346,25 +346,45 @@ export class EcommerceDashboardComponent implements OnInit {
 
         this.selectedConference = selectedConference
         this.conferenceStatsLoading = true
-        const guestsRequest$ = conferenceId
-            ? this.guestService.getByConferenceId(conferenceId)
-            : this.guestService.getByConferenceName(conferenceName!)
+        if (conferenceId) {
+            this.guestService.searchGuestsForSelector$({
+                conferenceId,
+                enabled: true
+            }).subscribe({
+                next: (guests: Guest[]) => {
+                    this.applyConferenceGuests(guests)
+                },
+                error: () => {
+                    this.clearConferenceGuests()
+                }
+            })
+            return
+        }
 
-        guestsRequest$.subscribe({
+        this.guestService.getByConferenceName(conferenceName!).subscribe({
             next: (guests: any) => {
-                this.conferenceGuests = Array.isArray(guests?.rows) ? guests.rows : []
-                const registrations = this.registrations
-                this.prepaidPercentage = registrations > 0
-                    ? Math.round((this.prepaid / registrations) * 100)
-                    : 0
-                this.conferenceStatsLoading = false
+                const rows = Array.isArray(guests?.rows) ? guests.rows as Guest[] : []
+                this.applyConferenceGuests(rows)
             },
             error: () => {
-                this.conferenceGuests = []
-                this.prepaidPercentage = 0
-                this.conferenceStatsLoading = false
+                this.clearConferenceGuests()
             }
         })
+    }
+
+    private applyConferenceGuests(guests: Guest[]): void {
+        this.conferenceGuests = Array.isArray(guests) ? guests : []
+        const registrations = this.registrations
+        this.prepaidPercentage = registrations > 0
+            ? Math.round((this.prepaid / registrations) * 100)
+            : 0
+        this.conferenceStatsLoading = false
+    }
+
+    private clearConferenceGuests(): void {
+        this.conferenceGuests = []
+        this.prepaidPercentage = 0
+        this.conferenceStatsLoading = false
     }
 
     /**
