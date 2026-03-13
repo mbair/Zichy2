@@ -32,19 +32,24 @@ export class ApiService {
         }
     }
 
-    get<T>(endpoint: string, options?: { params?: any }): Observable<T> {
+    get<T>(endpoint: string, options?: { params?: any; headers?: HttpHeaders }): Observable<T> {
         const url = `${this.apiURL}/${endpoint}`;
 
         // Erős típus: observe response, params opcionális
         const httpOptions: {
             observe: 'response';
             params?: any;
+            headers?: HttpHeaders;
         } = {
             observe: 'response'
         };
 
         if (options?.params) {
             httpOptions.params = options.params;
+        }
+
+        if (options?.headers) {
+            httpOptions.headers = options.headers;
         }
 
         // A get<T>(…, httpOptions) most Observable<HttpResponse<T>>-t ad vissza

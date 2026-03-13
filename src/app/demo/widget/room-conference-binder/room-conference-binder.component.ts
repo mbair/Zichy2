@@ -5,11 +5,10 @@ import { Table } from 'primeng/table';
 import { Room } from '../../api/room';
 import { Conference } from '../../api/conference';
 import { ApiResponse } from '../../api/ApiResponse';
-import { Guest } from '../../api/guest';
-import { GuestService } from '../../service/guest.service';
 import { RoomService } from '../../service/room.service';
 import { UserService } from '../../service/user.service';
 import { ConferenceService, ConferenceStatsMap } from '../../service/conference.service';
+import { ReservationService } from '../../service/reservation.service';
 import { formatDateDots, toEpoch as toDateEpoch } from '../../utils/date.utils';
 
 @Component({
@@ -42,14 +41,12 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
     numberOfFilteredGuests: number = 0           // Number of filtered guests
     showOnlyFreeRooms: boolean = false           // Toggle: show only rooms which are free (no overlap with selected conferences)
     selectedStatsLoading: boolean = false
-    selectedWaitingLoading: boolean = false
     private readonly FULL_FETCH_ROWS = 9999
     private readonly queryTrigger$ = new Subject<{ force: boolean }>()
     private readonly subs = new Subscription()
     private lastQueryKey = ''
     private selectedStatsRequestId = 0
     private filteredStatsRequestId = 0
-    private waitingForRoomRequestId = 0
     private selectedStatsLastSuccessKey = ''
     private filteredStatsLastSuccessKey = ''
     private pendingSummaryRefreshAfterTableReload = false
@@ -151,13 +148,13 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
             return false
         }
 
-        return this.selectedStatsLoading || this.selectedWaitingLoading
+        return this.selectedStatsLoading
     }
 
     constructor(
-        private guestService: GuestService,
         private roomService: RoomService,
         private conferenceService: ConferenceService,
+        private reservationService: ReservationService,
         private userService: UserService,
         private messageService: MessageService,
         private confirmationService: ConfirmationService
@@ -225,8 +222,8 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
                     this.syncSelectedRoomsWithCurrentData()
 
                     if (this.pendingSummaryRefreshAfterTableReload) {
+                        this.refreshConferenceSummaries(true)
                         this.pendingSummaryRefreshAfterTableReload = false
-                        this.refreshConferenceSummaries()
                     }
                 })
         )
@@ -376,7 +373,6 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
         this.page = 0
         this.selectedRooms = []
         this.loadConferenceStats(selectedConferences, 'selected')
-        this.loadWaitingForRoomCount(selectedConferences)
         this.doQuery()
     }
 
@@ -493,110 +489,93 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
             return acc;
         }, { guests: 0, beds: 0 });
 
-        if (target === 'selected') {
-            this.numberOfGuests = totals.guests;
-            this.numberOfBeds = totals.beds;
-        } else {
+        if (target === 'filter') {
             this.numberOfFilteredGuests = totals.guests;
             this.numberOfFilteredBeds = totals.beds;
         }
     }
 
     /** Load stats from backend for conference list and write into the proper target fields. */
-    private loadConferenceStats(confs: Conference[] | null | undefined, target: 'selected' | 'filter'): void {
-        const requestId = target === 'selected' ? ++this.selectedStatsRequestId : ++this.filteredStatsRequestId
-        const ids = (confs ?? []).map(c => Number(c?.id)).filter(Boolean);
-        const statsKey = ids.join(',')
-
-        if (!ids.length) {
-            if (target === 'selected') {
-                this.selectedStatsLoading = false
-                this.selectedStatsLastSuccessKey = ''
-                this.numberOfGuests = 0;
-                this.numberOfBeds = 0;
-            } else {
-                this.filteredStatsLastSuccessKey = ''
-                this.numberOfFilteredGuests = 0;
-                this.numberOfFilteredBeds = 0;
-            }
-            return;
-        }
-
+    private loadConferenceStats(
+        confs: Conference[] | null | undefined,
+        target: 'selected' | 'filter',
+        forceRefresh = false
+    ): void {
         if (target === 'selected') {
-            this.selectedStatsLoading = true
-        }
-
-        this.conferenceService.getConferenceStatsByIds(ids).subscribe({
-            next: (stats) => {
-                if (target === 'selected' && requestId !== this.selectedStatsRequestId) return
-                if (target === 'filter' && requestId !== this.filteredStatsRequestId) return
-                this.applyStatsToTarget(stats, ids, target)
-                if (target === 'selected') {
-                    this.selectedStatsLastSuccessKey = statsKey
-                    this.selectedStatsLoading = false
-                } else {
-                    this.filteredStatsLastSuccessKey = statsKey
-                }
-            },
-            error: () => {
-                if (target === 'selected' && requestId !== this.selectedStatsRequestId) return
-                if (target === 'filter' && requestId !== this.filteredStatsRequestId) return
-                if (target === 'selected') {
-                    if (this.selectedStatsLastSuccessKey !== statsKey) {
-                        this.numberOfGuests = 0;
-                        this.numberOfBeds = 0;
-                    }
-                    this.selectedStatsLoading = false
-                } else {
-                    if (this.filteredStatsLastSuccessKey !== statsKey) {
-                        this.numberOfFilteredGuests = 0;
-                        this.numberOfFilteredBeds = 0;
-                    }
-                }
-            }
-        });
-    }
-
-    private refreshConferenceSummaries(): void {
-        this.loadConferenceStats(this.selectedConferences, 'selected')
-        this.loadConferenceStats(this.selectedFilterConferences, 'filter')
-        this.loadWaitingForRoomCount(this.selectedConferences)
-    }
-
-    private loadWaitingForRoomCount(confs: Conference[] | null | undefined): void {
-        const requestId = ++this.waitingForRoomRequestId
-        const conferenceId = Number(confs?.[0]?.id)
-
-        if (!Number.isFinite(conferenceId)) {
-            this.selectedWaitingLoading = false
-            this.numberOfGuestsWaitingForRoom = 0
+            this.loadSelectedConferenceSummary(confs)
             return
         }
 
-        this.selectedWaitingLoading = true
-        this.guestService.searchGuestsForSelector$({
-            conferenceId,
-            enabled: true,
-            onlyNotReserved: true
-        }).subscribe({
-            next: (guests: Guest[]) => {
-                if (requestId !== this.waitingForRoomRequestId) return
+        const requestId = ++this.filteredStatsRequestId
+        const ids = (confs ?? []).map(c => Number(c?.id)).filter(Boolean)
+        const statsKey = ids.join(',')
 
-                this.numberOfGuestsWaitingForRoom = guests.filter((guest: Guest) => !this.hasAssignedRoom(guest)).length
-                this.selectedWaitingLoading = false
+        if (!ids.length) {
+            this.filteredStatsLastSuccessKey = ''
+            this.numberOfFilteredGuests = 0
+            this.numberOfFilteredBeds = 0
+            return
+        }
+
+        this.conferenceService.getConferenceStatsByIds(ids, {
+            forceRefresh
+        }).subscribe({
+            next: (stats) => {
+                if (requestId !== this.filteredStatsRequestId) return
+                this.applyStatsToTarget(stats, ids, target)
+                this.filteredStatsLastSuccessKey = statsKey
             },
             error: () => {
-                if (requestId !== this.waitingForRoomRequestId) return
-                this.numberOfGuestsWaitingForRoom = 0
-                this.selectedWaitingLoading = false
+                if (requestId !== this.filteredStatsRequestId) return
+                if (this.filteredStatsLastSuccessKey !== statsKey) {
+                    this.numberOfFilteredGuests = 0
+                    this.numberOfFilteredBeds = 0
+                }
             }
         })
     }
 
-    private hasAssignedRoom(guest: Guest): boolean {
-        const reservationRoomNum = guest.reservations?.find(reservation => reservation?.room?.roomNum)?.room?.roomNum
-        const roomNum = (guest.displayRoomNum ?? guest.roomNum ?? reservationRoomNum ?? '').trim()
-        return roomNum.length > 0
+    private refreshConferenceSummaries(forceRefresh = false): void {
+        this.loadConferenceStats(this.selectedConferences, 'selected')
+        this.loadConferenceStats(this.selectedFilterConferences, 'filter', forceRefresh)
+    }
+
+    private loadSelectedConferenceSummary(confs: Conference[] | null | undefined): void {
+        const requestId = ++this.selectedStatsRequestId
+        const conferenceId = Number(confs?.[0]?.id)
+        const statsKey = Number.isFinite(conferenceId) ? String(conferenceId) : ''
+
+        if (!Number.isFinite(conferenceId)) {
+            this.selectedStatsLoading = false
+            this.selectedStatsLastSuccessKey = ''
+            this.numberOfGuests = 0
+            this.numberOfBeds = 0
+            this.numberOfGuestsWaitingForRoom = 0
+            return
+        }
+
+        this.selectedStatsLoading = true
+        this.reservationService.getConferenceSummary$(conferenceId).subscribe({
+            next: (summary) => {
+                if (requestId !== this.selectedStatsRequestId) return
+
+                this.numberOfGuests = summary.registeredGuests
+                this.numberOfBeds = summary.totalBeds
+                this.numberOfGuestsWaitingForRoom = summary.waitingForRoom
+                this.selectedStatsLastSuccessKey = statsKey
+                this.selectedStatsLoading = false
+            },
+            error: () => {
+                if (requestId !== this.selectedStatsRequestId) return
+
+                if (this.selectedStatsLastSuccessKey !== statsKey) {
+                    this.numberOfGuests = 0
+                    this.numberOfBeds = 0
+                    this.numberOfGuestsWaitingForRoom = 0
+                }
+                this.selectedStatsLoading = false
+            }
+        })
     }
 
     getConferenceChipStyleClass(room: Room, conference: any): string {

@@ -1,7 +1,8 @@
 {
     "name": "nfc-reserve",
-    "version": "1.15.99",
+    "version": "1.15.100",
     "scripts": {
+        "preinstall": "node ./scripts/check-runtime.js ./package.json",
         "ng": "ng",
         "start": "ng serve --proxy-config proxy.conf.json",
         "build": "ng build && ng build --output-path docs --base-href /Zichy2/ --configuration production && git add .",
@@ -22,6 +23,10 @@
         "bump:patch": "npm version patch --no-git-tag-version --force"
     },
     "private": true,
+    "engines": {
+        "node": "24.14.0"
+    },
+    "packageManager": "npm@11.9.0",
     "dependencies": {
         "@angular/animations": "^16.1.0",
         "@angular/cdk": "^16.1.0",
