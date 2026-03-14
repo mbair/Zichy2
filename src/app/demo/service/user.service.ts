@@ -211,6 +211,10 @@ export class UserService {
         return this.apiService.get(`users/getowndata`)
     }
 
+    public refreshSession$(): Observable<any> {
+        return this.apiService.post(`users/refresh-session`, {})
+    }
+
     /**
      * Get User Role
      * @returns

@@ -20,8 +20,8 @@ import { AppMenuComponent } from './app.menu.component';
 import { AppMenuitemComponent } from './app.menuitem.component';
 import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 
 @NgModule({
     declarations: [
@@ -44,12 +44,12 @@ import { ToastModule } from 'primeng/toast';
         RadioButtonModule,
         InputSwitchModule,
         ButtonModule,
+        DialogModule,
         TooltipModule,
         RippleModule,
         RouterModule,
         AppConfigModule,
-        TagModule,
-        ToastModule
+        TagModule
     ]
 })
 export class AppLayoutModule { }

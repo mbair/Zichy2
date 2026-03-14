@@ -1,11 +1,26 @@
 import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable, Injector } from '@angular/core';
 import { Router } from '@angular/router';
-import { MessageService } from 'primeng/api';
-import { formatRemainingSessionTime, getRemainingSessionMs, parseSessionExpiry } from '../utils/session-time.utils';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { getRemainingSessionMs, parseSessionExpiry } from '../utils/session-time.utils';
 import { UserService } from './user.service';
 
 type SessionEndReason = 'manual' | 'expired' | 'unauthorized';
+type SessionRefreshMode = 'auto' | 'manual';
+
+export interface SessionWarningState {
+    readonly visible: boolean;
+    readonly remainingMs: number;
+    readonly refreshing: boolean;
+    readonly error: string | null;
+}
+
+const INITIAL_SESSION_WARNING_STATE: SessionWarningState = {
+    visible: false,
+    remainingMs: 0,
+    refreshing: false,
+    error: null,
+};
 
 @Injectable({
     providedIn: 'root'
@@ -18,15 +33,17 @@ export class SessionService {
     private readonly idleTimeoutMs = 30 * 60 * 1000;
     private readonly keepAliveBeforeExpiryMs = 5 * 60 * 1000;
     private readonly warningBeforeExpiryMs = 2 * 60 * 1000;
-    private readonly sessionWarningToastKey = 'session-warning';
     private readonly activityEvents: Array<keyof DocumentEventMap> = ['click', 'keydown', 'mousedown', 'scroll', 'touchstart'];
     private expirationTimer: ReturnType<typeof setTimeout> | null = null;
     private keepAliveTimer: ReturnType<typeof setTimeout> | null = null;
     private warningTimer: ReturnType<typeof setTimeout> | null = null;
+    private warningCountdownTimer: ReturnType<typeof setInterval> | null = null;
     private idleTimer: ReturnType<typeof setTimeout> | null = null;
     private monitoringInitialized = false;
     private logoutInProgress = false;
     private keepAliveInFlight = false;
+    private activeWarningExpiry: number | null = null;
+    private readonly sessionWarningStateSubject = new BehaviorSubject<SessionWarningState>(INITIAL_SESSION_WARNING_STATE);
 
     private readonly storageListener = (event: StorageEvent) => {
         if (!event.key || ![this.tokenStorageKey, this.sessionExpiryStorageKey].includes(event.key)) {
@@ -36,6 +53,9 @@ export class SessionService {
         if (!this.getToken()) {
             this.cancelExpirationTimer();
             this.cancelKeepAliveTimer();
+            this.cancelWarningTimer();
+            this.closeSessionWarning();
+            this.cancelIdleTimer();
             this.getUserService().updateUserRole('No Role');
             this.redirectToLogin('session-invalid');
             return;
@@ -61,9 +81,12 @@ export class SessionService {
     constructor(
         @Inject(DOCUMENT) private document: Document,
         private router: Router,
-        private injector: Injector,
-        private messageService: MessageService
+        private injector: Injector
     ) { }
+
+    get sessionWarning$(): Observable<SessionWarningState> {
+        return this.sessionWarningStateSubject.asObservable();
+    }
 
     initializeMonitoring(): void {
         if (this.monitoringInitialized) {
@@ -144,6 +167,7 @@ export class SessionService {
             this.cancelExpirationTimer();
             this.cancelKeepAliveTimer();
             this.cancelWarningTimer();
+            this.closeSessionWarning();
             this.cancelIdleTimer();
             return;
         }
@@ -162,7 +186,7 @@ export class SessionService {
 
         this.scheduleExpirationTimer(delay);
         this.scheduleKeepAliveTimer(delay);
-        this.scheduleWarningTimer(delay);
+        this.scheduleWarningTimer(delay, expiresAt);
         this.resetIdleTimer();
     }
 
@@ -200,19 +224,18 @@ export class SessionService {
         }
     }
 
-    private scheduleWarningTimer(delay: number): void {
+    private scheduleWarningTimer(delay: number, expiresAt: number): void {
         this.cancelWarningTimer();
-        this.messageService.clear(this.sessionWarningToastKey);
 
         const warningDelay = delay - this.warningBeforeExpiryMs;
         if (warningDelay <= 0) {
-            this.showSessionExpiringToast(delay);
+            this.openSessionWarning(expiresAt);
             return;
         }
 
+        this.closeSessionWarning();
         this.warningTimer = setTimeout(() => {
-            const remaining = getRemainingSessionMs(this.getStoredExpiry(), Date.now());
-            this.showSessionExpiringToast(remaining);
+            this.openSessionWarning(expiresAt);
         }, warningDelay);
     }
 
@@ -221,8 +244,6 @@ export class SessionService {
             clearTimeout(this.warningTimer);
             this.warningTimer = null;
         }
-
-        this.messageService.clear(this.sessionWarningToastKey);
     }
 
     private resetIdleTimer(): void {
@@ -253,6 +274,7 @@ export class SessionService {
         this.cancelExpirationTimer();
         this.cancelKeepAliveTimer();
         this.cancelWarningTimer();
+        this.closeSessionWarning();
         this.cancelIdleTimer();
         this.keepAliveInFlight = false;
 
@@ -307,20 +329,16 @@ export class SessionService {
         return parseSessionExpiry(value);
     }
 
-    private showSessionExpiringToast(remainingMs: number): void {
-        const detail = `A munkamenet hamarosan lejár. Várható kijelentkeztetés: ${formatRemainingSessionTime(remainingMs)} múlva.`
-
-        this.messageService.add({
-            key: this.sessionWarningToastKey,
-            severity: 'warn',
-            summary: 'Közeleg a munkamenet vége',
-            detail,
-            sticky: true,
-        })
-    }
-
     private getUserService(): UserService {
         return this.injector.get(UserService);
+    }
+
+    extendSession(): void {
+        if (!this.sessionWarningStateSubject.getValue().visible) {
+            return;
+        }
+
+        this.requestSessionRefresh('manual');
     }
 
     private triggerKeepAlive(): void {
@@ -336,14 +354,142 @@ export class SessionService {
             return;
         }
 
+        this.requestSessionRefresh('auto');
+    }
+
+    private requestSessionRefresh(mode: SessionRefreshMode): void {
+        if (this.keepAliveInFlight || this.logoutInProgress) {
+            return;
+        }
+
+        if (!this.getToken() || !this.hasActiveSessionSnapshot()) {
+            return;
+        }
+
+        const previousExpiry = this.getStoredExpiry();
         this.keepAliveInFlight = true;
-        this.getUserService().getOwnData$().subscribe({
+
+        if (mode === 'manual') {
+            this.patchSessionWarningState({
+                refreshing: true,
+                error: null,
+            });
+        }
+
+        this.getUserService().refreshSession$().subscribe({
             next: () => {
                 this.keepAliveInFlight = false;
+                this.handleSessionRefreshSuccess(mode, previousExpiry);
             },
             error: () => {
                 this.keepAliveInFlight = false;
+                this.handleSessionRefreshError(mode);
             }
+        });
+    }
+
+    private handleSessionRefreshSuccess(mode: SessionRefreshMode, previousExpiry: number | null): void {
+        if (mode !== 'manual') {
+            return;
+        }
+
+        const nextExpiry = this.getStoredExpiry();
+        const warningVisible = this.sessionWarningStateSubject.getValue().visible;
+        const extended = nextExpiry !== null && (previousExpiry === null || nextExpiry > previousExpiry);
+
+        if (!warningVisible) {
+            return;
+        }
+
+        if (extended) {
+            this.patchSessionWarningState({
+                refreshing: false,
+                error: null,
+            });
+            return;
+        }
+
+        this.patchSessionWarningState({
+            refreshing: false,
+            error: 'A munkamenet nem hosszabbodott meg. Mentse a módosításokat, majd jelentkezzen be újra.',
+        });
+        this.updateSessionWarningState();
+    }
+
+    private handleSessionRefreshError(mode: SessionRefreshMode): void {
+        if (mode !== 'manual' || !this.sessionWarningStateSubject.getValue().visible) {
+            return;
+        }
+
+        this.patchSessionWarningState({
+            refreshing: false,
+            error: 'Nem sikerült meghosszabbítani a munkamenetet. Mentse a módosításokat, majd próbálja újra.',
+        });
+        this.updateSessionWarningState();
+    }
+
+    private openSessionWarning(expiresAt: number): void {
+        const current = this.sessionWarningStateSubject.getValue();
+        const isSameWarning = current.visible && this.activeWarningExpiry === expiresAt;
+
+        this.activeWarningExpiry = expiresAt;
+        this.startWarningCountdown();
+        this.sessionWarningStateSubject.next({
+            visible: true,
+            remainingMs: getRemainingSessionMs(expiresAt, Date.now()),
+            refreshing: isSameWarning ? current.refreshing : false,
+            error: isSameWarning ? current.error : null,
+        });
+    }
+
+    private closeSessionWarning(): void {
+        this.activeWarningExpiry = null;
+
+        if (this.warningCountdownTimer !== null) {
+            clearInterval(this.warningCountdownTimer);
+            this.warningCountdownTimer = null;
+        }
+
+        if (this.sessionWarningStateSubject.getValue().visible) {
+            this.sessionWarningStateSubject.next(INITIAL_SESSION_WARNING_STATE);
+        }
+    }
+
+    private startWarningCountdown(): void {
+        if (this.warningCountdownTimer !== null) {
+            return;
+        }
+
+        this.warningCountdownTimer = setInterval(() => {
+            this.updateSessionWarningState();
+        }, 1000);
+    }
+
+    private updateSessionWarningState(): void {
+        const expiresAt = this.getStoredExpiry() ?? this.activeWarningExpiry;
+        if (expiresAt === null) {
+            this.closeSessionWarning();
+            return;
+        }
+
+        const remainingMs = getRemainingSessionMs(expiresAt, Date.now());
+        if (remainingMs > this.warningBeforeExpiryMs) {
+            this.closeSessionWarning();
+            return;
+        }
+
+        const current = this.sessionWarningStateSubject.getValue();
+        this.sessionWarningStateSubject.next({
+            ...current,
+            visible: true,
+            remainingMs,
+        });
+    }
+
+    private patchSessionWarningState(patch: Partial<SessionWarningState>): void {
+        this.sessionWarningStateSubject.next({
+            ...this.sessionWarningStateSubject.getValue(),
+            ...patch,
         });
     }
 }
