@@ -76,9 +76,8 @@
                 </ng-template>
                 <ng-template pTemplate="header">
                     <tr>
-                        <th style="width: 3rem">#</th>
-                        <th></th>
-                        <th style="width: 3rem"></th>
+                        <th class="guest-row-index-cell">#</th>
+                        <th class="guest-row-control-header"></th>
                         <th pSortableColumn="lastName">Név <p-sortIcon field="lastName"></p-sortIcon></th>
                         <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
                         <th pSortableColumn="diet">Étrend <p-sortIcon field="diet"></p-sortIcon></th>
@@ -90,11 +89,10 @@
                         <th></th>
                     </tr>
                     <tr>
-                        <th style="width: 3rem"></th>
-                        <th style="width: 3rem">
+                        <th class="guest-row-index-cell"></th>
+                        <th class="guest-row-control-header">
                             <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                         </th>
-                        <th></th>
                         <th>
                             <input pInputText
                                    type="text"
@@ -173,15 +171,20 @@
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-guest let-expanded="expanded" let-rowIndex="rowIndex">
-                    <tr>
-                        <td class="text-center">
+                    <tr [class.guest-row--expanded]="expanded">
+                        <td class="guest-row-index-cell">
                             {{ getRowNumber(rowIndex) }}
                         </td>
-                        <td>
-                            <p-tableCheckbox [value]="guest"></p-tableCheckbox>
-                        </td>
-                        <td>
-                            <p-button type="button" styleClass="p-button-rounded p-button-text" pRipple [pRowToggler]="guest" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+                        <td class="guest-row-control-cell">
+                            <div class="guest-row-control-stack">
+                                <p-tableCheckbox [value]="guest"></p-tableCheckbox>
+                                <p-button type="button"
+                                          styleClass="p-button-rounded p-button-text guest-row-expand-button"
+                                          pRipple
+                                          [pRowToggler]="guest"
+                                          [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                                          [attr.aria-label]="expanded ? 'Vendég részletek bezárása' : 'Vendég részletek megnyitása'" />
+                            </div>
                         </td>
                         <td>
                             <span class="p-column-title">Név</span>
@@ -288,8 +291,8 @@
                 </ng-template>
                 <ng-template pTemplate="rowexpansion" let-guest>
                     <tr>
-                        <td colspan="11">
-                            <div class="p-2">
+                        <td colspan="10" class="guest-expansion-cell">
+                            <div class="guest-expansion-shell">
                                 <div class="w-full">
                                     <div class="grid w-full">
                                         <div class="col-5">

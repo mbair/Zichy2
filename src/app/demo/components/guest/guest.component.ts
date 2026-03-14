@@ -28,6 +28,7 @@ import { ConferenceSelectorComponent } from '../../selectors/conference-selector
 @Component({
     selector: 'guest-component',
     templateUrl: './guest.component.html',
+    styleUrls: ['./guest.component.scss'],
     providers: [MessageService, ConfirmationService]
 })
 
