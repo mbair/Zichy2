@@ -19,6 +19,7 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { Conference, FormFieldInfo } from '../../api/conference';
 import { Answer } from '../../api/answer';
 import { calculateAgeYears, formatDateYmd, isBeforeDay, isSameDay, isSameOrBeforeDay, parseDateOnly } from '../../utils/date.utils';
+import { getCurrentQuestionSet as pickCurrentQuestionSet, hasTranslationContent, normalizeQuestionTranslations } from '../../utils/question-set.utils';
 
 // Google Analytics
 declare let gtag: Function;
@@ -272,8 +273,9 @@ export class ConferenceFormComponent implements OnInit {
                         // Fill form with stored questions
                         const answersArray = this.conferenceForm.get('answers') as FormArray
                         answersArray.clear() // It is important to always empty it
-                        if (this.conference?.questions?.length > 0) {
-                            this.conference.questions[0].translations?.forEach((question: any) => {
+                        const currentQuestionTranslations = this.getVisibleQuestionTranslations()
+                        if (currentQuestionTranslations.length > 0) {
+                            currentQuestionTranslations.forEach((question: any) => {
                                 if (question['hu']?.trim() || question['en']?.trim()) {
                                     answersArray.push(this.formBuilder.control('', Validators.required))
                                 }
@@ -307,14 +309,17 @@ export class ConferenceFormComponent implements OnInit {
                 if (!createdGuest) return
 
                 // If there are extra questions: save answers
-                if (this.conference?.questions?.length > 0) {
+                const currentQuestionSet = this.getCurrentQuestionSet()
+                const currentQuestionTranslations = this.getVisibleQuestionTranslations()
+
+                if (currentQuestionSet?.id && currentQuestionTranslations.length > 0) {
                     const answers: Answer = {
                         translations: [],
                         guestid: createdGuest.id,
-                        questionid: this.conference?.questions[0].id
+                        questionid: Number(currentQuestionSet.id)
                     }
 
-                    this.conference.questions[0].translations?.forEach((question: any, i: number) => {
+                    currentQuestionTranslations.forEach((question: any, i: number) => {
                         const hu = question['hu']
                         const en = question['en']
                         if (hu !== '' || en !== '') {
@@ -341,9 +346,10 @@ export class ConferenceFormComponent implements OnInit {
                 // If message is a Toast
                 if (message?.severity) {
                     this.messageService.add(message)
+                    const hasSeparateAnswerSave = !!this.getCurrentQuestionSet()?.id && this.getVisibleQuestionTranslations().length > 0
                     if (message.summary === 'Vendég rögzítés sikertelen') {
                         this.saveFailed()
-                    } else if (message.summary === 'Vendég rögzítve' && !this.conference?.questions?.length) {
+                    } else if (message.summary === 'Vendég rögzítve' && !hasSeparateAnswerSave) {
                         this.saveSuccess()
                     }
                     return
@@ -566,6 +572,18 @@ export class ConferenceFormComponent implements OnInit {
         return this.conferenceForm.get('answers') as FormArray
     }
 
+    private getCurrentQuestionSet() {
+        return pickCurrentQuestionSet(this.conference?.questions)
+    }
+
+    private getCurrentQuestionTranslations() {
+        return normalizeQuestionTranslations(this.getCurrentQuestionSet()?.translations)
+    }
+
+    private getVisibleQuestionTranslations() {
+        return this.getCurrentQuestionTranslations().filter((translation) => hasTranslationContent(translation))
+    }
+
     /**
      * Get conference by slug
      */
@@ -597,7 +615,7 @@ export class ConferenceFormComponent implements OnInit {
      */
     getTranslatedQuestion(i: number): { question: string; message?: string } | undefined {
         const lang = this.currentLang
-        const qList = this.conference?.questions?.[0]?.translations
+        const qList = this.getVisibleQuestionTranslations()
         if (!qList || !qList[i]) return undefined
 
         const full = qList[i][lang] ?? qList[i]['hu']
@@ -790,8 +808,16 @@ export class ConferenceFormComponent implements OnInit {
             guestData.dateOfArrival = formatDateYmd(guestData.dateOfArrival)
             guestData.dateOfDeparture = formatDateYmd(guestData.dateOfDeparture)
 
-            // Add questions to formdata
-            guestData.questions = this.conference?.questions?.[0]?.translations?.map((t: any) => t[lang] || 'Ismeretlen kérdés') || []
+            const currentQuestionSet = this.getCurrentQuestionSet()
+            const currentQuestionSetId = Number(currentQuestionSet?.id)
+            const shouldUseInlineQuestionFallback = !Number.isFinite(currentQuestionSetId)
+
+            if (shouldUseInlineQuestionFallback) {
+                guestData.questions = this.getVisibleQuestionTranslations().map((t: any) => t[lang] || t['hu'] || 'Ismeretlen kérdés')
+            } else {
+                delete guestData.questions
+                delete guestData.answers
+            }
 
             // Convert the 'roomMate' FormArray to a comma-separated string
             if (Array.isArray(guestData.roomMate)) {

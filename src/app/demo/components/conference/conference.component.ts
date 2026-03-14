@@ -20,6 +20,7 @@ import { Conference, FormFieldInfo } from '../../api/conference';
 import { User } from '../../api/user';
 import { Table } from 'primeng/table';
 import { formatDateDots } from '../../utils/date.utils';
+import { getCurrentQuestionSet, hasTranslationContent, normalizeQuestionTranslations } from '../../utils/question-set.utils';
 
 type Option = { label: string; value: string }
 
@@ -409,13 +410,12 @@ export class ConferenceComponent implements OnInit {
     }
 
     getExpandedConferenceQuestions(conference: Conference): any[] {
-        const questions = (this.getExpandedConference(conference) as any)?.questions
-        return Array.isArray(questions) ? questions : (questions ? [questions] : [])
+        const currentQuestionSet = getCurrentQuestionSet((this.getExpandedConference(conference) as any)?.questions)
+        return currentQuestionSet ? [currentQuestionSet] : []
     }
 
     getQuestionTranslations(question: any): any[] {
-        const translations = question?.translations
-        return Array.isArray(translations) ? translations : (translations ? [translations] : [])
+        return normalizeQuestionTranslations(question?.translations)
     }
 
     isExpandedConferenceLoading(conference: Conference): boolean {
@@ -556,34 +556,10 @@ export class ConferenceComponent implements OnInit {
      * corresponding language.
      */
     initializeQuestionsForm() {
-        const q = this.tableItem.questions
         const maxQuestions = 5
-
-        // Extract existing translations from all questions
-        const existingQuestions: any[] = []
-
-        if (q && q.length > 0) {
-            q.forEach((question: any) => {
-                if (question.translations) {
-                    // Check if translations is an array or object
-                    if (Array.isArray(question.translations)) {
-                        // If it's an array, add each translation
-                        question.translations.forEach((translation: any) => {
-                            // Only add if at least one language has content
-                            if (translation.hu || translation.en) {
-                                existingQuestions.push(translation)
-                            }
-                        });
-                    } else {
-                        // If it's an object, add it directly
-                        // Only add if at least one language has content
-                        if (question.translations.hu || question.translations.en) {
-                            existingQuestions.push(question.translations)
-                        }
-                    }
-                }
-            })
-        }
+        const currentQuestionSet = getCurrentQuestionSet(this.tableItem.questions)
+        const existingQuestions = normalizeQuestionTranslations(currentQuestionSet?.translations)
+            .filter((translation) => hasTranslationContent(translation))
 
         // Reinitialize the form, including the questions FormArray
         this.questionsForm = this.formBuilder.group({
@@ -789,8 +765,9 @@ export class ConferenceComponent implements OnInit {
      */
     saveQuestions() {
         this.loading = true
+        const currentQuestionSet = getCurrentQuestionSet(this.tableItem.questions)
         const questions = {
-            id: this.tableItem.questions && this.tableItem.questions[0]?.id ? this.tableItem.questions[0].id : null,
+            id: currentQuestionSet?.id ?? null,
             conferenceid: this.tableItem.id,
             translations: this.questionsForm.value.questions,
         }
