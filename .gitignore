@@ -46,6 +46,8 @@ speed-measure-plugin.json
 /.sass-cache
 /.agent
 /.agents
+/.codex
+/.continue
 /connect.lock
 /coverage
 /playwright-report
