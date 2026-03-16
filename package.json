@@ -1,11 +1,14 @@
 {
     "name": "nfc-reserve",
-    "version": "1.15.111",
+    "version": "1.15.112",
     "scripts": {
         "preinstall": "node ./scripts/check-runtime.js ./package.json",
+        "prestart": "node ./scripts/generate-version.js",
+        "prebuild": "node ./scripts/generate-version.js",
+        "prewatch": "node ./scripts/generate-version.js",
         "ng": "ng",
         "start": "ng serve --proxy-config proxy.conf.json",
-        "build": "ng build && ng build --output-path docs --base-href /Zichy2/ --configuration production && git add .",
+        "build": "ng build && ng build --output-path docs --base-href /Zichy2/ --configuration production && node ./scripts/postbuild-cache-busting.js && git add .",
         "watch": "ng build --watch --configuration development",
         "dev": "ng serve --proxy-config proxy.conf.json --ssl --ssl-cert ./localSslCertificate/server.crt --ssl-key ./localSslCertificate/server.key --open --host 0.0.0.0 --disable-host-check",
         "test": "ng test",

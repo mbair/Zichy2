@@ -2,9 +2,14 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { PrimeNGConfig } from 'primeng/api';
 import { TranslateService } from '@ngx-translate/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { SessionService } from './demo/service/session.service';
+import { APP_VERSION, APP_BUILD_TIME } from './app-version';
 
-declare const require: (path: string) => any;
+interface AppVersionManifest {
+    version?: string;
+    buildTime?: string;
+}
 
 @Component({
     selector: 'app-root',
@@ -16,10 +21,50 @@ declare const require: (path: string) => any;
 @AutoUnsubscribe()
 
 export class AppComponent implements OnInit, OnDestroy {
+    private readonly versionCheckIntervalMs = 5 * 60 * 1000;
+    private readonly chunkReloadStorageKey = 'APP_CHUNK_RELOAD_ATTEMPTED_FOR';
+    private readonly versionCheckHeaders = new HttpHeaders({
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+    });
+    private versionCheckTimerId: number | null = null;
+    private isReloading = false;
+
+    readonly currentVersion = APP_VERSION;
+    latestVersion: string | null = null;
+    updateAvailable = false;
+
+    private readonly handleVisibilityChange = () => {
+        if (document.visibilityState === 'hidden' && this.updateAvailable) {
+            this.reloadToLatestVersion();
+            return;
+        }
+
+        if (document.visibilityState === 'visible') {
+            this.checkForNewVersion();
+        }
+    };
+
+    private readonly handleWindowFocus = () => {
+        this.checkForNewVersion();
+    };
+
+    private readonly handleWindowError = (event: ErrorEvent) => {
+        if (this.isChunkLoadFailure(event.error, event.message)) {
+            this.reloadAfterChunkLoadFailure();
+        }
+    };
+
+    private readonly handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+        if (this.isChunkLoadFailure(event.reason)) {
+            this.reloadAfterChunkLoadFailure();
+        }
+    };
 
     constructor(private primengConfig: PrimeNGConfig,
         private translateService: TranslateService,
-        private sessionService: SessionService) {
+        private sessionService: SessionService,
+        private http: HttpClient) {
 
         // this language will be used as a fallback when a translation isn't found in the current language
         translateService.setDefaultLang('hu');
@@ -30,13 +75,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
 
-        // Store App version globally
-        const APP_VERSION = require('../../package.json').version;
         if (APP_VERSION) {
             localStorage.setItem("APP_VERSION", APP_VERSION)
+            localStorage.setItem("APP_BUILD_TIME", APP_BUILD_TIME)
         }
 
         this.sessionService.initializeMonitoring();
+        this.startVersionMonitoring();
 
         this.primengConfig.ripple = true;
 
@@ -97,8 +142,105 @@ export class AppComponent implements OnInit, OnDestroy {
         this.translateService.get('primeng').subscribe((res: any) => this.primengConfig.setTranslation(res))
     }
 
+    reloadToLatestVersion() {
+        if (this.isReloading) {
+            return;
+        }
+
+        this.isReloading = true;
+        window.location.reload();
+    }
+
+    private startVersionMonitoring(): void {
+        this.checkForNewVersion();
+
+        document.addEventListener('visibilitychange', this.handleVisibilityChange);
+        window.addEventListener('focus', this.handleWindowFocus);
+        window.addEventListener('error', this.handleWindowError);
+        window.addEventListener('unhandledrejection', this.handleUnhandledRejection);
+
+        this.versionCheckTimerId = window.setInterval(() => {
+            this.checkForNewVersion();
+        }, this.versionCheckIntervalMs);
+    }
+
+    private checkForNewVersion(): void {
+        this.http.get<AppVersionManifest>(this.buildVersionCheckUrl(), {
+            headers: this.versionCheckHeaders
+        }).subscribe({
+            next: (manifest: AppVersionManifest) => {
+                const latestVersion = String(manifest?.version || '').trim();
+
+                if (!latestVersion || latestVersion === APP_VERSION) {
+                    return;
+                }
+
+                this.latestVersion = latestVersion;
+                this.updateAvailable = true;
+
+                if (document.visibilityState === 'hidden') {
+                    this.reloadToLatestVersion();
+                }
+            },
+            error: () => undefined
+        });
+    }
+
+    private buildVersionCheckUrl(): string {
+        return `assets/version.json?t=${Date.now()}`;
+    }
+
+    private reloadAfterChunkLoadFailure(): void {
+        if (this.hasAlreadyRetriedChunkReload()) {
+            return;
+        }
+
+        sessionStorage.setItem(this.chunkReloadStorageKey, APP_VERSION);
+        this.reloadToLatestVersion();
+    }
+
+    private hasAlreadyRetriedChunkReload(): boolean {
+        return sessionStorage.getItem(this.chunkReloadStorageKey) === APP_VERSION;
+    }
+
+    private isChunkLoadFailure(error: unknown, fallbackMessage = ''): boolean {
+        const message = this.extractErrorMessage(error, fallbackMessage);
+        if (!message) {
+            return false;
+        }
+
+        return /ChunkLoadError/i.test(message)
+            || /Loading chunk [\d]+ failed/i.test(message)
+            || /Failed to fetch dynamically imported module/i.test(message)
+            || /Importing a module script failed/i.test(message);
+    }
+
+    private extractErrorMessage(error: unknown, fallbackMessage = ''): string {
+        if (typeof error === 'string') {
+            return error;
+        }
+
+        if (error instanceof Error) {
+            return error.message || fallbackMessage;
+        }
+
+        if (error && typeof error === 'object' && 'message' in error) {
+            const message = (error as { message?: unknown }).message;
+            return typeof message === 'string' ? message : fallbackMessage;
+        }
+
+        return fallbackMessage;
+    }
 
     // Don't delete this, its needed from a performance point of view,
     ngOnDestroy(): void {
+        if (this.versionCheckTimerId !== null) {
+            window.clearInterval(this.versionCheckTimerId);
+        }
+
+        document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+        window.removeEventListener('focus', this.handleWindowFocus);
+        window.removeEventListener('error', this.handleWindowError);
+        window.removeEventListener('unhandledrejection', this.handleUnhandledRejection);
     }
 }

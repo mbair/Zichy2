@@ -1,0 +1,59 @@
+.app-update-banner {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 1500;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: min(32rem, calc(100vw - 2rem));
+    padding: 0.9rem 1rem;
+    border: 1px solid #d97706;
+    border-radius: 0.85rem;
+    background: #fff7ed;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16);
+    color: #7c2d12;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(1rem);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.app-update-banner-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.app-update-banner__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    line-height: 1.35;
+}
+
+.app-update-banner__button {
+    border: 0;
+    border-radius: 999px;
+    background: #c2410c;
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.app-update-banner__button:hover {
+    background: #9a3412;
+}
+
+@media (max-width: 640px) {
+    .app-update-banner {
+        left: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
