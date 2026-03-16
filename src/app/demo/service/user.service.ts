@@ -4,6 +4,7 @@ import { catchError, map, tap } from 'rxjs/operators';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { User } from '../api/user';
+import { OrganizerContractingParty, OrganizerContractingPartyOverview } from '../api/contracting-party';
 
 @Injectable({
     providedIn: 'root',
@@ -57,8 +58,8 @@ export class UserService {
             .subscribe({
                 next: (response: ApiResponse) => {
                     if (response && response.rows) {
-                        // Super admin users is visible only for Super Admin's
-                        if (!this.hasRole(['Super Admin'])) {
+                        // Super admin users are visible only for Super Admins
+                        if (!this.hasRoleSync(['Super Admin'])) {
                             response.rows = response.rows.filter((user: User) => user.user_rolesid !== 1)
                         }
                     }
@@ -207,6 +208,14 @@ export class UserService {
             })
     }
 
+    public getOwnData$(): Observable<any> {
+        return this.apiService.get(`users/getowndata`)
+    }
+
+    public refreshSession$(): Observable<any> {
+        return this.apiService.post(`users/refresh-session`, {})
+    }
+
     /**
      * Get User Role
      * @returns
@@ -245,6 +254,16 @@ export class UserService {
     }
 
     /**
+     * Synchronous check for user roles.
+     * @param roles role names
+     * @returns true if the current user has any of the roles
+     */
+    public hasRoleSync(roles: string[] = []): boolean {
+        const userRole = this.userRole$.getValue()
+        return roles.length === 0 || roles.includes(userRole)
+    }
+
+    /**
      * Get users for selector
      * @returns
      */
@@ -267,9 +286,9 @@ export class UserService {
      * @param userId The ID of the user to retrieve.
      * @returns An observable of the user with the given ID, or null if not found.
      */
-    getUserById(userId: number): Observable<User | null> {
+    getUserById(userId: number, forceRefresh: boolean = false): Observable<User | null> {
         // First check if user is in cache
-        if (this.userCache[userId]) {
+        if (!forceRefresh && this.userCache[userId]) {
             return of(this.userCache[userId])
         }
 
@@ -285,6 +304,26 @@ export class UserService {
             catchError(error => {
                 console.error(`Hiba a szervező adatainak lekérdezésekor: ${error}`)
                 return of(null)
+            })
+        )
+    }
+
+    getOrganizerContractingParties$(userId: number): Observable<OrganizerContractingParty[]> {
+        return this.apiService.get<OrganizerContractingParty[]>(`users/getbyid/${userId}/contractingparties`).pipe(
+            map((relations: OrganizerContractingParty[] | null | undefined) => Array.isArray(relations) ? relations : []),
+            catchError(error => {
+                console.error(`Hiba a szervező szerződő adatainak lekérdezésekor: ${error}`)
+                return of([])
+            })
+        )
+    }
+
+    getOrganizerContractingPartiesOverview$(): Observable<OrganizerContractingPartyOverview[]> {
+        return this.apiService.get<OrganizerContractingPartyOverview[]>(`users/contractingparties/overview`).pipe(
+            map((rows: OrganizerContractingPartyOverview[] | null | undefined) => Array.isArray(rows) ? rows : []),
+            catchError(error => {
+                console.error(`Hiba a szerződő áttekintő adatok lekérdezésekor: ${error}`)
+                return of([])
             })
         )
     }

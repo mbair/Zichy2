@@ -10,6 +10,7 @@ import { BlockUIModule } from 'primeng/blockui';
 import { TooltipModule } from 'primeng/tooltip';
 import { CalendarModule } from 'primeng/calendar';
 import { KitchenCalendarService } from '../../service/kitchen-calendar.service';
+import { LocalizedDatePickerComponent } from '../../widget/localized-date-picker/localized-date-picker.component';
 
 @NgModule({
     imports: [
@@ -18,6 +19,7 @@ import { KitchenCalendarService } from '../../service/kitchen-calendar.service';
         CommonModule,
         FormsModule,
         KitchenCalendarRoutingModule,
+        LocalizedDatePickerComponent,
         ProgressSpinnerModule,
         TableModule,
         ToastModule,

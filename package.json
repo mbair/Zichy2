@@ -1,18 +1,32 @@
 {
     "name": "nfc-reserve",
-    "version": "1.15.17",
+    "version": "1.15.111",
     "scripts": {
+        "preinstall": "node ./scripts/check-runtime.js ./package.json",
         "ng": "ng",
-        "start": "ng serve",
-        "build": "ng build",
-        "buildProd": "ng build --output-path docs --base-href /Zichy2/ --configuration production",
+        "start": "ng serve --proxy-config proxy.conf.json",
+        "build": "ng build && ng build --output-path docs --base-href /Zichy2/ --configuration production && git add .",
         "watch": "ng build --watch --configuration development",
-        "dev": "ng serve --ssl --ssl-cert ./localSslCertificate/server.crt --ssl-key ./localSslCertificate/server.key --open --host 0.0.0.0 --disable-host-check",
+        "dev": "ng serve --proxy-config proxy.conf.json --ssl --ssl-cert ./localSslCertificate/server.crt --ssl-key ./localSslCertificate/server.key --open --host 0.0.0.0 --disable-host-check",
         "test": "ng test",
+        "e2e": "playwright test",
+        "e2e:headed": "playwright test --headed",
+        "e2e:debug": "PWDEBUG=1 playwright test --project=chromium",
+        "e2e:picker": "playwright test playwright/localized-date-picker.spec.ts --project=chromium",
+        "e2e:picker:headed": "playwright test playwright/localized-date-picker.spec.ts --project=chromium --headed",
+        "e2e:picker:debug": "PWDEBUG=1 playwright test playwright/localized-date-picker.spec.ts --project=chromium",
+        "e2e:conference-form": "playwright test playwright/conference-form-date-inputs.spec.ts --project=chromium",
+        "e2e:conference-form:headed": "playwright test playwright/conference-form-date-inputs.spec.ts --project=chromium --headed",
+        "e2e:install": "playwright install chromium",
         "lint": "ng lint",
-        "deploy": "npm run buildProd && git commit -m 'Deploy' && git push"
+        "prepare": "husky",
+        "bump:patch": "npm version patch --no-git-tag-version --force"
     },
     "private": true,
+    "engines": {
+        "node": "24.14.0"
+    },
+    "packageManager": "npm@11.9.0",
     "dependencies": {
         "@angular/animations": "^16.1.0",
         "@angular/cdk": "^16.1.0",
@@ -51,15 +65,19 @@
         "@angular-devkit/build-angular": "^16.1.5",
         "@angular/cli": "~16.1.5",
         "@angular/compiler-cli": "^16.1.0",
+        "@playwright/test": "^1.58.2",
         "@types/file-saver": "^2.0.7",
         "@types/jasmine": "~4.3.0",
         "@types/lodash": "^4.17.15",
+        "@types/node": "~18.19.0",
+        "husky": "^9.1.7",
         "jasmine-core": "~4.6.0",
         "karma": "~6.4.0",
         "karma-chrome-launcher": "~3.2.0",
         "karma-coverage": "~2.2.0",
         "karma-jasmine": "~5.1.0",
         "karma-jasmine-html-reporter": "~2.1.0",
+        "karma-spec-reporter": "^0.0.36",
         "typescript": "~5.1.3"
     }
 }

@@ -1,6 +1,4 @@
 import { Injectable } from '@angular/core';
-import { ApiResponse } from '../api/ApiResponse';
-import { ApiService } from './api.service';
 
 @Injectable({
     providedIn: 'root',
@@ -15,9 +13,6 @@ export class ActivityService {
         { activityName: 'Takaró hozzáadása', userName: 'Tak. admin', timestamp: new Date() },
     ];
 
-    constructor(private apiService: ApiService) { }
-
-
     getActivities(): any[] {
         return this.activities;
     }
@@ -26,14 +21,4 @@ export class ActivityService {
         this.activities.push(activity);
     }
 
-    getInformation() {
-        this.apiService.get<ApiResponse>(`dashboard/getinformations`)
-            .subscribe({
-                next: (response: ApiResponse) => {
-                    // console.log('getinformations', response)
-                },
-                error: (error: any) => {
-                }
-            })
-    }
 }

@@ -1,9 +1,10 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, FormControl, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Subscription, Observable } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { TranslateService } from '@ngx-translate/core';
+import { dateBoundsValidator } from '../../utils/date-bounds-validator';
 import { emailDomainValidator } from '../../utils/email-validator';
 import { dateRangeValidator } from '../../utils/date-range-validator';
 import { zipCodeValidator } from '../../utils/zipcode-validator';
@@ -13,10 +14,12 @@ import { ConferenceService } from '../../service/conference.service';
 import { AnswerService } from '../../service/answer.service';
 import { GuestService } from '../../service/guest.service';
 import { UserService } from '../../service/user.service';
+import { SessionService } from '../../service/session.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference, FormFieldInfo } from '../../api/conference';
 import { Answer } from '../../api/answer';
-import * as moment from 'moment';
+import { calculateAgeYears, formatDateYmd, isBeforeDay, isSameDay, isSameOrBeforeDay, parseDateOnly } from '../../utils/date.utils';
+import { getCurrentQuestionSet as pickCurrentQuestionSet, hasTranslationContent, normalizeQuestionTranslations } from '../../utils/question-set.utils';
 
 // Google Analytics
 declare let gtag: Function;
@@ -46,17 +49,24 @@ export class ConferenceFormComponent implements OnInit {
     registrationEnded: boolean = false           // Registration ended
     darkMode: boolean = false                    // Dark mode
     showIdCardField: boolean = false             // IdCard field visibility
+    showBabyBedField: boolean = false            // Baby bed field visibility
     szepCardMessage: Message[]                   // Message for szep card payment
     idCardTemplateVisible: boolean = false       // ID card template visible
     canFillFormAfterDeadline: boolean = false    // User has permission to fill form after deadline
+    isOrganizer: boolean = false                 // User has organizer role
+    canOrganizerFillUntilGuestEditDeadline: boolean = false // Organizer can fill until guest edit deadline
+    currentUserRole: string = 'No Role'
     formFieldInfosMap: { [key: string]: FormFieldInfo } = {}
     allowedPaymentMethodIds: number[] | null | undefined = undefined
+    allowedConferenceRoomTypeIds: number[] | null | undefined = undefined
 
     private guestServiceMessageObs$: Observable<any>
     private answerServiceMessageObs$: Observable<any>
 
     private readonly subs = new Subscription()
     private readonly ROOMTYPE_NO_ACCOMMODATION = 'Nem kérek szállást'
+    readonly idCardMaxFileSizeBytes = 15 * 1024 * 1024
+    readonly idCardMaxFileSizeMb = 15
 
     constructor(public router: Router,
         public userService: UserService,
@@ -65,6 +75,7 @@ export class ConferenceFormComponent implements OnInit {
         private conferenceService: ConferenceService,
         private answerService: AnswerService,
         private guestService: GuestService,
+        private sessionService: SessionService,
         private formBuilder: FormBuilder,
         private translate: TranslateService,
         private cdRef: ChangeDetectorRef) {
@@ -109,7 +120,7 @@ export class ConferenceFormComponent implements OnInit {
             payment: [null, Validators.required],
             babyBed: [null],
             idCard: [null],
-            privacy: ['', Validators.required],
+            privacy: [false, Validators.requiredTrue],
             acceptanceCriteriaUrl: [null],
             answers: this.formBuilder.array([]),
         }, {
@@ -118,9 +129,23 @@ export class ConferenceFormComponent implements OnInit {
     }
 
     ngOnInit() {
+        this.subs.add(
+            this.userService.getUserRole().subscribe(role => {
+                this.currentUserRole = role || 'No Role'
+            })
+        )
+
         // Permissions
         this.subs.add(
-            this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canFillFormAfterDeadline => this.canFillFormAfterDeadline = canFillFormAfterDeadline)
+            this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canFillFormAfterDeadline => {
+                this.canFillFormAfterDeadline = canFillFormAfterDeadline && this.sessionService.hasActiveSessionSnapshot()
+            })
+        )
+        this.subs.add(
+            this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => {
+                this.isOrganizer = isOrganizer && this.sessionService.hasActiveSessionSnapshot()
+                this.recomputeOrganizerDeadlinePermission()
+            })
         )
 
         // Get conference by URL
@@ -224,9 +249,11 @@ export class ConferenceFormComponent implements OnInit {
                 if (data && data.rows) {
                     if (data.rows.length > 0) {
                         this.conference = data.rows[0]
-                        this.beginDate = this.conference.beginDate ? moment(this.conference.beginDate, 'YYYY-MM-DD').toDate() : undefined
-                        this.endDate = this.conference.endDate ? moment(this.conference.endDate, 'YYYY-MM-DD').toDate() : undefined
+                        this.beginDate = this.conference.beginDate ? parseDateOnly(this.conference.beginDate) ?? undefined : undefined
+                        this.endDate = this.conference.endDate ? parseDateOnly(this.conference.endDate) ?? undefined : undefined
+                        this.applyConferenceDateBoundsValidators()
                         this.allowedPaymentMethodIds = this.extractPaymentMethodIds(this.conference)
+                        this.allowedConferenceRoomTypeIds = this.extractConferenceRoomTypeIds(this.conference)
 
                         // Optional safety: if current selected payment is not allowed, clear it
                         const paymentCtrl = this.conferenceForm.get('payment')
@@ -246,8 +273,9 @@ export class ConferenceFormComponent implements OnInit {
                         // Fill form with stored questions
                         const answersArray = this.conferenceForm.get('answers') as FormArray
                         answersArray.clear() // It is important to always empty it
-                        if (this.conference?.questions?.length > 0) {
-                            this.conference.questions[0].translations?.forEach((question: any) => {
+                        const currentQuestionTranslations = this.getVisibleQuestionTranslations()
+                        if (currentQuestionTranslations.length > 0) {
+                            currentQuestionTranslations.forEach((question: any) => {
                                 if (question['hu']?.trim() || question['en']?.trim()) {
                                     answersArray.push(this.formBuilder.control('', Validators.required))
                                 }
@@ -256,13 +284,11 @@ export class ConferenceFormComponent implements OnInit {
 
                         // Check if registration has ended
                         if (this.conference?.registrationEndDate) {
-                            const registrationEnd = moment(this.conference.registrationEndDate).startOf('day')
-                            const today = moment().startOf('day')
-
-                            this.registrationEnded = registrationEnd.isBefore(today)
+                            this.registrationEnded = isBeforeDay(this.conference.registrationEndDate, new Date())
+                            this.recomputeOrganizerDeadlinePermission()
 
                             // If registration has ended, show error
-                            if (this.registrationEnded && !this.canFillFormAfterDeadline) {
+                            if (this.registrationEnded && !this.canFillAfterRegistrationDeadline) {
                                 this.setRegistrationEndMessage()
                             }
                         }
@@ -283,14 +309,17 @@ export class ConferenceFormComponent implements OnInit {
                 if (!createdGuest) return
 
                 // If there are extra questions: save answers
-                if (this.conference?.questions?.length > 0) {
+                const currentQuestionSet = this.getCurrentQuestionSet()
+                const currentQuestionTranslations = this.getVisibleQuestionTranslations()
+
+                if (currentQuestionSet?.id && currentQuestionTranslations.length > 0) {
                     const answers: Answer = {
                         translations: [],
                         guestid: createdGuest.id,
-                        questionid: this.conference?.questions[0].id
+                        questionid: Number(currentQuestionSet.id)
                     }
 
-                    this.conference.questions[0].translations?.forEach((question: any, i: number) => {
+                    currentQuestionTranslations.forEach((question: any, i: number) => {
                         const hu = question['hu']
                         const en = question['en']
                         if (hu !== '' || en !== '') {
@@ -317,7 +346,12 @@ export class ConferenceFormComponent implements OnInit {
                 // If message is a Toast
                 if (message?.severity) {
                     this.messageService.add(message)
-                    message.severity === 'success' ? this.saveSuccess() : this.saveFailed()
+                    const hasSeparateAnswerSave = !!this.getCurrentQuestionSet()?.id && this.getVisibleQuestionTranslations().length > 0
+                    if (message.summary === 'Vendég rögzítés sikertelen') {
+                        this.saveFailed()
+                    } else if (message.summary === 'Vendég rögzítve' && !hasSeparateAnswerSave) {
+                        this.saveSuccess()
+                    }
                     return
                 }
 
@@ -386,6 +420,7 @@ export class ConferenceFormComponent implements OnInit {
             this.subs.add(
                 birthDateCtrl.valueChanges.subscribe(() => {
                     this.updateIdCardVisibility()
+                    this.updateBabyBedVisibility()
                 })
             )
         }
@@ -400,7 +435,7 @@ export class ConferenceFormComponent implements OnInit {
                 this.setSzepCardMessage()
 
                 // If registration has ended, show error
-                if (this.registrationEnded) {
+                if (this.registrationEnded && !this.canFillAfterRegistrationDeadline) {
                     this.setRegistrationEndMessage()
                 }
             })
@@ -430,7 +465,102 @@ export class ConferenceFormComponent implements OnInit {
     get babyBed() { return this.conferenceForm.get('babyBed') }
     get idCard() { return this.conferenceForm.get('idCard') }
     get privacy() { return this.conferenceForm.get('privacy') }
+    get canFillAfterRegistrationDeadline(): boolean {
+        return this.canFillFormAfterDeadline || this.canOrganizerFillUntilGuestEditDeadline
+    }
     get acceptanceCriteriaUrl() { return this.conferenceForm.get('acceptanceCriteriaUrl') }
+    get hasRegistrationDeadline(): boolean { return !!this.conference?.registrationEndDate }
+    get hasGuestEditDeadline(): boolean { return !!this.conference?.guestEditEndDate }
+    get isPrivilegedViewer(): boolean { return this.isOrganizer || this.canFillFormAfterDeadline }
+    get conferencePanelLabel(): string {
+        return this.currentLang === 'en'
+            ? 'Conference - Guest Registration Form'
+            : 'Konferencia - Vendég Regisztrációs Űrlap'
+    }
+    get displayConferenceName(): string {
+        const name = this.conference?.name?.trim() ?? ''
+        return name.replace(/^\d{8}-\d{8}\s*/u, '')
+    }
+    get conferenceDateRangeText(): string {
+        if (this.conference?.beginDate && this.conference?.endDate) {
+            const start = this.formatDeadline(this.conference.beginDate)
+            const end = this.formatDeadline(this.conference.endDate)
+            return start === end ? start : `${start} - ${end}`
+        }
+
+        if (this.conference?.beginDate) return this.formatDeadline(this.conference.beginDate)
+        if (this.conference?.endDate) return this.formatDeadline(this.conference.endDate)
+
+        return this.localize('Dátum hamarosan', 'Date coming soon')
+    }
+    get publicDeadlineText(): string { return this.formatDeadline(this.conference?.registrationEndDate) }
+    get organizerDeadlineText(): string { return this.formatDeadline(this.conference?.guestEditEndDate) }
+    get effectiveDeadlineTitle(): string { return this.localize('Regisztrációs határidő', 'Registration deadline') }
+    get effectiveDeadlineText(): string {
+        if (this.canFillFormAfterDeadline) {
+            return ''
+        }
+
+        if (this.isOrganizer && this.conference?.guestEditEndDate) {
+            return this.organizerDeadlineText
+        }
+
+        return this.publicDeadlineText
+    }
+    get effectiveDeadlineDescription(): string {
+        if (this.canFillFormAfterDeadline) {
+            return this.currentLang === 'en'
+                ? `${this.currentUserRole} access can still fill the form after the registration deadline.`
+                : `${this.currentUserRole} jogosultsággal a regisztrációs zárás után is kitölthető az űrlap.`
+        }
+
+        if (this.isOrganizer && this.conference?.guestEditEndDate) {
+            return this.localize('Szervezőként eddig a napig kitölthető és módosítható az űrlap.', 'As an organizer the form can be filled and edited until this date.')
+        }
+
+        return this.localize('Vendégek számára eddig a napig kitölthető az űrlap.', 'The form can be filled by guests until this date.')
+    }
+    get showEffectiveDeadlineStatus(): boolean {
+        return !this.canFillFormAfterDeadline && (!!this.hasRegistrationDeadline || !!this.hasGuestEditDeadline)
+    }
+    get effectiveDeadlineStatusText(): string {
+        if (this.isOrganizer && this.conference?.guestEditEndDate) {
+            return this.organizerDeadlineStatusText
+        }
+
+        return this.publicDeadlineStatusText
+    }
+    get effectiveDeadlineStatusClosed(): boolean {
+        if (this.isOrganizer && this.conference?.guestEditEndDate) {
+            return !this.canOrganizerFillUntilGuestEditDeadline
+        }
+
+        return this.registrationEnded
+    }
+    get publicDeadlineStatusText(): string {
+        return this.registrationEnded
+            ? this.localize('Lezárult', 'Closed')
+            : this.localize('Nyitott', 'Open')
+    }
+    get organizerDeadlineStatusText(): string {
+        return this.isOrganizerDeadlineOpen
+            ? this.localize('Nyitott', 'Open')
+            : this.localize('Lezárult', 'Closed')
+    }
+    get isOrganizerDeadlineOpen(): boolean {
+        const rawEnd = this.conference?.guestEditEndDate
+        return !!rawEnd && isSameOrBeforeDay(new Date(), rawEnd)
+    }
+
+    private applyConferenceDateBoundsValidators(): void {
+        const conferenceDateValidators = [Validators.required, dateBoundsValidator(this.beginDate, this.endDate)]
+
+        this.dateOfArrival?.setValidators(conferenceDateValidators)
+        this.dateOfDeparture?.setValidators(conferenceDateValidators)
+        this.dateOfArrival?.updateValueAndValidity({ emitEvent: false })
+        this.dateOfDeparture?.updateValueAndValidity({ emitEvent: false })
+        this.conferenceForm.updateValueAndValidity({ emitEvent: false })
+    }
 
     get needsRoom(): boolean {
         const roomType = this.conferenceForm.get('roomType')?.value as string | null
@@ -442,19 +572,31 @@ export class ConferenceFormComponent implements OnInit {
         return this.conferenceForm.get('answers') as FormArray
     }
 
+    private getCurrentQuestionSet() {
+        return pickCurrentQuestionSet(this.conference?.questions)
+    }
+
+    private getCurrentQuestionTranslations() {
+        return normalizeQuestionTranslations(this.getCurrentQuestionSet()?.translations)
+    }
+
+    private getVisibleQuestionTranslations() {
+        return this.getCurrentQuestionTranslations().filter((translation) => hasTranslationContent(translation))
+    }
+
     /**
      * Get conference by slug
      */
     getConferenceBySlug() {
         this.loading = true
-        const slug = this.router.url.split('/').pop()
-        this.conferenceService.getBySearchQuery(`formUrl=${slug}`)
+        const slug = this.router.url.split('/').pop()?.split('?')[0] || ''
+        this.conferenceService.getByFormSlug(slug)
     }
 
     /**
      * Get form field information in current language
-     * @param key 
-     * @returns 
+     * @param key
+     * @returns
      */
     getFormFieldInfo(field: string): string | undefined {
         const info = this.formFieldInfosMap[field]
@@ -473,7 +615,7 @@ export class ConferenceFormComponent implements OnInit {
      */
     getTranslatedQuestion(i: number): { question: string; message?: string } | undefined {
         const lang = this.currentLang
-        const qList = this.conference?.questions?.[0]?.translations
+        const qList = this.getVisibleQuestionTranslations()
         if (!qList || !qList[i]) return undefined
 
         const full = qList[i][lang] ?? qList[i]['hu']
@@ -499,7 +641,7 @@ export class ConferenceFormComponent implements OnInit {
         const dateOfArrival = this.conferenceForm.get('dateOfArrival')?.value
         const beginDate = this.beginDate
 
-        if (moment(dateOfArrival).isSame(beginDate, 'day')) {
+        if (isSameDay(dateOfArrival, beginDate)) {
             return this.conference?.firstMeal
         }
         return undefined
@@ -514,7 +656,7 @@ export class ConferenceFormComponent implements OnInit {
         const dateOfArrival = this.conferenceForm.get('dateOfArrival')?.value
         const endDate = this.endDate
 
-        if (moment(dateOfArrival).isSame(endDate, 'day')) {
+        if (isSameDay(dateOfArrival, endDate)) {
             return this.conference?.lastMeal
         }
         return undefined
@@ -530,7 +672,7 @@ export class ConferenceFormComponent implements OnInit {
         const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value
         const beginDate = this.beginDate
 
-        if (moment(dateOfDeparture).isSame(beginDate, 'day')) {
+        if (isSameDay(dateOfDeparture, beginDate)) {
             return this.conference?.firstMeal
         }
         return undefined
@@ -545,7 +687,7 @@ export class ConferenceFormComponent implements OnInit {
         const dateOfDeparture = this.conferenceForm.get('dateOfDeparture')?.value
         const endDate = this.endDate
 
-        if (moment(dateOfDeparture).isSame(endDate, 'day')) {
+        if (isSameDay(dateOfDeparture, endDate)) {
             return this.conference?.lastMeal
         }
         return undefined
@@ -583,6 +725,42 @@ export class ConferenceFormComponent implements OnInit {
         })
     }
 
+    private recomputeOrganizerDeadlinePermission(): void {
+        if (!this.isOrganizer) {
+            this.canOrganizerFillUntilGuestEditDeadline = false
+            return
+        }
+
+        const rawEnd = this.conference?.guestEditEndDate
+        if (!rawEnd) {
+            this.canOrganizerFillUntilGuestEditDeadline = false
+            return
+        }
+
+        this.canOrganizerFillUntilGuestEditDeadline = isSameOrBeforeDay(new Date(), rawEnd)
+    }
+
+    private formatDeadline(value?: string | null): string {
+        if (!value) {
+            return this.localize('Nincs megadva', 'Not set')
+        }
+
+        const parsed = parseDateOnly(value)
+        if (!parsed) {
+            return value
+        }
+
+        return new Intl.DateTimeFormat(this.currentLang === 'en' ? 'en-GB' : 'hu-HU', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(parsed)
+    }
+
+    private localize(hu: string, en: string): string {
+        return this.currentLang === 'en' ? en : hu
+    }
+
     /**
      * Handles the submission of the form.
      * Marks all form elements as dirty and touched,
@@ -612,24 +790,34 @@ export class ConferenceFormComponent implements OnInit {
 
             // Google Analytics event sending
             setTimeout(() => {
-                try {
+                if (typeof gtag === 'function') {
                     gtag('event', 'registration_submitted', {
                         'event_category': 'form',
                         'event_label': this.conference?.name || 'ismeretlen_konferencia',
                         'value': 1
                     })
-                } catch (err) {
-                    console.warn('GA event küldése sikertelen', err)
                 }
             })
 
             const guestData = { ...this.conferenceForm.value }
             const rawIdCard = this.conferenceForm.get('idCard')?.value
-            const files: File[] = rawIdCard ? [rawIdCard] : []
+            const files: File[] = rawIdCard instanceof File ? [rawIdCard] : []
             const lang = this.translate.currentLang === 'gb' ? 'en' : this.translate.currentLang
 
-            // Add questions to formdata
-            guestData.questions = this.conference?.questions?.[0]?.translations?.map((t: any) => t[lang] || 'Ismeretlen kérdés') || []
+            guestData.birthDate = formatDateYmd(guestData.birthDate)
+            guestData.dateOfArrival = formatDateYmd(guestData.dateOfArrival)
+            guestData.dateOfDeparture = formatDateYmd(guestData.dateOfDeparture)
+
+            const currentQuestionSet = this.getCurrentQuestionSet()
+            const currentQuestionSetId = Number(currentQuestionSet?.id)
+            const shouldUseInlineQuestionFallback = !Number.isFinite(currentQuestionSetId)
+
+            if (shouldUseInlineQuestionFallback) {
+                guestData.questions = this.getVisibleQuestionTranslations().map((t: any) => t[lang] || t['hu'] || 'Ismeretlen kérdés')
+            } else {
+                delete guestData.questions
+                delete guestData.answers
+            }
 
             // Convert the 'roomMate' FormArray to a comma-separated string
             if (Array.isArray(guestData.roomMate)) {
@@ -638,7 +826,6 @@ export class ConferenceFormComponent implements OnInit {
 
             // Delete unnecessary fields
             delete guestData.idCard
-            delete guestData.privacy
 
             this.guestService.create(guestData, files)
 
@@ -659,7 +846,7 @@ export class ConferenceFormComponent implements OnInit {
                 diet: this.translate.instant('Étrend'),
                 dateOfDeparture: this.translate.instant('Távozás dátuma'),
                 lastMeal: this.translate.instant('Utolsó étkezés'),
-                roomType: this.translate.instant('Szállástípus'),
+                roomType: this.translate.instant('Szobatípus'),
                 roomMate: this.translate.instant('Szobatárs'),
                 payment: this.translate.instant('Fizetési mód'),
                 babyBed: this.translate.instant('Babaágy'),
@@ -721,7 +908,7 @@ export class ConferenceFormComponent implements OnInit {
 
     /**
      * New guest registration
-     * 
+     *
      * Resets the form and shows it again, after a successful submission.
      * Also clears any messages, and reloads the conference data.
      */
@@ -741,7 +928,7 @@ export class ConferenceFormComponent implements OnInit {
 
     /**
      * Keypress monitor
-     * @param event 
+     * @param event
      */
     onlyAllowNumbers(event: KeyboardEvent) {
         const allowedKeys = /[0-9+]/
@@ -757,13 +944,13 @@ export class ConferenceFormComponent implements OnInit {
         const birthDate = this.conferenceForm.get('birthDate')?.value
         const idCardControl = this.conferenceForm.get('idCard')
 
-        const age = birthDate ? moment().diff(moment(birthDate, 'YYYY-MM-DD'), 'years') : 0
+        const age = calculateAgeYears(birthDate)
         const needsRoom = this.needsRoom
 
         // Required if needs room and older than 14
         if (needsRoom && age >= 14) {
             this.showIdCardField = true
-            idCardControl?.setValidators([Validators.required])
+            idCardControl?.setValidators([Validators.required, this.idCardMaxFileSizeValidator.bind(this)])
             idCardControl?.enable({ emitEvent: false })
         } else {
             this.showIdCardField = false
@@ -774,14 +961,45 @@ export class ConferenceFormComponent implements OnInit {
         idCardControl?.updateValueAndValidity({ emitEvent: false })
     }
 
+    private idCardMaxFileSizeValidator(control: AbstractControl): ValidationErrors | null {
+        const value = control.value
+        if (!value || !(value instanceof File)) {
+            return null
+        }
+
+        return value.size <= this.idCardMaxFileSizeBytes
+            ? null
+            : {
+                maxFileSize: {
+                    max: this.idCardMaxFileSizeBytes,
+                    actual: value.size
+                }
+            }
+    }
+
     /**
-     * Updates babyBed visibility + validators based on whether accommodation is needed.
+     * Returns true when baby bed question should be available:
+     * room is needed + age is 0-3 years.
+     */
+    private isBabyBedEligibleByBirthDate(): boolean {
+        const birthDateValue = this.conferenceForm.get('birthDate')?.value
+        if (!birthDateValue) return false
+
+        const ageYears = calculateAgeYears(birthDateValue)
+        return ageYears >= 0 && ageYears <= 3
+    }
+
+    /**
+     * Updates babyBed visibility + validators based on accommodation and age.
      */
     private updateBabyBedVisibility(): void {
         const babyBedControl = this.conferenceForm.get('babyBed')
         if (!babyBedControl) return
 
-        if (this.needsRoom) {
+        const canAskForBabyBed = this.needsRoom && this.isBabyBedEligibleByBirthDate()
+        this.showBabyBedField = canAskForBabyBed
+
+        if (canAskForBabyBed) {
             babyBedControl.enable({ emitEvent: false })
             babyBedControl.setValidators([Validators.required])
 
@@ -831,6 +1049,24 @@ export class ConferenceFormComponent implements OnInit {
         }
 
         return [];
+    }
+
+    private extractConferenceRoomTypeIds(conf: Conference | null | undefined): number[] | undefined {
+        if (!conf) return undefined
+
+        const fromDirectIds = [
+            ...(Array.isArray((conf as any).roomTypeIds) ? (conf as any).roomTypeIds : []),
+            ...(Array.isArray((conf as any).conferenceRoomTypeIds) ? (conf as any).conferenceRoomTypeIds : [])
+        ]
+            .map((v: any) => Number(v?.id ?? v))
+            .filter((id: number) => Number.isFinite(id) && id > 0)
+
+        const fromRooms = (Array.isArray(conf?.rooms) ? conf.rooms : [])
+            .map((room: any) => Number(room?.room_typeid ?? room?.roomTypeId ?? room?.roomType?.id))
+            .filter((id: number) => Number.isFinite(id) && id > 0)
+
+        const ids = Array.from(new Set([...fromDirectIds, ...fromRooms]))
+        return ids.length > 0 ? ids : undefined
     }
 
     /**

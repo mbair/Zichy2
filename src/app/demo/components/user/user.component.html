@@ -183,6 +183,98 @@
                         </div>
                     </div>
 
+                    <div *ngIf="showOrganizerContractingPartiesSection()" formArrayName="organizerContractingParties" class="field mb-4 col-12">
+                        <div class="flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <label class="font-medium text-900">Szervezőhöz rendelt szerződők</label>
+                                <div class="text-600 text-sm mt-1">
+                                    Egy szervezőhöz több jogi entitás is rögzíthető. A konferencia űrlap innen tud előtölteni.
+                                </div>
+                            </div>
+                            <button
+                                pButton
+                                pRipple
+                                type="button"
+                                label="Új szerződő"
+                                icon="pi pi-plus"
+                                class="p-button-outlined p-button-sm"
+                                (click)="addOrganizerContractingParty()">
+                            </button>
+                        </div>
+
+                        <div *ngIf="organizerContractingPartiesArray.length === 0" class="border-1 border-round border-300 p-3 text-600">
+                            Még nincs rögzített szerződő ehhez a szervezőhöz.
+                        </div>
+
+                        <div *ngFor="let relation of organizerContractingPartiesArray.controls; let i = index; trackBy: trackByIndex" [formGroupName]="i" class="border-1 border-round border-300 p-3 mb-3">
+                            <input formControlName="relationId" type="hidden">
+                            <input formControlName="contractingPartyId" type="hidden">
+
+                            <div class="flex justify-content-between align-items-center mb-3">
+                                <div class="font-medium text-900">
+                                    Szerződő {{ i + 1 }}
+                                    <span *ngIf="relation.get('isDefault')?.value" class="ml-2 text-primary">Alapértelmezett</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button
+                                        pButton
+                                        pRipple
+                                        type="button"
+                                        label="Legyen alapértelmezett"
+                                        class="p-button-text p-button-sm"
+                                        (click)="setDefaultOrganizerContractingParty(i)">
+                                    </button>
+                                    <button
+                                        pButton
+                                        pRipple
+                                        type="button"
+                                        icon="pi pi-trash"
+                                        class="p-button-rounded p-button-text p-button-danger"
+                                        (click)="removeOrganizerContractingParty(i)">
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid formgrid p-fluid">
+                                <div class="field mb-3 col-12 lg:col-6">
+                                    <label class="font-medium text-900">Jogi entitás neve</label>
+                                    <input type="text" pInputText formControlName="legalName">
+                                    <div *ngIf="relation.get('legalName')?.touched && relation.get('legalName')?.errors?.['required']" class="block p-error">
+                                        Kötelező kitölteni
+                                    </div>
+                                </div>
+
+                                <div class="field mb-3 col-12 lg:col-6">
+                                    <label class="font-medium text-900">Adószám</label>
+                                    <input type="text" pInputText formControlName="taxNumber">
+                                </div>
+
+                                <div class="field mb-3 col-12">
+                                    <label class="font-medium text-900">Cím</label>
+                                    <input type="text" pInputText formControlName="address">
+                                </div>
+
+                                <div class="field mb-3 col-12 lg:col-4">
+                                    <label class="font-medium text-900">Kapcsolattartó neve</label>
+                                    <input type="text" pInputText formControlName="contactName">
+                                </div>
+
+                                <div class="field mb-3 col-12 lg:col-4">
+                                    <label class="font-medium text-900">Kapcsolattartó email</label>
+                                    <input type="text" pInputText formControlName="contactEmail">
+                                    <div *ngIf="relation.get('contactEmail')?.touched && relation.get('contactEmail')?.errors?.['email']" class="block p-error">
+                                        Nem megfelelő email formátum
+                                    </div>
+                                </div>
+
+                                <div class="field mb-3 col-12 lg:col-4">
+                                    <label class="font-medium text-900">Kapcsolattartó telefon</label>
+                                    <input type="text" pInputText formControlName="contactPhone">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Password -->
                     <div class="field mb-4 col-12">
                         <label for="password" class="font-medium text-900">Jelszó</label>

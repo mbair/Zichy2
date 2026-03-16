@@ -9,8 +9,7 @@ import { UserService } from '../../service/user.service';
 import { ResponsiveService } from '../../service/responsive.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Tag } from '../../api/tag';
-import * as moment from 'moment';
-moment.locale('hu')
+import { formatDateDots } from '../../utils/date.utils';
 
 @Component({
     templateUrl: './nfc-tag.component.html',
@@ -157,9 +156,7 @@ export class NFCTagComponent implements OnInit {
         }
         // Calendar date as String
         else if (event instanceof Date) {
-            const date = moment(event)
-            const formattedDate = date.format('YYYY.MM.DD')
-            filterValue = formattedDate
+            filterValue = formatDateDots(event)
         } else {
             if (event && (event.value || event.target?.value)) {
                 if (field == "rfid") {

@@ -10,3 +10,181 @@
 :host ::ng-deep .binder-sidebar .p-sidebar-content {
     padding-bottom: 0 !important;
 }
+
+.binder-dialog-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.binder-header-content {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+    min-width: 0;
+    width: 100%;
+    min-height: 38.5px;
+    padding-right: 0.75rem;
+}
+
+.binder-header-title {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38.5px;
+}
+
+.binder-loading-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.68);
+}
+
+.binder-summary-inline {
+    min-width: 7rem;
+}
+
+.binder-summary-separator {
+    color: #64748b;
+    font-size: 1.1rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.binder-inline-value {
+    min-width: 1.75rem;
+    text-align: left;
+    color: #334155;
+}
+
+.binder-inline-value.is-available {
+    color: #166534;
+}
+
+.binder-inline-value.is-full {
+    color: #475569;
+}
+
+.binder-inline-value.is-overbooked {
+    color: #b91c1c;
+}
+
+.binder-waiting-value {
+    color: #92400e;
+}
+
+.binder-waiting-value.is-clear {
+    color: #166534;
+}
+
+.binder-actions-group {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.binder-info-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    border-radius: 0.75rem;
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: normal;
+    min-width: 0;
+}
+
+.binder-info-pill--warning {
+    border-color: #fdba74;
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.binder-info-pill--attention {
+    border-color: #fcd34d;
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.binder-info-pill--success {
+    border-color: #86efac;
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.binder-info-pill__inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.9rem;
+    min-width: 0;
+    width: 100%;
+}
+
+.binder-info-pill--header {
+    flex: 1 1 auto;
+    max-width: 64rem;
+    justify-self: center;
+    align-self: center;
+    min-height: 38.5px;
+}
+
+.binder-info-pill--header .binder-info-pill__inner {
+    width: 100%;
+    min-height: calc(38.5px - 2px);
+    box-sizing: border-box;
+}
+
+.binder-info-pill--header .binder-info-pill__inner span:last-child {
+    overflow-wrap: anywhere;
+}
+
+.binder-info-skeleton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.binder-info-skeleton--header {
+    flex: 1 1 auto;
+    max-width: 64rem;
+    justify-self: center;
+    align-self: center;
+    min-height: 38.5px;
+}
+
+:host ::ng-deep .binder-info-skeleton--header .p-skeleton {
+    border-radius: 0.75rem;
+}
+
+:host ::ng-deep .binder-info-skeleton-shape {
+    display: block;
+    border-radius: 0.75rem;
+}
+
+:host ::ng-deep .binder-summary-tooltip .p-tooltip-text {
+    max-width: none;
+    white-space: nowrap;
+}
+
+:host ::ng-deep .binder-summary-tooltip--stacked .p-tooltip-text {
+    min-width: 22rem;
+    max-width: 22rem;
+    white-space: pre-line;
+}
+
+:host ::ng-deep .binder-conference-chip--removable {
+    background: #ecfdf5;
+    border: 1px solid #86efac;
+    color: #166534;
+}

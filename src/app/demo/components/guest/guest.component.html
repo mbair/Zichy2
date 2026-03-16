@@ -26,7 +26,7 @@
                         <h5 class="m-0">Vendégek</h5>
                         <span class="block mt-2 md:mt-0">
                             <app-conference-selector
-                                [(ngModel)]="selectedConferences"
+                                [ngModel]="selectedConferences"
                                 [showClear]="true"
                                 [selectionLimit]="1"
                                 [selectFirstOption]="isOrganizer"
@@ -65,10 +65,10 @@
                                 [disabled]="!canImport"
                                 pTooltip="Kizárólag a táblázathoz tartozó Excel fájl importálható"
                                 tooltipPosition="top"/>
-                            <p-splitButton 
-                                icon="pi pi-download" 
-                                label="Export" 
-                                [model]="exportButtonItems" 
+                            <p-splitButton
+                                icon="pi pi-download"
+                                label="Export"
+                                [model]="exportButtonItems"
                                 styleClass="p-button-help"
                                 severity="help" />
                         </span>
@@ -76,9 +76,8 @@
                 </ng-template>
                 <ng-template pTemplate="header">
                     <tr>
-                        <th style="width: 3rem">#</th>
-                        <th></th>
-                        <th style="width: 3rem"></th>
+                        <th class="guest-row-index-cell">#</th>
+                        <th class="guest-row-control-header"></th>
                         <th pSortableColumn="lastName">Név <p-sortIcon field="lastName"></p-sortIcon></th>
                         <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
                         <th pSortableColumn="diet">Étrend <p-sortIcon field="diet"></p-sortIcon></th>
@@ -90,11 +89,10 @@
                         <th></th>
                     </tr>
                     <tr>
-                        <th style="width: 3rem"></th>
-                        <th style="width: 3rem">
+                        <th class="guest-row-index-cell"></th>
+                        <th class="guest-row-control-header">
                             <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                         </th>
-                        <th></th>
                         <th>
                             <input pInputText
                                    type="text"
@@ -110,8 +108,8 @@
                                    style="width:8%; min-width:6rem;"/>
                         </th>
                         <th>
-                            <app-diet-selector 
-                                (change)="onFilter($event, 'diet')" 
+                            <app-diet-selector
+                                (change)="onFilter($event, 'diet')"
                                 [showClear]="true">
                             </app-diet-selector>
                         </th>
@@ -126,9 +124,9 @@
                                    tooltipPosition="top"
                                    style="width:12%; min-width:9rem;"/>
 
-                            <p-dropdown 
+                            <p-dropdown
                                 *ngIf="isOrganizer"
-                                [options]="prepaidOptions" 
+                                [options]="prepaidOptions"
                                 [(ngModel)]="prepaidFilterValue"
                                 optionLabel="name"
                                 optionValue="value"
@@ -138,56 +136,55 @@
                             </p-dropdown>
                         </th>
                         <th>
-                            <p-calendar
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'lastRfidUsage')"
                                 (onClearClick)="onFilter($event, 'lastRfidUsage')"
-                                appendTo="body"
-                                dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true">
-                            </p-calendar>
+                            </app-localized-date-picker>
                         </th>
                         <th>
-                            <p-calendar
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'dateOfArrival')"
                                 (onClearClick)="onFilter($event, 'dateOfArrival')"
-                                appendTo="body"
-                                dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true">
-                            </p-calendar>
+                            </app-localized-date-picker>
                         </th>
                         <th>
-                            <p-calendar
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'dateOfDeparture')"
                                 (onClearClick)="onFilter($event, 'dateOfDeparture')"
-                                appendTo="body"
-                                dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true">
-                            </p-calendar>
+                            </app-localized-date-picker>
                         </th>
                         <th>
-                            <button pButton 
-                                    pRipple 
-                                    label="Szűrők" 
-                                    icon="pi pi-filter" 
-                                    class="p-button-default mr-2" 
+                            <button pButton
+                                    pRipple
+                                    label="Szűrők"
+                                    icon="pi pi-filter"
+                                    class="p-button-default mr-2"
                                     (click)="filtersDialog = true">
                             </button>
                         </th>
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-guest let-expanded="expanded" let-rowIndex="rowIndex">
-                    <tr>
-                        <td class="text-center">
+                    <tr [class.guest-row--expanded]="expanded">
+                        <td class="guest-row-index-cell">
                             {{ getRowNumber(rowIndex) }}
                         </td>
-                        <td>
-                            <p-tableCheckbox [value]="guest"></p-tableCheckbox>
-                        </td>
-                        <td>
-                            <p-button type="button" styleClass="p-button-rounded p-button-text" pRipple [pRowToggler]="guest" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+                        <td class="guest-row-control-cell">
+                            <div class="guest-row-control-stack">
+                                <p-tableCheckbox [value]="guest"></p-tableCheckbox>
+                                <p-button type="button"
+                                          styleClass="p-button-rounded p-button-text guest-row-expand-button"
+                                          pRipple
+                                          [pRowToggler]="guest"
+                                          [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                                          [attr.aria-label]="expanded ? 'Vendég részletek bezárása' : 'Vendég részletek megnyitása'" />
+                            </div>
                         </td>
                         <td>
                             <span class="p-column-title">Név</span>
@@ -201,7 +198,7 @@
                                 pButton
                                 type="button"
                                 class="p-button p-1"
-                                [label]="res?.room?.roomNum || guest.displayRoomNum || guest.roomNum || 'nincs beállítva'"
+                                [label]="res?.room?.roomNum || guest.displayRoomNum || guest.roomNum || 'nincs foglalása'"
                                 [routerLink]="['/reservation']"
                                 [queryParams]="{
                                     reservation_id: res?.id,
@@ -212,6 +209,16 @@
                                 tooltipPosition="top"
                                 [disabled]="!res?.id">
                                 </button>
+                                <button
+                                    pButton
+                                    type="button"
+                                    class="p-button-rounded p-button-text ml-1"
+                                    *ngIf="canManageRoomKey && (guest.roomKeyIssued || guest.roomKeyIssuedAt || guest.roomKeyReturnedAt)"
+                                    [icon]="getRoomKeyIconClass(guest)"
+                                    pTooltip="Szobakulcs státusz"
+                                    tooltipPosition="top"
+                                    (click)="openRoomKeyDialog(guest)">
+                                </button>
                             </ng-container>
 
                             <ng-template #noReservation>
@@ -219,8 +226,18 @@
                                 <span *ngIf="guest.displayRoomNum || guest.roomNum; else noRoom">
                                 {{ guest.displayRoomNum || guest.roomNum }}
                                 </span>
+                                <button
+                                    pButton
+                                    type="button"
+                                    class="p-button-rounded p-button-text ml-1"
+                                    *ngIf="canManageRoomKey && (guest.roomKeyIssued || guest.roomKeyIssuedAt || guest.roomKeyReturnedAt)"
+                                    [icon]="getRoomKeyIconClass(guest)"
+                                    pTooltip="Szobakulcs státusz"
+                                    tooltipPosition="top"
+                                    (click)="openRoomKeyDialog(guest)">
+                                </button>
                                 <ng-template #noRoom>
-                                <span class="text-500">nincs beállítva</span>
+                                <span class="text-500">nincs foglalása</span>
                                 </ng-template>
                             </ng-template>
                             </td>
@@ -264,17 +281,18 @@
                         </td>
                         <td>
                             <div class="flex">
-                                <button pButton pRipple icon="pi pi-tags" class="p-button-rounded p-button-success mr-2" (click)="assignTag(guest)" [disabled]="!canAssign"></button>
-                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(guest)" [disabled]="!canEdit"></button>
-                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = guest; deleteDialog = true" [disabled]="!canDelete"></button>
+                                <button pButton pRipple icon="pi pi-tags" class="p-button-rounded p-button-success mr-2" (click)="assignTag(guest)" [disabled]="!canAssign" pTooltip="NFC címke vendéghez rendelés" tooltipPosition="top"></button>
+                                <button pButton pRipple icon="pi pi-key" class="p-button-rounded p-button-success mr-2" (click)="openRoomKeyDialog(guest)" [disabled]="!canManageRoomKey" pTooltip="Szobakulcs státusz és kezelés" tooltipPosition="top"></button>
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(guest)" [disabled]="!canEdit" pTooltip="Vendég szerkesztés" tooltipPosition="top"></button>
+                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = guest; deleteDialog = true" [disabled]="!canDelete" pTooltip="Vendég törlés" tooltipPosition="top"></button>
                             </div>
                         </td>
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="rowexpansion" let-guest>
                     <tr>
-                        <td colspan="11">
-                            <div class="p-2">
+                        <td colspan="10" class="guest-expansion-cell">
+                            <div class="guest-expansion-shell">
                                 <div class="w-full">
                                     <div class="grid w-full">
                                         <div class="col-5">
@@ -314,7 +332,7 @@
                                                 </tr>
                                                 <tr>
                                                     <td class="font-medium">Fizetési mód:</td>
-                                                    <td>{{guest.payment}}</td>
+                                                    <td>{{guest.paymentMethodName}}</td>
                                                 </tr>
                                                 <tr>
                                                     <td class="font-medium">Első étkezés:</td>
@@ -340,14 +358,10 @@
                                                     <td class="font-medium">Babaágyat kér:</td>
                                                     <td>{{guest.babyBed == true ? 'Igen' : 'Nem'}}</td>
                                                 </tr>
-                                                <tr>
-                                                    <td class="font-medium">Klímát kér:</td>
-                                                    <td>{{guest.climate == true ? 'Igen' : 'Nem'}}</td>
-                                                </tr>
                                             </table>
                                         </div>
                                         <div class="col-7">
-                                            
+
                                             <!-- Kérdések - Válaszok -->
                                             <div *ngIf="isArray(guest.answers)">
                                                 <div *ngFor="let answer of guest.answers">
@@ -399,15 +413,15 @@
         </div>
 
         <!-- New / Update sidebar -->
-        <p-sidebar 
-            id="sidebar" 
-            [(visible)]="sidebar" 
-            position="right" 
+        <p-sidebar
+            id="sidebar"
+            [(visible)]="sidebar"
+            position="right"
             styleClass="p-sidebar-lg"
-            [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
+            [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
             [fullScreen]="isMobile"
             [blockScroll]="true">
-            
+
             <!-- Sidebar header -->
             <ng-template pTemplate="header">
                 <span class="font-semibold text-xl">
@@ -418,7 +432,7 @@
             <!-- Render content only after first open -->
             <ng-container *ngIf="sidebar">
                 <form [formGroup]="guestForm" (ngSubmit)="save()" novalidate class="grid formgrid p-fluid">
-                    
+
                     <!-- Guest Id -->
                     <input formControlName="id" type="hidden">
 
@@ -462,15 +476,12 @@
                     <!-- birthDate -->
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="birthDate" class="font-medium text-900">Születési dátum</label>
-                        <p-calendar id="birthDate"
-                                    formControlName="birthDate"
-                                    [defaultDate]="birthDateMax"
-                                    [minDate]="birthDateMin" 
-                                    [maxDate]="birthDateMax" 
-                                    dateFormat="yy-mm-dd" 
-                                    dataType="string"
-                                    appendTo="body">
-                        </p-calendar>
+                        <app-localized-date-picker inputId="birthDate"
+                                                   formControlName="birthDate"
+                                                   [defaultDate]="birthDateMax"
+                                                   [minDate]="birthDateMin"
+                                                   [maxDate]="birthDateMax">
+                        </app-localized-date-picker>
                         <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
                             Születési dátum kötelező
                         </div>
@@ -550,7 +561,7 @@
                                 type="button"
                                 class="p-button p-1"
                                 icon="pi pi-external-link"
-                                [label]="primaryReservation?.room?.roomNum || 'nincs beállítva'"
+                                [label]="primaryReservation?.room?.roomNum || 'nincs foglalása'"
                                 [routerLink]="['/reservation']"
                                 [queryParams]="primaryReservation ? {
                                     reservation_id: primaryReservation.id,
@@ -567,16 +578,13 @@
                     <!-- dateOfArrival -->
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="dateOfArrival" class="font-medium text-900">Érkezés dátuma</label>
-                        <p-calendar id="dateOfArrival"
-                                    formControlName="dateOfArrival"
-                                    [ngClass]="{'ng-invalid': guestForm.errors?.['dateRangeInvalid']}"
-                                    [defaultDate]="beginDate"
-                                    [minDate]="beginDate" 
-                                    [maxDate]="endDate"
-                                    dateFormat="yy-mm-dd"
-                                    dataType="string"
-                                    appendTo="body">
-                        </p-calendar>
+                        <app-localized-date-picker inputId="dateOfArrival"
+                                                   formControlName="dateOfArrival"
+                                                   [invalid]="!!guestForm.errors?.['dateRangeInvalid']"
+                                                   [defaultDate]="beginDate"
+                                                   [minDate]="beginDate"
+                                                   [maxDate]="endDate">
+                        </app-localized-date-picker>
                         <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['required']" class="p-error">
                             Kérjük, adja meg az érkezés dátumát!
                         </div>
@@ -588,11 +596,11 @@
                     <!-- firstMeal -->
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="firstMeal" class="font-medium text-900">Első étkezés</label>
-                        <app-meal-selector 
-                            [parentForm]="guestForm" 
+                        <app-meal-selector
+                            [parentForm]="guestForm"
                             controlName="firstMeal"
                             [earliestMeal]="getEarliestFirstMeal()"
-                            [latestMeal]="getLatestFirstMeal()"  
+                            [latestMeal]="getLatestFirstMeal()"
                             [showNothing]="true">
                         </app-meal-selector>
                         <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
@@ -612,16 +620,13 @@
                     <!-- dateOfDeparture -->
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="dateOfDeparture" class="font-medium text-900">Távozás dátuma</label>
-                        <p-calendar id="dateOfDeparture"
-                                    formControlName="dateOfDeparture"
-                                    [ngClass]="{'ng-invalid': guestForm.errors?.['dateRangeInvalid']}"
-                                    [defaultDate]="beginDate"
-                                    [minDate]="beginDate" 
-                                    [maxDate]="endDate"
-                                    dateFormat="yy-mm-dd"
-                                    dataType="string"
-                                    appendTo="body">
-                        </p-calendar>
+                        <app-localized-date-picker inputId="dateOfDeparture"
+                                                   formControlName="dateOfDeparture"
+                                                   [invalid]="!!guestForm.errors?.['dateRangeInvalid']"
+                                                   [defaultDate]="beginDate"
+                                                   [minDate]="beginDate"
+                                                   [maxDate]="endDate">
+                        </app-localized-date-picker>
                         <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['required']" class="p-error">
                             Kérjük, adja meg a távozás dátumát!
                         </div>
@@ -629,15 +634,15 @@
                             A távozás dátumának későbbinek kell lennie, mint az érkezési dátum!
                         </div>
                     </div>
-                    
+
                     <!-- lastMeal -->
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="lastMeal" class="font-medium text-900">Utolsó étkezés</label>
-                        <app-meal-selector 
-                            [parentForm]="guestForm" 
-                            controlName="lastMeal" 
-                            [earliestMeal]="getEarliestLastMeal()" 
-                            [latestMeal]="getLatestLastMeal()" 
+                        <app-meal-selector
+                            [parentForm]="guestForm"
+                            controlName="lastMeal"
+                            [earliestMeal]="getEarliestLastMeal()"
+                            [latestMeal]="getLatestLastMeal()"
                             [showNothing]="true">
                         </app-meal-selector>
                         <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="p-error">
@@ -665,21 +670,21 @@
 
                     <!-- roomType -->
                     <div class="field mb-4 col-12 lg:col-8">
-                        <label for="roomType" class="font-medium text-900">Szállástípus</label>
-                        <app-roomtype-selector 
-                            [parentForm]="guestForm" 
+                        <label for="roomType" class="font-medium text-900">Szobatípus</label>
+                        <app-roomtype-selector
+                            [parentForm]="guestForm"
                             controlName="roomType">
                         </app-roomtype-selector>
                         <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
-                            Kérjük válassza ki a szállástípust!
+                            Kérjük válassza ki a szobatípust!
                         </div>
                     </div>
 
                     <!-- payment -->
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="payment" class="font-medium text-900">Fizetési mód</label>
-                        <app-payment-selector 
-                            [parentForm]="guestForm" 
+                        <app-payment-selector
+                            [parentForm]="guestForm"
                             controlName="payment">
                         </app-payment-selector>
                         <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
@@ -719,9 +724,9 @@
                             </div>
                             <!-- ID card preview for edit -->
                             <div *ngIf="guestForm.get('id')?.value && idCardImageUrls[guestForm.get('id')?.value] && !showUploadBlock" class="mt-3">
-                                <p-image 
-                                    [src]="idCardImageUrls[guestForm.get('id')?.value]" 
-                                    alt="idcard" 
+                                <p-image
+                                    [src]="idCardImageUrls[guestForm.get('id')?.value]"
+                                    alt="idcard"
                                     width="250"
                                     [preview]="true">
                                 </p-image>
@@ -753,23 +758,6 @@
                     </div>
 
                     <div class="field mb-4 col-12 lg:col-4">
-                        
-                        <!-- climate -->
-                        <label for="climate" class="font-medium text-900">Klímát kérsz?</label>
-                        <div class="flex flex-wrap gap-3 my-3">
-                            <div class="flex align-items-center">
-                                <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes"></p-radioButton>
-                                <label for="climate-yes" class="ml-2">Igen</label>
-                            </div>
-                            <div class="flex align-items-center">
-                                <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no"></p-radioButton>
-                                <label for="climate-no" class="ml-2">Nem</label>
-                            </div>
-                        </div>
-                        <div *ngIf="climate?.dirty && climate?.errors?.['required']" class="p-error">
-                            Kérjük válassza ki, hogy kér-e babaágyat!
-                        </div>
-
                         <!-- prepaid -->
                         <label for="prepaid" class="font-medium text-900">Előleget fizetett?</label>
                         <div class="flex flex-wrap gap-3 my-3">
@@ -791,19 +779,19 @@
 
             <ng-template pTemplate="footer">
                 <div class="flex justify-content-end ap-2">
-                    <button pButton 
-                            pRipple 
-                            label="Mégsem" 
-                            icon="pi pi-times" 
+                    <button pButton
+                            pRipple
+                            label="Mégsem"
+                            icon="pi pi-times"
                             class="p-button-outlined"
-                            (click)="cancel()" 
+                            (click)="cancel()"
                             [disabled]="!guestForm.dirty">
                     </button>
-                    <button pButton 
-                            pRipple 
-                            label="Mentés" 
-                            icon="pi pi-check" 
-                            class="p-button ml-2" 
+                    <button pButton
+                            pRipple
+                            label="Mentés"
+                            icon="pi pi-check"
+                            class="p-button ml-2"
                             (click)="save()"
                             [disabled]="!guestForm.valid || !guestForm.dirty">
                     </button>
@@ -859,15 +847,15 @@
         </p-dialog>
 
         <!-- Table filters dialog -->
-        <p-sidebar 
-            id="sidebar" 
-            [(visible)]="filtersDialog" 
-            position="right" 
+        <p-sidebar
+            id="sidebar"
+            [(visible)]="filtersDialog"
+            position="right"
             styleClass="p-sidebar-lg"
-            [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
+            [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
             [fullScreen]="isMobile"
             [blockScroll]="true">
-            
+
             <!-- Sidebar header -->
             <ng-template pTemplate="header">
                 <span class="font-semibold text-xl">
@@ -876,14 +864,14 @@
             </ng-template>
 
             <form [formGroup]="dialogFiltersForm" novalidate class="grid formgrid p-fluid">
-                
+
                 <!-- lastName -->
                 <div class="field mb-4 col-12 lg:col-4">
                     <label for="lastName" class="font-medium text-900">Vezetéknév</label>
                     <span class="p-input-icon-right">
                         <input pInputText type="text" formControlName="lastName" (input)="onFilter($event, 'lastName')" placeholder="Keresés..."/>
-                        <i *ngIf="dialogFiltersForm.get('lastName')?.value" 
-                            class="pi pi-times cursor-pointer" 
+                        <i *ngIf="dialogFiltersForm.get('lastName')?.value"
+                            class="pi pi-times cursor-pointer"
                             (click)="dialogFiltersForm.get('lastName')?.setValue(null); onFilter($event, 'lastName')">
                         </i>
                     </span>
@@ -894,8 +882,8 @@
                     <label for="firstName" class="font-medium text-900">Keresztnév</label>
                     <span class="p-input-icon-right">
                         <input pInputText type="text" formControlName="firstName" (input)="onFilter($event, 'firstName')" placeholder="Keresés..."/>
-                        <i *ngIf="dialogFiltersForm.get('firstName')?.value" 
-                            class="pi pi-times cursor-pointer" 
+                        <i *ngIf="dialogFiltersForm.get('firstName')?.value"
+                            class="pi pi-times cursor-pointer"
                             (click)="dialogFiltersForm.get('firstName')?.setValue(null); onFilter($event, 'firstName')">
                         </i>
                     </span>
@@ -920,16 +908,13 @@
                 <!-- birthDate -->
                 <div class="field mb-4 col-12 lg:col-4">
                     <label for="birthDate" class="font-medium text-900">Születési dátum</label>
-                    <p-calendar
+                    <app-localized-date-picker
                         formControlName="birthDate"
                         (onSelect)="onFilter($event, 'birthDate')"
                         (onClearClick)="onFilter($event, 'birthDate')"
                         placeholder="Keresés..."
-                        [showButtonBar]="true"
-                        dateFormat="yy-mm-dd" 
-                        dataType="string"
-                        appendTo="body">
-                    </p-calendar>
+                        [showButtonBar]="true">
+                    </app-localized-date-picker>
                 </div>
 
                 <!-- nationality -->
@@ -937,7 +922,7 @@
                     <label for="nationality" class="font-medium text-900">Állampolgárság</label>
                     <app-nationality-selector
                         formControlName="nationality"
-                        (change)="onFilter($event, 'nationality')" 
+                        (change)="onFilter($event, 'nationality')"
                         [showClear]="true">
                     </app-nationality-selector>
                 </div>
@@ -945,9 +930,9 @@
                 <!-- country -->
                 <div class="field mb-4 col-12 lg:col-4">
                     <label for="country" class="font-medium text-900">Lakóhely - ország</label>
-                    <app-country-selector 
+                    <app-country-selector
                         formControlName="country"
-                        (change)="onFilter($event, 'country')" 
+                        (change)="onFilter($event, 'country')"
                         [showClear]="true">
                     </app-country-selector>
                 </div>
@@ -957,8 +942,8 @@
                     <label for="zipCode" class="font-medium text-900">Lakóhely - irányítószám</label>
                     <span class="p-input-icon-right">
                         <input pInputText type="text" formControlName="zipCode" (input)="onFilter($event, 'zipCode')" placeholder="Keresés..."/>
-                        <i *ngIf="dialogFiltersForm.get('zipCode')?.value" 
-                            class="pi pi-times cursor-pointer" 
+                        <i *ngIf="dialogFiltersForm.get('zipCode')?.value"
+                            class="pi pi-times cursor-pointer"
                             (click)="dialogFiltersForm.get('zipCode')?.setValue(null); onFilter($event, 'zipCode')">
                         </i>
                     </span>
@@ -969,8 +954,8 @@
                     <label for="email" class="font-medium text-900">Email</label>
                     <span class="p-input-icon-right">
                         <input pInputText type="text" formControlName="email" (input)="onFilter($event, 'email')" placeholder="Keresés..."/>
-                        <i *ngIf="dialogFiltersForm.get('email')?.value" 
-                            class="pi pi-times cursor-pointer" 
+                        <i *ngIf="dialogFiltersForm.get('email')?.value"
+                            class="pi pi-times cursor-pointer"
                             (click)="dialogFiltersForm.get('email')?.setValue(null); onFilter($event, 'email')">
                         </i>
                     </span>
@@ -981,8 +966,8 @@
                     <label for="telephone" class="font-medium text-900">Telefon</label>
                     <span class="p-input-icon-right">
                         <input pInputText type="text" formControlName="telephone" (input)="onFilter($event, 'telephone')" placeholder="Keresés..."/>
-                        <i *ngIf="dialogFiltersForm.get('telephone')?.value" 
-                            class="pi pi-times cursor-pointer" 
+                        <i *ngIf="dialogFiltersForm.get('telephone')?.value"
+                            class="pi pi-times cursor-pointer"
                             (click)="dialogFiltersForm.get('telephone')?.setValue(null); onFilter($event, 'telephone')">
                         </i>
                     </span>
@@ -991,9 +976,9 @@
                 <!-- firstMeal -->
                 <div class="field mb-4 col-12 lg:col-4">
                     <label for="firstMeal" class="font-medium text-900">Első étkezés</label>
-                    <app-meal-selector 
+                    <app-meal-selector
                         formControlName="firstMeal"
-                        (change)="onFilter($event, 'firstMeal')" 
+                        (change)="onFilter($event, 'firstMeal')"
                         [showNothing]="true"
                         [showClear]="true">
                     </app-meal-selector>
@@ -1002,9 +987,9 @@
                 <!-- lastMeal -->
                 <div class="field mb-4 col-12 lg:col-4">
                     <label for="lastMeal" class="font-medium text-900">Utolsó étkezés</label>
-                    <app-meal-selector 
+                    <app-meal-selector
                         formControlName="lastMeal"
-                        (change)="onFilter($event, 'lastMeal')" 
+                        (change)="onFilter($event, 'lastMeal')"
                         [showNothing]="true"
                         [showClear]="true">
                     </app-meal-selector>
@@ -1027,33 +1012,18 @@
 
                 <!-- roomType -->
                 <div class="field mb-4 col-12 lg:col-8">
-                    <label for="roomType" class="font-medium text-900">Szállástípus</label>
-                    <app-roomtype-selector 
+                    <label for="roomType" class="font-medium text-900">Szobatípus</label>
+                    <app-roomtype-selector
                         formControlName="roomType"
                         (change)="onFilter($event, 'roomType')"
                         [showClear]="true">
                     </app-roomtype-selector>
                 </div>
 
-                <!-- climate -->
-                <div class="field mb-4 col-12 lg:col-4">
-                    <label for="climate" class="font-medium text-900">Klímát kérsz?</label>
-                    <div class="flex flex-wrap gap-3 my-3">
-                        <div class="flex align-items-center">
-                            <p-radioButton name="climate" value="1" formControlName="climate" inputId="climate-yes" (onClick)="onFilter($event, 'climate')"></p-radioButton>
-                            <label for="climate-yes" class="ml-2">Igen</label>
-                        </div>
-                        <div class="flex align-items-center">
-                            <p-radioButton name="climate" value="0" formControlName="climate" inputId="climate-no" (onClick)="onFilter($event, 'climate')"></p-radioButton>
-                            <label for="climate-no" class="ml-2">Nem</label>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- payment -->
                 <div class="field mb-4 col-12 lg:col-4">
                     <label for="payment" class="font-medium text-900">Fizetési mód</label>
-                    <app-payment-selector 
+                    <app-payment-selector
                         formControlName="payment"
                         (change)="onFilter($event, 'payment')"
                         [showClear]="true">
@@ -1069,10 +1039,10 @@
                             pInputText
                             placeholder="Keresés..."
                             formControlName="roomMate"
-                            (input)="onFilter($event, 'roomMate')" 
+                            (input)="onFilter($event, 'roomMate')"
                         />
-                        <i *ngIf="dialogFiltersForm.get('roomMate')?.value" 
-                            class="pi pi-times cursor-pointer" 
+                        <i *ngIf="dialogFiltersForm.get('roomMate')?.value"
+                            class="pi pi-times cursor-pointer"
                             (click)="dialogFiltersForm.get('roomMate')?.setValue(null); onFilter($event, 'roomMate')">
                         </i>
                     </span>
@@ -1080,7 +1050,7 @@
 
                 <!-- prepaid -->
                 <div class="field mb-4 col-12 lg:col-4">
-                    <label for="climate" class="font-medium text-900">Előleget fizetett?</label>
+                    <label for="prepaid" class="font-medium text-900">Előleget fizetett?</label>
                     <div class="flex flex-wrap gap-3 my-3">
                         <div class="flex align-items-center">
                             <p-radioButton name="prepaid" value="1" formControlName="prepaid" inputId="prepaid-yes" (onClick)="onFilter($event, 'prepaid')"></p-radioButton>
@@ -1092,14 +1062,25 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- roomKeyIssued -->
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="roomKeyIssued" class="font-medium text-900">Szobakulcs státusz</label>
+                    <app-roomkey-selector
+                        [parentForm]="dialogFiltersForm"
+                        controlName="roomKeyIssued"
+                        [showClear]="true"
+                        (change)="onFilter($event, 'roomKeyIssued')">
+                    </app-roomkey-selector>
+                </div>
             </form>
 
             <ng-template pTemplate="footer">
                 <div class="flex justify-content-end ap-2">
-                    <button pButton 
-                            pRipple 
-                            label="Szűrők törlése" 
-                            icon="pi pi-times" 
+                    <button pButton
+                            pRipple
+                            label="Szűrők törlése"
+                            icon="pi pi-times"
                             class="p-button-outlined"
                             (click)="clearDialogFilters()">
                     </button>
@@ -1107,6 +1088,104 @@
             </ng-template>
         </p-sidebar>
     </div>
+
+    <!-- Room key dialog -->
+    <p-dialog [(visible)]="roomKeyDialog" [style]="{width: '420px'}" [modal]="true">
+        <ng-template pTemplate="header">
+            <div class="flex align-items-center gap-2">
+                <i class="pi pi-key text-primary text-xl"></i>
+                <span class="font-semibold text-xl">Szobakulcs státusz</span>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="content">
+            <div class="surface-50 border-1 border-200 border-round p-3">
+                <div class="grid m-0 row-gap-2">
+                    <div class="col-5 text-600 font-medium py-2 border-bottom-1 border-200">
+                        <i class="pi pi-user mr-2"></i>
+                        Vendég
+                    </div>
+                    <div class="col-7 text-900 py-2 border-bottom-1 border-200">
+                        <span class="font-medium text-800">{{guest?.lastName}} {{guest?.firstName}}</span>
+                    </div>
+                    <div class="col-5 text-600 font-medium py-2 border-bottom-1 border-200">
+                        <i class="pi pi-key mr-2"></i>
+                        Státusz
+                    </div>
+                    <div class="col-7 text-900 py-2 border-bottom-1 border-200">
+                        <span *ngIf="guest?.roomKeyReturnedAt" class="color-badge green"><i class="pi pi-sign-in mr-2"></i>{{ getRoomKeyStatusLabel(guest || {}) }}</span>
+                        <span *ngIf="!guest?.roomKeyReturnedAt && isRoomKeyCurrentlyIssued(guest)" class="color-badge orange"><i class="pi pi-sign-out mr-2"></i>{{ getRoomKeyStatusLabel(guest || {}) }}</span>
+                        <span *ngIf="!guest?.roomKeyReturnedAt && !isRoomKeyCurrentlyIssued(guest)" class="color-badge indigo"><i class="pi pi pi-times mr-2"></i>{{ getRoomKeyStatusLabel(guest || {}) }}</span>
+                    </div>
+
+                    <div class="col-5 text-600 font-medium py-2 border-bottom-1 border-200">
+                        <i class="pi pi-sign-in mr-2"></i>
+                        Kiadva
+                    </div>
+                    <div class="col-7 text-900 py-2 border-bottom-1 border-200">
+                        <span class="calendar-badge">
+                            <i class="pi pi-calendar mr-1"></i>
+                            {{ guest?.roomKeyIssuedAt ? (guest?.roomKeyIssuedAt | date:'yyyy.MM.dd HH:mm') : '-' }}
+                        </span>
+                    </div>
+
+                    <div class="col-5 text-600 font-medium py-2 border-bottom-1 border-200">
+                        <i class="pi pi-user mr-2"></i>
+                        Kiadta
+                    </div>
+                    <div class="col-7 text-900 py-2 border-bottom-1 border-200">
+                        <span class="text-700">{{ guest?.roomKeyIssuedByUserName || '-' }}</span>
+                    </div>
+
+                    <div class="col-5 text-600 font-medium py-2 border-bottom-1 border-200">
+                        <i class="pi pi-sign-out mr-2"></i>
+                        Visszaadva
+                    </div>
+                    <div class="col-7 text-900 py-2 border-bottom-1 border-200">
+                        <span class="calendar-badge">
+                            <i class="pi pi-calendar mr-1"></i>
+                            {{ guest?.roomKeyReturnedAt ? (guest?.roomKeyReturnedAt | date:'yyyy.MM.dd HH:mm') : '-' }}
+                        </span>
+                    </div>
+
+                    <div class="col-5 text-600 font-medium py-2">
+                        <i class="pi pi-user mr-2"></i>
+                        Visszavette
+                    </div>
+                    <div class="col-7 text-900 py-2">
+                        <span class="text-700">{{ guest?.roomKeyReturnedByUserName || '-' }}</span>
+                    </div>
+                </div>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="footer">
+            <div class="w-full m-0 p-0">
+                <div class="text-600 text-sm mb-3 flex align-items-center">
+                    <i class="pi pi-info-circle mr-2"></i>
+                    {{ getRoomKeyActionHint(guest) }}
+                </div>
+                <div class="flex justify-content-between align-items-center w-full m-0 p-0 gap-2">
+                    <button
+                        *ngIf="canIssueRoomKey(guest)"
+                        pButton
+                        pRipple
+                        label="Kulcs kiadása"
+                        icon="pi pi-key"
+                        class="w-full"
+                        (click)="issueRoomKey()">
+                    </button>
+                    <button
+                        *ngIf="canReturnRoomKey(guest)"
+                        pButton
+                        pRipple
+                        label="Kulcs visszavétele"
+                        icon="pi pi-sign-out"
+                        class="w-full"
+                        (click)="returnRoomKey()">
+                    </button>
+                </div>
+            </div>
+        </ng-template>
+    </p-dialog>
 </div>
 
 <!-- Loading Overlay -->
@@ -1114,4 +1193,5 @@
     <p-progressSpinner></p-progressSpinner>
 </p-blockUI>
 
+<p-confirmDialog></p-confirmDialog>
 <p-toast></p-toast>

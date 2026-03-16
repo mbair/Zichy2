@@ -131,7 +131,11 @@ export class GuestService {
      */
     public getByConferenceName(conferenceName: string): Observable<any> {
         // return this.apiService.get(`guest/getbyconferancename/${conferenceName}`) // TODO: typo in backend
-        return this.apiService.get(`guest/searchquery?conferenceName=${conferenceName}`)
+        return this.apiService.get(`guest/searchquery?conferenceName=${encodeURIComponent(conferenceName)}`)
+    }
+
+    public getByConferenceId(conferenceId: number): Observable<any> {
+        return this.apiService.get(`guest/searchquery?conferenceid=${encodeURIComponent(String(conferenceId))}`)
     }
 
     /**
@@ -157,15 +161,28 @@ export class GuestService {
             })
     }
 
+
+    public issueRoomKey(guestId: number): Observable<any> {
+        return this.apiService.post(`guest/${guestId}/roomkey/issue`, {})
+    }
+
+    public returnRoomKey(guestId: number): Observable<any> {
+        return this.apiService.post(`guest/${guestId}/roomkey/return`, {})
+    }
+
     /**
      * Guest create
      * @param guest
      * @param files
      */
     public create(guest: Guest, files: File[]): void {
+        const guestPayload = {
+            ...guest,
+            privacy: (guest as any)?.privacy ?? true
+        }
 
         const formData = new FormData()
-        formData.append('guest', JSON.stringify(guest))
+        formData.append('guest', JSON.stringify(guestPayload))
 
         if (files && files.length > 0) {
             for (const file of files) {
@@ -298,7 +315,6 @@ export class GuestService {
         const parts: string[] = []
         if (f.conferenceId != null) parts.push(`conferenceid=${encodeURIComponent(String(f.conferenceId))}`)
         if (typeof f.minBeds === 'number') parts.push(`minBeds=${f.minBeds}`)
-        if (typeof f.climate === 'boolean') parts.push(`climate=${f.climate ? 1 : 0}`)
         if (f.onlyNotReserved) parts.push(`onlyNotReserved=true`);
         if (f.includeGuestIds?.length) parts.push(`includeGuestIds=${f.includeGuestIds.join(',')}`);
         if (f.enabled) parts.push(`enabled=1`)

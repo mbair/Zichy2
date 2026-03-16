@@ -12,6 +12,10 @@ const routes: Routes = [
     {
         path: '', component: AppLayoutComponent,
         children: [
+            {
+                path: 'dev/localized-date-picker',
+                loadComponent: () => import('./devtools/localized-date-picker-debug.component').then(m => m.LocalizedDatePickerDebugComponent)
+            },
             // Need Authentication
             { 
                 path: '', 
@@ -60,6 +64,15 @@ const routes: Routes = [
                 }, 
                 loadChildren: () => import('./demo/components/conference/conference.module').then(m => m.ConferenceModule), 
                 canActivate: [AuthGuard] 
+            },
+            {
+                path: 'contracting-parties',
+                data: {
+                    breadcrumb: 'Szerződők',
+                    requiredRoles: ['Super Admin', 'Nagy Admin']
+                },
+                loadChildren: () => import('./demo/components/contracting-party-admin/contracting-party-admin.module').then(m => m.ContractingPartyAdminModule),
+                canActivate: [AuthGuard]
             },
             { 
                 path: 'profile', 

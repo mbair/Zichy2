@@ -16,6 +16,179 @@
     animation: moveinright .15s linear;
 }
 
+.header-panels {
+    display: block;
+}
+
+.conference-panel {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--surface-border);
+    border-radius: 1rem;
+    background: linear-gradient(180deg, var(--surface-50) 0%, var(--surface-card) 100%);
+}
+
+.conference-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100%;
+    background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--primary-color) 10%, transparent), transparent 35%),
+        linear-gradient(180deg, var(--surface-card) 0%, var(--surface-50) 100%);
+}
+
+.conference-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.conference-heading {
+    flex: 0 1 auto;
+    max-width: 34rem;
+}
+
+.conference-title {
+    color: var(--text-color);
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+}
+
+.conference-period {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: fit-content;
+    margin-top: 0.95rem;
+    padding: 0.65rem 0.95rem;
+    border-radius: 0.9rem;
+    background: var(--yellow-200);
+    color: var(--yellow-800);
+    font-size: 1.08rem;
+    font-weight: 800;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--yellow-500) 20%, transparent);
+}
+
+.conference-period .pi {
+    color: var(--orange-700);
+    font-size: 1rem;
+}
+
+.conference-deadline {
+    width: min(100%, 22rem);
+    margin-left: auto;
+    padding: 0.85rem 0.95rem;
+    border: 1px solid var(--surface-border);
+    border-radius: 0.9rem;
+    background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, var(--surface-card) 100%);
+}
+
+.deadline-label {
+    margin-bottom: 0.35rem;
+    color: var(--text-color-secondary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.deadline-value {
+    color: var(--text-color);
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.deadline-main-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.deadline-description {
+    margin-top: 0.45rem;
+    color: var(--text-color-secondary);
+    font-size: 0.92rem;
+    line-height: 1.35;
+}
+
+.deadline-meta {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 0.5rem;
+    row-gap: 0.25rem;
+    margin-top: 0.65rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid var(--surface-border);
+}
+
+.deadline-meta-label {
+    justify-self: start;
+    color: var(--text-color-secondary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    letter-spacing: -0.01em;
+}
+
+.deadline-meta-value {
+    justify-self: center;
+    color: var(--text-color);
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.deadline-status {
+    display: inline-flex;
+    align-items: center;
+    justify-self: end;
+    padding: 0.16rem 0.48rem;
+    border-radius: 999px;
+    background: #e8f7ee;
+    color: #0f6b3f;
+    font-size: 0.72rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.deadline-status-closed {
+    background: #fdecec;
+    color: #a12626;
+}
+
+.deadline-status-admin {
+    background: #eef2ff;
+    color: #3347b5;
+}
+
+@media (max-width: 991px) {
+    .conference-header-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .conference-deadline {
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .deadline-meta {
+        grid-template-columns: 1fr;
+    }
+
+    .deadline-meta-label,
+    .deadline-meta-value,
+    .deadline-status {
+        justify-self: start;
+    }
+}
+
 ::ng-deep .p-tooltip .p-tooltip-text img {
   max-width: 100%;
   height: auto;

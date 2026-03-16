@@ -1,16 +1,20 @@
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
-import { DropdownChangeEvent } from 'primeng/dropdown';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
+import { getRoomTypeOptions, RoomTypeOption } from '../../utils/room-type.utils';
 
 export interface changeEvent {
-    value: string;
+    value: any;
     field: string;
 }
 
 @Component({
     selector: 'app-roomtype-selector',
     templateUrl: './roomtype-selector.component.html',
+    standalone: true,
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, DropdownModule],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
@@ -23,10 +27,13 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
+    @Input() optionValue: 'value' | 'id' = 'value'
+    @Input() includeNoAccommodation: boolean = true
+    @Input() allowedRoomTypeIds: number[] | null | undefined = undefined
     @Output() change = new EventEmitter<changeEvent>()
     
-    roomTypes: any[] = []           // Available room types
-    selectedRoomType: string = ''   // Selected room type
+    roomTypes: RoomTypeOption[] = [] // Available room types
+    selectedRoomType: any = ''       // Selected room type
     disabled = false
 
     constructor(private translate: TranslateService, 
@@ -69,55 +76,27 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
      * Translates the accommodation labels to the current language and maps them to their respective values.
      */
     setRoomTypes() {
-        this.roomTypes = [
-            { 
-                label: this.translate.instant('ROOMTYPES.NOTHING'), 
-                value: 'Nem kérek szállást', 
-                color: 'gray' 
-            },
-            { 
-                label: this.translate.instant('ROOMTYPES.CASTLE'), 
-                description: this.translate.instant('ROOMTYPES.4-BED-ROOM'), 
-                value: 'Kastély szállás 4 ágyas szoba', 
-                color: 'teal' 
-            },
-            { 
-                label: this.translate.instant('ROOMTYPES.CASTLE'), 
-                description: this.translate.instant('ROOMTYPES.6-BED-ROOM'), 
-                value: 'Kastély szállás 6 ágyas szoba', 
-                color: 'teal' 
-            },
-            { 
-                label: this.translate.instant('ROOMTYPES.CASTLE'), 
-                description: this.translate.instant('ROOMTYPES.8-BED-ROOM'), 
-                value: 'Kastély szállás 8 ágyas szoba', 
-                color: 'teal' 
-            },
-            { 
-                label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
-                description: this.translate.instant('ROOMTYPES.2-BED-ROOM'), 
-                value: 'Maranatha Panzióház 2 ágyas szoba (külön fürdős)', 
-                color: 'yellow' 
-            },
-            { 
-                label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
-                description: this.translate.instant('ROOMTYPES.DOUBLE-BED-ROOM'), 
-                value: 'Maranatha Panzióház franciaágyas szoba (külön fürdős)', 
-                color: 'yellow' 
-            },
-            { 
-                label: this.translate.instant('ROOMTYPES.MARANATHA-PENSION-HOUSE'), 
-                description: this.translate.instant('ROOMTYPES.M-4-BED-ROOM'), 
-                value: 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)', 
-                color: 'yellow' 
-            },
-            { 
-                label: this.translate.instant('ROOMTYPES.FAMILY-ROOM'), 
-                description: this.translate.instant('ROOMTYPES.WITH-KITCHEN'), 
-                value: 'Családi szoba (közös konyhával, fürdővel és nappalival)', 
-                color: 'orange' 
-            },
-        ]
+        const allRoomTypes = getRoomTypeOptions(this.translate)
+        const visibleRoomTypes = this.includeNoAccommodation
+            ? allRoomTypes
+            : allRoomTypes.filter((roomType) => roomType.id !== 0)
+
+        // Optional filtering by room type IDs.
+        // Keep "no accommodation" visible even when filtered.
+        if (Array.isArray(this.allowedRoomTypeIds) && this.allowedRoomTypeIds.length > 0) {
+            const allowed = new Set(
+                this.allowedRoomTypeIds
+                    .map((id) => Number(id))
+                    .filter((id) => Number.isFinite(id))
+            )
+
+            this.roomTypes = visibleRoomTypes.filter((roomType) =>
+                (this.includeNoAccommodation && roomType.id === 0) || allowed.has(roomType.id)
+            )
+            return
+        }
+
+        this.roomTypes = visibleRoomTypes
     }
 
     /**

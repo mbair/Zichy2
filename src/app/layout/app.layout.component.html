@@ -11,3 +11,50 @@
     <!-- <app-config></app-config> -->
     <div class="layout-mask"></div>
 </div>
+<p-dialog
+    [visible]="sessionWarning.visible"
+    header="Közeleg a munkamenet vége"
+    [modal]="true"
+    [closable]="false"
+    [draggable]="false"
+    [resizable]="false"
+    [dismissableMask]="false"
+    [style]="{ width: 'min(32rem, calc(100vw - 2rem))' }">
+    <div class="flex gap-3 align-items-start">
+        <i class="pi pi-exclamation-triangle text-orange-500 mt-1" style="font-size: 1.75rem"></i>
+        <div class="flex-1">
+            <p class="m-0 mb-2 line-height-3">
+                A munkamenet hamarosan lejár.
+                Várható kijelentkeztetés:
+                <strong>{{ formatSessionRemaining(sessionWarning.remainingMs) }}</strong>
+                múlva.
+            </p>
+            <p class="m-0 text-600 line-height-3">
+                Ha tovább dolgozik, hosszabbítsa meg most a bejelentkezést.
+            </p>
+            <small *ngIf="sessionWarning.error" class="block mt-3 text-red-500 line-height-3">
+                {{ sessionWarning.error }}
+            </small>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="flex flex-column sm:flex-row justify-content-end gap-2">
+            <button
+                pButton
+                pRipple
+                type="button"
+                label="Kijelentkezés"
+                class="p-button-text"
+                (click)="logout()"></button>
+            <button
+                pButton
+                pRipple
+                type="button"
+                icon="pi pi-refresh"
+                label="Maradok bejelentkezve"
+                [loading]="sessionWarning.refreshing"
+                (click)="staySignedIn()"></button>
+        </div>
+    </ng-template>
+</p-dialog>

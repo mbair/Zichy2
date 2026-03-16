@@ -1,6 +1,8 @@
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit, OnDestroy } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms';
-import { DropdownChangeEvent } from 'primeng/dropdown';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
+import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
 import { RoleService } from '../../service/role.service';
 import { Role } from '../../api/role';
 import { Subscription } from 'rxjs';
@@ -8,6 +10,8 @@ import { Subscription } from 'rxjs';
 @Component({
     selector: 'app-role-selector',
     templateUrl: './role-selector.component.html',
+    standalone: true,
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, DropdownModule],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,

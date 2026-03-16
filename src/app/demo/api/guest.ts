@@ -27,7 +27,9 @@ export interface Guest {
     email?: string;
     telephone?: string;
     roomType?: string;
-    payment?: string;
+    payment?: string | number | null;
+    paymentName?: string;
+    paymentMethodName?: string;
     babyBed?: boolean;
     roomMate?: string;
     idcard?: string;
@@ -35,7 +37,6 @@ export interface Guest {
     lastRfidUsage?: string | null;
     rfidColor?: string | null;
     prepaid?: boolean;
-    climate?: boolean;
     is_test?: boolean;
     createdAt?: string;
     updatedAt?: string;
@@ -48,6 +49,13 @@ export interface Guest {
     idCardUploaded?: any;
     conference?: Conference[]
     reservations?: Reservation[]
+    roomKeyIssued?: boolean;
+    roomKeyIssuedAt?: string | null;
+    roomKeyReturnedAt?: string | null;
+    roomKeyIssuedByUserId?: number | null;
+    roomKeyReturnedByUserId?: number | null;
+    roomKeyIssuedByUserName?: string | null;
+    roomKeyReturnedByUserName?: string | null;
 }
 
 export type GuestFilter = {

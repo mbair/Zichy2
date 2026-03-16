@@ -2,7 +2,7 @@ import { Component, OnInit, HostListener, isDevMode, ViewChild, ElementRef, Chan
 import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
-import { MenuItem, Message, MessageService } from 'primeng/api';
+import { ConfirmationService, MenuItem, Message, MessageService } from 'primeng/api';
 import { HttpClient } from '@angular/common/http';
 import { FileSendEvent, FileUpload, FileUploadErrorEvent } from 'primeng/fileupload';
 import { Table } from 'primeng/table';
@@ -19,9 +19,8 @@ import { Reservation } from '../../api/reservation';
 import { Conference } from '../../api/conference';
 import { Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
-import * as FileSaver from 'file-saver';
-import * as moment from 'moment';
-moment.locale('hu')
+import { calculateAgeYears, formatDateCompact, formatDateDots, isSameDay, isSameOrBeforeDay, parseDateOnly } from '../../utils/date.utils';
+import { saveBlobAsFile } from '../../utils/file-saver.utils';
 
 import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
 
@@ -29,7 +28,8 @@ import { ConferenceSelectorComponent } from '../../selectors/conference-selector
 @Component({
     selector: 'guest-component',
     templateUrl: './guest.component.html',
-    providers: [MessageService]
+    styleUrls: ['./guest.component.scss'],
+    providers: [MessageService, ConfirmationService]
 })
 
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy
@@ -52,7 +52,7 @@ export class GuestComponent implements OnInit {
     sortField: string = ''                       // Current sort field
     sortOrder: number = 1                        // Current sort order
     globalFilter: string = ''                    // Global filter
-    filterValues: { [key: string]: string } = {} // Table filter conditions
+    filterValues: { [key: string]: any } = {}    // Table filter conditions
     rfidFilterValue: any                         // Store for RFID filter value
     prepaidFilterValue: any                      // Store for Prepaid filter value
     debounce: { [key: string]: any } = {}        // Search delay in filter field
@@ -68,12 +68,14 @@ export class GuestComponent implements OnInit {
     canEditByRole: boolean = false               // Edit permission by Role
     canDelete: boolean = false                   // User has permission to delete guest
     canAssign: boolean = false                   // User has permission to assign Tag to guest
+    canManageRoomKey: boolean = false            // User has permission to manage room keys
     canImport: boolean = false                   // User has permission to import Excel
     isMobile: boolean = false                    // Mobile screen detection
     messages: Message[] = []                     // A message used for notifications and displaying errors
     successfulMessage: Message[] = []            // Message displayed on success
     tag: Tag = {}                                // NFC tag
     tagDialog: boolean = false                   // Tag assignment popup
+    roomKeyDialog: boolean = false               // Room key status popup
     conferences: any[] = []                      // Optional conferences
     selectedConferences: Conference[] = []       // Conference chosen by user
     guest: Guest | null = null                   // One guest object
@@ -139,7 +141,6 @@ export class GuestComponent implements OnInit {
         prepaid: '',
         roomMate: '',
         idCard: [null],
-        climate: '',
         enabled: true,
     }
 
@@ -160,6 +161,7 @@ export class GuestComponent implements OnInit {
         private dietService: DietService,
         private countryService: CountryService,
         private messageService: MessageService,
+        private confirmationService: ConfirmationService,
         private logService: LogService,
         private cdRef: ChangeDetectorRef,
         private fb: FormBuilder) {
@@ -197,8 +199,7 @@ export class GuestComponent implements OnInit {
             babyBed: [this.initialFormValues.babyBed],
             prepaid: [this.initialFormValues.prepaid],
             roomMate: [this.initialFormValues.roomMate],
-            idCard: [this.initialFormValues.idCard],
-            climate: [this.initialFormValues.climate]
+            idCard: [this.initialFormValues.idCard]
         }, {
             validators: dateRangeValidator('dateOfArrival', 'dateOfDeparture')
         })
@@ -231,7 +232,7 @@ export class GuestComponent implements OnInit {
             babyBed: [],
             prepaid: [],
             roomMate: [],
-            climate: []
+            roomKeyIssued: []
         })
 
         this.exportButtonItems = [
@@ -261,6 +262,7 @@ export class GuestComponent implements OnInit {
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo']).subscribe(canEdit => { this.canEditByRole = canEdit; this.recomputeCanEdit() })
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canDelete => this.canDelete = canDelete)
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canAssign => this.canAssign = canAssign)
+        this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin', 'Szervezo']).subscribe(canManageRoomKey => this.canManageRoomKey = canManageRoomKey)
         this.userService.hasRole(['Super Admin', 'Nagy Admin', 'Kis Admin']).subscribe(canImport => this.canImport = canImport)
         this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => { this.isOrganizer = isOrganizer; this.recomputeCanEdit() })
 
@@ -366,6 +368,7 @@ export class GuestComponent implements OnInit {
         this.cols = [
             { field: 'name', header: 'Név' },  // lastName + firstName
             { field: 'roomNum', header: 'Szoba' },
+            { field: 'roomKeyStatus', header: 'Szobakulcs' },
             { field: 'diet', header: 'Étrend' },
             { field: 'rfid', header: 'NFC' },
             { field: 'lastRfidUsage', header: 'NFC használat' },
@@ -454,9 +457,7 @@ export class GuestComponent implements OnInit {
                 // build search + noConference query and use get()
                 const qp: string[] = [`search=${encodeURIComponent(searchValue)}`, 'noConference=1']
                 // include any other active table filters
-                const extraFilters = Object.keys(this.filterValues)
-                    .map(key => this.filterValues[key]?.length > 0 ? `${key}=${this.filterValues[key]}` : '')
-                    .filter(x => x.length > 0)
+                const extraFilters = this.buildActiveFilterParams()
                 qp.push(...extraFilters)
 
                 return this.guestService.get(
@@ -505,7 +506,6 @@ export class GuestComponent implements OnInit {
     get prepaid() { return this.guestForm.get('prepaid') }
     get roomMate() { return this.guestForm.get('roomMate') }
     get idCard() { return this.guestForm.get('idCard') }
-    get climate() { return this.guestForm.get('climate') }
     
     // Helper for Guests primary reservation
     get primaryReservation(): Reservation | null {
@@ -534,9 +534,7 @@ export class GuestComponent implements OnInit {
         this.loading = true
 
         // build base filters from table filters
-        const filters = Object.keys(this.filterValues)
-            .map(key => this.filterValues[key]?.length > 0 ? `${key}=${this.filterValues[key]}` : '')
-            .filter(x => x.length > 0)
+        const filters = this.buildActiveFilterParams()
 
         // translate conference selection to API params
         const ids = this.selectedConferences
@@ -586,14 +584,12 @@ export class GuestComponent implements OnInit {
         // Organizer need select conference
         if (this.isOrganizer && !this.selectedConferences) return
 
-        const noWaitFields = ['diet', 'lastRfidUsage', 'dateOfArrival', 'dateOfDeparture', 'prepaid']
+        const noWaitFields = ['diet', 'lastRfidUsage', 'dateOfArrival', 'dateOfDeparture', 'prepaid', 'roomKeyIssued', 'payment']
         let filterValue = ''
 
         // Calendar date as String
         if (event instanceof Date) {
-            const date = moment(event);
-            const formattedDate = date.format('YYYY.MM.DD')
-            filterValue = formattedDate
+            filterValue = formatDateDots(event)
         } else {
             if (event && (event.value || event.target?.value)) {
                 if (field == "rfid") {
@@ -624,6 +620,19 @@ export class GuestComponent implements OnInit {
                 }
             }, 500)
         }
+    }
+
+    private hasActiveFilterValue(value: any): boolean {
+        if (value === null || value === undefined) return false
+        if (typeof value === 'string') return value.trim().length > 0
+        if (Array.isArray(value)) return value.length > 0
+        return true
+    }
+
+    private buildActiveFilterParams(): string[] {
+        return Object.keys(this.filterValues)
+            .filter((key) => this.hasActiveFilterValue(this.filterValues[key]))
+            .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(String(this.filterValues[key]))}`)
     }
 
     /**
@@ -704,19 +713,23 @@ export class GuestComponent implements OnInit {
         }
 
         guest.conference = selectedConf ? [selectedConf] : []
+        const guestFormValue: Guest = {
+            ...guest,
+            payment: this.resolvePaymentMethodId(guest)
+        }
 
         if (selectedConf) {
             // Because side bar is not visible yet, we need to wait a bit
             setTimeout(() => {
-                this.guestForm.patchValue(guest)
+                this.guestForm.patchValue(guestFormValue)
 
                 // Store original values for Cancel (edit mode)
                 this.originalFormValues = this.guestForm.getRawValue()
             })
 
             // Set arrival and departure date limitations
-            this.beginDate = selectedConf?.beginDate ? new Date(selectedConf.beginDate) : undefined
-            this.endDate = selectedConf?.endDate ? new Date(selectedConf.endDate) : undefined
+            this.beginDate = selectedConf?.beginDate ? parseDateOnly(selectedConf.beginDate) ?? undefined : undefined
+            this.endDate = selectedConf?.endDate ? parseDateOnly(selectedConf.endDate) ?? undefined : undefined
 
             this.getEarliestFirstMeal()
             this.getLatestFirstMeal()
@@ -726,6 +739,64 @@ export class GuestComponent implements OnInit {
         } else {
             console.warn('No conference found for guest:', guest);
         }
+    }
+
+    private resolvePaymentMethodId(guest: Guest): number | null {
+        const candidates = [
+            guest?.payment,
+            guest?.paymentName,
+            guest?.paymentMethodName
+        ]
+
+        for (const candidate of candidates) {
+            const normalized = this.normalizePaymentMethodValue(candidate)
+            if (normalized != null) {
+                return normalized
+            }
+        }
+
+        return null
+    }
+
+    private normalizePaymentMethodValue(value: unknown): number | null {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            return value
+        }
+
+        if (typeof value !== 'string') {
+            return null
+        }
+
+        const trimmed = value.trim()
+        if (!trimmed) {
+            return null
+        }
+
+        const numericValue = Number(trimmed)
+        if (Number.isFinite(numericValue)) {
+            return numericValue
+        }
+
+        const normalized = trimmed
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim()
+
+        if (normalized === 'banki atutalas' || normalized === 'bank transfer') {
+            return 1
+        }
+
+        if (normalized === 'szep kartya' || normalized === 'szep card') {
+            return 2
+        }
+
+        if (normalized === 'keszpenz' || normalized === 'cash') {
+            return 3
+        }
+
+        return null
     }
 
     /**
@@ -819,9 +890,9 @@ export class GuestComponent implements OnInit {
         this.filterValues['babyBed'] = ''
         this.filterValues['roomType'] = ''
         this.filterValues['payment'] = ''
-        this.filterValues['climate'] = ''
         this.filterValues['prepaid'] = ''
         this.filterValues['roomMate'] = ''
+        this.filterValues['roomKeyIssued'] = ''
 
         this.doQuery()
     }
@@ -892,6 +963,134 @@ export class GuestComponent implements OnInit {
             action_type: "unassign",
             table_name: "guest",
             original_data: `Unassign Tag from ${name || 'ismeretlen vendég'}`
+        })
+    }
+
+
+    openRoomKeyDialog(guest: Guest) {
+        if (!this.canManageRoomKey) return
+        this.guest = { ...guest }
+        this.roomKeyDialog = true
+    }
+
+    hideRoomKeyDialog() {
+        this.roomKeyDialog = false
+    }
+
+    getRoomKeyIconClass(guest: Guest): string {
+        if (guest.roomKeyReturnedAt) {
+            return 'pi pi-check-circle text-green-500'
+        }
+
+        if (guest.roomKeyIssued || guest.roomKeyIssuedAt) {
+            return 'pi pi-key text-orange-500'
+        }
+
+        return 'pi pi-key text-500'
+    }
+
+    isRoomKeyCurrentlyIssued(guest: Partial<Guest> | null | undefined): boolean {
+        if (!guest) return false
+        return !!(guest.roomKeyIssued || guest.roomKeyIssuedAt) && !guest.roomKeyReturnedAt
+    }
+
+    canIssueRoomKey(guest: Partial<Guest> | null | undefined): boolean {
+        return this.canManageRoomKey && !!guest && !this.isRoomKeyCurrentlyIssued(guest)
+    }
+
+    canReturnRoomKey(guest: Partial<Guest> | null | undefined): boolean {
+        return this.canManageRoomKey && !!guest && this.isRoomKeyCurrentlyIssued(guest)
+    }
+
+    getRoomKeyActionHint(guest: Partial<Guest> | null | undefined): string {
+        if (!guest) return 'Nincs kiválasztott vendég.'
+
+        if (this.canReturnRoomKey(guest)) {
+            return 'A kulcs jelenleg ki van adva, visszavehető.'
+        }
+
+        return 'A kulcs jelenleg nincs kiadva, kiadható.'
+    }
+
+    private updateRoomKeyStateLocally(nextFields: Partial<Guest>): void {
+        if (!this.guest?.id) return
+
+        const updatedGuest: Guest = { ...this.guest, ...nextFields }
+        const idx = this.findIndexById(updatedGuest.id)
+        if (idx !== -1) {
+            this.tableData = [
+                ...this.tableData.slice(0, idx),
+                updatedGuest,
+                ...this.tableData.slice(idx + 1)
+            ]
+        }
+        this.guest = updatedGuest
+    }
+
+    issueRoomKey() {
+        if (!this.guest?.id) return
+
+        this.guestService.issueRoomKey(this.guest.id).subscribe({
+            next: (updatedGuest: Partial<Guest>) => {
+                this.updateRoomKeyStateLocally({
+                    roomKeyIssued: updatedGuest?.roomKeyIssued ?? true,
+                    roomKeyIssuedAt: updatedGuest?.roomKeyIssuedAt || this.guest?.roomKeyIssuedAt || new Date().toISOString(),
+                    roomKeyReturnedAt: updatedGuest?.roomKeyReturnedAt ?? null,
+                    roomKeyIssuedByUserId: updatedGuest?.roomKeyIssuedByUserId ?? null,
+                    roomKeyIssuedByUserName: updatedGuest?.roomKeyIssuedByUserName ?? null,
+                    roomKeyReturnedByUserId: updatedGuest?.roomKeyReturnedByUserId ?? null,
+                    roomKeyReturnedByUserName: updatedGuest?.roomKeyReturnedByUserName ?? null
+                })
+                this.messageService.add({ severity: 'success', summary: 'Szobakulcs kiadva' })
+                this.doQuery()
+            },
+            error: (error: any) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Hiba',
+                    detail: error?.error?.message || 'A szobakulcs kiadása nem sikerült.'
+                })
+            }
+        })
+    }
+
+    returnRoomKey() {
+        if (!this.guest?.id) return
+
+        this.confirmationService.confirm({
+            message: 'Biztosan visszaveszi a szobakulcsot?',
+            header: 'Megerősítés',
+            icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Igen',
+            rejectLabel: 'Nem',
+            acceptIcon: 'pi pi-check mr-2',
+            rejectIcon: 'pi pi-times mr-2',
+            acceptButtonStyleClass: 'p-button',
+            rejectButtonStyleClass: 'p-button-outlined',
+            accept: () => {
+                this.guestService.returnRoomKey(this.guest!.id!).subscribe({
+                    next: (updatedGuest: Partial<Guest>) => {
+                        this.updateRoomKeyStateLocally({
+                            roomKeyIssued: updatedGuest?.roomKeyIssued ?? false,
+                            roomKeyIssuedAt: updatedGuest?.roomKeyIssuedAt || this.guest?.roomKeyIssuedAt || null,
+                            roomKeyReturnedAt: updatedGuest?.roomKeyReturnedAt || new Date().toISOString(),
+                            roomKeyIssuedByUserId: updatedGuest?.roomKeyIssuedByUserId ?? this.guest?.roomKeyIssuedByUserId ?? null,
+                            roomKeyIssuedByUserName: updatedGuest?.roomKeyIssuedByUserName ?? this.guest?.roomKeyIssuedByUserName ?? null,
+                            roomKeyReturnedByUserId: updatedGuest?.roomKeyReturnedByUserId ?? null,
+                            roomKeyReturnedByUserName: updatedGuest?.roomKeyReturnedByUserName ?? null
+                        })
+                        this.messageService.add({ severity: 'success', summary: 'Szobakulcs visszavéve' })
+                        this.doQuery()
+                    },
+                    error: (error: any) => {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Hiba',
+                            detail: error?.error?.message || 'A szobakulcs visszavétele nem sikerült.'
+                        })
+                    }
+                })
+            }
         })
     }
 
@@ -1178,9 +1377,7 @@ export class GuestComponent implements OnInit {
 
     getAge(birthDate: string): string {
         if (!birthDate) return "";
-        const birth = moment(birthDate)
-        const today = moment()
-        return today.diff(birth, 'years').toString()
+        return calculateAgeYears(birthDate).toString()
     }
 
     getCountryCode(countryName: string): string | null {
@@ -1208,7 +1405,7 @@ export class GuestComponent implements OnInit {
         const beginDate = this.beginDate
 
         // If dateOfArrival is on the first day of the conference, the earliest first meal is the first meal of the conference
-        if (moment(dateOfArrival).isSame(beginDate, 'day')) {
+        if (isSameDay(dateOfArrival, beginDate)) {
             return this.guestConference?.firstMeal
         }
         return undefined
@@ -1224,7 +1421,7 @@ export class GuestComponent implements OnInit {
         const endDate = this.endDate
 
         // If dateOfArrival is on the last day of the conference, the latest first meal is the last meal of the conference
-        if (moment(dateOfArrival).isSame(endDate, 'day')) {
+        if (isSameDay(dateOfArrival, endDate)) {
             return this.guestConference?.lastMeal
         }
         return undefined
@@ -1240,7 +1437,7 @@ export class GuestComponent implements OnInit {
         const beginDate = this.beginDate
 
         // If dateOfDeparture is on the first day of the conference, the earliest last meal is the first meal of the conference
-        if (moment(dateOfDeparture).isSame(beginDate, 'day')) {
+        if (isSameDay(dateOfDeparture, beginDate)) {
             return this.guestConference?.firstMeal
         }
         return undefined
@@ -1256,7 +1453,7 @@ export class GuestComponent implements OnInit {
         const endDate = this.endDate
 
         // If dateOfDeparture is on the last day of the conference, the latest last meal is the last meal of the conference
-        if (moment(dateOfDeparture).isSame(endDate, 'day')) {
+        if (isSameDay(dateOfDeparture, endDate)) {
             return this.guestConference?.lastMeal
         }
         return undefined
@@ -1268,14 +1465,27 @@ export class GuestComponent implements OnInit {
      * @param selectedConferences 
      */
     onConferenceSelectionChange(selectedConferences: Conference[]): void {
-        this.selectedConferences = selectedConferences || []
-        this.noConferenceMode = this.isNoneConferenceSelected(this.selectedConferences)
+        const nextSelectedConferences = selectedConferences || []
+        const nextNoConferenceMode = this.isNoneConferenceSelected(nextSelectedConferences)
+        const currentIds = (this.selectedConferences || []).map(conf => Number(conf?.id)).sort((a, b) => a - b)
+        const nextIds = nextSelectedConferences.map(conf => Number(conf?.id)).sort((a, b) => a - b)
+        const selectionChanged =
+            currentIds.length !== nextIds.length ||
+            currentIds.some((id, index) => id !== nextIds[index]) ||
+            this.noConferenceMode !== nextNoConferenceMode
+
+        this.selectedConferences = nextSelectedConferences
+        this.noConferenceMode = nextNoConferenceMode
 
         // Do NOT push the sentinel text into query params
         // We control conference filtering via noConference / conferenceIds
         delete this.filterValues['conferenceName']
 
         this.recomputeCanEdit()
+
+        if (!selectionChanged) {
+            return
+        }
 
         this.selectionChanges$.next(this.selectedConferences)
     }
@@ -1288,9 +1498,38 @@ export class GuestComponent implements OnInit {
      */
     exportExcel() {
         import("xlsx").then(xlsx => {
-            let data = this.selected.map(row => {
-                // Remove id column and keep the rest columns
-                const { id, answers, ...rest } = row
+            const mapGuestRowForExport = (row: any): { [key: string]: any } => {
+                const {
+                    answers,
+                    roomKeyIssuedByUserName,
+                    roomKeyReturnedByUserName,
+                    ...rest
+                } = row || {}
+
+                const baseRow: { [key: string]: any } = { ...rest }
+                const issuedByUser = baseRow['roomKeyIssuedByUser']
+                const returnedByUser = baseRow['roomKeyReturnedByUser']
+                const paymentText = baseRow['paymentMethodName'] || baseRow['payment'] || null
+                const exportedRoomNum = baseRow['displayRoomNum'] ?? baseRow['roomNum'] ?? null
+
+                // roomKeyIssued is replaced by roomKeyStatus in export
+                delete baseRow['id']
+                delete baseRow['roomKeyIssued']
+                delete baseRow['roomKeyIssuedAt']
+                delete baseRow['roomKeyReturnedAt']
+                delete baseRow['roomKeyIssuedByUserId']
+                delete baseRow['roomKeyReturnedByUserId']
+                delete baseRow['roomKeyIssuedByUser']
+                delete baseRow['roomKeyReturnedByUser']
+                delete baseRow['reservations']
+                delete baseRow['actualReservation']
+                delete baseRow['paymentMethodName']
+                delete baseRow['displayRoomNum']
+                baseRow['roomNum'] = exportedRoomNum
+
+                const issuedByName = roomKeyIssuedByUserName ?? issuedByUser?.fullname ?? issuedByUser?.username ?? ''
+                const returnedByName = roomKeyReturnedByUserName ?? returnedByUser?.fullname ?? returnedByUser?.username ?? ''
+
                 const qnaColumns: { [key: string]: any } = {}
                 let qaIndex = 1
 
@@ -1317,43 +1556,23 @@ export class GuestComponent implements OnInit {
                 }
 
                 return {
-                    ...rest,
+                    ...baseRow,
+                    payment: paymentText,
+                    roomKeyStatus: this.getRoomKeyStatusLabel(row),
+                    roomKeyIssuedAt: row?.roomKeyIssuedAt ?? null,
+                    roomKeyIssuedByUserName: issuedByName,
+                    roomKeyReturnedAt: row?.roomKeyReturnedAt ?? null,
+                    roomKeyReturnedByUserName: returnedByName,
                     ...qnaColumns
                 } as { [key: string]: any }
-            })
+            }
+
+            let data = this.selected.map(mapGuestRowForExport)
 
             // If the selected array is empty, we work from the filtered or full dataset as a fallback
             if (data.length === 0) {
                 console.warn("No rows selected for export. Exporting filtered or full data.")
-                data = (this.table.filteredValue || this.tableData).map(row => {
-                    const { id, answers, ...rest } = row
-                    const qnaColumns: { [key: string]: any } = {}
-                    let qaIndex = 1
-                    if (Array.isArray(answers)) {
-                        answers.forEach(answer => {
-                            if (Array.isArray(answer.translations)) {
-                                answer.translations.forEach((translation: any) => {
-                                    const rawQuestion = translation.hu || ''
-                                    // Delete the parenthetical comment and the section that follows it
-                                    let questionText = rawQuestion.split('(')[0].trim();
-
-                                    // Add question mark at the end of the question
-                                    if (!questionText.endsWith('?')) {
-                                        questionText += '?'
-                                    }
-                                    const answerText = translation.answers
-                                    qnaColumns[`question_${qaIndex}`] = questionText
-                                    qnaColumns[`answer_${qaIndex}`] = answerText
-                                    qaIndex++
-                                })
-                            }
-                        })
-                    }
-                    return {
-                        ...rest,
-                        ...qnaColumns
-                    } as { [key: string]: any }
-                })
+                data = (this.table.filteredValue || this.tableData).map(mapGuestRowForExport)
             }
 
             // Find the maximum number of question/answer pairs in all rows
@@ -1381,6 +1600,7 @@ export class GuestComponent implements OnInit {
 
             // Delete unnecessary columns
             data.forEach((row: any) => {
+                delete row.id
                 delete row.is_test
                 delete row.userid
                 delete row.rfid_id
@@ -1388,6 +1608,13 @@ export class GuestComponent implements OnInit {
                 delete row.room_id
                 delete row.conferenceid
                 delete row.dietDetails
+                delete row.reservations
+                delete row.actualReservation
+                delete row.paymentMethodName
+                delete row.accommodationExtra
+                delete row.enabled
+                delete row.idcardtype
+                delete row.idcard
             })
 
             // Creating an Excel worksheet and file
@@ -1396,6 +1623,19 @@ export class GuestComponent implements OnInit {
             const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
             this.saveAsExcelFile(excelBuffer, "guests")
         })
+    }
+
+
+    getRoomKeyStatusLabel(guest: Partial<Guest>): string {
+        if (guest.roomKeyReturnedAt) {
+            return 'Visszaadva'
+        }
+
+        if (guest.roomKeyIssued || guest.roomKeyIssuedAt) {
+            return 'Kiadva'
+        }
+
+        return 'Nincs'
     }
 
     /**
@@ -1411,7 +1651,7 @@ export class GuestComponent implements OnInit {
         const data: Blob = new Blob([buffer], {
             type: EXCEL_TYPE
         })
-        FileSaver.saveAs(data, fileName + '_export_' + moment().format('YYYYMMDD') + EXCEL_EXTENSION);
+        saveBlobAsFile(data, fileName + '_export_' + formatDateCompact(new Date()) + EXCEL_EXTENSION)
     }
 
     downloadImportTemplate() {
@@ -1445,7 +1685,6 @@ export class GuestComponent implements OnInit {
                 'idcardtype',
                 'idcard',
                 'prepaid',
-                'climate',
                 'createdAt',
                 'updatedAt'
             ]
@@ -1470,7 +1709,7 @@ export class GuestComponent implements OnInit {
             const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
             const EXCEL_EXTENSION = '.xlsx'
             const data = new Blob([excelBuffer], { type: EXCEL_TYPE })
-            FileSaver.saveAs(data, 'NFCReserve_import_template' + EXCEL_EXTENSION)
+            saveBlobAsFile(data, 'NFCReserve_import_template' + EXCEL_EXTENSION)
         })
     }
 
@@ -1527,10 +1766,7 @@ export class GuestComponent implements OnInit {
             return
         }
 
-        // Parse end date strictly with multiple accepted formats
-        const end = moment(rawEnd, [moment.ISO_8601, 'YYYY-MM-DD', 'YYYY.MM.DD'], true)
-
-        this.canEdit = end.isValid() && moment().isSameOrBefore(end, 'day')
+        this.canEdit = isSameOrBeforeDay(new Date(), rawEnd)
     }
 
     isImage(url: string) {

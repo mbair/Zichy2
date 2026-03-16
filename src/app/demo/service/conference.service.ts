@@ -3,7 +3,7 @@ import { BehaviorSubject, catchError, map, Observable, of, shareReplay } from 'r
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { Conference } from '../api/conference';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 
 @Injectable({
     providedIn: 'root',
@@ -114,6 +114,18 @@ export class ConferenceService {
      */
     public getBySearchQuery(filters: string): void {
         this.apiService.get<ApiResponse>(`conference/searchquery?${filters}`)
+            .subscribe({
+                next: (response: ApiResponse) => {
+                    this.data$.next(response)
+                },
+                error: (error: any) => {
+                    this.message$.next(error)
+                }
+            })
+    }
+
+    public getByFormSlug(slug: string): void {
+        this.apiService.get<ApiResponse>(`conference/form/${encodeURIComponent(slug)}`)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)
@@ -257,7 +269,7 @@ export class ConferenceService {
      * @param roomIds 
      */
     public assignRoomsToConference(conferenceId: any, roomIds: number[]): Observable<any> {
-        return this.apiService.post(`conferencesroom/addroom/${conferenceId.id}`, { roomIds })
+        return this.apiService.post(`conferencesroom/addroom/${conferenceId}`, { roomIds })
     }
 
     /**
@@ -336,15 +348,22 @@ export class ConferenceService {
      * Fetch aggregated stats (guests, beds) for one or more conferences.
      * GET /api/conference/stats?ids=1,2,3
      */
-    public getConferenceStatsByIds(ids: Array<number | string>): Observable<ConferenceStatsMap> {
+    public getConferenceStatsByIds(ids: Array<number | string>, opts: { forceRefresh?: boolean } = {}): Observable<ConferenceStatsMap> {
         if (!ids || ids.length === 0) {
             // Return empty map to keep consumer code simple
             return of({})
         }
         const params = new HttpParams().set('ids', ids.join(','))
         const qs = params.toString()
+        const headers = opts.forceRefresh
+            ? new HttpHeaders({
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            })
+            : undefined
+
         // Using ApiService to keep base URL and interceptors consistent
-        return this.apiService.get<ConferenceStatsMap>(`conference/stats?${qs}`)
+        return this.apiService.get<ConferenceStatsMap>(`conference/stats?${qs}`, { headers })
     }
 
     /**

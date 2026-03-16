@@ -37,20 +37,13 @@ export class RoomService {
      * @param rowsPerPage
      * @param sort
      */
+    public get$(page: number, rowsPerPage: number, sort: any, queryParams: string): Observable<ApiResponse> {
+        const url = this.buildGetUrl(page, rowsPerPage, sort, queryParams)
+        return this.apiService.get<ApiResponse>(`room/get/${url}`)
+    }
+
     public get(page: number, rowsPerPage: number, sort: any, queryParams: string): void {
-        let pageSort: string = '';
-        if (sort !== '') {
-            const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC';
-            pageSort = sort.sortField != "" ? `sort=${sort.sortField}&order=${sortOrder}` : '';
-        }
-
-        const query = pageSort !== '' && queryParams !== '' ? pageSort + "&" + queryParams :
-            pageSort !== '' && queryParams === '' ? pageSort :
-                pageSort === '' && queryParams !== '' ? queryParams : '';
-
-        const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
-
-        this.apiService.get<ApiResponse>(`room/get/${url}`)
+        this.get$(page, rowsPerPage, sort, queryParams)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)
@@ -66,14 +59,13 @@ export class RoomService {
      * @param globalFilter
      * @param sort
      */
-    public getBySearch(globalFilter: string, sort: any): void {
-        let pageSort: string = '';
-        if (sort !== '') {
-            const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC';
-            pageSort = sort.sortField != "" ? `?sort=${sort.sortField}&order=${sortOrder}` : '';
-        }
+    public getBySearch$(globalFilter: string, sort: any): Observable<ApiResponse> {
+        const url = this.buildSearchUrl(globalFilter, sort)
+        return this.apiService.get<ApiResponse>(url)
+    }
 
-        this.apiService.get<ApiResponse>(`room/search/${globalFilter}${pageSort}`)
+    public getBySearch(globalFilter: string, sort: any): void {
+        this.getBySearch$(globalFilter, sort)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)
@@ -212,6 +204,30 @@ export class RoomService {
     searchRoomsForSelector$(filter: RoomFilter = {}) {
         return this.getBySearchQuery$(this.buildRoomQS(filter))
             .pipe(map((data: any) => data ? (data.rows ?? []) : []))
+    }
+
+    private buildGetUrl(page: number, rowsPerPage: number, sort: any, queryParams: string): string {
+        let pageSort: string = ''
+        if (sort !== '') {
+            const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC'
+            pageSort = sort.sortField != "" ? `sort=${sort.sortField}&order=${sortOrder}` : ''
+        }
+
+        const query = pageSort !== '' && queryParams !== '' ? pageSort + "&" + queryParams :
+            pageSort !== '' && queryParams === '' ? pageSort :
+                pageSort === '' && queryParams !== '' ? queryParams : ''
+
+        return `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`
+    }
+
+    private buildSearchUrl(globalFilter: string, sort: any): string {
+        let pageSort: string = ''
+        if (sort !== '') {
+            const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC'
+            pageSort = sort.sortField != "" ? `?sort=${sort.sortField}&order=${sortOrder}` : ''
+        }
+
+        return `room/search/${globalFilter}${pageSort}`
     }
 
     private buildRoomQS(f: RoomFilter = {}): string {

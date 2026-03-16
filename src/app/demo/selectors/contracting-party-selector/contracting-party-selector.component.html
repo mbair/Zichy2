@@ -1,0 +1,72 @@
+<p-dropdown *ngIf="getFormControl() as control; else useNgModel"
+            [inputId]="inputId"
+            [formControl]="control"
+            [options]="options"
+            optionLabel="legalName"
+            optionValue="contractingPartyId"
+            (onChange)="handleOnChange($event)"
+            [placeholder]="placeholder"
+            emptyMessage="Nincs találat..."
+            [showClear]="showClear"
+            [filter]="options.length > 8"
+            filterBy="legalName,taxNumber,address"
+            [style]="{'minWidth':'13rem'}"
+            appendTo="body">
+
+    <ng-template pTemplate="item" let-option>
+        <div class="flex flex-column">
+            <span>{{ option.legalName }}</span>
+            <small class="text-600" *ngIf="describeOption(option)">
+                {{ describeOption(option) }}
+            </small>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="selectedItem" let-selectedItem>
+        <div *ngIf="selectedItem; else placeholderContent" class="flex flex-column">
+            <span>{{ selectedItem.legalName }}</span>
+            <small class="text-600" *ngIf="describeOption(selectedItem)">
+                {{ describeOption(selectedItem) }}
+            </small>
+        </div>
+    </ng-template>
+</p-dropdown>
+
+<ng-template #useNgModel>
+    <p-dropdown [(ngModel)]="selectedContractingParty"
+                [inputId]="inputId"
+                [options]="options"
+                optionLabel="legalName"
+                optionValue="contractingPartyId"
+                (onChange)="handleOnChange($event)"
+                [placeholder]="placeholder"
+                emptyMessage="Nincs találat..."
+                [showClear]="showClear"
+                [filter]="options.length > 8"
+                filterBy="legalName,taxNumber,address"
+                [style]="{'minWidth':'13rem'}"
+                appendTo="body">
+
+        <ng-template pTemplate="item" let-option>
+            <div class="flex flex-column">
+                <span>{{ option.legalName }}</span>
+                <small class="text-600" *ngIf="describeOption(option)">
+                    {{ describeOption(option) }}
+                </small>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="selectedItem" let-selectedItem>
+            <div *ngIf="selectedItem; else placeholderContent" class="flex flex-column">
+                <span>{{ selectedItem.legalName }}</span>
+                <small class="text-600" *ngIf="describeOption(selectedItem)">
+                    {{ describeOption(selectedItem) }}
+                </small>
+            </div>
+        </ng-template>
+    </p-dropdown>
+</ng-template>
+
+<ng-template #placeholderContent>
+    <span class="text-600">{{ placeholder }}</span>
+</ng-template>

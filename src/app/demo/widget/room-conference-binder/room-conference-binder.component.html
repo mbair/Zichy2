@@ -1,38 +1,57 @@
 <!-- Dialog trigger button-->
-<button pButton 
-        pRipple 
-        label="Szoba konferenciához rendelés" 
-        icon="pi pi-list-check" 
+<button pButton
+        pRipple
+        label="Szoba konferenciához rendelés"
+        icon="pi pi-list-check"
         class="p-button mr-2"
-        severity="help" 
-        (click)="showDialog()" 
+        severity="help"
+        (click)="showDialog()"
         [disabled]="!canBindRoomToConference">
 </button>
 
 <!-- Performance tuning: Load only Sidebar related things if it is visible -->
 <ng-container *ngIf="visible">
-    <p-sidebar id="sidebar" 
-               [(visible)]="visible" 
-               position="right" 
+    <p-sidebar id="sidebar"
+               [(visible)]="visible"
+               position="right"
                styleClass="p-sidebar-md binder-sidebar"
-               [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
-               [fullScreen]="true" 
+               [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
+               [fullScreen]="true"
                [showCloseIcon]="true"
                [blockScroll]="true">
 
         <!-- Sidebar header -->
         <ng-template pTemplate="header">
-            <span class="font-semibold text-xl">
-                Szoba konferenciához rendelés
-            </span>
+            <div class="binder-header-content">
+                <span class="font-semibold text-xl binder-header-title">
+                    Szoba konferenciához rendelés
+                </span>
+
+                <ng-container *ngIf="!isAssignmentAdviceLoading; else assignmentAdviceSkeleton">
+                    <span class="binder-info-pill binder-info-pill--header"
+                          [class.binder-info-pill--warning]="assignmentAdviceVariant === 'warning'"
+                          [class.binder-info-pill--attention]="assignmentAdviceVariant === 'attention'"
+                          [class.binder-info-pill--success]="assignmentAdviceVariant === 'success'">
+                        <span class="binder-info-pill__inner">
+                            <i class="pi pi-info-circle"></i>
+                            <span>{{ assignmentAdvice }}</span>
+                        </span>
+                    </span>
+                </ng-container>
+                <ng-template #assignmentAdviceSkeleton>
+                    <span class="binder-info-skeleton binder-info-skeleton--header">
+                        <p-skeleton width="40rem" height="38.5px" styleClass="binder-info-skeleton-shape"></p-skeleton>
+                    </span>
+                </ng-template>
+            </div>
         </ng-template>
 
         <!-- WRAPPER: a teljes tartalom flex-elrendezésű és 100% magas,
              így csak a táblázat törzse fog görögni, a fejlécek látszódnak -->
-        <div style="display:flex; flex-direction:column; height:100%; overflow:hidden;">
+        <div class="binder-dialog-content">
 
             <!-- Felső vezérlősor (fixen marad) -->
-            <div class="flex w-full mb-2" style="flex:0 0 auto;">
+            <div class="flex w-full mb-2 align-items-center" style="flex:0 0 auto;">
                 <!-- Conference multi selector for assigning -->
                 <app-conference-selector
                     [(ngModel)]="selectedConferences"
@@ -41,18 +60,27 @@
                     [showNoneOption]="false"
                     [selectionLimit]="1"
                     [showClear]="true"
-                    [style]="{'minWidth': '50rem'}"
+                    [style]="{'minWidth': '35rem'}"
                     placeholder="Válasszon konferenciát, amihez szobát rendelne...">
                 </app-conference-selector>
 
                 <!-- Number of Guests -->
                 <span class="block ml-2 mt-2 md:mt-0 p-input-icon-left">
-                    <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Vendégek száma: {{ numberOfGuests }}" tooltipPosition="top">
+                    <div class="border-round-xl w-min p-0"
+                         style="background-color: #E2E8F0;"
+                         [pTooltip]="guestSummaryTooltip"
+                         tooltipPosition="top"
+                         tooltipStyleClass="binder-summary-tooltip">
                         <div class="flex align-items-center justify-content-center py-1 px-1">
-                            <div class="flex align-items-center justify-content-center gap-2 px-2">
+                            <div class="flex align-items-center gap-2 px-2 py-1 binder-summary-inline">
                                 <i class="pi pi-users" style="font-size: 1.5rem"></i>
-                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left">
+                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle text-left">
                                     {{ numberOfGuests }}
+                                </span>
+                                <span class="binder-summary-separator">/</span>
+                                <span class="text-xl font-semibold white-space-nowrap binder-inline-value binder-waiting-value"
+                                      [class.is-clear]="numberOfGuestsWaitingForRoom === 0">
+                                    {{ numberOfGuestsWaitingForRoom }}
                                 </span>
                             </div>
                         </div>
@@ -61,63 +89,77 @@
 
                 <!-- Number of Beds -->
                 <span class="block ml-2 mt-2 md:mt-0 p-input-icon-left">
-                    <div class="border-round-xl w-min p-0" style="background-color: #E2E8F0;" pTooltip="Ágyak száma: {{ numberOfBeds }}" tooltipPosition="top">
+                    <div class="border-round-xl w-min p-0"
+                         style="background-color: #E2E8F0;"
+                         [pTooltip]="bedAvailabilityTooltip"
+                         tooltipPosition="top"
+                         tooltipStyleClass="binder-summary-tooltip">
                         <div class="flex align-items-center justify-content-center py-1 px-1">
-                            <div class="flex align-items-center justify-content-center gap-2 px-2">
+                            <div class="flex align-items-center gap-2 px-2 py-1 binder-summary-inline">
                                 <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
                                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                                     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                                     <g id="SVGRepo_iconCarrier">
-                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> 
-                                            <g id="ic_fluent_bed_24_filled" fill="#334155" fill-rule="nonzero"> 
-                                                <path d="M19.25,11 C20.7125318,11 21.9084043,12.1417046 21.9949812,13.5824777 L22,13.75 L22,20.25 C22,20.6642136 21.6642136,21 21.25,21 C20.8703042,21 20.556509,20.7178461 20.5068466,20.3517706 L20.5,20.25 L20.5,18 L3.5,18 L3.5,20.25 C3.5,20.6296958 3.21784612,20.943491 2.85177056,20.9931534 L2.75,21 C2.37030423,21 2.05650904,20.7178461 2.00684662,20.3517706 L2,20.25 L2,13.75 C2,12.2874682 3.1417046,11.0915957 4.58247767,11.0050188 L4.75,11 L19.25,11 Z M6.75,4 L17.25,4 C18.7125318,4 19.9084043,5.1417046 19.9949812,6.58247767 L20,6.75 L20,10 L17,10 L16.9932723,9.88337887 C16.9399506,9.42429701 16.575703,9.06004937 16.1166211,9.00672773 L16,9 L14,9 C13.4871642,9 13.0644928,9.38604019 13.0067277,9.88337887 L13,10 L11,10 L10.9932723,9.88337887 C10.9399506,9.42429701 10.575703,9.06004937 10.1166211,9.00672773 L10,9 L8,9 C7.48716416,9 7.06449284,9.38604019 7.00672773,9.88337887 L7,10 L4,10 L4,6.75 C4,5.28746816 5.1417046,4.09159572 6.58247767,4.00501879 L6.75,4 Z"></path> 
-                                            </g> 
-                                        </g> 
+                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                            <g id="ic_fluent_bed_24_filled" fill="#334155" fill-rule="nonzero">
+                                                <path d="M19.25,11 C20.7125318,11 21.9084043,12.1417046 21.9949812,13.5824777 L22,13.75 L22,20.25 C22,20.6642136 21.6642136,21 21.25,21 C20.8703042,21 20.556509,20.7178461 20.5068466,20.3517706 L20.5,20.25 L20.5,18 L3.5,18 L3.5,20.25 C3.5,20.6296958 3.21784612,20.943491 2.85177056,20.9931534 L2.75,21 C2.37030423,21 2.05650904,20.7178461 2.00684662,20.3517706 L2,20.25 L2,13.75 C2,12.2874682 3.1417046,11.0915957 4.58247767,11.0050188 L4.75,11 L19.25,11 Z M6.75,4 L17.25,4 C18.7125318,4 19.9084043,5.1417046 19.9949812,6.58247767 L20,6.75 L20,10 L17,10 L16.9932723,9.88337887 C16.9399506,9.42429701 16.575703,9.06004937 16.1166211,9.00672773 L16,9 L14,9 C13.4871642,9 13.0644928,9.38604019 13.0067277,9.88337887 L13,10 L11,10 L10.9932723,9.88337887 C10.9399506,9.42429701 10.575703,9.06004937 10.1166211,9.00672773 L10,9 L8,9 C7.48716416,9 7.06449284,9.38604019 7.00672773,9.88337887 L7,10 L4,10 L4,6.75 C4,5.28746816 5.1417046,4.09159572 6.58247767,4.00501879 L6.75,4 Z"></path>
+                                            </g>
+                                        </g>
                                     </g>
                                 </svg>
-                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left">
+                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle text-left">
                                     {{ numberOfBeds }}
+                                </span>
+                                <span class="binder-summary-separator">/</span>
+                                <span class="text-xl font-semibold white-space-nowrap binder-inline-value"
+                                      [class.is-available]="numberOfFreeBeds > 0"
+                                      [class.is-full]="numberOfFreeBeds === 0 && numberOfMissingBeds === 0"
+                                      [class.is-overbooked]="numberOfMissingBeds > 0">
+                                    {{ bedAvailabilityValue }}
                                 </span>
                             </div>
                         </div>
                     </div>
                 </span>
 
-                <!-- Show only free Rooms -->
-                <p-toggleButton
-                    class="ml-2"
-                    onLabel="Szabad-szobák"
-                    offLabel="Összes szoba"
-                    [(ngModel)]="showOnlyFreeRooms"
-                    [disabled]="!selectedConferences || !selectedConferences.length"
-                    pTooltip="Csak azokat a szobákat mutatja, amelyeknek nincs átfedő konferenciája a kiválasztottal."
-                    tooltipPosition="top">
-                </p-toggleButton>
+                <div class="flex align-items-center ml-auto binder-actions-group">
+                    <!-- Show only free Rooms -->
+                    <p-toggleButton
+                        class="mt-2 md:mt-0"
+                        onLabel="Szabad-szobák"
+                        offLabel="Összes szoba"
+                        [(ngModel)]="showOnlyFreeRooms"
+                        (ngModelChange)="onShowOnlyFreeRoomsChange()"
+                        [disabled]="!selectedConferences || !selectedConferences.length"
+                        pTooltip="Csak azokat a szobákat mutatja, amelyeknek nincs átfedő konferenciája a kiválasztottal."
+                        tooltipPosition="top">
+                    </p-toggleButton>
 
-                <!-- Save button -->
-                <button pButton pRipple label="Összerendelés" icon="pi pi-check" class="p-button ml-2" (click)="onAssign()"
-                        [disabled]="!selectedRooms || !selectedRooms.length || !selectedConferences || !selectedConferences.length">
-                </button>
+                    <!-- Save button -->
+                    <button pButton pRipple label="Összerendelés" icon="pi pi-check" class="p-button ml-2" (click)="onAssign()"
+                            [disabled]="loading || !selectedRooms || !selectedRooms.length || !selectedConferences || !selectedConferences.length">
+                    </button>
+                </div>
             </div>
 
             <!-- TÁBLA: ez kapja a maradék helyet és ennek a törzse görgethető -->
             <div class="flex w-full" style="flex:1 1 auto; min-height:0;">
-                <p-table 
-                    #dt 
-                    dataKey="id" 
-                    [value]="displayedRooms" 
-                    responsiveLayout="scroll" 
+                <p-table
+                    #dt
+                    dataKey="id"
+                    [value]="tableRows"
+                    responsiveLayout="scroll"
                     [rows]="rowsPerPage"
-                    [totalRecords]="showOnlyFreeRooms ? displayedRooms.length : totalRecords" 
-                    [globalFilterFields]="['roomNum']" 
+                    [totalRecords]="tableTotalRecords"
+                    [globalFilterFields]="['roomNum']"
                     [paginator]="true"
-                    [rowsPerPageOptions]="rowsPerPageOptions" 
+                    [rowsPerPageOptions]="rowsPerPageOptions"
                     [showCurrentPageReport]="true"
                     currentPageReportTemplate="{first} - {last} szoba a(z) {totalRecords}-ból megjelenítése"
-                    [(selection)]="selectedRooms" 
-                    selectionMode="multiple" 
-                    [rowHover]="true" 
-                    (onLazyLoad)="onLazyLoad($event)" 
+                    [(selection)]="selectedRooms"
+                    selectionMode="multiple"
+                    [rowHover]="true"
+                    (onLazyLoad)="onLazyLoad($event)"
                     [lazy]="!showOnlyFreeRooms"
                     [scrollable]="true"
                     [scrollHeight]="'flex'"
@@ -127,7 +169,7 @@
                         <tr>
                             <th></th>
                             <th pSortableColumn="roomNum">
-                                Választott konferenciával nem összerendelt szobák 
+                                Választott konferenciával nem összerendelt szobák
                                 <p-sortIcon field="roomNum"></p-sortIcon>
                             </th>
                             <th pSortableColumn="spareBeds">
@@ -140,7 +182,10 @@
                                 <span class="vertical-align-middle">
                                     <i class="pi pi-users" style="font-size: 1.5rem"></i>
                                 </span>
-                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left">
+                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left"
+                                      [pTooltip]="filteredGuestSummaryTooltip"
+                                      tooltipPosition="top"
+                                      tooltipStyleClass="binder-summary-tooltip">
                                     {{ numberOfFilteredGuests }}
                                 </span>
                                 <span class="ml-2 mt-2 md:mt-0 p-input-icon-left">
@@ -149,15 +194,18 @@
                                             <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                                             <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                                             <g id="SVGRepo_iconCarrier">
-                                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> 
-                                                    <g id="ic_fluent_bed_24_filled" fill="#334155" fill-rule="nonzero"> 
-                                                        <path d="M19.25,11 C20.7125318,11 21.9084043,12.1417046 21.9949812,13.5824777 L22,13.75 L22,20.25 C22,20.6642136 21.6642136,21 21.25,21 C20.8703042,21 20.556509,20.7178461 20.5068466,20.3517706 L20.5,20.25 L20.5,18 L3.5,18 L3.5,20.25 C3.5,20.6296958 3.21784612,20.943491 2.85177056,20.9931534 L2.75,21 C2.37030423,21 2.05650904,20.7178461 2.00684662,20.3517706 L2,20.25 L2,13.75 C2,12.2874682 3.1417046,11.0915957 4.58247767,11.0050188 L4.75,11 L19.25,11 Z M6.75,4 L17.25,4 C18.7125318,4 19.9084043,5.1417046 19.9949812,6.58247767 L20,6.75 L20,10 L17,10 L16.9932723,9.88337887 C16.9399506,9.42429701 16.575703,9.06004937 16.1166211,9.00672773 L16,9 L14,9 C13.4871642,9 13.0644928,9.38604019 13.0067277,9.88337887 L13,10 L11,10 L10.9932723,9.88337887 C10.9399506,9.42429701 10.575703,9.06004937 10.1166211,9.00672773 L10,9 L8,9 C7.48716416,9 7.06449284,9.38604019 7.00672773,9.88337887 L7,10 L4,10 L4,6.75 C4,5.28746816 5.1417046,4.09159572 6.58247767,4.00501879 L6.75,4 Z"></path> 
-                                                    </g> 
-                                                </g> 
+                                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                    <g id="ic_fluent_bed_24_filled" fill="#334155" fill-rule="nonzero">
+                                                        <path d="M19.25,11 C20.7125318,11 21.9084043,12.1417046 21.9949812,13.5824777 L22,13.75 L22,20.25 C22,20.6642136 21.6642136,21 21.25,21 C20.8703042,21 20.556509,20.7178461 20.5068466,20.3517706 L20.5,20.25 L20.5,18 L3.5,18 L3.5,20.25 C3.5,20.6296958 3.21784612,20.943491 2.85177056,20.9931534 L2.75,21 C2.37030423,21 2.05650904,20.7178461 2.00684662,20.3517706 L2,20.25 L2,13.75 C2,12.2874682 3.1417046,11.0915957 4.58247767,11.0050188 L4.75,11 L19.25,11 Z M6.75,4 L17.25,4 C18.7125318,4 19.9084043,5.1417046 19.9949812,6.58247767 L20,6.75 L20,10 L17,10 L16.9932723,9.88337887 C16.9399506,9.42429701 16.575703,9.06004937 16.1166211,9.00672773 L16,9 L14,9 C13.4871642,9 13.0644928,9.38604019 13.0067277,9.88337887 L13,10 L11,10 L10.9932723,9.88337887 C10.9399506,9.42429701 10.575703,9.06004937 10.1166211,9.00672773 L10,9 L8,9 C7.48716416,9 7.06449284,9.38604019 7.00672773,9.88337887 L7,10 L4,10 L4,6.75 C4,5.28746816 5.1417046,4.09159572 6.58247767,4.00501879 L6.75,4 Z"></path>
+                                                    </g>
+                                                </g>
                                             </g>
                                         </svg>
                                     </span>
-                                    <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left">
+                                    <span class="text-2xl font-normal white-space-nowrap vertical-align-middle w-2rem text-left"
+                                          [pTooltip]="filteredBedSummaryTooltip"
+                                          tooltipPosition="top"
+                                          tooltipStyleClass="binder-summary-tooltip binder-summary-tooltip--stacked">
                                         {{ numberOfFilteredBeds }}
                                     </span>
                                 </span>
@@ -168,28 +216,28 @@
                                 <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                             </th>
                             <th>
-                                <input 
-                                    pInputText 
-                                    type="text" 
-                                    class="mr-2" 
+                                <input
+                                    pInputText
+                                    type="text"
+                                    class="mr-2"
                                     (input)="onFilter($event, 'roomNum')"
-                                    placeholder="Szobaszám..." 
+                                    placeholder="Szobaszám..."
                                     style="width:8rem" />
-                                <app-building-selector 
-                                    class="mr-2" 
-                                    (change)="onFilter($event, 'building')" 
+                                <app-building-selector
+                                    class="mr-2"
+                                    (change)="onFilter($event, 'building')"
                                     [showClear]="true"
                                     placeholder="Épület...">
                                 </app-building-selector>
-                                <app-bedtype-selector 
-                                    (change)="onFilter($event, 'bedType')" 
+                                <app-bedtype-selector
+                                    (change)="onFilter($event, 'bedType')"
                                     [showClear]="true"
                                     placeholder="Ágytipus...">
                                 </app-bedtype-selector>
                             </th>
                             <th>
-                                <app-sparebed-selector 
-                                    (change)="onFilter($event, 'spareBeds')" 
+                                <app-sparebed-selector
+                                    (change)="onFilter($event, 'spareBeds')"
                                     [showClear]="true">
                                 </app-sparebed-selector>
                             </th>
@@ -251,12 +299,12 @@
                                     <ng-container *ngFor="let conference of (room.conferences || []); trackBy: trackById">
                                         <p-chip
                                             *ngIf="conference?.enabled && (selectedConferences.length < 1 || isConferenceOverlapping(conference))"
-                                            [styleClass]="isConferenceOverlapping(conference) ? 'bg-red-100' : ''"
+                                            [styleClass]="getConferenceChipStyleClass(room, conference)"
                                             [label]="conference.name"
                                             icon="pi pi-calendar"
                                             [removable]="true"
                                             (onRemove)="onRemove(conference, room)"
-                                            [pTooltip]="isConferenceOverlapping(conference) ? 'Átfedés van a konferenciával, amihez szobát rendelne' : undefined"
+                                            [pTooltip]="getConferenceChipTooltip(room, conference)"
                                             tooltipStyleClass="min-w-max"
                                             tooltipPosition="top">
                                         </p-chip>
@@ -272,14 +320,15 @@
                         </tr>
                     </ng-template>
                 </p-table>
+
+            </div>
+
+            <div *ngIf="loading" class="binder-loading-overlay">
+                <p-progressSpinner></p-progressSpinner>
             </div>
         </div>
     </p-sidebar>
 </ng-container>
 
-<!-- Loading Overlay -->
-<p-blockUI [autoZIndex]="true" [blocked]="loading">
-    <p-progressSpinner></p-progressSpinner>
-</p-blockUI>
-
 <p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

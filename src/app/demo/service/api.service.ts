@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpResponse } from '@angul
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { DOCUMENT } from '@angular/common';
+import { SessionService } from './session.service';
 
 @Injectable({
     providedIn: 'root'
@@ -15,29 +16,40 @@ export class ApiService {
     public productionURL = 'https://nfcreserve.hu'
     public developmentURL = 'https://test.nfcreserve.hu'
 
-    constructor(@Inject(DOCUMENT) private document: any, private http: HttpClient) {
-        // API URL starts with "test." when App is in Dev or in Test
+    constructor(
+        @Inject(DOCUMENT) private document: any,
+        private http: HttpClient,
+        private sessionService: SessionService
+    ) {
+        // In local ng serve use relative /api so Angular dev-server proxy can avoid CORS.
         this.hostname = this.document.location.hostname;
-        if (isDevMode() || this.hostname == 'test.nfcreserve.hu') {
+        if (isDevMode()) {
+            this.apiURL = '/api'
+        } else if (this.hostname == 'test.nfcreserve.hu') {
             this.apiURL = `${this.developmentURL}/api`
         } else {
             this.apiURL = `${this.productionURL}/api`
         }
     }
 
-    get<T>(endpoint: string, options?: { params?: any }): Observable<T> {
+    get<T>(endpoint: string, options?: { params?: any; headers?: HttpHeaders }): Observable<T> {
         const url = `${this.apiURL}/${endpoint}`;
 
         // Erős típus: observe response, params opcionális
         const httpOptions: {
             observe: 'response';
             params?: any;
+            headers?: HttpHeaders;
         } = {
             observe: 'response'
         };
 
         if (options?.params) {
             httpOptions.params = options.params;
+        }
+
+        if (options?.headers) {
+            httpOptions.headers = options.headers;
         }
 
         // A get<T>(…, httpOptions) most Observable<HttpResponse<T>>-t ad vissza
@@ -93,8 +105,7 @@ export class ApiService {
     }
 
     private refreshToken(response: any) {
-        const token = response.headers.get('Authorization')
-        if (token) localStorage.setItem("token", token)
+        this.sessionService.updateSessionFromResponse(response)
     }
 
     private handleError(error: HttpErrorResponse) {

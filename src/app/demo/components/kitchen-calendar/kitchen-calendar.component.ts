@@ -5,8 +5,7 @@ import { MessageService } from 'primeng/api';
 import { cloneDeep, isEqual } from 'lodash';
 import { KitchenCalendarService } from '../../service/kitchen-calendar.service';
 import { ResponsiveService } from '../../service/responsive.service';
-import * as moment from 'moment';
-moment.locale('hu')
+import { formatDateDots, getWeekdayName, isSameDay } from '../../utils/date.utils';
 
 interface KitchenCalendarData {
     date: string;
@@ -52,7 +51,7 @@ export class KitchenCalendarComponent implements OnInit {
 
     ngOnInit() {
         // Set the selected date to today
-        this.selectedDate = moment().format('YYYY.MM.DD')
+        this.selectedDate = formatDateDots(new Date())
 
         // Kitchen calendar data
         this.kitchenCalendarObs$ = this.kitchenCalendarService.kitchenCalendarObs
@@ -116,7 +115,7 @@ export class KitchenCalendarComponent implements OnInit {
      * @returns 
      */
     getDayName(dateString: string): string {
-        return moment(dateString).format('dddd')
+        return getWeekdayName(dateString, 'hu-HU')
     }
 
     /**
@@ -190,7 +189,7 @@ export class KitchenCalendarComponent implements OnInit {
      * @returns 
      */
     isToday(date: string): boolean {
-        return moment(date).isSame(moment(), 'day')
+        return isSameDay(date, new Date())
     }
 
     /**
@@ -207,7 +206,7 @@ export class KitchenCalendarComponent implements OnInit {
      * @param event date object
      */
     onDateSelect(event: any) {
-        this.selectedDate = moment(event).format('YYYY.MM.DD')
+        this.selectedDate = formatDateDots(event)
         this.queryCount = 0
         this.mealData = undefined
         this.initialMealData = undefined

@@ -1,0 +1,146 @@
+<p-blockUI [blocked]="loading">
+    <p-progressSpinner *ngIf="loading" styleClass="custom-spinner"></p-progressSpinner>
+</p-blockUI>
+
+<div class="grid">
+    <div class="col-12">
+        <div class="grid">
+            <div class="col-12 md:col-6 xl:col-3">
+                <div class="card mb-0">
+                    <div class="text-600 text-sm mb-2">Kapcsolatok</div>
+                    <div class="text-3xl font-semibold">{{ totalRelations }}</div>
+                </div>
+            </div>
+            <div class="col-12 md:col-6 xl:col-3">
+                <div class="card mb-0">
+                    <div class="text-600 text-sm mb-2">Szervezők</div>
+                    <div class="text-3xl font-semibold">{{ totalOrganizers }}</div>
+                </div>
+            </div>
+            <div class="col-12 md:col-6 xl:col-3">
+                <div class="card mb-0">
+                    <div class="text-600 text-sm mb-2">Jogi entitások</div>
+                    <div class="text-3xl font-semibold">{{ totalContractingParties }}</div>
+                </div>
+            </div>
+            <div class="col-12 md:col-6 xl:col-3">
+                <div class="card mb-0">
+                    <div class="text-600 text-sm mb-2">Hiányos kapcsolatok</div>
+                    <div class="text-3xl font-semibold">{{ missingContactCount }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card px-0 py-0">
+            <p-table
+                #dt
+                dataKey="relationId"
+                [value]="tableData"
+                responsiveLayout="scroll"
+                [rows]="rowsPerPage"
+                [paginator]="true"
+                [rowsPerPageOptions]="rowsPerPageOptions"
+                [showCurrentPageReport]="true"
+                currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
+                [globalFilterFields]="['organizerName', 'organizerEmail', 'organizerPhone', 'legalName', 'taxNumber', 'address', 'contactName', 'contactEmail', 'contactPhone']"
+                [rowHover]="true"
+                [tableStyle]="{'min-height': 'calc(100vh - 320px)'}">
+
+                <ng-template pTemplate="caption">
+                    <div class="flex flex-column gap-3 md:flex-row md:justify-content-between md:align-items-center">
+                        <div>
+                            <h5 class="m-0">Szerződő áttekintő</h5>
+                            <small class="text-600">Szervezőnként és jogi entitásonként látható az aktív kapcsolat, az alapértelmezés és a kapcsolattartó adat.</small>
+                        </div>
+
+                        <div class="flex flex-column sm:flex-row gap-2">
+                            <span class="p-input-icon-left">
+                                <i class="pi pi-search"></i>
+                                <input
+                                    pInputText
+                                    type="text"
+                                    (input)="onGlobalFilter(dt, $event)"
+                                    placeholder="Keresés..."
+                                    class="w-full sm:w-20rem" />
+                            </span>
+
+                            <button
+                                pButton
+                                pRipple
+                                type="button"
+                                icon="pi pi-refresh"
+                                label="Frissítés"
+                                class="p-button-outlined"
+                                (click)="loadOverview()">
+                            </button>
+                        </div>
+                    </div>
+                </ng-template>
+
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Szervező</th>
+                        <th>Szerződő</th>
+                        <th>Kapcsolattartó</th>
+                        <th>Állapot</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-row>
+                    <tr>
+                        <td style="width: 24%; min-width: 14rem;">
+                            <div class="flex flex-column gap-1">
+                                <span class="font-medium">{{ row.organizerName || '-' }}</span>
+                                <small class="text-600">{{ row.organizerEmail || '-' }}</small>
+                                <small class="text-600">{{ row.organizerPhone || '-' }}</small>
+                            </div>
+                        </td>
+                        <td style="width: 30%; min-width: 16rem;">
+                            <div class="flex flex-column gap-1">
+                                <span class="font-medium">{{ row.legalName || '-' }}</span>
+                                <small class="text-600">Adószám: {{ row.taxNumber || '-' }}</small>
+                                <small class="text-600">Cím: {{ row.address || '-' }}</small>
+                            </div>
+                        </td>
+                        <td style="width: 30%; min-width: 16rem;">
+                            <div class="flex flex-column gap-1">
+                                <span class="font-medium">{{ row.contactName || '-' }}</span>
+                                <small class="text-600">{{ row.contactEmail || '-' }}</small>
+                                <small class="text-600">{{ row.contactPhone || '-' }}</small>
+                            </div>
+                        </td>
+                        <td style="width: 16%; min-width: 12rem;">
+                            <div class="flex flex-column gap-2">
+                                <p-tag
+                                    [value]="row.isDefault ? 'Alapértelmezett' : 'Másodlagos'"
+                                    [severity]="row.isDefault ? 'success' : 'info'">
+                                </p-tag>
+                                <p-tag
+                                    [value]="row.enabled && row.partyEnabled ? 'Aktív' : 'Inaktív'"
+                                    [severity]="row.enabled && row.partyEnabled ? 'success' : 'warning'">
+                                </p-tag>
+                                <p-tag
+                                    *ngIf="!row.contactName || !row.contactEmail || !row.contactPhone"
+                                    value="Hiányos kontakt"
+                                    severity="danger"
+                                    [pTooltip]="getContactSummary(row) || 'Nincs megadott kapcsolattartó adat.'"
+                                    tooltipPosition="top">
+                                </p-tag>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-600">
+                            Nincs megjeleníthető szerződő kapcsolat.
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>

@@ -3,14 +3,15 @@
     <!-- Date picker for week selection -->
     <div class="grid">
         <div class="col-12 pt-0 pb-2">
-            <p-calendar 
+            <app-localized-date-picker 
                 [(ngModel)]="selectedDate"
+                modelType="date"
                 [showIcon]="true"
                 [showButtonBar]="true"
                 (onSelect)="onDateSelect($event)"
-                appendTo="body"
                 pTooltip="A kiválasztott dátum hetének étrendje" 
-                tooltipPosition="right"/>
+                tooltipPosition="right">
+            </app-localized-date-picker>
         </div>
     </div>
 

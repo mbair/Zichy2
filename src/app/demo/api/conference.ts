@@ -1,4 +1,5 @@
 import { Room } from "./room";
+import { ContractingParty } from "./contracting-party";
 
 export interface FormFieldInfo {
     field: string;
@@ -31,11 +32,15 @@ export interface Conference {
     registrationEndDate?: string | null;
     questions?: any;
     organizer_user_id?: any;
+    contracting_party_id?: number | string | null;
+    contractingParty?: ContractingParty | null;
     guestEditEndDate?: string | null;
     guestsNumber?: number;
     acceptanceCriteriaUrl?: string | null;
     formFieldInfos?: FormFieldInfo[];
     paymentMethodIds?: number[];
+    roomTypeIds?: number[];
+    conferenceRoomTypeIds?: number[];
 
     // Can be deleted
     code?: string;

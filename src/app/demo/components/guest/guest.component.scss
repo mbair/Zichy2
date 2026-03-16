@@ -1,0 +1,48 @@
+:host ::ng-deep .guest-row-expand-button {
+    color: var(--primary-color, #334155);
+}
+
+:host ::ng-deep .guest-row--expanded > td {
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.95) 0%, rgba(241, 245, 249, 0.9) 100%);
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td.guest-row-index-cell {
+    padding-left: 0.4rem !important;
+    padding-right: 0.15rem !important;
+    text-align: center !important;
+    width: 1.9rem;
+}
+
+.guest-row-control-header,
+.guest-row-control-cell {
+    padding-left: 0.45rem !important;
+    padding-right: 0.35rem !important;
+    text-align: center;
+    width: 3.9rem;
+}
+
+.guest-row-control-stack {
+    align-items: center;
+    display: inline-flex;
+    gap: 0.1rem;
+    justify-content: center;
+}
+
+:host ::ng-deep .guest-row-control-header .p-checkbox,
+:host ::ng-deep .guest-row-control-cell .p-checkbox {
+    margin: 0;
+}
+
+:host ::ng-deep .guest-row-control-cell .p-button,
+:host ::ng-deep .guest-row-control-cell .guest-row-expand-button {
+    height: 1.75rem;
+    width: 1.75rem;
+}
+
+.guest-expansion-cell {
+    padding: 0 !important;
+}
+
+.guest-expansion-shell {
+    padding: 0.75rem 1rem 1rem;
+}

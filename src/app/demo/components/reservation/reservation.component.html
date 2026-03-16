@@ -4,6 +4,7 @@
             <p-table #dt
                      dataKey="id"
                      [value]="tableData"
+                     [expandedRowKeys]="expandedReservationRows"
                      responsiveLayout="scroll"
                      [rows]="rowsPerPage"
                      [totalRecords]="totalRecords"
@@ -16,6 +17,8 @@
                      selectionMode="multiple"
                      [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
                      [rowHover]="true"
+                     (onRowExpand)="onReservationRowExpand($event.data)"
+                     (onRowCollapse)="onReservationRowCollapse($event.data)"
                      (onLazyLoad)="onLazyLoad($event)"
                      [lazy]="true">
 
@@ -102,19 +105,20 @@
                 </ng-template>
                 <ng-template pTemplate="header">
                     <tr>
-                        <th></th>
+                        <th class="reservation-row-control-cell"></th>
+                        <th class="reservation-row-toggle-cell"></th>
                         <th pSortableColumn="roomNum">Szoba <p-sortIcon field="roomNum"></p-sortIcon></th>
                         <th>Vendégek</th>
                         <th pSortableColumn="startDate">Érkezés <p-sortIcon field="startDate"></p-sortIcon></th>
                         <th pSortableColumn="endDate">Távozás <p-sortIcon field="endDate"></p-sortIcon></th>
                         <th pSortableColumn="status">Státusz <p-sortIcon field="status"></p-sortIcon></th>
-                        <th>Megjegyzés</th>
                         <th></th>
                     </tr>
                     <tr>
-                        <th styleClass="w-3rem">
+                        <th class="reservation-row-control-cell">
                             <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                         </th>
+                        <th class="reservation-row-toggle-cell"></th>
                         <th>
                             <input pInputText
                                    type="text"
@@ -142,26 +146,22 @@
                                    style="width: 10rem"/>
                         </th>
                         <th>
-                            <p-calendar
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'startDate')"
                                 (onClearClick)="onFilter($event, 'startDate')"
-                                appendTo="body"
-                                dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true"
                                 inputStyleClass="w-6rem">
-                            </p-calendar>
+                            </app-localized-date-picker>
                         </th>
                         <th>
-                            <p-calendar
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'endDate')"
                                 (onClearClick)="onFilter($event, 'endDate')"
-                                appendTo="body"
-                                dataType="string"
                                 placeholder="Keresés..."
                                 [showButtonBar]="true"
                                 inputStyleClass="w-6rem">
-                            </p-calendar>
+                            </app-localized-date-picker>
                         </th>
                         <th>
                             <app-reservation-status-selector
@@ -170,20 +170,22 @@
                                    placeholder="Státusz...">
                             </app-reservation-status-selector>
                         </th>
-                        <th>
-                            <input pInputText
-                                   type="text"
-                                   (input)="onFilter($event, 'notes')"
-                                   placeholder="Keresés..."
-                                   style="width:8rem"/>
-                        </th>
                         <th></th>
                     </tr>
                 </ng-template>
-                <ng-template pTemplate="body" let-reservation>
-                    <tr>
-                        <td>
+                <ng-template pTemplate="body" let-reservation let-expanded="expanded">
+                    <tr [class.reservation-row--expanded]="expanded">
+                        <td class="reservation-row-control-cell">
                             <p-tableCheckbox [value]="reservation"></p-tableCheckbox>
+                        </td>
+                        <td class="text-center reservation-row-toggle-cell">
+                            <p-button type="button"
+                                      styleClass="p-button-rounded p-button-text reservation-expand-button"
+                                      pRipple
+                                      [pRowToggler]="reservation"
+                                      [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                                      [attr.aria-label]="expanded ? 'Foglalás részletek bezárása' : 'Foglalás részletek megnyitása'">
+                            </p-button>
                         </td>
                         <td>
                             <span class="p-column-title">Szoba</span>
@@ -194,7 +196,9 @@
                                     <div class="flex align-items-center justify-content-center py-1 px-1">
                                         <div class="flex align-items-center justify-content-center gap-2 px-2">
                                             <i class="pi pi-key vertical-align-middle"></i>
-                                            <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle" pTooltip="Szoba szám: {{ reservation.room.roomNum }}" tooltipPosition="top">
+                                            <span class="text-2xl font-semibold white-space-nowrap vertical-align-middle"
+                                                  pTooltip="Szoba szám: {{ reservation.room.roomNum }}"
+                                                  tooltipPosition="top">
                                                 {{ reservation.room.roomNum }}
                                             </span>
                                         </div>
@@ -202,7 +206,6 @@
                                             <div class="flex flex-column align-items-left justify-content-center">
                                                 <span class="text-base font-semibold uppercase">
                                                     {{ 'BUILDINGS.' + reservation.room.building.toUpperCase() | translate }} <span *ngIf="reservation.room.floor" class="font-normal text-sm uppercase">({{ reservation.room.floor }})</span>
-                                                    <span *ngIf="reservation.room.climate" class="pl-1">❄️</span>
                                                 </span>
                                                 <span class="font-light text-xs uppercase">
                                                     {{ reservation.room.beds }} SZEMÉLYES ({{ reservation.room.bedType }}<span *ngIf="reservation.room.bathroom">, {{ reservation.room.bathroom }}</span>)
@@ -269,58 +272,348 @@
                                         pTooltip="Újraágyazás szükséges"
                                         tooltipPosition="top"></i>
                                 </ng-container>
+
                             </div>
                         </td>
                         <td>
                             <span class="p-column-title">Vendégek</span>
-                            <p-avatarGroup >
-                                <p-avatar *ngFor="let guest of reservation.guests" 
-                                           icon="pi pi-user" 
-                                           size="large" 
+                            <p-avatarGroup class="reservation-row-avatar-group">
+                                <p-avatar *ngFor="let guest of getReservationVisibleGuests(reservation); trackBy: trackByGuestId"
+                                           [label]="getReservationGuestInitials(guest)"
                                            shape="circle"
                                            pTooltip="{{guest.lastName + ' ' + guest.firstName}} ({{getAge(guest.birthDate)}})" 
                                            tooltipPosition="top">
+                                </p-avatar>
+                                <p-avatar *ngIf="getReservationHiddenGuestCount(reservation) > 0"
+                                          [label]="'+' + getReservationHiddenGuestCount(reservation)"
+                                          shape="circle"
+                                          styleClass="reservation-row-avatar reservation-row-avatar--summary"
+                                          pTooltip="{{ getReservationHiddenGuestCount(reservation) }} további vendég"
+                                          tooltipPosition="top">
                                 </p-avatar>
                                 <!-- Capacity badge: hidden when 0, green if >0, red if <0 -->
                                 <p-avatar
                                     *ngIf="getFreeCapacity(reservation) as cap"
                                     [label]="formatCapacityLabel(cap)"
                                     shape="circle"
-                                    size="large"
+                                    styleClass="reservation-row-avatar reservation-row-avatar--capacity"
                                     [style]="capacityStyle(cap)"
                                     pTooltip="{{ capacityTooltip(cap) }}"
                                     tooltipPosition="top">
                                 </p-avatar>
                             </p-avatarGroup>
                         </td>
-                        <td style="max-width: 300px;">
+                        <td class="reservation-date-cell">
                             <span class="p-column-title">Érkezés</span>
-                            <span class="calendar-badge">
+                            <span class="calendar-badge reservation-date-badge">
                                 <i class="pi pi-calendar mr-1"></i>
                                 {{ reservation.startDate | date:'yyyy.MM.dd' }}
                             </span>
                         </td>
-                        <td style="max-width: 300px;">
+                        <td class="reservation-date-cell">
                             <span class="p-column-title">Távozás</span>
-                            <span class="calendar-badge">
-                                <i class="pi pi-calendar mr-1"></i>
-                                {{ reservation.endDate | date:'yyyy.MM.dd' }}
-                            </span>
+                            <div class="reservation-date-inline">
+                                <span class="calendar-badge reservation-date-badge">
+                                    <i class="pi pi-calendar mr-1"></i>
+                                    {{ reservation.endDate | date:'yyyy.MM.dd' }}
+                                </span>
+                                <span class="reservation-row-night-pill"
+                                      pTooltip="Tartózkodás hossza"
+                                      tooltipPosition="top">
+                                    {{ getReservationNightLabel(reservation) }}
+                                </span>
+                            </div>
                         </td>
-                        <td style="max-width: 300px;">
+                        <td class="reservation-status-cell">
                             <span class="p-column-title">Státusz</span>
-                            <span *ngIf="reservation.status" class="reservation-status-badge {{ reservation.status }}">
+                            <span *ngIf="reservation.status" class="reservation-status-badge reservation-status-badge--aligned {{ reservation.status }}">
                                 {{ 'RESERVATION_STATUSES.' + reservation.status?.toUpperCase() | translate }}
                             </span>
                         </td>
                         <td>
-                            <span class="p-column-title">Megjegyzés</span>
-                            {{ reservation.notes }}
+                            <div class="flex reservation-row-actions">
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(reservation)" [disabled]="!canEdit" pTooltip="Foglalás szerkesztése" tooltipPosition="top"></button>
+                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = reservation; deleteDialog = true" [disabled]="!canDelete" pTooltip="Foglalás törlése" tooltipPosition="top"></button>
+                            </div>
                         </td>
-                        <td>
-                            <div class="flex">
-                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(reservation)" [disabled]="!canEdit"></button>
-                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = reservation; deleteDialog = true" [disabled]="!canDelete"></button>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="rowexpansion" let-reservation>
+                    <tr>
+                        <td [attr.colspan]="8" class="reservation-expansion-cell">
+                            <div class="reservation-detail-shell">
+                                <div class="reservation-detail-grid">
+                                    <section class="reservation-detail-card reservation-detail-card--hero">
+                                        <div class="reservation-detail-hero">
+                                            <div>
+                                                <div class="reservation-detail-overline">
+                                                    Foglalás #{{ reservation.id }} • {{ getReservationConferenceLabel(reservation) }}
+                                                </div>
+                                                <div class="reservation-detail-title">
+                                                    <ng-container *ngIf="reservation.room?.roomNum; else noAssignedRoomTitle">
+                                                        <i class="pi pi-key reservation-detail-title__icon"></i>
+                                                        {{ reservation.room.roomNum }}
+                                                    </ng-container>
+                                                    <ng-template #noAssignedRoomTitle>Még nincs hozzárendelt szoba</ng-template>
+                                                </div>
+                                                <div class="reservation-detail-subtitle">
+                                                    {{ getReservationDateRangeLabel(reservation) }} • {{ getReservationNightLabel(reservation) }}
+                                                </div>
+                                            </div>
+
+                                            <div class="reservation-detail-statuses">
+                                                <span *ngIf="reservation.status" class="reservation-status-badge reservation-status-badge--aligned {{ reservation.status }}">
+                                                    {{ 'RESERVATION_STATUSES.' + reservation.status?.toUpperCase() | translate }}
+                                                </span>
+                                                <span class="reservation-detail-chip"
+                                                      [ngClass]="'reservation-detail-chip--' + getReservationCapacityState(reservation)">
+                                                    {{ getReservationCapacityHeadline(reservation) }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="reservation-detail-metrics">
+                                            <div class="reservation-metric">
+                                                <span class="reservation-metric__label">Vendégek</span>
+                                                <span class="reservation-metric__value">{{ getReservationHeadcount(reservation) }} fő</span>
+                                                <span class="reservation-metric__hint">Aktív vendéglista ehhez a foglaláshoz</span>
+                                            </div>
+                                            <div class="reservation-metric">
+                                                <span class="reservation-metric__label">Kapacitás</span>
+                                                <span class="reservation-metric__value">{{ getReservationTotalCapacity(reservation) }} fő</span>
+                                                <span class="reservation-metric__hint">
+                                                    {{ reservation.room?.beds || 0 }} ágy + {{ reservation.room?.extraBeds || 0 }} extra
+                                                </span>
+                                            </div>
+                                            <div class="reservation-metric">
+                                                <span class="reservation-metric__label">Babaágy / Matrac</span>
+                                                <span class="reservation-metric__value">{{ getBabyBedCount(reservation) }} / {{ getMattressCount(reservation) }}</span>
+                                                <span class="reservation-metric__hint">Speciális elhelyezési igény</span>
+                                            </div>
+                                            <div class="reservation-metric">
+                                                <span class="reservation-metric__label">Szabad hely</span>
+                                                <span class="reservation-metric__value">{{ getReservationCapacityDelta(reservation) }}</span>
+                                                <span class="reservation-metric__hint">
+                                                    {{ getReservationCapacityDelta(reservation) < 0 ? 'Negatív érték = túlfoglalás' : 'Pozitív érték = maradék férőhely' }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="reservation-capacity">
+                                            <div class="reservation-capacity__header">
+                                                <span>Foglaltság</span>
+                                                <span>{{ getReservationHeadcount(reservation) }}/{{ getReservationTotalCapacity(reservation) || 0 }} fő</span>
+                                            </div>
+                                            <div class="reservation-capacity__track">
+                                                <div class="reservation-capacity__fill"
+                                                     [class.is-full]="getReservationCapacityState(reservation) === 'full'"
+                                                     [class.is-overbooked]="getReservationCapacityState(reservation) === 'overbooked'"
+                                                     [style.width.%]="getReservationOccupancyPercent(reservation)">
+                                                </div>
+                                            </div>
+                                            <span class="reservation-capacity__caption">
+                                                {{ getReservationOccupancyPercent(reservation) }}% névleges kihasználtság
+                                            </span>
+                                        </div>
+                                    </section>
+
+                                    <section class="reservation-detail-card">
+                                        <h6>Szoba és logisztika</h6>
+                                        <div class="reservation-detail-list">
+                                            <div class="reservation-detail-list__item">
+                                                <span>Szoba</span>
+                                                <strong class="reservation-detail-inline-value">
+                                                    <i class="pi pi-key reservation-detail-inline-icon"></i>
+                                                    {{ reservation.room?.roomNum || 'Nincs hozzárendelve' }}
+                                                    <span *ngIf="reservation.room?.roomCode"> • {{ reservation.room?.roomCode }}</span>
+                                                </strong>
+                                            </div>
+                                            <div class="reservation-detail-list__item">
+                                                <span>Épület / szint</span>
+                                                <strong>
+                                                    {{ 'BUILDINGS.' + reservation.room?.building?.toUpperCase() | translate }}
+                                                    <span *ngIf="reservation.room?.floor"> • {{ reservation.room?.floor }}</span>
+                                                </strong>
+                                            </div>
+                                            <div class="reservation-detail-list__item">
+                                                <span>Szobatípus</span>
+                                                <strong>{{ getReservationRoomTypeLabel(reservation) }}</strong>
+                                            </div>
+                                            <div class="reservation-detail-list__item">
+                                                <span>Ágytípus / fürdő</span>
+                                                <strong>
+                                                    {{ reservation.room?.bedType || 'Nincs megadva' }}
+                                                    <span *ngIf="reservation.room?.bathroom"> • {{ reservation.room?.bathroom }}</span>
+                                                </strong>
+                                            </div>
+                                            <div class="reservation-detail-list__item">
+                                                <span>Pótágy szabály</span>
+                                                <strong>{{ getReservationExtraBedPolicyLabel(reservation) }}</strong>
+                                            </div>
+                                            <div class="reservation-detail-list__item">
+                                                <span>Befogadás</span>
+                                                <strong>
+                                                    {{ reservation.room?.beds || 0 }} ágy
+                                                    <span *ngIf="reservation.room?.extraBeds"> • {{ reservation.room?.extraBeds }} extra férőhely</span>
+                                                    <span> • {{ getReservationTotalCapacity(reservation) }} fő</span>
+                                                </strong>
+                                            </div>
+                                            <div class="reservation-detail-list__item">
+                                                <span>Szoba jellemzők</span>
+                                                <strong class="reservation-detail-amenities">
+                                                    <span class="reservation-detail-amenity-pill"
+                                                          [class.is-enabled]="reservation.room?.climate"
+                                                          [class.is-disabled]="!reservation.room?.climate">
+                                                        <span class="reservation-detail-amenity-pill__label">
+                                                            <i class="pi pi-bolt"></i>
+                                                            Klimatizált
+                                                        </span>
+                                                        <span class="reservation-detail-amenity-pill__value">{{ getReservationRoomBooleanLabel(reservation.room?.climate) }}</span>
+                                                    </span>
+                                                    <span class="reservation-detail-amenity-pill"
+                                                          [class.is-enabled]="reservation.room?.familyRoom"
+                                                          [class.is-disabled]="!reservation.room?.familyRoom">
+                                                        <span class="reservation-detail-amenity-pill__label">
+                                                            <i class="pi pi-home"></i>
+                                                            Családi szoba
+                                                        </span>
+                                                        <span class="reservation-detail-amenity-pill__value">{{ getReservationRoomBooleanLabel(reservation.room?.familyRoom) }}</span>
+                                                    </span>
+                                                </strong>
+                                            </div>
+                                            <div class="reservation-detail-list__item" *ngIf="reservation.room?.description || reservation.room?.comment">
+                                                <span>Megjegyzés a szobáról</span>
+                                                <strong>{{ reservation.room?.description || reservation.room?.comment }}</strong>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+
+                                <section class="reservation-detail-card reservation-detail-card--full">
+                                    <div class="reservation-detail-section-header">
+                                        <div>
+                                            <h6>Vendéglista</h6>
+                                            <p>{{ getReservationHeadcount(reservation) }} fő • részletes elhelyezési és kapcsolattartási adatok</p>
+                                        </div>
+
+                                        <div class="reservation-inline-flags">
+                                            <span *ngIf="getBabyBedCount(reservation) > 0" class="reservation-detail-chip reservation-detail-chip--balanced">
+                                                {{ getBabyBedCount(reservation) }} babaágy
+                                            </span>
+                                            <span *ngIf="getMattressCount(reservation) > 0" class="reservation-detail-chip reservation-detail-chip--full">
+                                                {{ getMattressCount(reservation) }} matrac
+                                            </span>
+                                            <span *ngIf="requiresRebedding(reservation)" class="reservation-detail-chip reservation-detail-chip--overbooked">
+                                                Újraágyazás szükséges
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="reservation-guest-grid" *ngIf="reservation.guests?.length; else noReservationGuests">
+                                        <article class="reservation-guest-card" *ngFor="let guest of getReservationSortedGuests(reservation); trackBy: trackByGuestId">
+                                            <div class="reservation-guest-card__header">
+                                                <p-avatar [label]="getReservationGuestInitials(guest)" shape="circle" size="large"></p-avatar>
+                                                <div>
+                                                    <span class="reservation-guest-card__name">{{ getReservationGuestFullName(guest) }}</span>
+                                                    <span class="reservation-guest-card__subtitle">{{ getReservationGuestSubtitle(guest) }}</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="reservation-guest-card__meta">
+                                                <div class="reservation-guest-card__meta-item">
+                                                    <span class="reservation-guest-card__meta-copy">
+                                                        <span class="reservation-guest-card__timeline-line">
+                                                            <i class="pi pi-sign-in reservation-guest-card__timeline-icon"></i>
+                                                            <span>{{ formatReservationDate(guest?.dateOfArrival) }}</span>
+                                                            <span class="reservation-guest-card__timeline-meal">{{ getReservationGuestFirstMealLabel(guest) }}</span>
+                                                        </span>
+                                                        <span class="reservation-guest-card__timeline-line">
+                                                            <i class="pi pi-sign-out reservation-guest-card__timeline-icon"></i>
+                                                            <span>{{ formatReservationDate(guest?.dateOfDeparture) }}</span>
+                                                            <span class="reservation-guest-card__timeline-meal">{{ getReservationGuestLastMealLabel(guest) }}</span>
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                                <div class="reservation-guest-card__meta-item">
+                                                    <i class="pi pi-wallet"></i>
+                                                    <span>{{ getReservationGuestPaymentLabel(guest) }}</span>
+                                                </div>
+                                                <div class="reservation-guest-card__meta-item" *ngIf="guest.diet">
+                                                    <i class="pi pi-heart"></i>
+                                                    <span>{{ guest.diet }}</span>
+                                                </div>
+                                                <div class="reservation-guest-card__meta-item">
+                                                    <i class="pi pi-phone"></i>
+                                                    <span>{{ guest.telephone || '-' }}</span>
+                                                </div>
+                                                <div class="reservation-guest-card__meta-item">
+                                                    <i class="pi pi-envelope"></i>
+                                                    <span>{{ guest.email || '-' }}</span>
+                                                </div>
+                                                <div class="reservation-guest-card__meta-item">
+                                                    <i class="pi pi-users"></i>
+                                                    <span>Szobatárs kérés: {{ guest.roomMate || '-' }}</span>
+                                                </div>
+                                            </div>
+                                        </article>
+                                    </div>
+
+                                    <ng-template #noReservationGuests>
+                                        <div class="reservation-empty-state">
+                                            Ehhez a foglaláshoz még nincs hozzárendelt vendég.
+                                        </div>
+                                    </ng-template>
+                                </section>
+
+                                <div class="reservation-detail-grid reservation-detail-grid--bottom">
+                                    <section class="reservation-detail-card">
+                                        <h6>Megjegyzés</h6>
+                                        <p class="reservation-note-body" [class.is-empty]="!reservation.notes">
+                                            {{ reservation.notes || 'Ehhez a foglaláshoz nincs külön megjegyzés.' }}
+                                        </p>
+                                    </section>
+
+                                    <section class="reservation-detail-card">
+                                        <h6>Admin információk</h6>
+                                        <div class="reservation-detail-list">
+                                            <div class="reservation-detail-list__item">
+                                                <span>Foglalás azonosító</span>
+                                                <strong>#{{ reservation.id }}</strong>
+                                            </div>
+                                            <div class="reservation-detail-list__item">
+                                                <span>Vendég nevek</span>
+                                                <strong>{{ getReservationGuestNamesLabel(reservation) }}</strong>
+                                            </div>
+                                            <div class="reservation-detail-list__item" *ngIf="reservation.createdAt">
+                                                <span>Létrehozva</span>
+                                                <strong>{{ reservation.createdAt | date:'yyyy.MM.dd HH:mm' }}</strong>
+                                            </div>
+                                            <div class="reservation-detail-list__item" *ngIf="reservation.updatedAt">
+                                                <span>Utoljára frissítve</span>
+                                                <strong>{{ reservation.updatedAt | date:'yyyy.MM.dd HH:mm' }}</strong>
+                                            </div>
+                                        </div>
+
+                                        <div class="reservation-detail-actions">
+                                            <button pButton
+                                                    pRipple
+                                                    label="Szerkesztés"
+                                                    icon="pi pi-pencil"
+                                                    class="p-button-sm p-button-success"
+                                                    (click)="edit(reservation)"
+                                                    [disabled]="!canEdit">
+                                            </button>
+                                            <button pButton
+                                                    pRipple
+                                                    label="Törlés"
+                                                    icon="pi pi-trash"
+                                                    class="p-button-sm p-button-warning"
+                                                    (click)="tableItem = reservation; deleteDialog = true"
+                                                    [disabled]="!canDelete">
+                                            </button>
+                                        </div>
+                                    </section>
+                                </div>
                             </div>
                         </td>
                     </tr>
@@ -419,13 +712,10 @@
                         <label for="startDate" class="font-medium text-900">
                             {{'Érkezés dátuma' | translate }}
                         </label>
-                        <p-calendar id="startDate"
-                                    formControlName="startDate"
-                                    [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
-                                    dateFormat="yy-mm-dd"
-                                    dataType="string"
-                                    appendTo="body">
-                        </p-calendar>
+                        <app-localized-date-picker inputId="startDate"
+                                                   formControlName="startDate"
+                                                   [invalid]="!!reservationForm.errors?.['dateRangeInvalid']">
+                        </app-localized-date-picker>
                         <div *ngIf="startDate?.dirty && startDate?.errors?.['required']" class="p-error">
                             {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
                         </div>
@@ -439,13 +729,10 @@
                         <label for="endDate" class="font-medium text-900">
                             {{'Távozás dátuma' | translate }}
                         </label>
-                        <p-calendar id="endDate"
-                                    formControlName="endDate"
-                                    [ngClass]="{'ng-invalid': reservationForm.errors?.['dateRangeInvalid']}"
-                                    dateFormat="yy-mm-dd"
-                                    dataType="string"
-                                    appendTo="body">
-                        </p-calendar>
+                        <app-localized-date-picker inputId="endDate"
+                                                   formControlName="endDate"
+                                                   [invalid]="!!reservationForm.errors?.['dateRangeInvalid']">
+                        </app-localized-date-picker>
                         <div *ngIf="endDate?.dirty && endDate?.errors?.['required']" class="p-error">
                             {{'Kérjük, adja meg az érkezés dátumát' | translate }}!
                         </div>

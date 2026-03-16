@@ -10,10 +10,9 @@ import { ConferenceService } from 'src/app/demo/service/conference.service';
 import { GuestService } from 'src/app/demo/service/guest.service';
 import { UserService } from 'src/app/demo/service/user.service';
 import { Table } from 'primeng/table';
-import * as moment from 'moment';
 import { Conference } from 'src/app/demo/api/conference';
 import { Guest } from 'src/app/demo/api/guest';
-moment.locale('hu')
+import { formatDateDots } from 'src/app/demo/utils/date.utils';
 
 @Component({
     templateUrl: './ecommerce.dashboard.component.html',
@@ -29,8 +28,7 @@ export class EcommerceDashboardComponent implements OnInit {
     loading: boolean = true;                     // Loading overlay trigger value
     userRole: string = '';
     activities: any[] = [];
-    information: any;
-    selectedWeek: any;
+    selectedWeek: any = { data: [[], []] };
     weeks: any[] = [];
     barData: any;
     barOptions: any;
@@ -41,7 +39,8 @@ export class EcommerceDashboardComponent implements OnInit {
     cols: any[] = [];
     rfidPercentage: number = 85;
     prepaidPercentage: number = 0;
-    selectedConference: Conference;
+    conferenceStatsLoading: boolean = false;
+    selectedConference: Conference | null = null;
     selectedConferences: Conference[] = [];
     conferenceData: any;
     conferenceGuests: Guest[] = [];
@@ -89,7 +88,6 @@ export class EcommerceDashboardComponent implements OnInit {
         // User Role
         this.userService.getUserRole().subscribe(role => {
             this.userRole = role
-            console.log('Updated userRole', this.userRole)
         })
 
         // Dashboard Informations
@@ -140,7 +138,6 @@ export class EcommerceDashboardComponent implements OnInit {
         ]
 
         this.activities = this.activityService.getActivities();
-        this.information = this.activityService.getInformation()
 
         this.weeks = [{
             label: 'Előző hét',
@@ -170,6 +167,9 @@ export class EcommerceDashboardComponent implements OnInit {
         const textColor = documentStyle.getPropertyValue('--text-color');
         const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
         const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
+        const weekData = Array.isArray(this.selectedWeek?.data) ? this.selectedWeek.data : [[], []]
+        const incomeData = Array.isArray(weekData[0]) ? weekData[0] : []
+        const profitData = Array.isArray(weekData[1]) ? weekData[1] : []
 
         this.barData = {
             labels: ['HÉT', 'KED', 'SZE', 'CSÜ', 'PÉN', 'SZO', 'VAS'],
@@ -179,14 +179,14 @@ export class EcommerceDashboardComponent implements OnInit {
                     backgroundColor: documentStyle.getPropertyValue('--primary-500'),
                     barThickness: 12,
                     borderRadius: 12,
-                    data: this.selectedWeek.data[0]
+                    data: incomeData
                 },
                 {
                     label: 'Profit',
                     backgroundColor: documentStyle.getPropertyValue('--primary-200'),
                     barThickness: 12,
                     borderRadius: 12,
-                    data: this.selectedWeek.data[1]
+                    data: profitData
                 }
             ]
         };
@@ -276,13 +276,19 @@ export class EcommerceDashboardComponent implements OnInit {
     }
 
     get guestsWithoutRoom(): number {
-        return this.conferenceGuests?.filter((guest: Guest) => guest.roomNum === null).length || 0
+        return (this.conferenceGuests ?? []).filter((guest: Guest) => !this.hasAssignedRoom(guest)).length
+    }
+
+    private hasAssignedRoom(guest: Guest): boolean {
+        const reservationRoomNum = guest.reservations?.find(reservation => reservation?.room?.roomNum)?.room?.roomNum
+        const roomNum = (guest.displayRoomNum ?? guest.roomNum ?? reservationRoomNum ?? '').trim()
+        return roomNum.length > 0
     }
 
     get registrationEndDate(): string {
         let endDate = ''
         if (this.selectedConference?.registrationEndDate) {
-            endDate = moment(this.selectedConference.registrationEndDate).format('YYYY.MM.DD')
+            endDate = formatDateDots(this.selectedConference.registrationEndDate)
         }
         return endDate
     }
@@ -290,7 +296,7 @@ export class EcommerceDashboardComponent implements OnInit {
     get guestEditEndDate(): string {
         let endDate = ''
         if (this.selectedConference?.guestEditEndDate) {
-            endDate = moment(this.selectedConference.guestEditEndDate).format('YYYY.MM.DD')
+            endDate = formatDateDots(this.selectedConference.guestEditEndDate)
         }
         return endDate
     }
@@ -300,9 +306,17 @@ export class EcommerceDashboardComponent implements OnInit {
     }
 
     onWeekChange() {
+        if (!this.barData?.datasets?.length) {
+            this.initCharts()
+            return
+        }
+
+        const weekData = Array.isArray(this.selectedWeek?.data) ? this.selectedWeek.data : [[], []]
+        const incomeData = Array.isArray(weekData[0]) ? weekData[0] : []
+        const profitData = Array.isArray(weekData[1]) ? weekData[1] : []
         let newBarData = {...this.barData};
-        newBarData.datasets[0].data = this.selectedWeek.data[0];
-        newBarData.datasets[1].data = this.selectedWeek.data[1];
+        newBarData.datasets[0].data = incomeData;
+        newBarData.datasets[1].data = profitData;
         this.barData = newBarData;
     }
 
@@ -310,19 +324,60 @@ export class EcommerceDashboardComponent implements OnInit {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
 
-    onConferenceChange(selectedConfs: Conference[]): void {
-        console.log('Selected conference:', selectedConfs);
-            this.selectedConference = selectedConfs[0];
-            const conferenceName = this.selectedConference?.name;
+    onConferenceChange(selectedConfs: Conference[] | null | undefined): void {
+        const selectedConference = Array.isArray(selectedConfs) ? selectedConfs[0] : null
+        const conferenceId = selectedConference?.id
+        const conferenceName = selectedConference?.name?.trim()
 
-        if (conferenceName) { // Ensure conferenceName is defined
-            this.guestService.getByConferenceName(conferenceName).subscribe((guests: any) => {
-                this.conferenceGuests = guests.rows || [];
-                this.prepaidPercentage = Math.round((this.prepaid / this.registrations) * 100) || 0
-            })
-        } else {
-            console.error('Conference name is undefined');
+        if (!selectedConference || (!conferenceId && !conferenceName)) {
+            this.selectedConference = null
+            this.conferenceGuests = []
+            this.prepaidPercentage = 0
+            this.conferenceStatsLoading = false
+            return
         }
+
+        this.selectedConference = selectedConference
+        this.conferenceStatsLoading = true
+        if (conferenceId) {
+            this.guestService.searchGuestsForSelector$({
+                conferenceId,
+                enabled: true
+            }).subscribe({
+                next: (guests: Guest[]) => {
+                    this.applyConferenceGuests(guests)
+                },
+                error: () => {
+                    this.clearConferenceGuests()
+                }
+            })
+            return
+        }
+
+        this.guestService.getByConferenceName(conferenceName!).subscribe({
+            next: (guests: any) => {
+                const rows = Array.isArray(guests?.rows) ? guests.rows as Guest[] : []
+                this.applyConferenceGuests(rows)
+            },
+            error: () => {
+                this.clearConferenceGuests()
+            }
+        })
+    }
+
+    private applyConferenceGuests(guests: Guest[]): void {
+        this.conferenceGuests = Array.isArray(guests) ? guests : []
+        const registrations = this.registrations
+        this.prepaidPercentage = registrations > 0
+            ? Math.round((this.prepaid / registrations) * 100)
+            : 0
+        this.conferenceStatsLoading = false
+    }
+
+    private clearConferenceGuests(): void {
+        this.conferenceGuests = []
+        this.prepaidPercentage = 0
+        this.conferenceStatsLoading = false
     }
 
     /**

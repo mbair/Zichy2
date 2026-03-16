@@ -6,15 +6,12 @@ import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
-import { InputTextareaModule } from 'primeng/inputtextarea';
 import { InputTextModule } from 'primeng/inputtext';
 import { ChartModule } from 'primeng/chart';
 import { KnobModule } from 'primeng/knob';
-import { RatingModule } from 'primeng/rating';
 import { RippleModule } from 'primeng/ripple';
-import { CardModule } from 'primeng/card';
-import { SelectorsModule } from '../../../selectors/selectors.module';
-import { StyleClassModule } from "primeng/styleclass";
+import { SkeletonModule } from 'primeng/skeleton';
+import { ConferenceSelectorComponent } from '../../../selectors/conference-selector/conference-selector.component';
 
 @NgModule({
 	imports: [
@@ -26,13 +23,10 @@ import { StyleClassModule } from "primeng/styleclass";
     FormsModule,
     TableModule,
     InputTextModule,
-    InputTextareaModule,
     ChartModule,
-    RatingModule,
     KnobModule,
-    CardModule,
-    SelectorsModule,
-    StyleClassModule
+    SkeletonModule,
+    ConferenceSelectorComponent
 ],
 	declarations: [EcommerceDashboardComponent]
 })

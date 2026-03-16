@@ -1,6 +1,9 @@
 import { Component, OnDestroy, Renderer2, ViewChild } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
+import { AuthService } from '../demo/service/auth.service';
+import { SessionService, SessionWarningState } from '../demo/service/session.service';
+import { formatRemainingSessionTime } from '../demo/utils/session-time.utils';
 import { MenuService } from './app.menu.service';
 import { AppSidebarComponent } from './app.sidebar.component';
 import { AppTopbarComponent } from './app.topbar.component';
@@ -13,6 +16,7 @@ import { LayoutService } from './service/app.layout.service';
 export class AppLayoutComponent implements OnDestroy {
 
     overlayMenuOpenSubscription: Subscription;
+    sessionWarningSubscription: Subscription;
 
     menuOutsideClickListener: any;
 
@@ -22,7 +26,21 @@ export class AppLayoutComponent implements OnDestroy {
 
     @ViewChild(AppTopbarComponent) appTopbar!: AppTopbarComponent;
 
-    constructor(private menuService: MenuService, public layoutService: LayoutService, public renderer: Renderer2, public router: Router) {
+    sessionWarning: SessionWarningState = {
+        visible: false,
+        remainingMs: 0,
+        refreshing: false,
+        error: null,
+    };
+
+    constructor(
+        private menuService: MenuService,
+        public layoutService: LayoutService,
+        public renderer: Renderer2,
+        public router: Router,
+        private authService: AuthService,
+        private sessionService: SessionService
+    ) {
         this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
             if (!this.menuOutsideClickListener) {
                 this.menuOutsideClickListener = this.renderer.listen('document', 'click', event => {
@@ -51,6 +69,10 @@ export class AppLayoutComponent implements OnDestroy {
             .subscribe(() => {
                 this.hideMenu();
             });
+
+        this.sessionWarningSubscription = this.sessionService.sessionWarning$.subscribe((state) => {
+            this.sessionWarning = state;
+        });
     }
 
     blockBodyScroll(): void {
@@ -116,9 +138,25 @@ export class AppLayoutComponent implements OnDestroy {
         }
     }
 
+    formatSessionRemaining(remainingMs: number): string {
+        return formatRemainingSessionTime(remainingMs);
+    }
+
+    staySignedIn(): void {
+        this.sessionService.extendSession();
+    }
+
+    logout(): void {
+        this.authService.logout();
+    }
+
     ngOnDestroy() {
         if (this.overlayMenuOpenSubscription) {
             this.overlayMenuOpenSubscription.unsubscribe();
+        }
+
+        if (this.sessionWarningSubscription) {
+            this.sessionWarningSubscription.unsubscribe();
         }
 
         if (this.menuOutsideClickListener) {

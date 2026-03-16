@@ -1,8 +1,9 @@
+import { CommonModule } from '@angular/common'
 import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core'
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup } from '@angular/forms'
-import { TranslateService } from '@ngx-translate/core'
-import { DropdownChangeEvent } from 'primeng/dropdown'
-import { MultiSelectChangeEvent } from 'primeng/multiselect'
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms'
+import { TranslateModule, TranslateService } from '@ngx-translate/core'
+import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown'
+import { MultiSelectChangeEvent, MultiSelectModule } from 'primeng/multiselect'
 
 export interface changeEvent {
     value: number | number[] | null
@@ -19,6 +20,8 @@ interface PaymentOption {
 @Component({
     selector: 'app-payment-selector',
     templateUrl: './payment-selector.component.html',
+    standalone: true,
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, DropdownModule, MultiSelectModule],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,

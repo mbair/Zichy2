@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { emailDomainValidator } from 'src/app/demo/utils/email-validator';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
@@ -10,8 +10,8 @@ import { RoleService } from '../../service/role.service';
 import { ResponsiveService } from '../../service/responsive.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { User } from '../../api/user';
-import * as moment from 'moment';
-moment.locale('hu')
+import { OrganizerContractingParty } from '../../api/contracting-party';
+import { formatDateDots } from '../../utils/date.utils';
 
 @Component({
     templateUrl: './user.component.html',
@@ -47,6 +47,7 @@ export class UserComponent implements OnInit {
     canEdit: boolean = false                     // User has permission to update user
     canDelete: boolean = false                   // User has permission to delete user
     isMobile: boolean = false                    // Mobile screen detection
+    readonly organizerRoleId: number = 4
 
     private initialFormValues = {
         id: null,
@@ -56,6 +57,7 @@ export class UserComponent implements OnInit {
         email: '',
         phone: '',
         password: '',
+        organizerContractingParties: [] as OrganizerContractingParty[],
     }
     
     private isFormValid$: Observable<boolean>
@@ -79,6 +81,7 @@ export class UserComponent implements OnInit {
             email: [this.initialFormValues.email, [Validators.required, emailDomainValidator()]],
             phone: [this.initialFormValues.phone, [Validators.required]],
             password: [this.initialFormValues.password, [Validators.required]],
+            organizerContractingParties: this.fb.array([]),
         })
 
         this.isFormValid$ = new BehaviorSubject<boolean>(false)
@@ -140,6 +143,9 @@ export class UserComponent implements OnInit {
     get email() { return this.userForm.get('email') }
     get phone() { return this.userForm.get('phone') }
     get password() { return this.userForm.get('password') }
+    get organizerContractingPartiesArray(): FormArray {
+        return this.userForm.get('organizerContractingParties') as FormArray
+    }
 
     /**
      * Load filtered data into the Table
@@ -170,9 +176,7 @@ export class UserComponent implements OnInit {
 
         // Calendar date as String
         if (event instanceof Date) {
-            const date = moment(event)
-            const formattedDate = date.format('YYYY.MM.DD')
-            filterValue = formattedDate
+            filterValue = formatDateDots(event)
         } else {
             if (event && (event.value || event.target?.value)) {
                 filterValue = event.value || event.target?.value
@@ -232,6 +236,8 @@ export class UserComponent implements OnInit {
      */
     create() {
         this.userForm.reset(this.initialFormValues)
+        this.resetOrganizerContractingParties([])
+        this.originalFormValues = this.userForm.getRawValue()
         this.sidebar = true
     }
 
@@ -240,10 +246,37 @@ export class UserComponent implements OnInit {
      * @param user
      */
     edit(user: User) {
+        this.loading = true
         this.userForm.reset(this.initialFormValues)
-        this.userForm.patchValue(user)
-        this.originalFormValues = this.userForm.value
-        this.sidebar = true
+        this.resetOrganizerContractingParties([])
+
+        this.userService.getUserById(Number(user.id), true).subscribe({
+            next: (detailedUser: User | null) => {
+                const userData = detailedUser ?? user
+                const organizerContractingParties = userData.organizerContractingParties ?? []
+
+                this.userForm.patchValue({
+                    id: userData.id ?? null,
+                    username: userData.username ?? '',
+                    fullname: userData.fullname ?? '',
+                    user_rolesid: userData.user_rolesid ?? '',
+                    email: userData.email ?? '',
+                    phone: userData.phone ?? '',
+                    password: '',
+                })
+                this.resetOrganizerContractingParties(organizerContractingParties)
+                this.originalFormValues = this.userForm.getRawValue()
+                this.sidebar = true
+                this.loading = false
+            },
+            error: () => {
+                this.userForm.patchValue(user)
+                this.resetOrganizerContractingParties([])
+                this.originalFormValues = this.userForm.getRawValue()
+                this.sidebar = true
+                this.loading = false
+            }
+        })
     }
 
     /**
@@ -270,12 +303,15 @@ export class UserComponent implements OnInit {
     save() {
         if (this.userForm.valid) {
             this.loading = true
-            const formValues = this.userForm.value
+            const formValues = this.userForm.getRawValue() as User
 
             // If the password field is empty, it is deleted from the object
             if (!formValues.password) {
                 delete formValues.password
             }
+
+            formValues.organizerContractingParties = (formValues.organizerContractingParties ?? [])
+                .filter(relation => this.hasOrganizerContractingPartyData(relation))
 
             // Create
             if (!formValues.id) {
@@ -294,7 +330,8 @@ export class UserComponent implements OnInit {
      * Cancel saving the form
      */
     cancel() {
-        this.userForm.reset(this.originalFormValues)
+        this.userForm.reset(this.originalFormValues ?? this.initialFormValues)
+        this.resetOrganizerContractingParties(this.originalFormValues?.organizerContractingParties ?? [])
     }
 
     getRoleStyleClass(roleId: string): string {
@@ -303,6 +340,41 @@ export class UserComponent implements OnInit {
     
     getRoleName(roleId: string): string {
         return this.roleService.getRoleName(roleId)
+    }
+
+    showOrganizerContractingPartiesSection(): boolean {
+        return Number(this.user_rolesid?.value) === this.organizerRoleId || this.organizerContractingPartiesArray.length > 0
+    }
+
+    addOrganizerContractingParty(): void {
+        this.organizerContractingPartiesArray.push(this.createOrganizerContractingPartyGroup({
+            enabled: true,
+            isDefault: this.organizerContractingPartiesArray.length === 0,
+        }))
+
+        if (this.organizerContractingPartiesArray.length === 1) {
+            this.setDefaultOrganizerContractingParty(0)
+        }
+    }
+
+    removeOrganizerContractingParty(index: number): void {
+        const wasDefault = this.organizerContractingPartiesArray.at(index)?.get('isDefault')?.value === true
+        this.organizerContractingPartiesArray.removeAt(index)
+
+        if (wasDefault && this.organizerContractingPartiesArray.length > 0) {
+            this.setDefaultOrganizerContractingParty(0)
+        }
+    }
+
+    setDefaultOrganizerContractingParty(index: number): void {
+        this.organizerContractingPartiesArray.controls.forEach((control, controlIndex) => {
+            control.get('isDefault')?.setValue(controlIndex === index, { emitEvent: false })
+        })
+        this.organizerContractingPartiesArray.markAsDirty()
+    }
+
+    trackByIndex(index: number): number {
+        return index
     }
 
     /**
@@ -320,6 +392,37 @@ export class UserComponent implements OnInit {
             passwordControl?.clearValidators()
         }
         passwordControl?.updateValueAndValidity()
+    }
+
+    private createOrganizerContractingPartyGroup(value?: OrganizerContractingParty): FormGroup {
+        return this.fb.group({
+            relationId: [value?.relationId ?? null],
+            contractingPartyId: [value?.contractingPartyId ?? null],
+            legalName: [value?.legalName ?? '', Validators.required],
+            taxNumber: [value?.taxNumber ?? ''],
+            address: [value?.address ?? ''],
+            contactName: [value?.contactName ?? ''],
+            contactEmail: [value?.contactEmail ?? '', Validators.email],
+            contactPhone: [value?.contactPhone ?? ''],
+            isDefault: [value?.isDefault ?? false],
+            enabled: [value?.enabled ?? true],
+        })
+    }
+
+    private resetOrganizerContractingParties(values: OrganizerContractingParty[] = []): void {
+        this.organizerContractingPartiesArray.clear()
+        values.forEach((value) => this.organizerContractingPartiesArray.push(this.createOrganizerContractingPartyGroup(value)))
+    }
+
+    private hasOrganizerContractingPartyData(value: OrganizerContractingParty): boolean {
+        return Boolean(
+            value?.legalName?.trim()
+            || value?.taxNumber?.trim()
+            || value?.address?.trim()
+            || value?.contactName?.trim()
+            || value?.contactEmail?.trim()
+            || value?.contactPhone?.trim()
+        )
     }
 
     /**

@@ -2,17 +2,22 @@ import { inject } from '@angular/core'
 import { Router } from '@angular/router'
 import { CanActivateFn } from '@angular/router'
 import { UserService } from '../service/user.service'
+import { SessionService } from '../service/session.service'
 import { Observable, of } from 'rxjs'
 import { map, catchError } from 'rxjs/operators'
 
 export const AuthGuard: CanActivateFn = (route, state): Observable<boolean> => {
     const router = inject(Router)
     const userService = inject(UserService)
-    const token = localStorage.getItem('token')
+    const sessionService = inject(SessionService)
 
     // Check if the user is logged in
-    if (!token) {
+    if (!localStorage.getItem('token')) {
         router.navigate(['/auth/login'])
+        return of(false)
+    }
+
+    if (!sessionService.isSessionActive()) {
         return of(false)
     }
 

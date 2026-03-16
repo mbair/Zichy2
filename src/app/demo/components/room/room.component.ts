@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, debounceTime, distinctUntilChanged, firstValueFrom, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
+import { TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { RoomService } from '../../service/room.service';
@@ -11,9 +12,9 @@ import { ConferenceService } from '../../service/conference.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference } from '../../api/conference';
 import { Room } from '../../api/room';
-import * as FileSaver from 'file-saver';
-import * as moment from 'moment';
-moment.locale('hu')
+import { formatDateCompact, formatDateDots } from '../../utils/date.utils';
+import { saveBlobAsFile } from '../../utils/file-saver.utils';
+import { getRoomTypeOptionById, getRoomTypeOptions, RoomTypeOption } from '../../utils/room-type.utils';
 
 @Component({
     selector: 'room-component',
@@ -50,15 +51,16 @@ export class RoomComponent implements OnInit {
     canDelete: boolean = false                   // User has permission to delete room
     isMobile: boolean = false                    // Mobile screen detection
     isOrganizer: boolean = false                 // User has organizer role
-    occupancyFilter: any                         // TODO: Not used yet  
     selectedConferences: Conference[] = []       // Selected conferences
     numberOfBeds: number = 0                     // Number of beds
+    roomTypes: RoomTypeOption[] = []             // Available room types for badges and filters
 
     private initialFormValues = {
         id: null,
         roomNum: '',
         roomCode: '',
         beds: '',
+        room_typeid: null,
         spareBeds: '',
         bathroom: '',
         building: '',
@@ -82,6 +84,7 @@ export class RoomComponent implements OnInit {
         private conferenceService: ConferenceService,
         private messageService: MessageService,
         private responsiveService: ResponsiveService,
+        private translate: TranslateService,
         private fb: FormBuilder) {
 
         // Room form fields and validators
@@ -90,6 +93,7 @@ export class RoomComponent implements OnInit {
             roomNum: [this.initialFormValues.roomNum, Validators.required],
             roomCode: [this.initialFormValues.roomCode, Validators.required],
             beds: [this.initialFormValues.beds, Validators.required],
+            room_typeid: [this.initialFormValues.room_typeid, Validators.required],
             spareBeds: [this.initialFormValues.spareBeds],
             bathroom: [this.initialFormValues.bathroom],
             building: [this.initialFormValues.building, Validators.required],
@@ -105,6 +109,9 @@ export class RoomComponent implements OnInit {
     }
 
     ngOnInit() {
+        this.setRoomTypes()
+        this.translate.onLangChange.subscribe(() => this.setRoomTypes())
+
         // Permissions
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canCreate => this.canCreate = canCreate)
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canEdit => this.canEdit = canEdit)
@@ -147,6 +154,7 @@ export class RoomComponent implements OnInit {
     get roomNum() { return this.roomForm.get('roomNum') }
     get roomCode() { return this.roomForm.get('roomCode') }
     get beds() { return this.roomForm.get('beds') }
+    get room_typeid() { return this.roomForm.get('room_typeid') }
     get spareBeds() { return this.roomForm.get('spareBeds') }
     get bathroom() { return this.roomForm.get('bathroom') }
     get building() { return this.roomForm.get('building') }
@@ -164,14 +172,10 @@ export class RoomComponent implements OnInit {
     doQuery() {
         // Organizer need select conference
         if (this.isOrganizer && !this.selectedConferences.length) return
-
+	
         this.loading = true
-        this.filterValues['conferences'] = this.selectedConferences.map(conference => conference.id).join(',')
-
-        const filters = Object.keys(this.filterValues)
-            .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
-        const queryParams = filters.filter(x => x.length > 0).join('&')
-
+        const queryParams = this.buildQueryParams()
+	
         if (this.globalFilter !== '') {
             return this.roomService.getBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
         }
@@ -187,18 +191,18 @@ export class RoomComponent implements OnInit {
     onFilter(event: any, field: string) {
         // Organizer need select conference
         if (this.isOrganizer && !this.selectedConferences) return
-
-        const noWaitFields: string[] = ['conferenceName', 'building', 'bedType', 'spareBeds']
+	
+        const noWaitFields: string[] = ['conferenceName', 'building', 'bedType', 'spareBeds', 'room_typeid']
         let filterValue = ''
+        const hasEventValue = event && Object.prototype.hasOwnProperty.call(event, 'value') && event.value !== null && event.value !== undefined
+        const hasTargetValue = event?.target?.value !== null && event?.target?.value !== undefined
 
         // Calendar date as String
         if (event instanceof Date) {
-            const date = moment(event)
-            const formattedDate = date.format('YYYY.MM.DD')
-            filterValue = formattedDate
+            filterValue = formatDateDots(event)
         } else {
-            if (event && (event.value || event.target?.value)) {
-                filterValue = event.value || event.target?.value
+            if (hasEventValue || hasTargetValue) {
+                filterValue = hasEventValue ? event.value : event.target?.value
                 filterValue = filterValue.toString()
             } else {
                 this.filterValues[field] = ''
@@ -250,6 +254,41 @@ export class RoomComponent implements OnInit {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains')
     }
 
+    onConferenceSelectionChange(selectedConferences: Conference[]): void {
+        const nextSelectedConferences = selectedConferences || []
+        const currentIds = (this.selectedConferences || []).map(conf => Number(conf?.id)).sort((a, b) => a - b)
+        const nextIds = nextSelectedConferences.map(conf => Number(conf?.id)).sort((a, b) => a - b)
+        const selectionChanged =
+            currentIds.length !== nextIds.length ||
+            currentIds.some((id, index) => id !== nextIds[index])
+
+        this.selectedConferences = nextSelectedConferences
+
+        if (!selectionChanged) {
+            return
+        }
+
+        this.doQuery()
+    }
+
+    getRoomType(room: Room): RoomTypeOption | null {
+        const roomTypeId = room?.room_typeid
+
+        if (roomTypeId === null || roomTypeId === undefined || roomTypeId === '') {
+            return null
+        }
+
+        if (this.roomTypes.length === 0) {
+            return getRoomTypeOptionById(roomTypeId, this.translate)
+        }
+
+        return this.roomTypes.find((roomType) => roomType.id === Number(roomTypeId)) ?? null
+    }
+
+    private setRoomTypes(): void {
+        this.roomTypes = getRoomTypeOptions(this.translate)
+    }
+
     /**
      * Create new Room
      */
@@ -299,7 +338,7 @@ export class RoomComponent implements OnInit {
             if (!formValues.id) {
                 this.roomService.create(formValues)
 
-                // Update
+            // Update
             } else {
                 this.roomService.update(formValues)
             }
@@ -371,34 +410,21 @@ export class RoomComponent implements OnInit {
      */
     exportExcel() {
         import("xlsx").then(xlsx => {
-            // Hungarian header
-            const headerMap = [
-                { key: 'roomNum', label: 'Szoba-szám' },
-                { key: 'roomCode', label: 'Szoba kód' },
-                { key: 'beds', label: 'Ágyak száma' },
-                { key: 'spareBeds', label: 'Matrac / gyerekágy' },
-                { key: 'building', label: 'Épület / folyosó' },
-                { key: 'bedType', label: 'Ágy típus' },
-                { key: 'bathroom', label: 'Fürdőszoba' },
-                { key: 'comment', label: 'Megjegyzés' }
-            ]
-
-            let rows = this.selected.length > 0 ? this.selected : this.tableData
-
-            // Extract only the desired fields and Hungarian headers
-            const data = rows.map((row: any) => {
-                let obj: any = {}
-                headerMap.forEach(col => {
-                    obj[col.label] = row[col.key] ?? ''
+            this.getRowsForExport()
+                .then((rows) => {
+                    const data = rows.map((row: Room) => this.mapRoomForExport(row))
+                    const worksheet = xlsx.utils.json_to_sheet(data)
+                    const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
+                    const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
+                    this.saveAsExcelFile(excelBuffer, "rooms")
                 })
-                return obj
-            })
-
-            // The first row will be the Hungarian headers (by label)
-            const worksheet = xlsx.utils.json_to_sheet(data, { header: headerMap.map(h => h.label) })
-            const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
-            const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
-            this.saveAsExcelFile(excelBuffer, "rooms")
+                .catch(() => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Export hiba',
+                        detail: 'A szoba exportálása nem sikerült.'
+                    })
+                })
         })
     }
 
@@ -415,10 +441,82 @@ export class RoomComponent implements OnInit {
         const data: Blob = new Blob([buffer], {
             type: EXCEL_TYPE
         })
-        FileSaver.saveAs(data, fileName + '_export_' + moment().format('YYYYMMDD') + EXCEL_EXTENSION)
+        saveBlobAsFile(data, fileName + '_export_' + formatDateCompact(new Date()) + EXCEL_EXTENSION)
     }
 
     // Don't delete this, its needed from a performance point of view,
     ngOnDestroy(): void {
+    }
+
+    private buildQueryParams(): string {
+        this.filterValues['conferences'] = this.selectedConferences.map(conference => conference.id).join(',')
+
+        return Object.keys(this.filterValues)
+            .map((key) => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
+            .filter((value) => value.length > 0)
+            .join('&')
+    }
+
+    private async getRowsForExport(): Promise<Room[]> {
+        if (this.selected.length > 0) {
+            return this.selected
+        }
+
+        if (this.globalFilter !== '') {
+            const response = await firstValueFrom(
+                this.roomService.getBySearch$(this.globalFilter, {
+                    sortField: this.sortField,
+                    sortOrder: this.sortOrder
+                })
+            )
+
+            return response?.rows ?? []
+        }
+
+        const response = await firstValueFrom(
+            this.roomService.get$(
+                0,
+                Math.max(this.totalRecords || 0, this.tableData.length || 0, 1),
+                { sortField: this.sortField, sortOrder: this.sortOrder },
+                this.buildQueryParams()
+            )
+        )
+
+        return response?.rows ?? []
+    }
+
+    private mapRoomForExport(room: Room): { [key: string]: any } {
+        const roomType = this.getRoomType(room)
+        const conferenceNames = Array.isArray(room?.conferences)
+            ? room.conferences
+                .map((conference: Conference) => conference?.name || '')
+                .filter((name: string) => name.length > 0)
+                .join(', ')
+            : ''
+        const translatedBuilding = room?.building
+            ? this.translate.instant(`BUILDINGS.${String(room.building).toUpperCase()}`)
+            : ''
+        const spareBeds = room?.spareBeds
+            ? this.translate.instant(`SPAREBEDS.${String(room.spareBeds).toUpperCase()}`)
+            : ''
+
+        return {
+            'Szoba-szám': room?.roomNum ?? '',
+            'Szoba kód': room?.roomCode ?? '',
+            'Szobatípus': roomType?.label ?? '',
+            'Szobatípus leírás': roomType?.description ?? '',
+            'Szobatípus státusz': roomType ? 'Megadva' : 'Nincs szobatípus megadva',
+            'Épület / folyosó': translatedBuilding,
+            'Emelet': room?.floor ?? '',
+            'Ágyak száma': room?.beds ?? '',
+            'Extra férőhely': room?.extraBeds ?? '',
+            'Ágy típus': room?.bedType ?? '',
+            'Fürdőszoba': room?.bathroom ?? '',
+            'Pótágy': spareBeds,
+            'Klimatizált': room?.climate ? 'Igen' : 'Nem',
+            'Családi szoba': room?.familyRoom ? 'Igen' : 'Nem',
+            'Konferenciák': conferenceNames,
+            'Megjegyzés': room?.comment ?? ''
+        }
     }
 }

@@ -18,6 +18,7 @@
                     "builder": "@angular-devkit/build-angular:browser",
                     "options": {
                         "allowedCommonJsDependencies": [
+                            "debug",
                             "file-saver",
                             "lodash",
                             "moment",
@@ -65,6 +66,9 @@
                 },
                 "serve": {
                     "builder": "@angular-devkit/build-angular:dev-server",
+                    "options": {
+                        "proxyConfig": "proxy.conf.json"
+                    },
                     "configurations": {
                         "production": {
                             "browserTarget": "nfc-reserve:build:production"

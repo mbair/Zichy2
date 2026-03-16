@@ -1,35 +1,35 @@
 <div class="grid">
     <div class="col-12">
         <div class="card px-0 py-0">
-            <p-table #dt 
-                     dataKey="id" 
-                     [value]="tableData" 
-                     responsiveLayout="scroll" 
+            <p-table #dt
+                     dataKey="id"
+                     [value]="tableData"
+                     responsiveLayout="scroll"
                      [rows]="rowsPerPage"
-                     [totalRecords]="totalRecords" 
-                     [globalFilterFields]="['name','beginDate','endDate','contractorName','contactName']" 
+                     [totalRecords]="totalRecords"
+                     [globalFilterFields]="['name','beginDate','endDate','contractorName','contactName']"
                      [paginator]="true"
-                     [rowsPerPageOptions]="rowsPerPageOptions" 
+                     [rowsPerPageOptions]="rowsPerPageOptions"
                      [showCurrentPageReport]="true"
                      currentPageReportTemplate="{first} - {last} bejegyzés a(z) {totalRecords}-ból megjelenítése"
-                     [(selection)]="selected" 
-                     selectionMode="multiple" 
+                     [(selection)]="selected"
+                     selectionMode="multiple"
                      [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
                      [rowHover]="true"
                      (onRowExpand)="onRowExpand($event.data)"
-                     (onLazyLoad)="onLazyLoad($event)" 
+                     (onLazyLoad)="onLazyLoad($event)"
                      [lazy]="true">
 
                 <ng-template pTemplate="caption">
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
                         <h5 class="m-0">Konferenciák</h5>
-                        
+
                         <!-- Hide globalfiter from Organizers -->
                         <span *ngIf="!isOrganizer" class="block mt-2 md:mt-0 p-input-icon-left">
                             <i class="pi pi-search"></i>
-                            <input pInputText 
-                                   type="text" 
-                                   (input)="onGlobalFilter(dt, $event)" 
+                            <input pInputText
+                                   type="text"
+                                   (input)="onGlobalFilter(dt, $event)"
                                    placeholder="Keresés..."
                                    class="w-full sm:w-auto"/>
                         </span>
@@ -39,10 +39,10 @@
                             <app-room-conference-binder>
                             </app-room-conference-binder>
 
-                            <button pButton 
-                                    pRipple 
-                                    label="Új" 
-                                    icon="pi pi-plus" 
+                            <button pButton
+                                    pRipple
+                                    label="Új"
+                                    icon="pi pi-plus"
                                     class="p-button-success mr-2"
                                     (click)="create()"
                                     [disabled]="!canCreate">
@@ -64,58 +64,53 @@
                         <th pSortableColumn="lastMeal">Utolsó étkezés <p-sortIcon field="endDate"></p-sortIcon></th>
                         <th>Engedélyezve </th>
                     </tr>
-                    
+
                     <!-- Filters -->
                     <tr>
                         <th>
                             <!-- <p-tableHeaderCheckbox></p-tableHeaderCheckbox> -->
                         </th>
                         <th>
-                            <input 
-                                pInputText 
-                                type="text" (input)="onFilter($event, 'name')" 
+                            <input
+                                pInputText
+                                type="text" (input)="onFilter($event, 'name')"
                                 placeholder="Keresés..."
                                 style="width:40%; min-width:22rem;" />
                         </th>
                         <th>
-                            <p-calendar 
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'beginDate')"
-                                (onClearClick)="onFilter($event, 'beginDate')" 
-                                appendTo="body" 
-                                dataType="string"
-                                placeholder="Keresés..." 
+                                (onClearClick)="onFilter($event, 'beginDate')"
+                                placeholder="Keresés..."
                                 [showButtonBar]="true">
-                            </p-calendar>
+                            </app-localized-date-picker>
                         </th>
                         <th>
-                            <app-meal-selector 
-                                (change)="onFilter($event, 'firstMeal')" 
-                                placeholder="Keresés..." 
-                                [showNothing]="false" 
+                            <app-meal-selector
+                                (change)="onFilter($event, 'firstMeal')"
+                                placeholder="Keresés..."
+                                [showNothing]="false"
                                 [showClear]="true">
                             </app-meal-selector>
                         </th>
                         <th>
-                            <p-calendar 
+                            <app-localized-date-picker
                                 (onSelect)="onFilter($event, 'endDate')"
-                                (onClearClick)="onFilter($event, 'endDate')" 
-                                appendTo="body" 
-                                dataType="string"
-                                placeholder="Keresés..." 
-                                [showButtonBar]="true"
-                                inputStyleClass="w-6rem">
-                            </p-calendar>
+                                (onClearClick)="onFilter($event, 'endDate')"
+                                placeholder="Keresés..."
+                                [showButtonBar]="true">
+                            </app-localized-date-picker>
                         </th>
                         <th>
-                            <app-meal-selector 
-                                (change)="onFilter($event, 'lastMeal')" 
-                                placeholder="Keresés..." 
-                                [showNothing]="false" 
+                            <app-meal-selector
+                                (change)="onFilter($event, 'lastMeal')"
+                                placeholder="Keresés..."
+                                [showNothing]="false"
                                 [showClear]="true">
                             </app-meal-selector>
                         </th>
                         <th>
-                            <app-yes-no-selector 
+                            <app-yes-no-selector
                                 [ngModel]="filterValues['enabled']"
                                 (ngModelChange)="onFilter($event, 'enabled')"
                                 [yesText]="'Igen'"
@@ -180,13 +175,13 @@
                                 </button>
                                 <button pButton pRipple icon="pi pi-info-circle"
                                     class="p-button-rounded p-button-success mr-2" pTooltip="Űrlap mező információk beállítása"
-                                    tooltipPosition="top" 
+                                    tooltipPosition="top"
                                     (click)="editFormFieldInfos(conference)"
                                     [disabled]="isOrganizer && conference.organizer_user_id !== loggedInUserId">
                                 </button>
                                 <button pButton pRipple icon="pi pi-question"
                                     class="p-button-rounded p-button-success mr-2" pTooltip="Extra kérdések beállítása"
-                                    tooltipPosition="top" 
+                                    tooltipPosition="top"
                                     (click)="editQuestions(conference)"
                                     [disabled]="isOrganizer && conference.organizer_user_id !== loggedInUserId">
                                 </button>
@@ -215,67 +210,75 @@
                                             <table cellspacing="0" cellpadding="7">
                                                 <tr>
                                                     <td class="font-medium">Regisztrációs űrlap link:</td>
-                                                    <td>{{conference.formUrl}}</td>
+                                                    <td>{{getExpandedConference(conference).formUrl}}</td>
                                                 </tr>
                                                 <tr>
                                                     <td class="font-medium">Szerződő neve:</td>
-                                                    <td>{{conference.contractorName}}</td>
+                                                    <td>{{getExpandedConference(conference).contractorName}}</td>
                                                 </tr>
                                                 <tr>
                                                     <td class="font-medium">Szerződő adószáma:</td>
-                                                    <td>{{conference.contractorTaxNumber}}</td>
+                                                    <td>{{getExpandedConference(conference).contractorTaxNumber}}</td>
                                                 </tr>
                                                 <tr>
                                                     <td class="font-medium">Szerződő címe:</td>
-                                                    <td>{{conference.contractorAdress}}</td>
+                                                    <td>{{getExpandedConference(conference).contractorAdress}}</td>
                                                 </tr>
                                                 <tr>
                                                     <td class="font-medium">Szervező:</td>
                                                     <td>
-                                                        <span *ngIf="organizer">{{organizer.fullname}}</span>
-                                                        <span *ngIf="conference.organizer_user_id && !organizer"><p-skeleton width="10rem" styleClass="mb-2" /></span>
+                                                        <span *ngIf="getOrganizerName(conference)">{{getOrganizerName(conference)}}</span>
+                                                        <span *ngIf="getExpandedConference(conference).organizer_user_id && !getOrganizerName(conference)"><p-skeleton width="10rem" styleClass="mb-2" /></span>
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td class="font-medium">Kapcsolattartó neve:</td>
-                                                    <td>{{conference.contactName}}</td>
+                                                    <td>{{getExpandedConference(conference).contactName}}</td>
                                                 </tr>
                                                 <tr>
                                                     <td class="font-medium">Kapcsolattartó telefonszáma:</td>
-                                                    <td><a href="tel:{{conference.contactPhone}}">{{conference.contactPhone}}</a></td>
+                                                    <td><a href="tel:{{getExpandedConference(conference).contactPhone}}">{{getExpandedConference(conference).contactPhone}}</a></td>
                                                 </tr>
                                                 <tr>
                                                     <td class="font-medium">Kapcsolattartó e-mail címe:</td>
-                                                    <td><a href="mailto:{{conference.contactEmail}}">{{conference.contactEmail}}</a></td>
+                                                    <td><a href="mailto:{{getExpandedConference(conference).contactEmail}}">{{getExpandedConference(conference).contactEmail}}</a></td>
                                                 </tr>
                                                 <tr>
                                                     <td class="font-medium">Regisztráció vége</td>
-                                                    <td>{{conference.registrationEndDate | date:'yyyy.MM.dd'}}</td>
+                                                    <td>{{getExpandedConference(conference).registrationEndDate | date:'yyyy.MM.dd'}}</td>
                                                 </tr>
                                                 <tr>
                                                     <td class="font-medium">Vendég módosítás határideje</td>
-                                                    <td>{{conference.guestEditEndDate | date:'yyyy.MM.dd'}}</td>
+                                                    <td>{{getExpandedConference(conference).guestEditEndDate | date:'yyyy.MM.dd'}}</td>
                                                 </tr>
                                                 <tr>
                                                     <td class="font-medium">Engedélyezve</td>
-                                                    <td>{{conference.enabled ? 'Igen' : 'Nem'}}</td>
+                                                    <td>{{getExpandedConference(conference).enabled ? 'Igen' : 'Nem'}}</td>
                                                 </tr>
                                             </table>
                                         </div>
                                         <div class="col-5">
 
                                             <!-- Kérdések - Válaszok -->
-                                            <div *ngFor="let question of conference.questions">
-                                                <div *ngFor="let translation of question.translations; let i = index">
-                                                    <div *ngIf="translation.hu !== '' || translation.en !== ''" class="flex flex-column w-full mb-3">
-                                                        <div class="font-medium text-900">{{ i+1 }}. kérdés</div>
-                                                        <div>
-                                                            <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-hu mr-1" style="width: 18px"/>
-                                                            {{ translation.hu }}
-                                                        </div>
-                                                        <div>
-                                                            <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-gb mr-1" style="width: 18px"/>
-                                                            {{ translation.en }}
+                                            <div *ngIf="isExpandedConferenceLoading(conference)" class="mt-2">
+                                                <p-skeleton width="20rem" height="1.3rem" styleClass="mb-2"></p-skeleton>
+                                                <p-skeleton width="24rem" height="1.1rem" styleClass="mb-2"></p-skeleton>
+                                                <p-skeleton width="22rem" height="1.1rem"></p-skeleton>
+                                            </div>
+
+                                            <div *ngIf="!isExpandedConferenceLoading(conference)">
+                                                <div *ngFor="let question of getExpandedConferenceQuestions(conference)">
+                                                    <div *ngFor="let translation of getQuestionTranslations(question); let i = index">
+                                                        <div *ngIf="translation.hu !== '' || translation.en !== ''" class="flex flex-column w-full mb-3">
+                                                            <div class="font-medium text-900">{{ i+1 }}. kérdés</div>
+                                                            <div>
+                                                                <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-hu mr-1" style="width: 18px"/>
+                                                                {{ translation.hu }}
+                                                            </div>
+                                                            <div>
+                                                                <img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-gb mr-1" style="width: 18px"/>
+                                                                {{ translation.en }}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -299,11 +302,11 @@
 
         <!-- Sidebar -->
         <p-sidebar
-            id="sidebar" 
-            [(visible)]="sidebar" 
-            position="right" 
+            id="sidebar"
+            [(visible)]="sidebar"
+            position="right"
             styleClass="p-sidebar-md"
-            [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" 
+            [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
             [fullScreen]="isMobile"
             [blockScroll]="true">
 
@@ -344,9 +347,9 @@
                     <!-- Kezdete -->
                     <div class="field mb-4 col-12 lg:col-6">
                         <label for="beginDate" class="font-medium text-900">Kezdete</label>
-                        <p-calendar formControlName="beginDate" appendTo="body" dataType="string" dateFormat="yy-mm-dd"
+                        <app-localized-date-picker formControlName="beginDate"
                             [showButtonBar]="true">
-                        </p-calendar>
+                        </app-localized-date-picker>
                         <div *ngIf="beginDate?.dirty && beginDate?.errors?.['required']" class="block p-error">Kötelező
                             kitölteni</div>
                     </div>
@@ -362,9 +365,9 @@
                     <!-- Vége -->
                     <div class="field mb-4 col-12 lg:col-6">
                         <label for="endDate" class="font-medium text-900">Vége</label>
-                        <p-calendar formControlName="endDate" appendTo="body" dataType="string" dateFormat="yy-mm-dd"
+                        <app-localized-date-picker formControlName="endDate"
                             [showButtonBar]="true">
-                        </p-calendar>
+                        </app-localized-date-picker>
                         <div *ngIf="endDate?.dirty && endDate?.errors?.['required']" class="block p-error">Kötelező
                             kitölteni</div>
                     </div>
@@ -375,6 +378,31 @@
                         <app-meal-selector [parentForm]="conferenceForm" controlName="lastMeal"></app-meal-selector>
                         <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="block p-error">Kötelező
                             kitölteni</div>
+                    </div>
+
+                    <!-- Szervező -->
+                    <div class="field mb-4 col-12 lg:col-12">
+                        <label for="organizer" class="font-medium text-900">Szervező</label>
+                        <app-user-selector [parentForm]="conferenceForm" controlName="organizer_user_id" [user_rolesid]="4"></app-user-selector>
+                    </div>
+
+                    <!-- Szerződő profil -->
+                    <div class="field mb-4 col-12 lg:col-12">
+                        <label for="contractingParty" class="font-medium text-900">Szerződő profil</label>
+                        <app-contracting-party-selector
+                            inputId="contractingParty"
+                            [parentForm]="conferenceForm"
+                            controlName="contracting_party_id"
+                            [options]="organizerContractingParties"
+                            [showClear]="true"
+                            placeholder="Válassz szerződőt...">
+                        </app-contracting-party-selector>
+                        <small *ngIf="organizerContractingPartiesLoading" class="block mt-2 text-600">
+                            Szerződő profilok betöltése...
+                        </small>
+                        <small *ngIf="organizerContractingPartiesMessage" class="block mt-2 text-600">
+                            {{ organizerContractingPartiesMessage }}
+                        </small>
                     </div>
 
                     <!-- Szerződő neve -->
@@ -399,12 +427,6 @@
                         <input id="contractorAdress" type="text" pInputText formControlName="contractorAdress">
                         <div *ngIf="contractorAdress?.dirty && contractorAdress?.errors?.['required']"
                             class="block p-error">Kötelező kitölteni</div>
-                    </div>
-
-                    <!-- Szervező -->
-                    <div class="field mb-4 col-12 lg:col-6">
-                        <label for="organizer" class="font-medium text-900">Szervező</label>
-                        <app-user-selector [parentForm]="conferenceForm" controlName="organizer_user_id" [user_rolesid]="4"></app-user-selector>
                     </div>
 
                     <!-- Kapcsolattartó neve -->
@@ -437,9 +459,9 @@
                     <!-- Regisztráció vége -->
                     <div class="field mb-4 col-12 lg:col-6">
                         <label for="registrationEndDate" class="font-medium text-900">Regisztráció vége</label>
-                        <p-calendar formControlName="registrationEndDate" appendTo="body" dataType="string"
-                            dateFormat="yy-mm-dd" [showButtonBar]="true">
-                        </p-calendar>
+                        <app-localized-date-picker formControlName="registrationEndDate"
+                            [showButtonBar]="true">
+                        </app-localized-date-picker>
                         <div *ngIf="registrationEndDate?.dirty && registrationEndDate?.errors?.['required']"
                             class="block p-error">Kötelező kitölteni</div>
                     </div>
@@ -447,12 +469,9 @@
                     <!-- Vendég módosítás határideje -->
                     <div class="field mb-4 col-12 lg:col-6">
                         <label for="guestEditEndDate" class="font-medium text-900">Vendég módosítás határideje</label>
-                        <p-calendar formControlName="guestEditEndDate" 
-                                    appendTo="body" 
-                                    dataType="string" 
-                                    dateFormat="yy-mm-dd" 
+                        <app-localized-date-picker formControlName="guestEditEndDate"
                                     [showButtonBar]="true">
-                        </p-calendar>
+                        </app-localized-date-picker>
                         <div *ngIf="guestEditEndDate?.dirty && guestEditEndDate?.errors?.['required']"
                             class="block p-error">Kötelező kitölteni</div>
                     </div>
@@ -460,8 +479,8 @@
                     <!-- Fizetési módok -->
                     <div class="field mb-4 col-12 lg:col-6">
                         <label for="paymentMethod" class="font-medium text-900">Fizetési módok</label>
-                        <app-payment-selector 
-                            [parentForm]="conferenceForm" 
+                        <app-payment-selector
+                            [parentForm]="conferenceForm"
                             controlName="paymentMethodIds"
                             [multiple]="true"
                             [optionSelectable]="true"
@@ -486,7 +505,7 @@
                     <!-- Enabled -->
                     <div class="field mb-4 col-12 lg:col-6">
                         <label for="enabled" class="font-medium text-900">Engedélyezve</label>
-                        <app-yes-no-selector 
+                        <app-yes-no-selector
                             formControlName="enabled"
                             [yesText]="'Igen'"
                             [noText]="'Nem'"
@@ -511,10 +530,10 @@
         </p-sidebar>
 
         <!-- Form Field Infos sidebar -->
-        <p-sidebar 
-            id="formFieldsSidebar" 
-            [(visible)]="formFieldsInfosSidebar" 
-            position="right" 
+        <p-sidebar
+            id="formFieldsSidebar"
+            [(visible)]="formFieldsInfosSidebar"
+            position="right"
             styleClass="p-sidebar-md"
             [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
             [fullScreen]="isMobile"
@@ -542,7 +561,7 @@
                         <label class="font-medium text-900 mb-2">
                             {{FORM_FIELD_INFOS_CONFIG[i].label}} információ
                         </label>
-                        
+
                         <div formGroupName="info" class="block mt-2 p-input-icon-left">
                             <i><img src="assets/demo/images/flag/flag_placeholder.png" class="flag flag-hu" style="width: 18px; margin-top:-8px" /></i>
                             <input type="text" pInputText formControlName="hu" class="w-full" />
@@ -559,10 +578,10 @@
                         </div>
 
                         <div class="block mt-2">
-                            <p-selectButton 
-                                [options]="formFieldsInfosPosition" 
-                                formControlName="position" 
-                                optionLabel="label" 
+                            <p-selectButton
+                                [options]="formFieldsInfosPosition"
+                                formControlName="position"
+                                optionLabel="label"
                                 optionValue="value" />
                         </div>
                     </div>
@@ -579,10 +598,10 @@
         </p-sidebar>
 
         <!-- Questions sidebar -->
-        <p-sidebar 
-            id="questionsSidebar" 
-            [(visible)]="questionsSidebar" 
-            position="right" 
+        <p-sidebar
+            id="questionsSidebar"
+            [(visible)]="questionsSidebar"
+            position="right"
             styleClass="p-sidebar-md"
             [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'"
             [fullScreen]="isMobile"

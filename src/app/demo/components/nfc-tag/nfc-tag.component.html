@@ -92,24 +92,20 @@
                             </app-yes-no-selector>
                         </th>
                         <th>
-                            <p-calendar 
+                            <app-localized-date-picker 
                                 (onSelect)="onFilter($event, 'createdAt')"
                                 (onClearClick)="onFilter($event, 'createdAt')" 
-                                appendTo="body" 
-                                dataType="string"
                                 placeholder="Keresés..." 
                                 [showButtonBar]="true">
-                            </p-calendar>
+                            </app-localized-date-picker>
                         </th>
                         <th>
-                            <p-calendar 
+                            <app-localized-date-picker 
                                 (onSelect)="onFilter($event, 'updatedAt')"
                                 (onClearClick)="onFilter($event, 'updatedAt')" 
-                                appendTo="body" 
-                                dataType="string"
                                 placeholder="Keresés..." 
                                 [showButtonBar]="true">
-                            </p-calendar>
+                            </app-localized-date-picker>
                         </th>
                         <th></th>
                     </tr>

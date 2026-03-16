@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { auditTime, BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject, Subscription, switchMap, filter, of, catchError } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
+import { TranslateService } from '@ngx-translate/core';
 import { ConfirmationService } from 'primeng/api';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
@@ -20,15 +21,16 @@ import { Guest, GuestFilter } from '../../api/guest';
 import { dateRangeValidator } from '../../utils/date-range-validator';
 import { distinctByIds } from '../../utils/rx-ops';
 import { ChangeSource, ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
-import * as FileSaver from 'file-saver';
-import * as moment from 'moment';
-moment.locale('hu')
+import { calculateAgeYears, formatDateCompact, formatDateDots, formatDateYmd, parseDateOnly } from '../../utils/date.utils';
+import { saveBlobAsFile } from '../../utils/file-saver.utils';
+import { getRoomTypeOptionById } from '../../utils/room-type.utils';
 
 type SortDir = 1 | -1
 
 @Component({
     selector: 'reservation-component',
     templateUrl: './reservation.component.html',
+    styleUrls: ['./reservation.component.scss'],
     providers: [MessageService, ConfirmationService]
 })
 
@@ -69,6 +71,7 @@ export class ReservationComponent implements OnInit {
     reservedGuests: number = 0                   // reservedGuests
     waitingForRoom: number = 0                   // waitingForRoom
     datesTouchedByUser = false                   // Track if user manually changed start/end dates
+    expandedReservationRows: { [reservationId: string]: boolean } = {}
 
     preselectConferenceId?: number
     conferenceStart: Date | null = null
@@ -139,6 +142,7 @@ export class ReservationComponent implements OnInit {
         private messageService: MessageService,
         private responsiveService: ResponsiveService,
         private route: ActivatedRoute,
+        private translate: TranslateService,
         private fb: FormBuilder) {
 
         // Reservation form fields and validators
@@ -199,6 +203,7 @@ export class ReservationComponent implements OnInit {
             next: (data: ApiResponse) => {
                 this.loading = false
                 this.tableData = data?.rows ?? []
+                this.expandedReservationRows = {}
                 this.totalRecords = data?.totalItems ?? 0
                 this.page = data?.currentPage ?? 0
                 this.totalBeds = data?.summary?.totalBeds ?? 0
@@ -306,8 +311,8 @@ export class ReservationComponent implements OnInit {
             let nextEnd: string | null = null
 
             if (hasRange) {
-                nextStart = range.minArrival!.format('YYYY-MM-DD')
-                nextEnd = range.maxDeparture!.format('YYYY-MM-DD')
+                nextStart = formatDateYmd(range.minArrival)
+                nextEnd = formatDateYmd(range.maxDeparture)
             } else {
                 // No guests selected -> fall back to conference dates (if any)
                 const confArr = Array.isArray(this.conference?.value)
@@ -316,10 +321,10 @@ export class ReservationComponent implements OnInit {
                 const currentConf = confArr.length ? confArr[0] : null
 
                 nextStart = (currentConf as any)?.beginDate
-                    ? moment((currentConf as any).beginDate).format('YYYY-MM-DD')
+                    ? formatDateYmd((currentConf as any).beginDate)
                     : null
                 nextEnd = (currentConf as any)?.endDate
-                    ? moment((currentConf as any).endDate).format('YYYY-MM-DD')
+                    ? formatDateYmd((currentConf as any).endDate)
                     : null
             }
 
@@ -556,9 +561,7 @@ export class ReservationComponent implements OnInit {
 
         // Calendar date as String
         if (event instanceof Date) {
-            const date = moment(event)
-            const formattedDate = date.format('YYYY.MM.DD')
-            filterValue = formattedDate
+            filterValue = formatDateDots(event)
         } else {
             if (event && (event.value || event.target?.value)) {
                 filterValue = event.value || event.target?.value
@@ -602,6 +605,22 @@ export class ReservationComponent implements OnInit {
         this.sortOrder = (event.sortOrder === -1 ? -1 : 1)
         this.globalFilter = event.globalFilter ?? ''
         this.doQuery()
+    }
+
+    onReservationRowExpand(reservation: Reservation): void {
+        const reservationId = reservation?.id
+        if (reservationId == null) return
+
+        this.expandedReservationRows = { [String(reservationId)]: true }
+    }
+
+    onReservationRowCollapse(reservation: Reservation): void {
+        const reservationId = reservation?.id
+        if (reservationId == null) return
+
+        const nextExpandedRows = { ...this.expandedReservationRows }
+        delete nextExpandedRows[String(reservationId)]
+        this.expandedReservationRows = nextExpandedRows
     }
 
     /**
@@ -1161,20 +1180,227 @@ export class ReservationComponent implements OnInit {
     // Get Age by birthdate
     getAge(birthDate?: string | null): string {
         if (!birthDate) return ""
-        const birth = moment(birthDate)
-        const today = moment()
-        return today.diff(birth, 'years').toString()
+        return calculateAgeYears(birthDate).toString()
+    }
+
+    formatReservationDate(value?: string | null): string {
+        return value ? formatDateDots(value) : 'Nincs megadva'
+    }
+
+    getReservationNightCount(reservation: Reservation): number {
+        if (!reservation?.startDate || !reservation?.endDate) return 0
+
+        const startDate = parseDateOnly(reservation.startDate)
+        const endDate = parseDateOnly(reservation.endDate)
+        if (!startDate || !endDate) return 0
+
+        const dayMs = 24 * 60 * 60 * 1000
+        return Math.max(0, Math.round((endDate.getTime() - startDate.getTime()) / dayMs))
+    }
+
+    getReservationNightLabel(reservation: Reservation): string {
+        const nights = this.getReservationNightCount(reservation)
+        return `${nights} ${nights === 1 ? 'éj' : 'éj'}`
+    }
+
+    getReservationHeadcount(reservation: Reservation): number {
+        return reservation?.guests?.length ?? 0
+    }
+
+    getReservationTotalCapacity(reservation: Reservation): number {
+        return Number(reservation?.room?.beds ?? 0) + Number(reservation?.room?.extraBeds ?? 0)
+    }
+
+    getReservationOccupancyPercent(reservation: Reservation): number {
+        const totalCapacity = this.getReservationTotalCapacity(reservation)
+        if (!totalCapacity) return 0
+
+        return Math.min(100, Math.round((this.getReservationHeadcount(reservation) / totalCapacity) * 100))
+    }
+
+    getReservationCapacityDelta(reservation: Reservation): number {
+        return this.getReservationTotalCapacity(reservation) - this.getReservationHeadcount(reservation)
+    }
+
+    getReservationCapacityState(reservation: Reservation): 'comfortable' | 'balanced' | 'full' | 'overbooked' {
+        const delta = this.getReservationCapacityDelta(reservation)
+        if (delta < 0) return 'overbooked'
+        if (delta === 0) return 'full'
+        if (delta === 1) return 'balanced'
+        return 'comfortable'
+    }
+
+    getReservationCapacityHeadline(reservation: Reservation): string {
+        const delta = this.getReservationCapacityDelta(reservation)
+        if (delta < 0) return `Túlfoglalva ${Math.abs(delta)} fővel`
+        if (delta === 0) return 'Teljesen kihasznált'
+        if (delta === 1) return 'Utolsó férőhely'
+        return `${delta} szabad férőhely`
+    }
+
+    getReservationDateRangeLabel(reservation: Reservation): string {
+        return `${this.formatReservationDate(reservation?.startDate)} - ${this.formatReservationDate(reservation?.endDate)}`
+    }
+
+    getReservationConferenceLabel(reservation: Reservation): string {
+        const selectedConference = this.selectedConferences?.[0]
+        if (selectedConference?.name) return selectedConference.name
+        if ((reservation as any)?.conference?.name) return (reservation as any).conference.name
+        if (reservation?.conference_id) return `Konferencia #${reservation.conference_id}`
+        return 'Konferencia'
+    }
+
+    getReservationExtraBedPolicyLabel(reservation: Reservation): string {
+        const room = reservation?.room ?? null
+        const extraBedPolicy = this.getExtraBedPolicyByRoom(room)
+        const extraBeds = Number(room?.extraBeds ?? 0)
+
+        if (extraBedPolicy.kind === 'babyOnly') {
+            return 'Pótágyként csak babaágy fér el'
+        }
+
+        if (extraBedPolicy.kind === 'babyPlusMattress') {
+            return 'Legfeljebb 1 matrac, a további pótágy csak babaágy lehet'
+        }
+
+        if (extraBeds > 0) {
+            return `${extraBeds} extra férőhely matracra vagy gyerekágyra`
+        }
+
+        return 'Nincs extra férőhely'
+    }
+
+    getReservationGuestNamesLabel(reservation: Reservation): string {
+        const guestNames = this.getReservationSortedGuests(reservation)
+            .map(guest => this.getReservationGuestFullName(guest))
+            .filter(Boolean)
+
+        return guestNames.length ? guestNames.join(', ') : 'Még nincs hozzárendelt vendég'
+    }
+
+    getReservationGuestFullName(guest: Guest | null | undefined): string {
+        return `${guest?.lastName ?? ''} ${guest?.firstName ?? ''}`.trim() || 'Névtelen vendég'
+    }
+
+    getReservationGuestInitials(guest: Guest | null | undefined): string {
+        const nameParts = [guest?.lastName, guest?.firstName]
+            .filter((value): value is string => !!value)
+            .map(value => value.trim())
+            .filter(Boolean)
+
+        if (!nameParts.length) return '?'
+
+        return nameParts
+            .slice(0, 2)
+            .map(value => value.charAt(0).toUpperCase())
+            .join('')
+    }
+
+    getReservationGuestSubtitle(guest: Guest | null | undefined): string {
+        const subtitleParts: string[] = []
+        const age = this.getAge(guest?.birthDate)
+
+        if (age) subtitleParts.push(`${age} év`)
+        if (guest?.nationality) subtitleParts.push(guest.nationality.toUpperCase())
+        if (guest?.country) subtitleParts.push(guest.country)
+
+        return subtitleParts.join(' • ') || 'Nincs további személyes adat'
+    }
+
+    getReservationGuestStayLabel(guest: Guest | null | undefined): string {
+        if (!guest?.dateOfArrival && !guest?.dateOfDeparture) return 'A vendéghez nincs külön dátum megadva'
+
+        return `${this.formatReservationDate(guest?.dateOfArrival)} - ${this.formatReservationDate(guest?.dateOfDeparture)}`
+    }
+
+    getReservationGuestMealLabel(guest: Guest | null | undefined): string {
+        const firstMeal = guest?.firstMeal?.trim()
+        const lastMeal = guest?.lastMeal?.trim()
+
+        if (firstMeal && lastMeal) return `${firstMeal} - ${lastMeal}`
+        if (firstMeal) return `Első étkezés: ${firstMeal}`
+        if (lastMeal) return `Utolsó étkezés: ${lastMeal}`
+        return 'Nincs étkezési adat'
+    }
+
+    getReservationGuestFirstMealLabel(guest: Guest | null | undefined): string {
+        return guest?.firstMeal?.trim() || 'Nincs első étkezés'
+    }
+
+    getReservationGuestLastMealLabel(guest: Guest | null | undefined): string {
+        return guest?.lastMeal?.trim() || 'Nincs utolsó étkezés'
+    }
+
+    getReservationRoomTypeLabel(reservation: Reservation | null | undefined): string {
+        const roomType = getRoomTypeOptionById(reservation?.room?.room_typeid, this.translate)
+
+        if (!roomType) return 'Nincs megadva'
+        if (roomType.description) return `${roomType.label} • ${roomType.description}`
+        return roomType.label
+    }
+
+    getReservationRoomBooleanLabel(value: boolean | null | undefined): string {
+        return value ? 'Igen' : 'Nem'
+    }
+
+    getReservationGuestPaymentLabel(guest: Guest | null | undefined): string {
+        const paymentLabel = guest?.paymentMethodName || guest?.paymentName
+        if (paymentLabel) return paymentLabel
+        if (guest?.prepaid === true) return 'Előleg fizetve'
+        if (guest?.prepaid === false) return 'Előleg nincs fizetve'
+        return 'Nincs fizetési adat'
+    }
+
+    getReservationGuestContactLabel(guest: Guest | null | undefined): string {
+        return [guest?.telephone, guest?.email].filter(Boolean).join(' • ') || 'Nincs elérhetőség'
+    }
+
+    getReservationSortedGuests(reservation: Reservation | null | undefined): Guest[] {
+        return [...(reservation?.guests ?? [])].sort((leftGuest, rightGuest) => {
+            const lastNameCompare = (leftGuest?.lastName ?? '').localeCompare(rightGuest?.lastName ?? '', 'hu', { sensitivity: 'base' })
+            if (lastNameCompare !== 0) return lastNameCompare
+
+            const firstNameCompare = (leftGuest?.firstName ?? '').localeCompare(rightGuest?.firstName ?? '', 'hu', { sensitivity: 'base' })
+            if (firstNameCompare !== 0) return firstNameCompare
+
+            const leftAge = leftGuest?.birthDate ? calculateAgeYears(leftGuest.birthDate) : Number.NEGATIVE_INFINITY
+            const rightAge = rightGuest?.birthDate ? calculateAgeYears(rightGuest.birthDate) : Number.NEGATIVE_INFINITY
+            if (leftAge !== rightAge) return rightAge - leftAge
+
+            const leftBirthDate = leftGuest?.birthDate ?? ''
+            const rightBirthDate = rightGuest?.birthDate ?? ''
+            const birthDateCompare = leftBirthDate.localeCompare(rightBirthDate)
+            if (birthDateCompare !== 0) return birthDateCompare
+
+            return String(leftGuest?.id ?? '').localeCompare(String(rightGuest?.id ?? ''))
+        })
+    }
+
+    getReservationVisibleGuests(reservation: Reservation, limit: number = 4): Guest[] {
+        return this.getReservationSortedGuests(reservation).slice(0, limit)
+    }
+
+    getReservationHiddenGuestCount(reservation: Reservation, limit: number = 4): number {
+        return Math.max(0, (reservation?.guests?.length ?? 0) - limit)
+    }
+
+    hasReservationNotes(reservation: Reservation): boolean {
+        return !!reservation?.notes?.trim()
+    }
+
+    trackByGuestId(index: number, guest: Guest): number | string {
+        return guest?.id ?? index
     }
 
     // Returns how many guests are between 0–3 years old (need baby bed)
     getBabyBedCount(reservation: Reservation): number {
         if (!reservation?.guests || !reservation.guests.length) return 0
 
-        const today = moment();
+        const today = new Date();
         return reservation.guests.reduce((count, guest) => {
             if (!guest?.birthDate) return count
 
-            const ageYears = today.diff(moment(guest.birthDate), 'years')
+            const ageYears = calculateAgeYears(guest.birthDate, today)
             // 0–3 év közöttiek (3 év alatti / max 3 éves)
             if (ageYears >= 0 && ageYears < 3) {
                 return count + 1
@@ -1187,11 +1413,11 @@ export class ReservationComponent implements OnInit {
     getBabyBedGuests(reservation: Reservation): Guest[] {
         if (!reservation?.guests || !reservation.guests.length) return []
 
-        const today = moment();
+        const today = new Date();
         return reservation.guests.filter(guest => {
             if (!guest?.birthDate) return false
 
-            const ageYears = today.diff(moment(guest.birthDate), 'years')
+            const ageYears = calculateAgeYears(guest.birthDate, today)
             // 0–3 years old
             return ageYears >= 0 && ageYears < 3
         })
@@ -1284,7 +1510,7 @@ export class ReservationComponent implements OnInit {
         const data: Blob = new Blob([buffer], {
             type: EXCEL_TYPE
         })
-        FileSaver.saveAs(data, fileName + '_export_' + moment().format('YYYYMMDD') + EXCEL_EXTENSION)
+        saveBlobAsFile(data, fileName + '_export_' + formatDateCompact(new Date()) + EXCEL_EXTENSION)
     }
 
     // string "YYYY-MM-DD"  -> Date (timezone-secure)
@@ -1423,7 +1649,7 @@ export class ReservationComponent implements OnInit {
                 : null)
 
         const isNew = !this.id?.value
-        const norm = (v: any) => (v ? moment(v).format('YYYY-MM-DD') : null)
+        const norm = (v: any) => (v ? formatDateYmd(v) : null)
 
         // Always keep conference_id and filters in sync
         this.reservationForm.patchValue({
@@ -1476,29 +1702,25 @@ export class ReservationComponent implements OnInit {
     // Calculates the earliest arrival and latest departure among the selected guests
     private computeGuestDateRange(
         guests: Guest[]
-    ): { minArrival: moment.Moment | null; maxDeparture: moment.Moment | null } {
-        let minArrival: moment.Moment | null = null
-        let maxDeparture: moment.Moment | null = null
+    ): { minArrival: Date | null; maxDeparture: Date | null } {
+        let minArrival: Date | null = null
+        let maxDeparture: Date | null = null
 
         for (const g of guests ?? []) {
             const rawArrival = (g as any).dateOfArrival
             const rawDeparture = (g as any).dateOfDeparture
 
-            const arrival = rawArrival
-                ? moment(rawArrival, 'YYYY-MM-DD', true)
-                : null
-            const departure = rawDeparture
-                ? moment(rawDeparture, 'YYYY-MM-DD', true)
-                : null
+            const arrival = rawArrival ? parseDateOnly(rawArrival) : null
+            const departure = rawDeparture ? parseDateOnly(rawDeparture) : null
 
-            if (arrival && arrival.isValid()) {
-                if (!minArrival || arrival.isBefore(minArrival)) {
+            if (arrival) {
+                if (!minArrival || arrival.getTime() < minArrival.getTime()) {
                     minArrival = arrival
                 }
             }
 
-            if (departure && departure.isValid()) {
-                if (!maxDeparture || departure.isAfter(maxDeparture)) {
+            if (departure) {
+                if (!maxDeparture || departure.getTime() > maxDeparture.getTime()) {
                     maxDeparture = departure
                 }
             }
@@ -1516,14 +1738,13 @@ export class ReservationComponent implements OnInit {
      *    which is the safer default for rooms where extra capacity is baby-bed-only.
      *
      * Note:
-     *  - Uses moment().diff(..., 'years') which returns full years (floored), not fractional years.
+     *  - Uses full-year age calculation, not fractional years.
      */
     private isBabyGuest(guest: Guest | null | undefined): boolean {
         // Missing birthDate => treat as 3+ (safer for baby-bed-only rules)
         if (!guest?.birthDate) return false
 
-        const today = moment()
-        const ageYears = today.diff(moment(guest.birthDate), 'years')
+        const ageYears = calculateAgeYears(guest.birthDate)
         return ageYears >= 0 && ageYears < 3
     }
 
