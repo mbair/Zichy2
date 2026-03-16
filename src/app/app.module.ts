@@ -10,9 +10,10 @@ import { AppLayoutModule } from './layout/app.layout.module';
 import { ApiService } from './demo/service/api.service';
 import { AuthInterceptor } from './demo/interceptors/auth.interceptor';
 import { ErrorInterceptor } from './demo/interceptors/error.interceptor';
+import { APP_VERSION } from './app-version';
 
 export function HttpLoaderFactory(http: HttpClient) {
-    return new TranslateHttpLoader(http, '../assets/i18n/', '.json')
+    return new TranslateHttpLoader(http, '../assets/i18n/', `.json?v=${APP_VERSION}`)
 }
 
 @NgModule({

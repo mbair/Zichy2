@@ -1,1 +1,15 @@
+<section
+    class="app-update-banner"
+    [class.app-update-banner-visible]="updateAvailable"
+    [attr.aria-hidden]="!updateAvailable"
+    role="status"
+    aria-live="polite">
+    <div class="app-update-banner__text">
+        <strong>Új verzió érhető el.</strong>
+        <span>A jelenlegi v{{ currentVersion }} helyett már a v{{ latestVersion || currentVersion }} fut a szerveren.</span>
+    </div>
+    <button type="button" class="app-update-banner__button" (click)="reloadToLatestVersion()">
+        Frissítés
+    </button>
+</section>
 <router-outlet></router-outlet>
