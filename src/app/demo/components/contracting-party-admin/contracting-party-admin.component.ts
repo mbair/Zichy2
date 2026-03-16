@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
@@ -24,6 +24,8 @@ export class ContractingPartyAdminComponent implements OnInit {
     ngOnInit(): void {
         this.loadOverview()
     }
+
+    ngOnDestroy(): void {}
 
     get totalRelations(): number {
         return this.tableData.length
