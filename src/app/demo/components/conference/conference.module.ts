@@ -17,8 +17,10 @@ import { TooltipModule } from 'primeng/tooltip';
 import { CalendarModule } from 'primeng/calendar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { SelectButtonModule } from 'primeng/selectbutton';
+import { DropdownModule } from 'primeng/dropdown';
 import { MealSelectorComponent } from '../../selectors/meal-selector/meal-selector.component';
 import { PaymentSelectorComponent } from '../../selectors/payment-selector/payment-selector.component';
+import { ContractingPartySelectorComponent } from '../../selectors/contracting-party-selector/contracting-party-selector.component';
 import { UserSelectorComponent } from '../../selectors/user-selector/user-selector.component';
 import { YesNoSelectorComponent } from '../../selectors/yes-no-selector/yes-no-selector.component';
 import { WidgetModule } from '../../widget/widget.module';
@@ -43,8 +45,10 @@ import { LocalizedDatePickerComponent } from '../../widget/localized-date-picker
         CalendarModule,
         SkeletonModule,
         SelectButtonModule,
+        DropdownModule,
         MealSelectorComponent,
         PaymentSelectorComponent,
+        ContractingPartySelectorComponent,
         UserSelectorComponent,
         YesNoSelectorComponent,
         LocalizedDatePickerComponent,
