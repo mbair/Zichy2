@@ -17,6 +17,7 @@ import { UserService } from '../../service/user.service';
 import { MealService } from '../../service/meal.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference, FormFieldInfo } from '../../api/conference';
+import { OrganizerContractingParty } from '../../api/contracting-party';
 import { User } from '../../api/user';
 import { Table } from 'primeng/table';
 import { formatDateDots } from '../../utils/date.utils';
@@ -66,6 +67,9 @@ export class ConferenceComponent implements OnInit {
     organizerByConferenceId: { [conferenceId: number]: User | null } = {} // Organizer per expanded conference
     expandedConferenceDetails: { [conferenceId: number]: Conference } = {} // Lazy-loaded details per expanded conference
     loadingExpandedConferenceIds: Set<number> = new Set<number>()          // Loading state for expanded rows
+    organizerContractingParties: OrganizerContractingParty[] = []          // Contracting parties for selected organizer
+    organizerContractingPartiesLoading: boolean = false                    // Loading state for organizer contracting parties
+    organizerContractingPartiesMessage: string = ''                        // UX helper text under contracting party selector
     canCreate: boolean = false                   // User has permission to create new user
     canEdit: boolean = false                     // User has permission to update user
     canDelete: boolean = false                   // User has permission to delete user
@@ -111,6 +115,7 @@ export class ConferenceComponent implements OnInit {
         registrationEndDate: '',
         guestEditEndDate: '',
         organizer_user_id: '',
+        contracting_party_id: '',
         enabled: true,
         acceptanceCriteriaUrl: '',
         paymentMethodIds: [] as number[],
@@ -121,6 +126,8 @@ export class ConferenceComponent implements OnInit {
     private conferenceObs$: Observable<any> | undefined
     private serviceMessageObs$: Observable<any> | undefined
     private questionMessageObs$: Observable<any> | undefined
+    private suppressOrganizerSelectionEffect: boolean = false
+    private suppressContractingPartySelectionEffect: boolean = false
 
     constructor(
         public userService: UserService,
@@ -155,6 +162,7 @@ export class ConferenceComponent implements OnInit {
             registrationEndDate: [this.initialFormValues.registrationEndDate, Validators.required],
             guestEditEndDate: [this.initialFormValues.guestEditEndDate, Validators.required],
             organizer_user_id: [this.initialFormValues.organizer_user_id],
+            contracting_party_id: [this.initialFormValues.contracting_party_id],
             enabled: [this.initialFormValues.enabled, { nonNullable: true }],
             acceptanceCriteriaUrl: [this.initialFormValues.acceptanceCriteriaUrl, [urlValidator()]],
             paymentMethodIds: [this.initialFormValues.paymentMethodIds, Validators.required],
@@ -225,6 +233,20 @@ export class ConferenceComponent implements OnInit {
         // Monitor the changes of the form
         this.conferenceForm.valueChanges.subscribe(() => this.formChanges$.next())
 
+        this.conferenceForm.get('organizer_user_id')?.valueChanges.subscribe((organizerUserId) => {
+            if (this.suppressOrganizerSelectionEffect) {
+                return
+            }
+            this.onOrganizerSelectionChange(organizerUserId)
+        })
+
+        this.conferenceForm.get('contracting_party_id')?.valueChanges.subscribe((contractingPartyId) => {
+            if (this.suppressContractingPartySelectionEffect) {
+                return
+            }
+            this.onContractingPartySelectionChange(contractingPartyId)
+        })
+
         // Message
         this.serviceMessageObs$ = this.conferenceService.messageObs
         this.serviceMessageObs$.subscribe(message => this.handleMessage(message))
@@ -250,6 +272,7 @@ export class ConferenceComponent implements OnInit {
     get formUrl() { return this.conferenceForm.get('formUrl') }
     get registrationEndDate() { return this.conferenceForm.get('registrationEndDate') }
     get guestEditEndDate() { return this.conferenceForm.get('guestEditEndDate') }
+    get contracting_party_id() { return this.conferenceForm.get('contracting_party_id') }
     get enabled() { return this.conferenceForm.get('enabled') }
     get acceptanceCriteriaUrl() { return this.conferenceForm.get('acceptanceCriteriaUrl') }
     get paymentMethodIds() { return this.conferenceForm.get('paymentMethodIds') }
@@ -618,7 +641,12 @@ export class ConferenceComponent implements OnInit {
      * Create new Conference
      */
     create() {
+        this.suppressOrganizerSelectionEffect = true
+        this.suppressContractingPartySelectionEffect = true
         this.conferenceForm.reset(this.initialFormValues)
+        this.suppressOrganizerSelectionEffect = false
+        this.suppressContractingPartySelectionEffect = false
+        this.clearOrganizerContractingParties(false)
 
         // Store original values for Cancel (create mode)
         this.originalFormValues = this.conferenceForm.getRawValue()
@@ -631,6 +659,8 @@ export class ConferenceComponent implements OnInit {
      * @param conference
      */
     edit(conference: Conference) {
+        this.suppressOrganizerSelectionEffect = true
+        this.suppressContractingPartySelectionEffect = true
         this.conferenceForm.reset(this.initialFormValues)
 
         // Normalize backend payload to number[] for the MultiSelect.
@@ -649,6 +679,18 @@ export class ConferenceComponent implements OnInit {
             ...conference,
             paymentMethodIds
         })
+        this.suppressOrganizerSelectionEffect = false
+        this.suppressContractingPartySelectionEffect = false
+
+        const organizerUserId = Number(conference.organizer_user_id)
+        if (Number.isFinite(organizerUserId)) {
+            this.loadOrganizerContractingParties(organizerUserId, {
+                selectedContractingPartyId: conference.contracting_party_id,
+                applySnapshotValues: false,
+            })
+        } else {
+            this.clearOrganizerContractingParties(false)
+        }
 
         // Store original values for Cancel (edit mode)
         this.originalFormValues = this.conferenceForm.getRawValue()
@@ -686,7 +728,7 @@ export class ConferenceComponent implements OnInit {
         this.conferenceForm.updateValueAndValidity()
 
         this.loading = true
-        const formValues = this.conferenceForm.value
+        const formValues = this.conferenceForm.getRawValue()
 
         if (!formValues.id) {
             this.conferenceService.create(formValues)
@@ -702,7 +744,21 @@ export class ConferenceComponent implements OnInit {
      */
     cancel() {
         // Fallback to initial values if original is missing for any reason
+        this.suppressOrganizerSelectionEffect = true
+        this.suppressContractingPartySelectionEffect = true
         this.conferenceForm.reset(this.originalFormValues ?? this.initialFormValues)
+        this.suppressOrganizerSelectionEffect = false
+        this.suppressContractingPartySelectionEffect = false
+
+        const organizerUserId = Number(this.originalFormValues?.organizer_user_id)
+        if (Number.isFinite(organizerUserId)) {
+            this.loadOrganizerContractingParties(organizerUserId, {
+                selectedContractingPartyId: this.originalFormValues?.contracting_party_id,
+                applySnapshotValues: false,
+            })
+        } else {
+            this.clearOrganizerContractingParties(false)
+        }
     }
 
     /**
@@ -886,6 +942,136 @@ export class ConferenceComponent implements OnInit {
                 this.layoutService.onConfigUpdate()
             })
         }
+    }
+
+    private onOrganizerSelectionChange(organizerUserId: any): void {
+        const normalizedOrganizerUserId = Number(organizerUserId)
+        this.clearOrganizerContractingParties(true)
+
+        if (!Number.isFinite(normalizedOrganizerUserId)) {
+            return
+        }
+
+        this.loadOrganizerContractingParties(normalizedOrganizerUserId, {
+            applySnapshotValues: true,
+        })
+    }
+
+    private onContractingPartySelectionChange(contractingPartyId: any): void {
+        const relation = this.findOrganizerContractingPartyById(contractingPartyId)
+
+        if (!relation) {
+            this.conferenceForm.patchValue({
+                contractorName: '',
+                contractorAdress: '',
+                contractorTaxNumber: '',
+                contactName: '',
+                contactEmail: '',
+                contactPhone: '',
+            }, { emitEvent: false })
+            if (this.organizerContractingParties.length > 1) {
+                this.organizerContractingPartiesMessage = 'Ehhez a szervezőhöz több szerződő tartozik. Válassz egyet a listából.'
+            }
+            return
+        }
+
+        this.organizerContractingPartiesMessage = ''
+        this.patchConferenceContractingFields(relation)
+    }
+
+    private loadOrganizerContractingParties(
+        organizerUserId: number,
+        options: { selectedContractingPartyId?: any; applySnapshotValues: boolean }
+    ): void {
+        this.organizerContractingPartiesLoading = true
+        this.organizerContractingPartiesMessage = ''
+
+        this.userService.getOrganizerContractingParties$(organizerUserId).subscribe({
+            next: (relations) => {
+                this.organizerContractingParties = relations.filter(relation => relation.enabled !== false)
+                this.organizerContractingPartiesLoading = false
+
+                const selectedRelation = this.findOrganizerContractingPartyById(options.selectedContractingPartyId)
+
+                if (selectedRelation) {
+                    this.setSelectedContractingParty(selectedRelation.contractingPartyId ?? null)
+                    return
+                }
+
+                if (this.organizerContractingParties.length === 0) {
+                    this.organizerContractingPartiesMessage = 'Ehhez a szervezőhöz nincs mentett szerződő profil.'
+                    return
+                }
+
+                if (options.applySnapshotValues) {
+                    const preferredRelation = this.organizerContractingParties.find(relation => relation.isDefault)
+                        ?? (this.organizerContractingParties.length === 1 ? this.organizerContractingParties[0] : null)
+
+                    if (preferredRelation) {
+                        this.setSelectedContractingParty(preferredRelation.contractingPartyId ?? null)
+                        this.patchConferenceContractingFields(preferredRelation)
+                        return
+                    }
+                }
+
+                if (this.organizerContractingParties.length > 1) {
+                    this.organizerContractingPartiesMessage = 'Ehhez a szervezőhöz több szerződő tartozik. Válassz egyet a listából.'
+                }
+            },
+            error: () => {
+                this.organizerContractingParties = []
+                this.organizerContractingPartiesLoading = false
+                this.organizerContractingPartiesMessage = 'Nem sikerült betölteni a szervező szerződő adatait.'
+            }
+        })
+    }
+
+    private clearOrganizerContractingParties(clearContractingFields: boolean): void {
+        this.organizerContractingParties = []
+        this.organizerContractingPartiesLoading = false
+        this.organizerContractingPartiesMessage = ''
+        this.setSelectedContractingParty(null)
+
+        if (clearContractingFields) {
+            this.conferenceForm.patchValue({
+                contractorName: '',
+                contractorAdress: '',
+                contractorTaxNumber: '',
+                contactName: '',
+                contactEmail: '',
+                contactPhone: '',
+            }, { emitEvent: false })
+        }
+    }
+
+    private setSelectedContractingParty(contractingPartyId: number | null): void {
+        this.suppressContractingPartySelectionEffect = true
+        this.conferenceForm.patchValue({
+            contracting_party_id: contractingPartyId ?? ''
+        }, { emitEvent: false })
+        this.suppressContractingPartySelectionEffect = false
+    }
+
+    private findOrganizerContractingPartyById(contractingPartyId: any): OrganizerContractingParty | undefined {
+        const normalizedContractingPartyId = Number(contractingPartyId)
+        if (!Number.isFinite(normalizedContractingPartyId)) {
+            return undefined
+        }
+
+        return this.organizerContractingParties.find(
+            relation => Number(relation.contractingPartyId) === normalizedContractingPartyId
+        )
+    }
+
+    private patchConferenceContractingFields(relation: OrganizerContractingParty): void {
+        this.conferenceForm.patchValue({
+            contractorName: relation.legalName ?? '',
+            contractorAdress: relation.address ?? '',
+            contractorTaxNumber: relation.taxNumber ?? '',
+            contactName: relation.contactName ?? '',
+            contactEmail: relation.contactEmail ?? '',
+            contactPhone: relation.contactPhone ?? '',
+        }, { emitEvent: false })
     }
 
     private markInvalidControlsTouched(group: FormGroup | FormArray): void {

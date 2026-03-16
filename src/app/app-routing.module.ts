@@ -65,6 +65,15 @@ const routes: Routes = [
                 loadChildren: () => import('./demo/components/conference/conference.module').then(m => m.ConferenceModule), 
                 canActivate: [AuthGuard] 
             },
+            {
+                path: 'contracting-parties',
+                data: {
+                    breadcrumb: 'Szerződők',
+                    requiredRoles: ['Super Admin', 'Nagy Admin']
+                },
+                loadChildren: () => import('./demo/components/contracting-party-admin/contracting-party-admin.module').then(m => m.ContractingPartyAdminModule),
+                canActivate: [AuthGuard]
+            },
             { 
                 path: 'profile', 
                 data: { 

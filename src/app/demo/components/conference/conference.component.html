@@ -410,6 +410,24 @@
                         <app-user-selector [parentForm]="conferenceForm" controlName="organizer_user_id" [user_rolesid]="4"></app-user-selector>
                     </div>
 
+                    <div class="field mb-4 col-12 lg:col-6">
+                        <label for="contractingParty" class="font-medium text-900">Szerződő profil</label>
+                        <app-contracting-party-selector
+                            inputId="contractingParty"
+                            [parentForm]="conferenceForm"
+                            controlName="contracting_party_id"
+                            [options]="organizerContractingParties"
+                            [showClear]="true"
+                            placeholder="Válassz szerződőt...">
+                        </app-contracting-party-selector>
+                        <small *ngIf="organizerContractingPartiesLoading" class="block mt-2 text-600">
+                            Szerződő profilok betöltése...
+                        </small>
+                        <small *ngIf="organizerContractingPartiesMessage" class="block mt-2 text-600">
+                            {{ organizerContractingPartiesMessage }}
+                        </small>
+                    </div>
+
                     <!-- Kapcsolattartó neve -->
                     <div class="field mb-4 col-12 lg:col-6">
                         <label for="contactName" class="font-medium text-900">Kapcsolattartó neve</label>

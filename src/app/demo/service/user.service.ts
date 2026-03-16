@@ -4,6 +4,7 @@ import { catchError, map, tap } from 'rxjs/operators';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { User } from '../api/user';
+import { OrganizerContractingParty, OrganizerContractingPartyOverview } from '../api/contracting-party';
 
 @Injectable({
     providedIn: 'root',
@@ -285,9 +286,9 @@ export class UserService {
      * @param userId The ID of the user to retrieve.
      * @returns An observable of the user with the given ID, or null if not found.
      */
-    getUserById(userId: number): Observable<User | null> {
+    getUserById(userId: number, forceRefresh: boolean = false): Observable<User | null> {
         // First check if user is in cache
-        if (this.userCache[userId]) {
+        if (!forceRefresh && this.userCache[userId]) {
             return of(this.userCache[userId])
         }
 
@@ -303,6 +304,26 @@ export class UserService {
             catchError(error => {
                 console.error(`Hiba a szervező adatainak lekérdezésekor: ${error}`)
                 return of(null)
+            })
+        )
+    }
+
+    getOrganizerContractingParties$(userId: number): Observable<OrganizerContractingParty[]> {
+        return this.apiService.get<OrganizerContractingParty[]>(`users/getbyid/${userId}/contractingparties`).pipe(
+            map((relations: OrganizerContractingParty[] | null | undefined) => Array.isArray(relations) ? relations : []),
+            catchError(error => {
+                console.error(`Hiba a szervező szerződő adatainak lekérdezésekor: ${error}`)
+                return of([])
+            })
+        )
+    }
+
+    getOrganizerContractingPartiesOverview$(): Observable<OrganizerContractingPartyOverview[]> {
+        return this.apiService.get<OrganizerContractingPartyOverview[]>(`users/contractingparties/overview`).pipe(
+            map((rows: OrganizerContractingPartyOverview[] | null | undefined) => Array.isArray(rows) ? rows : []),
+            catchError(error => {
+                console.error(`Hiba a szerződő áttekintő adatok lekérdezésekor: ${error}`)
+                return of([])
             })
         )
     }

@@ -92,6 +92,12 @@ export class AppMenuComponent implements OnInit {
                             requiredRoles: ['Super Admin', 'Nagy Admin']
                         },
                         {
+                            label: 'Szerződők',
+                            icon: 'pi pi-fw pi-briefcase',
+                            routerLink: ['/contracting-parties'],
+                            requiredRoles: ['Super Admin', 'Nagy Admin']
+                        },
+                        {
                             label: 'Napló',
                             icon: 'pi pi-fw pi-list',
                             routerLink: ['/logs'],
