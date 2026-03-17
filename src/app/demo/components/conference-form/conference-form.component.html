@@ -167,7 +167,8 @@
                                             </label>
                                             <app-localized-date-picker inputId="birthDate"
                                                                        formControlName="birthDate"
-                                                                       [useNativePicker]="true"
+                                                                       [monthNavigator]="true"
+                                                                       [yearNavigator]="true"
                                                                        [defaultDate]="birthDateMax"
                                                                        [minDate]="birthDateMin"
                                                                        [maxDate]="birthDateMax">
@@ -328,7 +329,8 @@
                                             </label>
                                             <app-localized-date-picker inputId="dateOfArrival"
                                                                        formControlName="dateOfArrival"
-                                                                       [useNativePicker]="true"
+                                                                       [monthNavigator]="true"
+                                                                       [yearNavigator]="true"
                                                                        [invalid]="!!conferenceForm.errors?.['dateRangeInvalid'] || !!dateOfArrival?.errors?.['dateOutOfRange']"
                                                                        [defaultDate]="beginDate"
                                                                        [minDate]="beginDate"
@@ -410,7 +412,8 @@
                                             </label>
                                             <app-localized-date-picker inputId="dateOfDeparture"
                                                                        formControlName="dateOfDeparture"
-                                                                       [useNativePicker]="true"
+                                                                       [monthNavigator]="true"
+                                                                       [yearNavigator]="true"
                                                                        [invalid]="!!conferenceForm.errors?.['dateRangeInvalid'] || !!dateOfDeparture?.errors?.['dateOutOfRange']"
                                                                        [defaultDate]="beginDate"
                                                                        [minDate]="beginDate"

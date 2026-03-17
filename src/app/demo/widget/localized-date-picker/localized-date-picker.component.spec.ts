@@ -64,6 +64,20 @@ describe('LocalizedDatePickerComponent', () => {
         expect(calendar.placeholder).toBe('dd/mm/yyyy');
     });
 
+    it('enables month and year navigators with an inferred year range', () => {
+        component.monthNavigator = true;
+        component.yearNavigator = true;
+        component.minDate = new Date(1990, 0, 1);
+        component.maxDate = new Date(2030, 11, 31);
+        component.ngOnChanges();
+        fixture.detectChanges();
+
+        const calendar = getCalendar();
+        expect(calendar.monthNavigator).toBeTrue();
+        expect(calendar.yearNavigator).toBeTrue();
+        expect(calendar.yearRange).toBe('1990:2030');
+    });
+
     it('reformats the rendered input value on language change', fakeAsync(() => {
         component.writeValue('2026-03-11');
         fixture.detectChanges();
@@ -200,8 +214,13 @@ describe('LocalizedDatePickerComponent', () => {
     it('stops overlay pointer events from bubbling to document listeners', fakeAsync(() => {
         const calendar = getCalendar();
         const overlay = document.createElement('div');
+        const monthButton = document.createElement('button');
         const bodyListener = jasmine.createSpy('bodyListener');
 
+        monthButton.type = 'button';
+        monthButton.className = 'p-datepicker-month';
+        monthButton.textContent = 'March';
+        overlay.appendChild(monthButton);
         document.body.appendChild(overlay);
         document.body.addEventListener('mousedown', bodyListener, { once: true });
         (calendar as unknown as { overlay: HTMLDivElement }).overlay = overlay;
@@ -209,7 +228,7 @@ describe('LocalizedDatePickerComponent', () => {
         component.handleCalendarShow();
         tick();
 
-        overlay.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        monthButton.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
 
         expect(bodyListener).not.toHaveBeenCalled();
 
@@ -224,6 +243,20 @@ describe('LocalizedDatePickerComponent', () => {
 
         const input = fixture.nativeElement.querySelector('input[type="date"]') as HTMLInputElement;
         expect(input.value).toBe('2026-03-11');
+    });
+
+    it('updates native picker lang attribute on language change', () => {
+        component.useNativePicker = true;
+        fixture.detectChanges();
+
+        let input = fixture.nativeElement.querySelector('input[type="date"]') as HTMLInputElement;
+        expect(input.getAttribute('lang')).toBe('hu-HU');
+
+        translate.emitLangChange('gb');
+        fixture.detectChanges();
+
+        input = fixture.nativeElement.querySelector('input[type="date"]') as HTMLInputElement;
+        expect(input.getAttribute('lang')).toBe('en-GB');
     });
 
     it('emits selected value from native picker change', () => {
