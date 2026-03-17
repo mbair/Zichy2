@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
+import { Component, EventEmitter, forwardRef, Input, OnChanges, OnDestroy, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { Calendar, CalendarModule } from 'primeng/calendar';
@@ -7,6 +7,12 @@ import { Subscription } from 'rxjs';
 import { formatDateYmd, parseDateOnly } from '../../utils/date.utils';
 
 type ModelType = 'string' | 'date';
+type OverlayAction =
+    | { type: 'select-date'; dateMeta: any }
+    | { type: 'switch-view'; view: 'month' | 'year' }
+    | { type: 'navigate'; direction: 'prev' | 'next' }
+    | { type: 'select-month'; monthIndex: number }
+    | { type: 'select-year'; year: number };
 
 @Component({
     selector: 'app-localized-date-picker',
@@ -53,6 +59,9 @@ type ModelType = 'string' | 'date';
                 [showButtonBar]="showButtonBar"
                 [showIcon]="showIcon"
                 [showClear]="showClear"
+                [monthNavigator]="monthNavigator"
+                [yearNavigator]="yearNavigator"
+                [yearRange]="resolvedYearRange"
                 [inputStyle]="inputStyle"
                 [inputStyleClass]="inputStyleClass"
                 [style]="style"
@@ -65,6 +74,7 @@ type ModelType = 'string' | 'date';
             <input
                 [id]="inputId"
                 type="date"
+                [attr.lang]="resolvedNativeLang"
                 [value]="nativeInputValue"
                 [min]="nativeMinDate"
                 [max]="nativeMaxDate"
@@ -85,7 +95,7 @@ type ModelType = 'string' | 'date';
         }
     ]
 })
-export class LocalizedDatePickerComponent implements ControlValueAccessor, OnInit, OnDestroy {
+export class LocalizedDatePickerComponent implements ControlValueAccessor, OnInit, OnDestroy, OnChanges {
     @ViewChild(Calendar) calendar?: Calendar;
 
     @Input() appendTo: any = 'body';
@@ -96,6 +106,9 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     @Input() showButtonBar = false;
     @Input() showIcon = false;
     @Input() showClear = false;
+    @Input() monthNavigator = false;
+    @Input() yearNavigator = false;
+    @Input() yearRange?: string;
     @Input() inputId?: string;
     @Input() inputStyle: any;
     @Input() inputStyleClass?: string;
@@ -112,15 +125,20 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     disabled = false;
     internalValue: Date | null = null;
     readonly calendarControl = new FormControl<Date | null>(null);
+    private normalizedDefaultDateValue?: Date;
+    private normalizedMinDateValue?: Date;
+    private normalizedMaxDateValue?: Date;
 
     private readonly subs = new Subscription();
     private blurCommitTimeoutId: ReturnType<typeof setTimeout> | null = null;
     private duplicateSelectionGuardTimeoutId: ReturnType<typeof setTimeout> | null = null;
     private overlayBindTimeoutId: ReturnType<typeof setTimeout> | null = null;
+    private overlayClickSuppressionTimeoutId: ReturnType<typeof setTimeout> | null = null;
     private inputRefreshTimeoutId: ReturnType<typeof setTimeout> | null = null;
     private lastCommittedValue: number | null = null;
     private overlayPointerListeners: Array<() => void> = [];
     private suppressNextDuplicateSelectionValue: number | null = null;
+    private suppressNextOverlayClick = false;
     private onChange: (value: string | Date | null) => void = () => {};
     private onTouched: () => void = () => {};
 
@@ -130,6 +148,7 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     ) {}
 
     ngOnInit(): void {
+        this.refreshNormalizedDates();
         this.currentLang = this.resolveLang(this.translate.currentLang);
         this.subs.add(
             this.calendarControl.valueChanges.subscribe((value) => {
@@ -144,6 +163,10 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         );
     }
 
+    ngOnChanges(): void {
+        this.refreshNormalizedDates();
+    }
+
     ngOnDestroy(): void {
         if (this.blurCommitTimeoutId !== null) {
             clearTimeout(this.blurCommitTimeoutId);
@@ -154,6 +177,9 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         if (this.overlayBindTimeoutId !== null) {
             clearTimeout(this.overlayBindTimeoutId);
         }
+        if (this.overlayClickSuppressionTimeoutId !== null) {
+            clearTimeout(this.overlayClickSuppressionTimeoutId);
+        }
         if (this.inputRefreshTimeoutId !== null) {
             clearTimeout(this.inputRefreshTimeoutId);
         }
@@ -162,15 +188,15 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     }
 
     get normalizedDefaultDate(): Date | undefined {
-        return parseDateOnly(this.defaultDate) ?? undefined;
+        return this.normalizedDefaultDateValue;
     }
 
     get normalizedMinDate(): Date | undefined {
-        return parseDateOnly(this.minDate) ?? undefined;
+        return this.normalizedMinDateValue;
     }
 
     get normalizedMaxDate(): Date | undefined {
-        return parseDateOnly(this.maxDate) ?? undefined;
+        return this.normalizedMaxDateValue;
     }
 
     get resolvedPlaceholder(): string {
@@ -217,6 +243,28 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         }
 
         return classes.join(' ');
+    }
+
+    get resolvedNativeLang(): string {
+        return this.currentLang === 'en' ? 'en-GB' : 'hu-HU';
+    }
+
+    get resolvedYearRange(): string {
+        if (!this.yearNavigator) {
+            return '';
+        }
+
+        if (this.yearRange?.trim()) {
+            return this.yearRange.trim();
+        }
+
+        const baseYear = this.internalValue?.getFullYear()
+            ?? this.normalizedDefaultDate?.getFullYear()
+            ?? new Date().getFullYear();
+        const minYear = this.normalizedMinDate?.getFullYear() ?? (baseYear - 100);
+        const maxYear = this.normalizedMaxDate?.getFullYear() ?? (baseYear + 20);
+
+        return `${Math.min(minYear, maxYear)}:${Math.max(minYear, maxYear)}`;
     }
 
     writeValue(value: string | Date | null | undefined): void {
@@ -321,11 +369,18 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         }
 
         this.clearDuplicateSelectionGuard();
+        this.clearOverlayClickSuppression();
         this.unbindOverlayPointerListeners();
     }
 
     private resolveLang(lang?: string | null): string {
         return lang === 'gb' ? 'en' : (lang || 'hu');
+    }
+
+    private refreshNormalizedDates(): void {
+        this.normalizedDefaultDateValue = parseDateOnly(this.defaultDate) ?? undefined;
+        this.normalizedMinDateValue = parseDateOnly(this.minDate) ?? undefined;
+        this.normalizedMaxDateValue = parseDateOnly(this.maxDate) ?? undefined;
     }
 
     private toModelValue(value: Date | null): string | Date | null {
@@ -362,27 +417,121 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         }
 
         const handleOverlayPointerDown = (event: Event): void => {
-            event.stopPropagation();
-
-            const dateMeta = this.resolveDateMetaFromOverlayEvent(event);
-            if (!dateMeta || !this.calendar) {
+            const overlayAction = this.resolveOverlayActionFromEvent(event);
+            if (!overlayAction || !this.calendar) {
                 return;
             }
 
+            event.stopPropagation();
             event.preventDefault();
-            this.markDuplicateSelectionGuard(dateMeta);
-            this.calendar.onDateSelect({ preventDefault: () => {} } as Event, dateMeta);
+            this.markOverlayClickSuppression();
+            this.handleOverlayAction(overlayAction);
+        };
+
+        const handleOverlayClick = (event: Event): void => {
+            if (!this.suppressNextOverlayClick) {
+                return;
+            }
+
+            event.stopPropagation();
+            event.preventDefault();
+            this.clearOverlayClickSuppression();
         };
 
         this.overlayPointerListeners = [
             this.renderer.listen(overlay, 'mousedown', handleOverlayPointerDown),
-            this.renderer.listen(overlay, 'touchstart', handleOverlayPointerDown)
+            this.renderer.listen(overlay, 'touchstart', handleOverlayPointerDown),
+            this.renderer.listen(overlay, 'click', handleOverlayClick)
         ];
     }
 
     private unbindOverlayPointerListeners(): void {
         this.overlayPointerListeners.forEach((unbindListener) => unbindListener());
         this.overlayPointerListeners = [];
+    }
+
+    private resolveOverlayActionFromEvent(event: Event): OverlayAction | null {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            return null;
+        }
+
+        const previousButton = target.closest('button.p-datepicker-prev');
+        if (previousButton instanceof HTMLButtonElement && !previousButton.disabled) {
+            return { type: 'navigate', direction: 'prev' };
+        }
+
+        const nextButton = target.closest('button.p-datepicker-next');
+        if (nextButton instanceof HTMLButtonElement && !nextButton.disabled) {
+            return { type: 'navigate', direction: 'next' };
+        }
+
+        const monthViewButton = target.closest('button.p-datepicker-month');
+        if (monthViewButton instanceof HTMLButtonElement && !monthViewButton.disabled) {
+            return { type: 'switch-view', view: 'month' };
+        }
+
+        const yearViewButton = target.closest('button.p-datepicker-year');
+        if (yearViewButton instanceof HTMLButtonElement && !yearViewButton.disabled) {
+            return { type: 'switch-view', view: 'year' };
+        }
+
+        const monthCell = target.closest('.p-monthpicker-month');
+        if (monthCell instanceof HTMLElement) {
+            const monthCells = Array.from(monthCell.parentElement?.querySelectorAll('.p-monthpicker-month') ?? []);
+            const monthIndex = monthCells.indexOf(monthCell);
+
+            if (monthIndex >= 0 && !monthCell.classList.contains('p-disabled')) {
+                return { type: 'select-month', monthIndex };
+            }
+        }
+
+        const yearCell = target.closest('.p-yearpicker-year');
+        if (yearCell instanceof HTMLElement && !yearCell.classList.contains('p-disabled')) {
+            const yearValue = Number.parseInt(yearCell.textContent?.trim() ?? '', 10);
+
+            if (Number.isFinite(yearValue)) {
+                return { type: 'select-year', year: yearValue };
+            }
+        }
+
+        const dateMeta = this.resolveDateMetaFromOverlayEvent(event);
+        return dateMeta ? { type: 'select-date', dateMeta } : null;
+    }
+
+    private handleOverlayAction(action: OverlayAction): void {
+        if (!this.calendar) {
+            return;
+        }
+
+        const syntheticEvent = { preventDefault: () => undefined } as Event;
+
+        switch (action.type) {
+            case 'select-date':
+                this.markDuplicateSelectionGuard(action.dateMeta);
+                this.calendar.onDateSelect(syntheticEvent, action.dateMeta);
+                return;
+            case 'switch-view':
+                if (action.view === 'month') {
+                    this.calendar.switchToMonthView(syntheticEvent);
+                } else {
+                    this.calendar.switchToYearView(syntheticEvent);
+                }
+                return;
+            case 'navigate':
+                if (action.direction === 'prev') {
+                    this.calendar.onPrevButtonClick(syntheticEvent);
+                } else {
+                    this.calendar.onNextButtonClick(syntheticEvent);
+                }
+                return;
+            case 'select-month':
+                this.calendar.onMonthSelect(syntheticEvent, action.monthIndex);
+                return;
+            case 'select-year':
+                this.calendar.onYearSelect(syntheticEvent, action.year);
+                return;
+        }
     }
 
     private resolveDateMetaFromOverlayEvent(event: Event): any | null {
@@ -436,6 +585,27 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         if (this.duplicateSelectionGuardTimeoutId !== null) {
             clearTimeout(this.duplicateSelectionGuardTimeoutId);
             this.duplicateSelectionGuardTimeoutId = null;
+        }
+    }
+
+    private markOverlayClickSuppression(): void {
+        this.suppressNextOverlayClick = true;
+
+        if (this.overlayClickSuppressionTimeoutId !== null) {
+            clearTimeout(this.overlayClickSuppressionTimeoutId);
+        }
+
+        this.overlayClickSuppressionTimeoutId = setTimeout(() => {
+            this.clearOverlayClickSuppression();
+        }, 300);
+    }
+
+    private clearOverlayClickSuppression(): void {
+        this.suppressNextOverlayClick = false;
+
+        if (this.overlayClickSuppressionTimeoutId !== null) {
+            clearTimeout(this.overlayClickSuppressionTimeoutId);
+            this.overlayClickSuppressionTimeoutId = null;
         }
     }
 

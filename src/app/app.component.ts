@@ -5,11 +5,109 @@ import { TranslateService } from '@ngx-translate/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { SessionService } from './demo/service/session.service';
 import { APP_VERSION, APP_BUILD_TIME } from './app-version';
+import { Subscription } from 'rxjs';
 
 interface AppVersionManifest {
     version?: string;
     buildTime?: string;
 }
+
+const PRIME_NG_TRANSLATIONS = {
+    hu: {
+        "startsWith": "Kezdődik",
+        "contains": "Tartalmazza",
+        "notContains": "Nem tartalmazza",
+        "endsWith": "Végződik",
+        "equals": "Egyenlő",
+        "notEquals": "Nem egyenlő",
+        "noFilter": "Nincs szűrő",
+        "lt": "Kevesebb, mint",
+        "lte": "Kevesebb vagy egyenlő",
+        "gt": "Nagyobb, mint",
+        "gte": "Nagyobb vagy egyenlő",
+        "is": "Az",
+        "isNot": "Nem az",
+        "before": "Előtt",
+        "after": "Után",
+        "dateIs": "A dátum",
+        "dateIsNot": "A dátum nem",
+        "dateBefore": "A dátum előtti",
+        "dateAfter": "A dátum utáni",
+        "clear": "Törlés",
+        "apply": "Alkalmaz",
+        "matchAll": "Mindet illeszt",
+        "matchAny": "Bármelyiket illeszt",
+        "addRule": "Szabály hozzáadása",
+        "removeRule": "Szabály eltávolítása",
+        "accept": "Igen",
+        "reject": "Nem",
+        "choose": "Választ",
+        "upload": "Feltölt",
+        "cancel": "Mégse",
+        "dayNames": ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"],
+        "dayNamesShort": ["Vas", "Hét", "Ked", "Sze", "Csü", "Pén", "Szo"],
+        "dayNamesMin": ["Va", "Hé", "Ke", "Sz", "Cs", "Pé", "Sz"],
+        "monthNames": ["Január", "Február", "Március", "Április", "Május", "Június", "Július", "Augusztus", "Szeptember", "Október", "November", "December"],
+        "monthNamesShort": ["Jan", "Feb", "Már", "Ápr", "Máj", "Jún", "Júl", "Aug", "Sze", "Okt", "Nov", "Dec"],
+        "dateFormat": "yy.mm.dd",
+        "firstDayOfWeek": 1,
+        "today": "Ma",
+        "weekHeader": "Wk",
+        "weak": "Gyenge",
+        "medium": "Közepes",
+        "strong": "Erős",
+        "passwordPrompt": "Adja meg a jelszót",
+        "emptyMessage": "Nincs találat",
+        "emptyFilterMessage": "Nincs találat"
+    },
+    gb: {
+        "startsWith": "Starts with",
+        "contains": "Contains",
+        "notContains": "Does not contain",
+        "endsWith": "Ends with",
+        "equals": "Equals",
+        "notEquals": "Not equals",
+        "noFilter": "No filter",
+        "lt": "Less than",
+        "lte": "Less than or equal to",
+        "gt": "Greater than",
+        "gte": "Greater than or equal to",
+        "is": "Is",
+        "isNot": "Is not",
+        "before": "Before",
+        "after": "After",
+        "dateIs": "Date is",
+        "dateIsNot": "Date is not",
+        "dateBefore": "Date is before",
+        "dateAfter": "Date is after",
+        "clear": "Clear",
+        "apply": "Apply",
+        "matchAll": "Match all",
+        "matchAny": "Match any",
+        "addRule": "Add rule",
+        "removeRule": "Remove rule",
+        "accept": "Yes",
+        "reject": "No",
+        "choose": "Choose",
+        "upload": "Upload",
+        "cancel": "Cancel",
+        "dayNames": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        "dayNamesShort": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+        "dayNamesMin": ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
+        "monthNames": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+        "monthNamesShort": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+        "dateFormat": "dd/mm/yy",
+        "firstDayOfWeek": 1,
+        "today": "Today",
+        "weekHeader": "Wk",
+        "weak": "Weak",
+        "medium": "Medium",
+        "strong": "Strong",
+        "passwordPrompt": "Enter a password",
+        "emptyMessage": "No results found",
+        "emptyFilterMessage": "No results found"
+    }
+};
 
 @Component({
     selector: 'app-root',
@@ -34,6 +132,7 @@ export class AppComponent implements OnInit, OnDestroy {
     readonly currentVersion = APP_VERSION;
     latestVersion: string | null = null;
     updateAvailable = false;
+    private languageChangeSubscription?: Subscription;
 
     private readonly handleVisibilityChange = () => {
         if (document.visibilityState === 'hidden' && this.updateAvailable) {
@@ -85,62 +184,17 @@ export class AppComponent implements OnInit, OnDestroy {
         this.startVersionMonitoring();
 
         this.primengConfig.ripple = true;
-
         this.translateService.setDefaultLang('hu');
+        this.applyLanguageSettings(this.translateService.currentLang);
 
-        this.primengConfig.setTranslation({
-            "startsWith": "Kezdődik",
-            "contains": "Tartalmazza",
-            "notContains": "Nem tartalmazza",
-            "endsWith": "Végződik",
-            "equals": "Egyenlő",
-            "notEquals": "Nem egyenlő",
-            "noFilter": "Nincs szűrő",
-            "lt": "Kevesebb, mint",
-            "lte": "Kevesebb vagy egyenlő",
-            "gt": "Nagyobb, mint",
-            "gte": "Nagyobb vagy egyenlő",
-            "is": "Az",
-            "isNot": "Nem az",
-            "before": "Előtt",
-            "after": "Után",
-            "dateIs": "A dátum",
-            "dateIsNot": "A dátum nem",
-            "dateBefore": "A dátum előtti",
-            "dateAfter": "A dátum utáni",
-            "clear": "Törlés",
-            "apply": "Alkalmaz",
-            "matchAll": "Mindet illeszt",
-            "matchAny": "Bármelyiket illeszt",
-            "addRule": "Szabály hozzáadása",
-            "removeRule": "Szabály eltávolítása",
-            "accept": "Igen",
-            "reject": "Nem",
-            "choose": "Választ",
-            "upload": "Feltölt",
-            "cancel": "Mégse",
-            "dayNames": ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"],
-            "dayNamesShort": ["Vas", "Hét", "Ked", "Sze", "Csü", "Pén", "Szo"],
-            "dayNamesMin": ["Va", "Hé", "Ke", "Sz", "Cs", "Pé", "Sz"],
-            "monthNames": ["Január", "Február", "Március", "Április", "Május", "Június", "Július", "Augusztus", "Szeptember", "Október", "November", "December"],
-            "monthNamesShort": ["Jan", "Feb", "Már", "Ápr", "Máj", "Jún", "Júl", "Aug", "Sze", "Okt", "Nov", "Dec"],
-            "dateFormat": "yy.mm.dd",
-            "firstDayOfWeek": 1,
-            "today": "Ma",
-            "weekHeader": "Wk",
-            "weak": "Gyenge",
-            "medium": "Közepes",
-            "strong": "Erős",
-            "passwordPrompt": "Adja meg a jelszót",
-            "emptyMessage": "Nincs találat",
-            "emptyFilterMessage": "Nincs találat"
-        })
+        this.languageChangeSubscription = this.translateService.onLangChange.subscribe((event) => {
+            this.applyLanguageSettings(event.lang);
+        });
     }
 
 
     translate(lang: string) {
         this.translateService.use(lang);
-        this.translateService.get('primeng').subscribe((res: any) => this.primengConfig.setTranslation(res))
     }
 
     reloadToLatestVersion() {
@@ -191,6 +245,16 @@ export class AppComponent implements OnInit, OnDestroy {
         return `assets/version.json?t=${Date.now()}`;
     }
 
+    private applyLanguageSettings(lang?: string | null): void {
+        const resolvedLang = this.resolveSupportedLanguage(lang);
+        this.primengConfig.setTranslation(PRIME_NG_TRANSLATIONS[resolvedLang]);
+        document.documentElement.lang = resolvedLang === 'gb' ? 'en-GB' : 'hu-HU';
+    }
+
+    private resolveSupportedLanguage(lang?: string | null): 'hu' | 'gb' {
+        return lang === 'gb' ? 'gb' : 'hu';
+    }
+
     private reloadAfterChunkLoadFailure(): void {
         if (this.hasAlreadyRetriedChunkReload()) {
             return;
@@ -235,6 +299,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
     // Don't delete this, its needed from a performance point of view,
     ngOnDestroy(): void {
+        this.languageChangeSubscription?.unsubscribe();
+
         if (this.versionCheckTimerId !== null) {
             window.clearInterval(this.versionCheckTimerId);
         }
