@@ -1,5 +1,5 @@
 import { Component, OnDestroy, Renderer2, ViewChild } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { AuthService } from '../demo/service/auth.service';
 import { SessionService, SessionWarningState } from '../demo/service/session.service';
@@ -7,6 +7,7 @@ import { formatRemainingSessionTime } from '../demo/utils/session-time.utils';
 import { MenuService } from './app.menu.service';
 import { AppSidebarComponent } from './app.sidebar.component';
 import { AppTopbarComponent } from './app.topbar.component';
+import { HelpSidebarContent, HELP_SIDEBAR_CONTENT } from './help/help-sidebar-content.data';
 import { LayoutService } from './service/app.layout.service';
 
 @Component({
@@ -32,6 +33,8 @@ export class AppLayoutComponent implements OnDestroy {
         refreshing: false,
         error: null,
     };
+
+    currentHelpContent: HelpSidebarContent = this.createDefaultHelpContent();
 
     constructor(
         private menuService: MenuService,
@@ -67,12 +70,15 @@ export class AppLayoutComponent implements OnDestroy {
 
         this.router.events.pipe(filter(event => event instanceof NavigationEnd))
             .subscribe(() => {
+                this.updateHelpContent();
                 this.hideMenu();
             });
 
         this.sessionWarningSubscription = this.sessionService.sessionWarning$.subscribe((state) => {
             this.sessionWarning = state;
         });
+
+        this.updateHelpContent();
     }
 
     blockBodyScroll(): void {
@@ -113,6 +119,10 @@ export class AppLayoutComponent implements OnDestroy {
         this.unblockBodyScroll();
     }
 
+    closeHelpSidebar(): void {
+        this.layoutService.hideHelpSidebar();
+    }
+
     get containerClass() {
         return {
             'layout-light': this.layoutService.config.colorScheme === 'light',
@@ -148,6 +158,39 @@ export class AppLayoutComponent implements OnDestroy {
 
     logout(): void {
         this.authService.logout();
+    }
+
+    private updateHelpContent(): void {
+        const helpFromRoute = this.resolveHelpContent();
+        this.currentHelpContent = helpFromRoute || HELP_SIDEBAR_CONTENT.default;
+    }
+
+    private resolveHelpContent(): HelpSidebarContent | null {
+        const routeChain = this.getRouteChain(this.router.routerState.snapshot.root);
+        for (let index = routeChain.length - 1; index >= 0; index--) {
+            const helpContent = routeChain[index]?.data?.['helpSidebar'] as HelpSidebarContent | undefined;
+            if (helpContent) {
+                return helpContent;
+            }
+        }
+
+        return null;
+    }
+
+    private createDefaultHelpContent(): HelpSidebarContent {
+        return HELP_SIDEBAR_CONTENT.default;
+    }
+
+    private getRouteChain(root: ActivatedRouteSnapshot): ActivatedRouteSnapshot[] {
+        const chain: ActivatedRouteSnapshot[] = [];
+        let currentRoute: ActivatedRouteSnapshot | null = root;
+
+        while (currentRoute) {
+            chain.push(currentRoute);
+            currentRoute = currentRoute.firstChild || null;
+        }
+
+        return chain;
     }
 
     ngOnDestroy() {

@@ -22,6 +22,7 @@ interface LayoutState {
     overlayMenuActive: boolean;
     profileSidebarVisible: boolean;
     configSidebarVisible: boolean;
+    helpSidebarVisible: boolean;
     staticMenuMobileActive: boolean;
     menuHoverActive: boolean;
     sidebarActive:boolean;
@@ -48,6 +49,7 @@ export class LayoutService {
         overlayMenuActive: false,
         profileSidebarVisible: false,
         configSidebarVisible: false,
+        helpSidebarVisible: false,
         staticMenuMobileActive: false,
         menuHoverActive: false,
         sidebarActive:false,
@@ -93,6 +95,14 @@ export class LayoutService {
 
     showConfigSidebar() {
         this.state.configSidebarVisible = true
+    }
+
+    toggleHelpSidebar() {
+        this.state.helpSidebarVisible = !this.state.helpSidebarVisible;
+    }
+
+    hideHelpSidebar() {
+        this.state.helpSidebarVisible = false;
     }
 
     isOverlay() {
