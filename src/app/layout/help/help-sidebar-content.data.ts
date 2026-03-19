@@ -41,22 +41,21 @@ export const HELP_SIDEBAR_CONTENT = {
     ),
     dashboard: help(
         'Vezérlőpult',
-        'A vezérlőpult a napi induló nézet: innen látod a legfontosabb darabszámokat, és innen döntöd el, melyik modulban kell tovább dolgozni.',
+        'Konferencia választó és információs dobozok',
         [
-            section('Mit mutat ez az oldal?', [
-                'A felső kártyák gyors állapotképet adnak a konferenciák, vendégek, szobák és NFC címkék aktuális mennyiségéről.',
-                'A grafikonok trendet mutatnak, nem végleges elszámolást: arra valók, hogy észrevedd az eltérést, és továbbmenj a megfelelő részletes oldalra.',
-                'A tevékenységlista arra jó, hogy lásd, történt-e friss adminisztráció a rendszerben, például új rögzítés vagy módosítás.'
+            section('Konferencia választó', [
+                'Itt tudod kiválasztani a hozzád rendelt konferenciák közül az aktuálisat.',
+                'Ha nem látsz adatokat az oldalon, először válassz ki egy konferenciát.'
             ]),
-            section('Ajánlott napi rutin', [
-                'Műszakkezdéskor nézd át a fő darabszámokat, különösen azt, hogy van-e szobára váró vagy feltűnően alacsony kihasználtság.',
-                'Ha az NFC arány vagy a vendégszám szokatlan, nyisd meg a megfelelő modult, és ott ellenőrizd a hiányzó vagy hibás rekordokat.',
-                'Szervezői nézetben mindig válassz konferenciát, mert a kártyák és határidők csak így értelmezhetők helyesen.'
-            ]),
-            section('Mire figyelj?', [
-                'A dashboard a gyors döntést támogatja; rekordot javítani vagy részletesen elemezni általában nem itt kell.',
-                'Ha egy KPI nem reálisnak tűnik, hasonlítsd össze a vendég-, foglalás- és szobaoldallal, mert az eltérés gyakran hiányos hozzárendelésből ered.',
-                'Ne csak az abszolút számot nézd, hanem azt is, hogy melyik modul felé mutat további teendőt.'
+            section('Információs dobozok jelentése', [
+                'Regisztrációk száma: azoknak a jelentkezőknek a száma, akik már kitöltötték és elküldték a regisztrációs űrlapot.',
+                'Szobára várók: azon vendégek száma, akikhez még nem lett szoba rendelve. A szobák kiosztását a Foglalás menüpontban tudod elvégezni.',
+                'Regisztrációs határidő: az az időpont, ameddig a jelentkezők kitölthetik az űrlapot, regisztrálhatnak a konferenciára. A határidő lejárta után új regisztráció külső fél számára már nem adható le.',
+                'Regisztrációs határidő - Fontos: eddig az időpontig szükséges a vendégek adatainak véglegesítése és szobákhoz rendelése.',
+                'Regisztrációs határidő - Fontos: a határidő módosítása kérhető, azonban hosszabbítás esetén kötbér merülhet fel a szerződés szerint.',
+                'Módosítási határidő: eddig az időpontig tudod módosítani a meglévő vendégadatokat a Vendég menüpontban, illetve új vendéget regisztrálni az űrlap kitöltésével.',
+                'Előleget fizetett / összes vendég (jelenleg nem aktív): azoknak a számát fogja megjeleníteni, akiknél jelölve van, hogy előleget fizetett.',
+                'Teendők (jelenleg nem aktív): a rendszer ide fogja gyűjteni a szükséges feladatokat és figyelmeztetéseket.'
             ])
         ]
     ),
