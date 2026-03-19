@@ -145,13 +145,13 @@ const routes: Routes = [
     },
 
     // Don't need Authentication
-    { path: 'auth', data: { breadcrumb: 'Auth', helpSidebar: HELP_SIDEBAR_CONTENT.default }, loadChildren: () => import('./demo/components/auth/auth.module').then(m => m.AuthModule) },
-    { path: 'conference-form/:formUrl', data: { helpSidebar: HELP_SIDEBAR_CONTENT.conferenceForm }, loadChildren: () => import('./demo/components/conference-form/conference-form.module').then(m => m.ConferenceFormModule) },
-    { path: 'food-counter', data: { helpSidebar: HELP_SIDEBAR_CONTENT.foodCounter }, loadChildren: () => import('./demo/components/food-counter/food-counter.module').then(m => m.FoodCounterModule) },
-    { path: 'kitchen-calendar', data: { helpSidebar: HELP_SIDEBAR_CONTENT.kitchenCalendar }, loadChildren: () => import('./demo/components/kitchen-calendar/kitchen-calendar.module').then(m => m.KitchenCalendarModule) },
+    { path: 'auth', data: { breadcrumb: 'Auth' }, loadChildren: () => import('./demo/components/auth/auth.module').then(m => m.AuthModule) },
+    { path: 'conference-form/:formUrl', loadChildren: () => import('./demo/components/conference-form/conference-form.module').then(m => m.ConferenceFormModule) },
+    { path: 'food-counter', loadChildren: () => import('./demo/components/food-counter/food-counter.module').then(m => m.FoodCounterModule) },
+    { path: 'kitchen-calendar', loadChildren: () => import('./demo/components/kitchen-calendar/kitchen-calendar.module').then(m => m.KitchenCalendarModule) },
 
-    { path: 'landing', data: { helpSidebar: HELP_SIDEBAR_CONTENT.landing }, loadChildren: () => import('./demo/components/landing/landing.module').then(m => m.LandingModule) },
-    { path: 'notfound', data: { helpSidebar: HELP_SIDEBAR_CONTENT.notFound }, loadChildren: () => import('./demo/components/notfound/notfound.module').then(m => m.NotfoundModule) },
+    { path: 'landing', loadChildren: () => import('./demo/components/landing/landing.module').then(m => m.LandingModule) },
+    { path: 'notfound', loadChildren: () => import('./demo/components/notfound/notfound.module').then(m => m.NotfoundModule) },
     { path: '**', redirectTo: '/notfound' }
 ];
 

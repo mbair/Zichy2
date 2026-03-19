@@ -17,6 +17,7 @@ import { LayoutService } from './service/app.layout.service';
 export class AppLayoutComponent implements OnDestroy {
 
     overlayMenuOpenSubscription: Subscription;
+    routerNavigationSubscription: Subscription;
     sessionWarningSubscription: Subscription;
 
     menuOutsideClickListener: any;
@@ -68,8 +69,9 @@ export class AppLayoutComponent implements OnDestroy {
             }
         });
 
-        this.router.events.pipe(filter(event => event instanceof NavigationEnd))
+        this.routerNavigationSubscription = this.router.events.pipe(filter(event => event instanceof NavigationEnd))
             .subscribe(() => {
+                this.layoutService.hideHelpSidebar();
                 this.updateHelpContent();
                 this.hideMenu();
             });
@@ -198,9 +200,15 @@ export class AppLayoutComponent implements OnDestroy {
             this.overlayMenuOpenSubscription.unsubscribe();
         }
 
+        if (this.routerNavigationSubscription) {
+            this.routerNavigationSubscription.unsubscribe();
+        }
+
         if (this.sessionWarningSubscription) {
             this.sessionWarningSubscription.unsubscribe();
         }
+
+        this.layoutService.hideHelpSidebar();
 
         if (this.menuOutsideClickListener) {
             this.menuOutsideClickListener();
