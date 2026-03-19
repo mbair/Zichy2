@@ -18,6 +18,11 @@ export class AppTopbarComponent {
     onProfileButtonClick() {
         this.layoutService.showProfileSidebar();
     }
+
+    onHelpButtonClick() {
+        this.layoutService.toggleHelpSidebar();
+    }
+
     onConfigButtonClick() {
         this.layoutService.showConfigSidebar();
     }

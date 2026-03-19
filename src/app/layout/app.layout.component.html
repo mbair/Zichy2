@@ -7,6 +7,30 @@
             <router-outlet></router-outlet>
         </div>
     </div>
+    <p-sidebar
+        [(visible)]="layoutService.state.helpSidebarVisible"
+        position="right"
+        [baseZIndex]="1000"
+        styleClass="p-sidebar-md"
+        (onHide)="closeHelpSidebar()">
+        <ng-template pTemplate="header">
+            <div class="flex align-items-center gap-2">
+                <i class="pi pi-question-circle text-primary"></i>
+                <span class="font-semibold">{{ currentHelpContent.title }}</span>
+            </div>
+        </ng-template>
+
+        <div class="line-height-3">
+            <p class="mt-0 mb-3">{{ currentHelpContent.description }}</p>
+
+            <div class="mb-4" *ngFor="let section of currentHelpContent.sections">
+                <h5 class="mt-0 mb-2">{{ section.title }}</h5>
+                <ul class="pl-3 m-0">
+                    <li class="mb-2" *ngFor="let item of section.items">{{ item }}</li>
+                </ul>
+            </div>
+        </div>
+    </p-sidebar>
     <app-profilemenu></app-profilemenu>
     <!-- <app-config></app-config> -->
     <div class="layout-mask"></div>
