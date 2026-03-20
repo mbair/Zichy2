@@ -280,7 +280,7 @@
                                                 <div *ngIf="email?.errors?.['required']">
                                                     {{'Email' | translate }} {{'kötelező' | translate }}
                                                 </div>
-                                                <div *ngIf="email?.errors?.['email']">
+                                                <div *ngIf="email?.errors?.['invalidEmail']">
                                                     {{'Nem megfelelő email formátum' | translate }}
                                                 </div>
                                             </div>

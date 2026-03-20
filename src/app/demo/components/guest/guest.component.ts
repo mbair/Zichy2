@@ -210,7 +210,7 @@ export class GuestComponent implements OnInit {
             diet_id: [this.initialFormValues.diet_id],
             lastRfidUsage: [this.initialFormValues.lastRfidUsage],
             is_test: [this.initialFormValues.is_test],
-            email: [this.initialFormValues.email],
+            email: [this.initialFormValues.email, Validators.email],
             telephone: [this.initialFormValues.telephone],
             roomType: [this.initialFormValues.roomType],
             payment: [this.initialFormValues.payment],
