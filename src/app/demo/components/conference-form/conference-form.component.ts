@@ -473,9 +473,7 @@ export class ConferenceFormComponent implements OnInit {
     get hasGuestEditDeadline(): boolean { return !!this.conference?.guestEditEndDate }
     get isPrivilegedViewer(): boolean { return this.isOrganizer || this.canFillFormAfterDeadline }
     get conferencePanelLabel(): string {
-        return this.currentLang === 'en'
-            ? 'Conference - Guest Registration Form'
-            : 'Konferencia - Vendég Regisztrációs Űrlap'
+        return this.translate.instant('conferenceForm.panelLabel')
     }
     get displayConferenceName(): string {
         const name = this.conference?.name?.trim() ?? ''
@@ -491,11 +489,11 @@ export class ConferenceFormComponent implements OnInit {
         if (this.conference?.beginDate) return this.formatDeadline(this.conference.beginDate)
         if (this.conference?.endDate) return this.formatDeadline(this.conference.endDate)
 
-        return this.localize('Dátum hamarosan', 'Date coming soon')
+        return this.translate.instant('conferenceForm.dateComingSoon')
     }
     get publicDeadlineText(): string { return this.formatDeadline(this.conference?.registrationEndDate) }
     get organizerDeadlineText(): string { return this.formatDeadline(this.conference?.guestEditEndDate) }
-    get effectiveDeadlineTitle(): string { return this.localize('Regisztrációs határidő', 'Registration deadline') }
+    get effectiveDeadlineTitle(): string { return this.translate.instant('conferenceForm.deadline.registration') }
     get effectiveDeadlineText(): string {
         if (this.canFillFormAfterDeadline) {
             return ''
@@ -509,16 +507,14 @@ export class ConferenceFormComponent implements OnInit {
     }
     get effectiveDeadlineDescription(): string {
         if (this.canFillFormAfterDeadline) {
-            return this.currentLang === 'en'
-                ? `${this.currentUserRole} access can still fill the form after the registration deadline.`
-                : `${this.currentUserRole} jogosultsággal a regisztrációs zárás után is kitölthető az űrlap.`
+            return this.translate.instant('conferenceForm.deadline.superAdminDescription', { role: this.currentUserRole })
         }
 
         if (this.isOrganizer && this.conference?.guestEditEndDate) {
-            return this.localize('Szervezőként eddig a napig kitölthető és módosítható az űrlap.', 'As an organizer the form can be filled and edited until this date.')
+            return this.translate.instant('conferenceForm.deadline.organizerDescription')
         }
 
-        return this.localize('Vendégek számára eddig a napig kitölthető az űrlap.', 'The form can be filled by guests until this date.')
+        return this.translate.instant('conferenceForm.deadline.guestDescription')
     }
     get showEffectiveDeadlineStatus(): boolean {
         return !this.canFillFormAfterDeadline && (!!this.hasRegistrationDeadline || !!this.hasGuestEditDeadline)
@@ -539,13 +535,13 @@ export class ConferenceFormComponent implements OnInit {
     }
     get publicDeadlineStatusText(): string {
         return this.registrationEnded
-            ? this.localize('Lezárult', 'Closed')
-            : this.localize('Nyitott', 'Open')
+            ? this.translate.instant('conferenceForm.deadline.closed')
+            : this.translate.instant('conferenceForm.deadline.open')
     }
     get organizerDeadlineStatusText(): string {
         return this.isOrganizerDeadlineOpen
-            ? this.localize('Nyitott', 'Open')
-            : this.localize('Lezárult', 'Closed')
+            ? this.translate.instant('conferenceForm.deadline.open')
+            : this.translate.instant('conferenceForm.deadline.closed')
     }
     get isOrganizerDeadlineOpen(): boolean {
         const rawEnd = this.conference?.guestEditEndDate
@@ -570,6 +566,26 @@ export class ConferenceFormComponent implements OnInit {
     // Gets the FormArray of questions
     get answers(): FormArray {
         return this.conferenceForm.get('answers') as FormArray
+    }
+
+    get hasInteractedWithForm(): boolean {
+        return this.conferenceForm.dirty || this.conferenceForm.touched
+    }
+
+    get incompleteFieldSummary(): string {
+        const invalidFields = this.getInvalidFieldLabels()
+        if (invalidFields.length === 0) {
+            return ''
+        }
+
+        if (invalidFields.length <= 5) {
+            return invalidFields.join(', ')
+        }
+
+        const remainingCount = invalidFields.length - 5
+        const remainingText = this.translate.instant('conferenceForm.validation.more', { count: remainingCount })
+
+        return `${invalidFields.slice(0, 5).join(', ')}, ${remainingText}`
     }
 
     private getCurrentQuestionSet() {
@@ -617,8 +633,12 @@ export class ConferenceFormComponent implements OnInit {
         const lang = this.currentLang
         const qList = this.getVisibleQuestionTranslations()
         if (!qList || !qList[i]) return undefined
+        const translation = qList[i]
 
-        const full = qList[i][lang] ?? qList[i]['hu']
+        const preferred = typeof translation[lang] === 'string' ? translation[lang].trim() : ''
+        const fallbackHu = typeof translation['hu'] === 'string' ? translation['hu'].trim() : ''
+        const fallbackEn = typeof translation['en'] === 'string' ? translation['en'].trim() : ''
+        const full = preferred || fallbackHu || fallbackEn
         if (!full) return undefined
 
         // If there is text in brackets, we remove it
@@ -742,7 +762,7 @@ export class ConferenceFormComponent implements OnInit {
 
     private formatDeadline(value?: string | null): string {
         if (!value) {
-            return this.localize('Nincs megadva', 'Not set')
+            return this.translate.instant('conferenceForm.notSet')
         }
 
         const parsed = parseDateOnly(value)
@@ -755,10 +775,6 @@ export class ConferenceFormComponent implements OnInit {
             month: '2-digit',
             day: '2-digit'
         }).format(parsed)
-    }
-
-    private localize(hu: string, en: string): string {
-        return this.currentLang === 'en' ? en : hu
     }
 
     /**
@@ -830,53 +846,12 @@ export class ConferenceFormComponent implements OnInit {
             this.guestService.create(guestData, files)
 
         } else {
-            // Translations of field names
-            const translatedFieldNames: { [key: string]: string } = {
-                lastName: this.translate.instant('Vezetéknév'),
-                firstName: this.translate.instant('Keresztnév'),
-                gender: this.translate.instant('Neme'),
-                birthDate: this.translate.instant('Születési dátum'),
-                nationality: this.translate.instant('Állampolgárság'),
-                country: this.translate.instant('Ország'),
-                zipCode: this.translate.instant('Irányítószám'),
-                email: this.translate.instant('Email'),
-                telephone: this.translate.instant('Telefon'),
-                dateOfArrival: this.translate.instant('Érkezés dátuma'),
-                firstMeal: this.translate.instant('Első étkezés'),
-                diet: this.translate.instant('Étrend'),
-                dateOfDeparture: this.translate.instant('Távozás dátuma'),
-                lastMeal: this.translate.instant('Utolsó étkezés'),
-                roomType: this.translate.instant('Szobatípus'),
-                roomMate: this.translate.instant('Szobatárs'),
-                payment: this.translate.instant('Fizetési mód'),
-                babyBed: this.translate.instant('Babaágy'),
-                idCard: this.translate.instant('Személyi igazolvány'),
-                privacy: this.translate.instant('Adatvédelem'),
-            }
-
-            const invalidFields: string[] = []
-
-            Object.keys(this.conferenceForm.controls).forEach(key => {
-                const control = this.conferenceForm.get(key)
-
-                // Extra questions
-                if (control instanceof FormArray && key === 'answers') {
-                    control.controls.forEach((answerControl, idx) => {
-                        if (answerControl.invalid) {
-                            const questionText = this.getTranslatedQuestion(idx)?.question || `Kérdés ${idx + 1}`
-                            invalidFields.push(questionText)
-                        }
-                    })
-                    // Normal fields
-                } else if (control?.invalid) {
-                    invalidFields.push(translatedFieldNames[key] || key)
-                }
-            })
+            const invalidFields = this.getInvalidFieldLabels()
 
             this.messageService.add({
                 severity: "error",
                 summary: this.translate.instant("Hiba!"),
-                detail: `${this.translate.instant('Az űrlap nem lett megfelelően kitöltve!')} ${this.translate.instant('A következő mezők nem megfelelőek')}: ${invalidFields.join(', ')}`
+                detail: `${this.translate.instant('conferenceForm.validation.formIncomplete')} ${this.translate.instant('conferenceForm.validation.invalidFieldsPrefix')}: ${invalidFields.join(', ')}`
             })
         }
     }
@@ -889,8 +864,8 @@ export class ConferenceFormComponent implements OnInit {
         this.showForm = false
         this.messageService.add({
             severity: "success",
-            summary: "Sikeresen regisztrált!",
-            detail: "Sok szeretettel várjuk a konferenciára!",
+            summary: this.translate.instant('conferenceForm.messages.saveSuccessSummary'),
+            detail: this.translate.instant('conferenceForm.messages.saveSuccessDetail'),
         })
     }
 
@@ -901,8 +876,8 @@ export class ConferenceFormComponent implements OnInit {
     saveFailed() {
         this.messageService.add({
             severity: "error",
-            summary: "Hiba történt!",
-            detail: "Nem sikerült menteni az adatokat",
+            summary: this.translate.instant('conferenceForm.messages.saveFailedSummary'),
+            detail: this.translate.instant('conferenceForm.messages.saveFailedDetail'),
         })
     }
 
@@ -975,6 +950,61 @@ export class ConferenceFormComponent implements OnInit {
                     actual: value.size
                 }
             }
+    }
+
+    private getTranslatedFieldNames(): { [key: string]: string } {
+        return {
+            lastName: this.translate.instant('conferenceForm.fields.lastName'),
+            firstName: this.translate.instant('conferenceForm.fields.firstName'),
+            gender: this.translate.instant('conferenceForm.fields.gender'),
+            birthDate: this.translate.instant('conferenceForm.fields.birthDate'),
+            nationality: this.translate.instant('conferenceForm.fields.nationality'),
+            country: this.translate.instant('conferenceForm.fields.country'),
+            zipCode: this.translate.instant('conferenceForm.fields.postalCode'),
+            email: this.translate.instant('conferenceForm.fields.email'),
+            telephone: this.translate.instant('conferenceForm.fields.phone'),
+            dateOfArrival: this.translate.instant('conferenceForm.fields.arrivalDate'),
+            firstMeal: this.translate.instant('conferenceForm.fields.firstMeal'),
+            diet: this.translate.instant('conferenceForm.fields.diet'),
+            dateOfDeparture: this.translate.instant('conferenceForm.fields.departureDate'),
+            lastMeal: this.translate.instant('conferenceForm.fields.lastMeal'),
+            roomType: this.translate.instant('conferenceForm.fields.roomType'),
+            roomMate: this.translate.instant('conferenceForm.fields.roomMate'),
+            payment: this.translate.instant('conferenceForm.fields.paymentMethod'),
+            babyBed: this.translate.instant('conferenceForm.fields.babyBed'),
+            idCard: this.translate.instant('conferenceForm.fields.idCardBack'),
+            privacy: this.translate.instant('conferenceForm.fields.privacy'),
+        }
+    }
+
+    private getInvalidFieldLabels(): string[] {
+        const translatedFieldNames = this.getTranslatedFieldNames()
+        const invalidFields: string[] = []
+
+        Object.keys(this.conferenceForm.controls).forEach(key => {
+            const control = this.conferenceForm.get(key)
+
+            if (control instanceof FormArray && key === 'answers') {
+                control.controls.forEach((answerControl, idx) => {
+                    if (answerControl.invalid) {
+                        const fallbackQuestion = this.translate.instant('conferenceForm.validation.questionFallback', { index: idx + 1 })
+                        const questionText = this.getTranslatedQuestion(idx)?.question || fallbackQuestion
+                        invalidFields.push(questionText)
+                    }
+                })
+                return
+            }
+
+            if (control?.invalid) {
+                invalidFields.push(translatedFieldNames[key] || key)
+            }
+        })
+
+        if (this.conferenceForm.errors?.['dateRangeInvalid']) {
+            invalidFields.push(this.translate.instant('conferenceForm.validation.arrivalDepartureDates'))
+        }
+
+        return [...new Set(invalidFields)]
     }
 
     /**

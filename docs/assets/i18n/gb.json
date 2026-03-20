@@ -178,5 +178,108 @@
     "A banki átutalás választása technikai okok nem lehetséges, kérjük ezt NE jelöld meg": "The bank transfer option is not possible for technical reasons, please DO NOT select this option",
     "Ha végig maradsz a táborban (augusztus 1), a távozás megadásánál, az augusztus hónaphoz kell ugrani": "If you stay in the camp until the end (August 1), when you enter your departure, you must jump to the month of August",
     "registrationEndMessage": "The registration period has expired",
-    "Room already reserved in this period": "Room already reserved in this period"
+    "Room already reserved in this period": "Room already reserved in this period",
+    "conferenceForm": {
+        "panelLabel": "Conference - Guest Registration Form",
+        "intro": {
+            "subtitle": "With registration",
+            "organizerHelp": "you help your event organizer a lot",
+            "legalHelp": "and you also fulfill your legal obligations",
+            "contactOrganizer": "If you have any questions, please contact your event organizer",
+            "thanks": "Thank you for filling it out carefully"
+        },
+        "fields": {
+            "lastName": "Last Name",
+            "firstName": "First Name",
+            "gender": "Gender",
+            "male": "Man",
+            "female": "Woman",
+            "birthDate": "Date of Birth",
+            "nationality": "Nationality",
+            "residenceCountry": "Residence - Country",
+            "country": "Country",
+            "residencePostalCode": "Residence - Postal Code",
+            "postalCode": "Postal Code",
+            "email": "Email",
+            "phone": "Phone",
+            "arrivalDate": "Date of Arrival",
+            "firstMeal": "First Meal",
+            "diet": "Diet",
+            "departureDate": "Date of Departure",
+            "lastMeal": "Last Meal",
+            "roomType": "Accommodation Type",
+            "babyBed": "Request Baby Crib",
+            "yes": "Yes",
+            "no": "No",
+            "roomMate": "Roommate Preference",
+            "paymentMethod": "Payment Method",
+            "idCardBack": "Back of ID Card",
+            "privacy": "Privacy"
+        },
+        "dateComingSoon": "Date coming soon",
+        "notSet": "Not set",
+        "deadline": {
+            "guest": "Guest deadline",
+            "organizer": "Organizer deadline",
+            "registration": "Registration deadline",
+            "superAdminDescription": "{{role}} access can still fill the form after the registration deadline.",
+            "organizerDescription": "As an organizer the form can be filled and edited until this date.",
+            "guestDescription": "The form can be filled by guests until this date.",
+            "open": "Open",
+            "closed": "Closed"
+        },
+        "validation": {
+            "completeRequiredFields": "Please complete these required fields:",
+            "more": "+ {{count}} more",
+            "questionFallback": "Question {{index}}",
+            "arrivalDepartureDates": "Arrival and departure dates",
+            "requiredAnswer": "Required",
+            "requiredShort": "required",
+            "invalidZipCode": "The Hungarian postal code must consist of 4 digits",
+            "invalidEmail": "Incorrect email format",
+            "arrivalRequired": "Please provide the date of arrival",
+            "arrivalOutOfRange": "The date of arrival must be within the conference period",
+            "arrivalBeforeDeparture": "The date of arrival should be earlier than the departure date",
+            "firstMealRequired": "Please select your first meal",
+            "dietRequired": "Please select your diet",
+            "departureRequired": "Please provide the date of departure",
+            "departureOutOfRange": "The date of departure must be within the conference period",
+            "departureAfterArrival": "The date of departure should be later than the arrival date",
+            "lastMealRequired": "Please select your last meal",
+            "roomTypeRequired": "Please select the accommodation type",
+            "babyBedRequired": "Please select whether you would like a cot",
+            "paymentRequired": "Please select the payment method",
+            "idCardRequired": "Please upload the back of your ID card",
+            "idCardTooLarge": "The uploaded image is too large. Maximum {{maxSize}} MB.",
+            "privacyRequired": "Acceptance of the privacy statement(s) is mandatory",
+            "formIncomplete": "The form was not completed correctly!",
+            "invalidFieldsPrefix": "The following fields are invalid"
+        },
+        "helper": {
+            "roomTypeSelection": "We will try to take your choice into account, as there are a limited number of room types and air-conditioned rooms available, we cannot guarantee that we will allocate you to the type of accommodation you have indicated",
+            "roomMateName": "Please enter the name entered during registration here",
+            "roomMateComma": "You can specify the roommate by separating the names with a comma",
+            "noPaymentOptions": "The organizer has not configured any payment methods for this conference yet."
+        },
+        "actions": {
+            "browse": "Browse",
+            "cancel": "Cancel",
+            "submit": "Submit My Registration",
+            "newRegistration": "Register a new guest"
+        },
+        "privacy": {
+            "acceptPrefix": "I accept the",
+            "dataPolicy": "ZVKK Privacy Statement",
+            "andAcceptance": "and the",
+            "acceptanceStatement": "Privacy/Consent Statement",
+            "andHouseRules": "and the",
+            "houseRules": "ZVKK policy"
+        },
+        "messages": {
+            "saveSuccessSummary": "Registration successful!",
+            "saveSuccessDetail": "We look forward to welcoming you to the conference!",
+            "saveFailedSummary": "Something went wrong!",
+            "saveFailedDetail": "We could not save your data"
+        }
+    }
 }
