@@ -281,7 +281,7 @@
                                                 <div *ngIf="email?.errors?.['required']">
                                                     {{'Email' | translate }} {{'kötelező' | translate }}
                                                 </div>
-                                                <div *ngIf="email?.errors?.['email']">
+                                                <div *ngIf="email?.errors?.['invalidEmail']">
                                                     {{'Nem megfelelő email formátum' | translate }}
                                                 </div>
                                             </div>
@@ -669,7 +669,7 @@
                                                   icon="pi pi-check"
                                                   label="{{'Elküldöm a regisztrációmat' | translate }}"
                                                   [loading]="loading"
-                                                  [disabled]="loading || conferenceForm.invalid">
+                                                  [disabled]="loading">
                                         </p-button>
                                     </form>
                                 </div>
