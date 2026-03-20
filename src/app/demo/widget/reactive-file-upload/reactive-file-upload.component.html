@@ -5,6 +5,8 @@
     [chooseLabel]="chooseLabel" 
     [cancelLabel]="cancelLabel" 
     [showUploadButton]="false"
-    (onSelect)="onFileChange($event)" 
+    (onSelect)="onFileChange($event)"
+    (onRemove)="onFileClear()"
+    (onClear)="onFileClear()"
     removeStyleClass="px-3">
 </p-fileUpload>

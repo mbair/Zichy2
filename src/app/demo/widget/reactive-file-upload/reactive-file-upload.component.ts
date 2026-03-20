@@ -34,6 +34,12 @@ export class ReactiveFileUploadComponent implements ControlValueAccessor {
         }
     }
 
+    onFileClear() {
+        this.value = null
+        this.onChange(null)
+        this.onTouch()
+    }
+
     writeValue(value: any) {
         this.value = value
     }
