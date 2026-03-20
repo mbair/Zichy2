@@ -246,6 +246,8 @@
             "departureOutOfRange": "The date of departure must be within the conference period",
             "departureAfterArrival": "The date of departure should be later than the arrival date",
             "lastMealRequired": "Please select your last meal",
+            "mealOrderInvalid": "If arrival and departure are on the same day, the first meal cannot be later than the last meal",
+            "mealOrderLabel": "Meal order",
             "roomTypeRequired": "Please select the accommodation type",
             "babyBedRequired": "Please select whether you would like a cot",
             "paymentRequired": "Please select the payment method",

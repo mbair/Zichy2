@@ -246,6 +246,8 @@
             "departureOutOfRange": "A távozás dátumának a konferencia időtartamán belül kell lennie",
             "departureAfterArrival": "A távozás dátumának későbbinek kell lennie, mint az érkezési dátum",
             "lastMealRequired": "Kérjük, válassza ki az utolsó étkezését",
+            "mealOrderInvalid": "Ha az érkezés és a távozás ugyanarra a napra esik, az első étkezés nem lehet későbbi, mint az utolsó étkezés",
+            "mealOrderLabel": "Étkezések sorrendje",
             "roomTypeRequired": "Kérjük válassza ki a szobatípust",
             "babyBedRequired": "Kérjük válassza ki, hogy kér-e babaágyat",
             "paymentRequired": "Kérjük válassza ki a fizetési módot",

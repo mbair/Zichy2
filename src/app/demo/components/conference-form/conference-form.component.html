@@ -372,6 +372,9 @@
                                             <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
                                                 {{ 'conferenceForm.validation.firstMealRequired' | translate }}!
                                             </div>
+                                            <div *ngIf="conferenceForm.errors?.['mealOrderInvalid'] && (firstMeal?.dirty || lastMeal?.dirty || firstMeal?.touched || lastMeal?.touched)" class="p-error">
+                                                {{ 'conferenceForm.validation.mealOrderInvalid' | translate }}!
+                                            </div>
                                             <small *ngIf="getFormFieldInfoPosition('firstMeal') === 'text' && getFormFieldInfo('firstMeal')" id="firstMeal-info">
                                                 {{ getFormFieldInfo('firstMeal') }}
                                             </small>
@@ -454,6 +457,9 @@
                                             </app-meal-selector>
                                             <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="p-error">
                                                 {{ 'conferenceForm.validation.lastMealRequired' | translate }}!
+                                            </div>
+                                            <div *ngIf="conferenceForm.errors?.['mealOrderInvalid'] && (firstMeal?.dirty || lastMeal?.dirty || firstMeal?.touched || lastMeal?.touched)" class="p-error">
+                                                {{ 'conferenceForm.validation.mealOrderInvalid' | translate }}!
                                             </div>
                                             <small *ngIf="getFormFieldInfoPosition('lastMeal') === 'text' && getFormFieldInfo('lastMeal')" id="lastMeal-info">
                                                 {{ getFormFieldInfo('lastMeal') }}

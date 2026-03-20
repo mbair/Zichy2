@@ -7,6 +7,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { dateBoundsValidator } from '../../utils/date-bounds-validator';
 import { emailDomainValidator } from '../../utils/email-validator';
 import { dateRangeValidator } from '../../utils/date-range-validator';
+import { sameDayMealOrderValidator } from '../../utils/same-day-meal-order-validator';
 import { zipCodeValidator } from '../../utils/zipcode-validator';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { Message, MessageService } from 'primeng/api';
@@ -124,7 +125,10 @@ export class ConferenceFormComponent implements OnInit {
             acceptanceCriteriaUrl: [null],
             answers: this.formBuilder.array([]),
         }, {
-            validators: dateRangeValidator('dateOfArrival', 'dateOfDeparture')
+            validators: [
+                dateRangeValidator('dateOfArrival', 'dateOfDeparture'),
+                sameDayMealOrderValidator('dateOfArrival', 'dateOfDeparture', 'firstMeal', 'lastMeal')
+            ]
         })
     }
 
@@ -1002,6 +1006,10 @@ export class ConferenceFormComponent implements OnInit {
 
         if (this.conferenceForm.errors?.['dateRangeInvalid']) {
             invalidFields.push(this.translate.instant('conferenceForm.validation.arrivalDepartureDates'))
+        }
+
+        if (this.conferenceForm.errors?.['mealOrderInvalid']) {
+            invalidFields.push(this.translate.instant('conferenceForm.validation.mealOrderLabel'))
         }
 
         return [...new Set(invalidFields)]
