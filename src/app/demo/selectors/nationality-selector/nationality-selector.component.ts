@@ -39,12 +39,20 @@ export class NationalitySelectorComponent implements OnInit, ControlValueAccesso
                 private countryService: CountryService,
                 private cdRef: ChangeDetectorRef) {}
 
+    private setLanguageFields(lang: string | undefined): void {
+        const isHungarian = lang === 'hu'
+        this.optionLabel = isHungarian ? 'hunationality' : 'nationality'
+        this.filterBy = isHungarian ? 'hunationality' : 'nationality'
+    }
+
     /**
      * Lifecycle hook: called when the component is initialized.
      * Subscribes to language change events and sets the countrys
      * for the selector when the language changes.
      */
     ngOnInit() {
+        this.setLanguageFields(this.translate.currentLang || this.translate.defaultLang)
+
         // Fetch countries
         this.countryService.getCountries().subscribe(countries => {
             this.countries = countries
@@ -67,8 +75,7 @@ export class NationalitySelectorComponent implements OnInit, ControlValueAccesso
         
         // Set the country options when the language changes
         this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
-            this.optionLabel = event.lang === 'hu' ? 'hunationality' : 'nationality'
-            this.filterBy    = event.lang === 'hu' ? 'hunationality' : 'nationality'
+            this.setLanguageFields(event.lang)
         })
     }
 

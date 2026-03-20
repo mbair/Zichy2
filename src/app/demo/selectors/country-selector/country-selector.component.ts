@@ -40,12 +40,20 @@ export class CountrySelectorComponent implements OnInit, ControlValueAccessor {
                 private countryService: CountryService,
                 private cdRef: ChangeDetectorRef) {}
 
+    private setLanguageFields(lang: string | undefined): void {
+        const isHungarian = lang === 'hu'
+        this.optionLabel = isHungarian ? 'huname' : 'name'
+        this.filterBy = isHungarian ? 'huname' : 'name'
+    }
+
     /**
      * Lifecycle hook: called when the component is initialized.
      * Subscribes to language change events and sets the countrys
      * for the selector when the language changes.
      */
     ngOnInit() {
+        this.setLanguageFields(this.translate.currentLang || this.translate.defaultLang)
+
         // Fetch countries
         this.countryService.getCountries().subscribe(countries => {
             this.countries = countries
@@ -68,8 +76,7 @@ export class CountrySelectorComponent implements OnInit, ControlValueAccessor {
         
         // Set the country options when the language changes
         this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
-            this.optionLabel = event.lang === 'hu' ? 'huname' : 'name'
-            this.filterBy    = event.lang === 'hu' ? 'huname' : 'name'
+            this.setLanguageFields(event.lang)
         })
     }
 
