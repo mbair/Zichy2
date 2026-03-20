@@ -30,10 +30,12 @@ export class SessionService {
     private readonly tokenStorageKey = 'token';
     private readonly sessionExpiryStorageKey = 'session_expires_at';
     private readonly sessionExpiryHeader = 'X-Session-Expires-At';
+    private readonly postLoginRedirectStorageKey = 'post_login_redirect_url';
     private readonly idleTimeoutMs = 30 * 60 * 1000;
     private readonly keepAliveBeforeExpiryMs = 5 * 60 * 1000;
-    private readonly warningBeforeExpiryMs = 2 * 60 * 1000;
-    private readonly activityEvents: Array<keyof DocumentEventMap> = ['click', 'keydown', 'mousedown', 'scroll', 'touchstart'];
+    private readonly warningBeforeExpiryMs = 5 * 60 * 1000;
+    private readonly activityRefreshDebounceMs = 30 * 1000;
+    private readonly activityEvents: Array<keyof DocumentEventMap> = ['change', 'click', 'focusin', 'input', 'keydown', 'mousedown', 'touchstart'];
     private expirationTimer: ReturnType<typeof setTimeout> | null = null;
     private keepAliveTimer: ReturnType<typeof setTimeout> | null = null;
     private warningTimer: ReturnType<typeof setTimeout> | null = null;
@@ -43,6 +45,7 @@ export class SessionService {
     private logoutInProgress = false;
     private keepAliveInFlight = false;
     private activeWarningExpiry: number | null = null;
+    private lastActivityRefreshAt = 0;
     private readonly sessionWarningStateSubject = new BehaviorSubject<SessionWarningState>(INITIAL_SESSION_WARNING_STATE);
 
     private readonly storageListener = (event: StorageEvent) => {
@@ -70,6 +73,7 @@ export class SessionService {
 
     private readonly activityListener = () => {
         this.resetIdleTimer();
+        this.refreshSessionOnActivityIfNeeded();
     };
 
     private readonly visibilityListener = () => {
@@ -271,6 +275,7 @@ export class SessionService {
         }
 
         this.logoutInProgress = true;
+        this.lastActivityRefreshAt = 0;
         this.cancelExpirationTimer();
         this.cancelKeepAliveTimer();
         this.cancelWarningTimer();
@@ -287,8 +292,11 @@ export class SessionService {
         localStorage.removeItem('userid');
         localStorage.removeItem('userrole');
 
+        const resolvedRedirectReason = redirectReason ?? this.getRedirectReason(reason);
+
+        this.rememberPostLoginRedirect(resolvedRedirectReason);
         this.getUserService().updateUserRole('No Role');
-        this.redirectToLogin(redirectReason ?? this.getRedirectReason(reason));
+        this.redirectToLogin(resolvedRedirectReason);
 
         queueMicrotask(() => {
             this.logoutInProgress = false;
@@ -331,6 +339,16 @@ export class SessionService {
 
     private getUserService(): UserService {
         return this.injector.get(UserService);
+    }
+
+    peekPostLoginRedirectUrl(): string | null {
+        return this.getStoredPostLoginRedirectUrl();
+    }
+
+    consumePostLoginRedirectUrl(): string | null {
+        const redirectUrl = this.getStoredPostLoginRedirectUrl();
+        sessionStorage.removeItem(this.postLoginRedirectStorageKey);
+        return redirectUrl;
     }
 
     extendSession(): void {
@@ -386,6 +404,29 @@ export class SessionService {
                 this.handleSessionRefreshError(mode);
             }
         });
+    }
+
+    private refreshSessionOnActivityIfNeeded(): void {
+        if (this.keepAliveInFlight || this.logoutInProgress) {
+            return;
+        }
+
+        const expiresAt = this.getStoredExpiry();
+        if (!this.getToken() || expiresAt === null || !this.hasActiveSessionSnapshot()) {
+            return;
+        }
+
+        const now = Date.now();
+        if (expiresAt - now > this.keepAliveBeforeExpiryMs) {
+            return;
+        }
+
+        if (now - this.lastActivityRefreshAt < this.activityRefreshDebounceMs) {
+            return;
+        }
+
+        this.lastActivityRefreshAt = now;
+        this.requestSessionRefresh('auto');
     }
 
     private handleSessionRefreshSuccess(mode: SessionRefreshMode, previousExpiry: number | null): void {
@@ -491,5 +532,29 @@ export class SessionService {
             ...this.sessionWarningStateSubject.getValue(),
             ...patch,
         });
+    }
+
+    private rememberPostLoginRedirect(redirectReason?: string): void {
+        if (!redirectReason) {
+            sessionStorage.removeItem(this.postLoginRedirectStorageKey);
+            return;
+        }
+
+        const currentUrl = this.router.url;
+        if (!currentUrl || currentUrl.startsWith('/auth/')) {
+            sessionStorage.removeItem(this.postLoginRedirectStorageKey);
+            return;
+        }
+
+        sessionStorage.setItem(this.postLoginRedirectStorageKey, currentUrl);
+    }
+
+    private getStoredPostLoginRedirectUrl(): string | null {
+        const redirectUrl = sessionStorage.getItem(this.postLoginRedirectStorageKey);
+        if (!redirectUrl || redirectUrl.startsWith('/auth/')) {
+            return null;
+        }
+
+        return redirectUrl;
     }
 }
