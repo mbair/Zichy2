@@ -24,12 +24,14 @@
              in our case number[] (IDs), NOT option objects -->
         <ng-template pTemplate="selectedItems" let-value>
             <ng-container *ngIf="(value?.length ?? 0) > 0; else placeholderTpl">
-                <ng-container *ngFor="let opt of getSelectedOptions(value)">
-                    <span [ngClass]="'payment-badge ' + opt.style">
-                        <i [ngClass]="'mr-1 ' + opt.icon"></i>
-                        {{ opt.label }}
-                    </span>
-                </ng-container>
+                <span class="payment-badge-list">
+                    <ng-container *ngFor="let opt of getSelectedOptions(value)">
+                        <span [ngClass]="'payment-badge ' + opt.style">
+                            <i [ngClass]="'mr-1 ' + opt.icon"></i>
+                            {{ opt.label }}
+                        </span>
+                    </ng-container>
+                </span>
             </ng-container>
 
             <ng-template #placeholderTpl>
@@ -93,12 +95,14 @@
 
         <ng-template pTemplate="selectedItems" let-value>
             <ng-container *ngIf="(value?.length ?? 0) > 0; else placeholderTplNg">
-                <ng-container *ngFor="let opt of getSelectedOptions(value)">
-                    <span [ngClass]="'payment-badge ' + opt.style">
-                        <i [ngClass]="'mr-1 ' + opt.icon"></i>
-                        {{ opt.label }}
-                    </span>
-                </ng-container>
+                <span class="payment-badge-list">
+                    <ng-container *ngFor="let opt of getSelectedOptions(value)">
+                        <span [ngClass]="'payment-badge ' + opt.style">
+                            <i [ngClass]="'mr-1 ' + opt.icon"></i>
+                            {{ opt.label }}
+                        </span>
+                    </ng-container>
+                </span>
             </ng-container>
 
             <ng-template #placeholderTplNg>

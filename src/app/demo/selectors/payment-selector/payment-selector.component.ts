@@ -20,6 +20,21 @@ interface PaymentOption {
 @Component({
     selector: 'app-payment-selector',
     templateUrl: './payment-selector.component.html',
+    styles: [`
+        .payment-badge-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 0.125rem 0;
+        }
+
+        .payment-badge-list .payment-badge {
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+    `],
     standalone: true,
     imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, DropdownModule, MultiSelectModule],
     providers: [
