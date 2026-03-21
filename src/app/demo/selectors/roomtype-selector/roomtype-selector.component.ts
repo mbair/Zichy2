@@ -1,9 +1,29 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import {
+    Component,
+    EventEmitter,
+    Input,
+    Output,
+    SimpleChanges,
+    ChangeDetectorRef,
+    forwardRef,
+    OnInit,
+} from '@angular/core';
+import {
+    ControlValueAccessor,
+    NG_VALUE_ACCESSOR,
+    FormControl,
+    FormGroup,
+    FormsModule,
+    ReactiveFormsModule,
+} from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
-import { getRoomTypeOptions, RoomTypeOption } from '../../utils/room-type.utils';
+import { MultiSelectChangeEvent, MultiSelectModule } from 'primeng/multiselect';
+import {
+    getRoomTypeOptions,
+    RoomTypeOption,
+} from '../../utils/room-type.utils';
 
 export interface changeEvent {
     value: any;
@@ -14,30 +34,41 @@ export interface changeEvent {
     selector: 'app-roomtype-selector',
     templateUrl: './roomtype-selector.component.html',
     standalone: true,
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, DropdownModule],
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        TranslateModule,
+        DropdownModule,
+        MultiSelectModule,
+    ],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
             useExisting: forwardRef(() => RoomTypeSelectorComponent),
-            multi: true
-        }
-    ]
+            multi: true,
+        },
+    ],
 })
 export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
-    @Input() parentForm: FormGroup
-    @Input() controlName: string
-    @Input() showClear: boolean
-    @Input() optionValue: 'value' | 'id' = 'value'
-    @Input() includeNoAccommodation: boolean = true
-    @Input() allowedRoomTypeIds: number[] | null | undefined = undefined
-    @Output() change = new EventEmitter<changeEvent>()
-    
-    roomTypes: RoomTypeOption[] = [] // Available room types
-    selectedRoomType: any = ''       // Selected room type
-    disabled = false
+    @Input() parentForm: FormGroup;
+    @Input() controlName: string;
+    @Input() showClear: boolean;
+    @Input() optionValue: 'value' | 'id' = 'value';
+    @Input() multiple = false;
+    @Input() includeNoAccommodation: boolean = true;
+    @Input() allowedRoomTypeIds: number[] | null | undefined = undefined;
+    @Output() change = new EventEmitter<changeEvent>();
 
-    constructor(private translate: TranslateService, 
-                private cdRef: ChangeDetectorRef) {}
+    roomTypes: RoomTypeOption[] = []; // Available room types
+    selectedRoomType: any = null; // Selected room type
+    disabled = false;
+    lastWrittenValue: any = null;
+
+    constructor(
+        private translate: TranslateService,
+        private cdRef: ChangeDetectorRef,
+    ) {}
 
     /**
      * Lifecycle hook: called when the component is initialized.
@@ -46,9 +77,10 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
      */
     ngOnInit() {
         this.translate.onLangChange.subscribe(() => {
-            this.setRoomTypes()
-        })
-        this.setRoomTypes()
+            this.setRoomTypes();
+        });
+        this.setRoomTypes();
+        this.syncControlValueWithModeAndAllowed();
     }
 
     /**
@@ -57,7 +89,18 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
      * @param changes An object of key-value pairs for the changed properties.
      */
     ngOnChanges(changes: SimpleChanges) {
-        this.setRoomTypes()
+        this.setRoomTypes();
+        if (this.multiple && !Array.isArray(this.selectedRoomType)) {
+            this.selectedRoomType =
+                this.selectedRoomType == null ? [] : [this.selectedRoomType];
+        }
+        if (!this.multiple && Array.isArray(this.selectedRoomType)) {
+            this.selectedRoomType =
+                this.selectedRoomType.length > 0
+                    ? this.selectedRoomType[0]
+                    : null;
+        }
+        this.syncControlValueWithModeAndAllowed();
     }
 
     /**
@@ -66,37 +109,98 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
      */
     getFormControl(): FormControl | null {
         if (!this.parentForm || !this.controlName) {
-            return null
+            return null;
         }
-        return this.parentForm.get(this.controlName) as FormControl
+        return this.parentForm.get(this.controlName) as FormControl;
     }
 
     /**
      * Sets the available accommodation options for the accommodation selector component.
      * Translates the accommodation labels to the current language and maps them to their respective values.
      */
+    private buildAllowedOptionValuesSet(): Set<number | string> | null {
+        if (
+            this.allowedRoomTypeIds === undefined ||
+            this.allowedRoomTypeIds === null
+        ) {
+            return null;
+        }
+
+        return new Set(
+            this.roomTypes.map((roomType) => this.getOptionValue(roomType)),
+        );
+    }
+
+    private getOptionValue(roomType: RoomTypeOption): number | string {
+        return this.optionValue === 'id' ? roomType.id : roomType.value;
+    }
+
+    private normalizeToSelectorValue(
+        raw: any,
+    ): number | string | Array<number | string> | null {
+        const allowedValues = this.buildAllowedOptionValuesSet();
+
+        if (this.multiple) {
+            const values = Array.isArray(raw) ? raw : raw == null ? [] : [raw];
+            const normalized = values.filter((value) =>
+                allowedValues ? allowedValues.has(value) : true,
+            );
+            return Array.from(new Set(normalized));
+        }
+
+        if (raw == null || raw === '') {
+            return null;
+        }
+
+        if (allowedValues && !allowedValues.has(raw)) {
+            return null;
+        }
+
+        return raw;
+    }
+
+    private syncControlValueWithModeAndAllowed(): void {
+        const control = this.getFormControl();
+        if (!control) {
+            this.selectedRoomType = this.normalizeToSelectorValue(
+                this.lastWrittenValue,
+            );
+            return;
+        }
+
+        const source = this.lastWrittenValue ?? control.value;
+        const normalized = this.normalizeToSelectorValue(source);
+        const same =
+            JSON.stringify(control.value) === JSON.stringify(normalized);
+
+        if (!same) {
+            control.setValue(normalized, { emitEvent: false });
+        }
+
+        this.selectedRoomType = normalized;
+    }
+
     setRoomTypes() {
-        const allRoomTypes = getRoomTypeOptions(this.translate)
+        const allRoomTypes = getRoomTypeOptions(this.translate);
         const visibleRoomTypes = this.includeNoAccommodation
             ? allRoomTypes
-            : allRoomTypes.filter((roomType) => roomType.id !== 0)
+            : allRoomTypes.filter((roomType) => roomType.id !== 0);
 
-        // Optional filtering by room type IDs.
-        // Keep "no accommodation" visible even when filtered.
-        if (Array.isArray(this.allowedRoomTypeIds) && this.allowedRoomTypeIds.length > 0) {
+        if (Array.isArray(this.allowedRoomTypeIds)) {
             const allowed = new Set(
                 this.allowedRoomTypeIds
                     .map((id) => Number(id))
-                    .filter((id) => Number.isFinite(id))
-            )
+                    .filter((id) => Number.isFinite(id)),
+            );
 
-            this.roomTypes = visibleRoomTypes.filter((roomType) =>
-                (this.includeNoAccommodation && roomType.id === 0) || allowed.has(roomType.id)
-            )
-            return
+            this.roomTypes = visibleRoomTypes.filter(
+                (roomType) =>
+                    (this.includeNoAccommodation && roomType.id === 0) ||
+                    allowed.has(roomType.id),
+            );
+        } else {
+            this.roomTypes = visibleRoomTypes;
         }
-
-        this.roomTypes = visibleRoomTypes
     }
 
     /**
@@ -104,22 +208,29 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
      * changed field name.
      * @param event the change event of the roomtype selector
      */
-    handleOnChange(event: DropdownChangeEvent) {
-        this.selectedRoomType = event.value
-        this.onChange(event.value)
-        this.onTouched()
-        this.change.emit({ value: event.value, field: this.controlName })
+    handleOnChange(event: DropdownChangeEvent | MultiSelectChangeEvent) {
+        const normalized = this.normalizeToSelectorValue((event as any).value);
+        this.selectedRoomType = normalized;
+
+        const control = this.getFormControl();
+        if (control) {
+            control.setValue(normalized, { emitEvent: false });
+        }
+
+        this.onChange(normalized);
+        this.onTouched();
+        this.change.emit({ value: normalized, field: this.controlName });
     }
 
     /**
      * Sets the disabled state of the component.
      * Used by Angular forms to enable/disable the input dynamically.
-     * 
+     *
      * @param isDisabled - Boolean indicating whether the component should be disabled.
      */
     setDisabledState(isDisabled: boolean): void {
-        this.disabled = isDisabled
-        this.cdRef.detectChanges()
+        this.disabled = isDisabled;
+        this.cdRef.detectChanges();
     }
 
     // ===========================
@@ -129,43 +240,53 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
     /**
      * Writes the value from the parent form into the component.
      * Used when the form initializes or updates externally.
-     * 
+     *
      * @param value - The selected conferences coming from the form.
      */
     writeValue(value: any): void {
-        this.selectedRoomType = value
-        this.cdRef.detectChanges()
+        this.lastWrittenValue = value;
+        this.selectedRoomType = this.normalizeToSelectorValue(value);
+        this.cdRef.detectChanges();
     }
 
     /**
      * Registers a callback function that is called when the value changes.
      * This is part of the ControlValueAccessor implementation.
-     * 
+     *
      * @param fn - The callback function to be triggered on value change.
      */
     registerOnChange(fn: any): void {
-        this.onChange = fn
+        this.onChange = fn;
     }
 
     /**
      * Registers a callback function that is called when the input is touched.
      * This is part of the ControlValueAccessor implementation.
-     * 
+     *
      * @param fn - The callback function to be triggered on input touch.
      */
     registerOnTouched(fn: any): void {
-        this.onTouched = fn
+        this.onTouched = fn;
     }
 
     /**
      * Callback function to handle value changes from the parent form.
      * Initially set as an empty function, but will be assigned dynamically.
      */
-    onChange = (_: any) => { }
+    onChange = (_: any) => {};
 
     /**
      * Callback function to handle when the input is touched.
      * Initially set as an empty function, but will be assigned dynamically.
      */
-    onTouched = () => { }
+    onTouched = () => {};
+
+    getSelectedOptions(
+        values: Array<number | string> | null | undefined,
+    ): RoomTypeOption[] {
+        const selectedValues = new Set(Array.isArray(values) ? values : []);
+        return this.roomTypes.filter((roomType) =>
+            selectedValues.has(this.getOptionValue(roomType)),
+        );
+    }
 }

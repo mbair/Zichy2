@@ -21,61 +21,67 @@ import { OrganizerContractingParty } from '../../api/contracting-party';
 import { User } from '../../api/user';
 import { Table } from 'primeng/table';
 import { formatDateDots } from '../../utils/date.utils';
-import { getCurrentQuestionSet, hasTranslationContent, normalizeQuestionTranslations } from '../../utils/question-set.utils';
+import {
+    getCurrentQuestionSet,
+    hasTranslationContent,
+    normalizeQuestionTranslations,
+} from '../../utils/question-set.utils';
+import {
+    extractConfiguredConferenceRoomTypeIds,
+    resolveConferenceEditorSelectableRoomTypeIds,
+} from '../../utils/conference-room-type.utils';
 
-type Option = { label: string; value: string }
+type Option = { label: string; value: string };
 
 @Component({
     selector: 'conference',
     templateUrl: './conference.component.html',
-    providers: [MessageService]
+    providers: [MessageService],
 })
-
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy
 // BUT!!! Don't delete ngOnDestroy, it has to stay here!
 @AutoUnsubscribe()
-
 export class ConferenceComponent implements OnInit {
-
-    loading: boolean = true                      // Loading overlay trigger value
-    cols: any[] = []                             // Table columns
-    tableItem: Conference = {}                   // One conference object
-    tableData: Conference[] = []                 // Data set displayed in a table
-    rowsPerPageOptions = [20, 50, 100]           // Possible rows per page
-    rowsPerPage: number = 20                     // Default rows per page
-    totalRecords: number = 0                     // Total number of rows in the table
-    page: number = 0                             // Current page
-    sortField: string = 'beginDate'              // Current sort field
-    sortOrder: number = 1                        // Current sort order
-    globalFilter: string = ''                    // Global filter
-    filterValues: { [key: string]: string } = {} // Table filter conditions
-    debounce: { [key: string]: any } = {}        // Search delay in filter field
-    conferenceForm: FormGroup                    // Form to create/update conference
-    questionsForm: FormGroup                     // Form to manage questions of the conference
-    formFieldInfosForm: FormGroup                // Form to manage questions of the conference
-    originalFormValues: any                      // The original values ​​of the form
-    originalQuestionsFormValues: any             // The original values ​​of the questions form
-    originalFormFieldInfosFormValues: any        // The original values of the form field infos form
-    sidebar: boolean = false                     // Table item maintenance sidebar
-    formFieldsInfosSidebar: boolean = false      // Form fields maintenance sidebar
-    formFieldsInfosPosition: Option[] = []       // Form fields informations position
-    questionsSidebar: boolean = false            // Questions maintenance sidebar
-    deleteDialog: boolean = false                // Popup for deleting table item
-    bulkDeleteDialog: boolean = false            // Popup for deleting table items
-    selected: Conference[] = []                  // Table items chosen by user
-    meals: any[] = []                            // Possible meals
-    organizerByConferenceId: { [conferenceId: number]: User | null } = {} // Organizer per expanded conference
-    expandedConferenceDetails: { [conferenceId: number]: Conference } = {} // Lazy-loaded details per expanded conference
-    loadingExpandedConferenceIds: Set<number> = new Set<number>()          // Loading state for expanded rows
-    organizerContractingParties: OrganizerContractingParty[] = []          // Contracting parties for selected organizer
-    organizerContractingPartiesLoading: boolean = false                    // Loading state for organizer contracting parties
-    organizerContractingPartiesMessage: string = ''                        // UX helper text under contracting party selector
-    canCreate: boolean = false                   // User has permission to create new user
-    canEdit: boolean = false                     // User has permission to update user
-    canDelete: boolean = false                   // User has permission to delete user
-    isOrganizer: boolean = false                 // User has organizer role
-    loggedInUserId: number                       // Logged in user id
-    isMobile: boolean = false                    // Mobile screen detection
+    loading: boolean = true; // Loading overlay trigger value
+    cols: any[] = []; // Table columns
+    tableItem: Conference = {}; // One conference object
+    tableData: Conference[] = []; // Data set displayed in a table
+    rowsPerPageOptions = [20, 50, 100]; // Possible rows per page
+    rowsPerPage: number = 20; // Default rows per page
+    totalRecords: number = 0; // Total number of rows in the table
+    page: number = 0; // Current page
+    sortField: string = 'beginDate'; // Current sort field
+    sortOrder: number = 1; // Current sort order
+    globalFilter: string = ''; // Global filter
+    filterValues: { [key: string]: string } = {}; // Table filter conditions
+    debounce: { [key: string]: any } = {}; // Search delay in filter field
+    conferenceForm: FormGroup; // Form to create/update conference
+    questionsForm: FormGroup; // Form to manage questions of the conference
+    formFieldInfosForm: FormGroup; // Form to manage questions of the conference
+    originalFormValues: any; // The original values ​​of the form
+    originalQuestionsFormValues: any; // The original values ​​of the questions form
+    originalFormFieldInfosFormValues: any; // The original values of the form field infos form
+    sidebar: boolean = false; // Table item maintenance sidebar
+    formFieldsInfosSidebar: boolean = false; // Form fields maintenance sidebar
+    formFieldsInfosPosition: Option[] = []; // Form fields informations position
+    questionsSidebar: boolean = false; // Questions maintenance sidebar
+    deleteDialog: boolean = false; // Popup for deleting table item
+    bulkDeleteDialog: boolean = false; // Popup for deleting table items
+    selected: Conference[] = []; // Table items chosen by user
+    meals: any[] = []; // Possible meals
+    organizerByConferenceId: { [conferenceId: number]: User | null } = {}; // Organizer per expanded conference
+    expandedConferenceDetails: { [conferenceId: number]: Conference } = {}; // Lazy-loaded details per expanded conference
+    loadingExpandedConferenceIds: Set<number> = new Set<number>(); // Loading state for expanded rows
+    organizerContractingParties: OrganizerContractingParty[] = []; // Contracting parties for selected organizer
+    organizerContractingPartiesLoading: boolean = false; // Loading state for organizer contracting parties
+    organizerContractingPartiesMessage: string = ''; // UX helper text under contracting party selector
+    canCreate: boolean = false; // User has permission to create new user
+    canEdit: boolean = false; // User has permission to update user
+    canDelete: boolean = false; // User has permission to delete user
+    isOrganizer: boolean = false; // User has organizer role
+    loggedInUserId: number; // Logged in user id
+    isMobile: boolean = false; // Mobile screen detection
+    conferenceSelectableRoomTypeIds: number[] | undefined = undefined;
 
     FORM_FIELD_INFOS_CONFIG = [
         { field: 'lastName', label: 'Vezetéknév' },
@@ -96,7 +102,7 @@ export class ConferenceComponent implements OnInit {
         { field: 'roomType', label: 'Szobatípus' },
         { field: 'roomMate', label: 'Kivel laknál egy szobában' },
         { field: 'payment', label: 'Fizetési mód' },
-    ]
+    ];
 
     private initialFormValues = {
         id: null,
@@ -119,15 +125,16 @@ export class ConferenceComponent implements OnInit {
         enabled: true,
         acceptanceCriteriaUrl: '',
         paymentMethodIds: [] as number[],
-    }
+        roomTypeIds: [] as number[],
+    };
 
-    private isFormValid$: Observable<boolean>
-    private formChanges$: Subject<void> = new Subject()
-    private conferenceObs$: Observable<any> | undefined
-    private serviceMessageObs$: Observable<any> | undefined
-    private questionMessageObs$: Observable<any> | undefined
-    private suppressOrganizerSelectionEffect: boolean = false
-    private suppressContractingPartySelectionEffect: boolean = false
+    private isFormValid$: Observable<boolean>;
+    private formChanges$: Subject<void> = new Subject();
+    private conferenceObs$: Observable<any> | undefined;
+    private serviceMessageObs$: Observable<any> | undefined;
+    private questionMessageObs$: Observable<any> | undefined;
+    private suppressOrganizerSelectionEffect: boolean = false;
+    private suppressContractingPartySelectionEffect: boolean = false;
 
     constructor(
         public userService: UserService,
@@ -139,10 +146,10 @@ export class ConferenceComponent implements OnInit {
         private mealService: MealService,
         private apiService: ApiService,
         private messageService: MessageService,
-        private responsiveService: ResponsiveService) {
-
+        private responsiveService: ResponsiveService,
+    ) {
         // Set default theme
-        this.changeTheme('indigo')
+        this.changeTheme('indigo');
 
         // Conference form fields and validators
         this.conferenceForm = this.formBuilder.group({
@@ -152,142 +159,231 @@ export class ConferenceComponent implements OnInit {
             endDate: [this.initialFormValues.endDate, Validators.required],
             firstMeal: [this.initialFormValues.firstMeal, Validators.required],
             lastMeal: [this.initialFormValues.lastMeal, Validators.required],
-            contractorName: [this.initialFormValues.contractorName, Validators.required],
-            contractorAdress: [this.initialFormValues.contractorAdress, Validators.required],
-            contractorTaxNumber: [this.initialFormValues.contractorTaxNumber, [Validators.required]],
-            contactName: [this.initialFormValues.contactName, Validators.required],
-            contactEmail: [this.initialFormValues.contactEmail, [Validators.required, emailDomainValidator()]],
-            contactPhone: [this.initialFormValues.contactPhone, Validators.required],
+            contractorName: [
+                this.initialFormValues.contractorName,
+                Validators.required,
+            ],
+            contractorAdress: [
+                this.initialFormValues.contractorAdress,
+                Validators.required,
+            ],
+            contractorTaxNumber: [
+                this.initialFormValues.contractorTaxNumber,
+                [Validators.required],
+            ],
+            contactName: [
+                this.initialFormValues.contactName,
+                Validators.required,
+            ],
+            contactEmail: [
+                this.initialFormValues.contactEmail,
+                [Validators.required, emailDomainValidator()],
+            ],
+            contactPhone: [
+                this.initialFormValues.contactPhone,
+                Validators.required,
+            ],
             formUrl: [this.initialFormValues.formUrl, Validators.required],
-            registrationEndDate: [this.initialFormValues.registrationEndDate, Validators.required],
-            guestEditEndDate: [this.initialFormValues.guestEditEndDate, Validators.required],
+            registrationEndDate: [
+                this.initialFormValues.registrationEndDate,
+                Validators.required,
+            ],
+            guestEditEndDate: [
+                this.initialFormValues.guestEditEndDate,
+                Validators.required,
+            ],
             organizer_user_id: [this.initialFormValues.organizer_user_id],
             contracting_party_id: [this.initialFormValues.contracting_party_id],
             enabled: [this.initialFormValues.enabled, { nonNullable: true }],
-            acceptanceCriteriaUrl: [this.initialFormValues.acceptanceCriteriaUrl, [urlValidator()]],
-            paymentMethodIds: [this.initialFormValues.paymentMethodIds, Validators.required],
-        })
+            acceptanceCriteriaUrl: [
+                this.initialFormValues.acceptanceCriteriaUrl,
+                [urlValidator()],
+            ],
+            paymentMethodIds: [
+                this.initialFormValues.paymentMethodIds,
+                Validators.required,
+            ],
+            roomTypeIds: [this.initialFormValues.roomTypeIds],
+        });
 
-        this.isFormValid$ = new BehaviorSubject<boolean>(false)
+        this.isFormValid$ = new BehaviorSubject<boolean>(false);
 
         // Monitor the name field changes
-        this.conferenceForm.get('name')?.valueChanges.subscribe(nameValue => {
-
-            const productionURL = this.apiService.productionURL
-            const developmentURL = this.apiService.developmentURL
-            const url = isDevMode() ? developmentURL : productionURL
+        this.conferenceForm.get('name')?.valueChanges.subscribe((nameValue) => {
+            const productionURL = this.apiService.productionURL;
+            const developmentURL = this.apiService.developmentURL;
+            const url = isDevMode() ? developmentURL : productionURL;
 
             // Create a slug from the name
-            let slug = this.slugify(nameValue)
+            let slug = this.slugify(nameValue);
 
             // Set the slug in the form
             this.conferenceForm.patchValue({
-                formUrl: `${url}/#/conference-form/${slug}`
-            })
-        })
+                formUrl: `${url}/#/conference-form/${slug}`,
+            });
+        });
 
         // Form fields infos
-        this.initializeFormFieldInfosForm()
+        this.initializeFormFieldInfosForm();
 
         // Questions form fields and validations
-        this.initializeQuestionsForm()
+        this.initializeQuestionsForm();
     }
 
     ngOnInit() {
         // Permissions
-        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canCreate => this.canCreate = canCreate)
-        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canEdit => this.canEdit = canEdit)
-        this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canDelete => this.canDelete = canDelete)
-        this.userService.hasRole(['Szervezo']).subscribe(isOrganizer => this.isOrganizer = isOrganizer)
-        this.loggedInUserId = this.userService.getLoggedInUserId()
+        this.userService
+            .hasRole(['Super Admin', 'Nagy Admin'])
+            .subscribe((canCreate) => (this.canCreate = canCreate));
+        this.userService
+            .hasRole(['Super Admin', 'Nagy Admin'])
+            .subscribe((canEdit) => (this.canEdit = canEdit));
+        this.userService
+            .hasRole(['Super Admin', 'Nagy Admin'])
+            .subscribe((canDelete) => (this.canDelete = canDelete));
+        this.userService
+            .hasRole(['Szervezo'])
+            .subscribe((isOrganizer) => (this.isOrganizer = isOrganizer));
+        this.loggedInUserId = this.userService.getLoggedInUserId();
 
         // Default filter values
-        this.filterValues['enabled'] = '1'
+        this.filterValues['enabled'] = '1';
 
         // Conferences
         this.conferenceObs$ = this.conferenceService.conferenceObs;
         this.conferenceObs$.subscribe((data: ApiResponse) => {
-            this.loading = false
+            this.loading = false;
             if (data) {
-                this.tableData = data.rows || []
-                this.totalRecords = data.totalItems || 0
-                this.page = data.currentPage || 0
+                this.tableData = data.rows || [];
+                this.totalRecords = data.totalItems || 0;
+                this.page = data.currentPage || 0;
             }
-        })
+        });
 
         // Get meals for selector
-        this.meals = this.mealService.getMealsForSelector()
+        this.meals = this.mealService.getMealsForSelector();
 
         // Monitor the changes of the window size
         this.responsiveService.isMobile$.subscribe((isMobile) => {
-            this.isMobile = isMobile
-        })
+            this.isMobile = isMobile;
+        });
 
         // Form validation
         this.isFormValid$ = this.formChanges$.pipe(
             debounceTime(300),
             distinctUntilChanged(),
-            map(() => this.conferenceForm.valid)
-        )
+            map(() => this.conferenceForm.valid),
+        );
 
         // Monitor the changes of the form
-        this.conferenceForm.valueChanges.subscribe(() => this.formChanges$.next())
+        this.conferenceForm.valueChanges.subscribe(() =>
+            this.formChanges$.next(),
+        );
 
-        this.conferenceForm.get('organizer_user_id')?.valueChanges.subscribe((organizerUserId) => {
-            if (this.suppressOrganizerSelectionEffect) {
-                return
-            }
-            this.onOrganizerSelectionChange(organizerUserId)
-        })
+        this.conferenceForm
+            .get('organizer_user_id')
+            ?.valueChanges.subscribe((organizerUserId) => {
+                if (this.suppressOrganizerSelectionEffect) {
+                    return;
+                }
+                this.onOrganizerSelectionChange(organizerUserId);
+            });
 
-        this.conferenceForm.get('contracting_party_id')?.valueChanges.subscribe((contractingPartyId) => {
-            if (this.suppressContractingPartySelectionEffect) {
-                return
-            }
-            this.onContractingPartySelectionChange(contractingPartyId)
-        })
+        this.conferenceForm
+            .get('contracting_party_id')
+            ?.valueChanges.subscribe((contractingPartyId) => {
+                if (this.suppressContractingPartySelectionEffect) {
+                    return;
+                }
+                this.onContractingPartySelectionChange(contractingPartyId);
+            });
 
         // Message
-        this.serviceMessageObs$ = this.conferenceService.messageObs
-        this.serviceMessageObs$.subscribe(message => this.handleMessage(message))
+        this.serviceMessageObs$ = this.conferenceService.messageObs;
+        this.serviceMessageObs$.subscribe((message) =>
+            this.handleMessage(message),
+        );
 
         // Question Message
-        this.questionMessageObs$ = this.questionService.messageObs
-        this.questionMessageObs$.subscribe(message => this.handleMessage(message))
+        this.questionMessageObs$ = this.questionService.messageObs;
+        this.questionMessageObs$.subscribe((message) =>
+            this.handleMessage(message),
+        );
     }
 
     // Getters for form validation
-    get id() { return this.conferenceForm.get('id') }
-    get name() { return this.conferenceForm.get('name') }
-    get beginDate() { return this.conferenceForm.get('beginDate') }
-    get endDate() { return this.conferenceForm.get('endDate') }
-    get firstMeal() { return this.conferenceForm.get('firstMeal') }
-    get lastMeal() { return this.conferenceForm.get('lastMeal') }
-    get contractorName() { return this.conferenceForm.get('contractorName') }
-    get contractorAdress() { return this.conferenceForm.get('contractorAdress') }
-    get contractorTaxNumber() { return this.conferenceForm.get('contractorTaxNumber') }
-    get contactName() { return this.conferenceForm.get('contactName') }
-    get contactEmail() { return this.conferenceForm.get('contactEmail') }
-    get contactPhone() { return this.conferenceForm.get('contactPhone') }
-    get formUrl() { return this.conferenceForm.get('formUrl') }
-    get registrationEndDate() { return this.conferenceForm.get('registrationEndDate') }
-    get guestEditEndDate() { return this.conferenceForm.get('guestEditEndDate') }
-    get contracting_party_id() { return this.conferenceForm.get('contracting_party_id') }
-    get enabled() { return this.conferenceForm.get('enabled') }
-    get acceptanceCriteriaUrl() { return this.conferenceForm.get('acceptanceCriteriaUrl') }
-    get paymentMethodIds() { return this.conferenceForm.get('paymentMethodIds') }
+    get id() {
+        return this.conferenceForm.get('id');
+    }
+    get name() {
+        return this.conferenceForm.get('name');
+    }
+    get beginDate() {
+        return this.conferenceForm.get('beginDate');
+    }
+    get endDate() {
+        return this.conferenceForm.get('endDate');
+    }
+    get firstMeal() {
+        return this.conferenceForm.get('firstMeal');
+    }
+    get lastMeal() {
+        return this.conferenceForm.get('lastMeal');
+    }
+    get contractorName() {
+        return this.conferenceForm.get('contractorName');
+    }
+    get contractorAdress() {
+        return this.conferenceForm.get('contractorAdress');
+    }
+    get contractorTaxNumber() {
+        return this.conferenceForm.get('contractorTaxNumber');
+    }
+    get contactName() {
+        return this.conferenceForm.get('contactName');
+    }
+    get contactEmail() {
+        return this.conferenceForm.get('contactEmail');
+    }
+    get contactPhone() {
+        return this.conferenceForm.get('contactPhone');
+    }
+    get formUrl() {
+        return this.conferenceForm.get('formUrl');
+    }
+    get registrationEndDate() {
+        return this.conferenceForm.get('registrationEndDate');
+    }
+    get guestEditEndDate() {
+        return this.conferenceForm.get('guestEditEndDate');
+    }
+    get contracting_party_id() {
+        return this.conferenceForm.get('contracting_party_id');
+    }
+    get enabled() {
+        return this.conferenceForm.get('enabled');
+    }
+    get acceptanceCriteriaUrl() {
+        return this.conferenceForm.get('acceptanceCriteriaUrl');
+    }
+    get paymentMethodIds() {
+        return this.conferenceForm.get('paymentMethodIds');
+    }
+    get roomTypeIds() {
+        return this.conferenceForm.get('roomTypeIds');
+    }
 
     // Gets the FormArray of questions
     get questions(): FormArray {
-        return this.questionsForm.get('questions') as FormArray
+        return this.questionsForm.get('questions') as FormArray;
     }
 
     get formFieldInfosArray(): FormArray {
-        return this.formFieldInfosForm.get('fields') as FormArray
+        return this.formFieldInfosForm.get('fields') as FormArray;
     }
 
     get formFieldInfosQuestions(): FormArray {
-        return this.formFieldInfosForm.get('questions') as FormArray
+        return this.formFieldInfosForm.get('questions') as FormArray;
     }
 
     /**
@@ -295,20 +391,31 @@ export class ConferenceComponent implements OnInit {
      * @returns
      */
     doQuery() {
-        this.loading = true
-        this.expandedConferenceDetails = {}
-        this.organizerByConferenceId = {}
-        this.loadingExpandedConferenceIds.clear()
+        this.loading = true;
+        this.expandedConferenceDetails = {};
+        this.organizerByConferenceId = {};
+        this.loadingExpandedConferenceIds.clear();
 
-        const filters = Object.keys(this.filterValues)
-            .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
-        const queryParams = filters.filter(x => x.length > 0).join('&')
+        const filters = Object.keys(this.filterValues).map((key) =>
+            this.filterValues[key].length > 0
+                ? `${key}=${this.filterValues[key]}`
+                : '',
+        );
+        const queryParams = filters.filter((x) => x.length > 0).join('&');
 
         if (this.globalFilter !== '') {
-            return this.conferenceService.getBySearch(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
+            return this.conferenceService.getBySearch(this.globalFilter, {
+                sortField: this.sortField,
+                sortOrder: this.sortOrder,
+            });
         }
 
-        return this.conferenceService.get(this.page, this.rowsPerPage, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
+        return this.conferenceService.get(
+            this.page,
+            this.rowsPerPage,
+            { sortField: this.sortField, sortOrder: this.sortOrder },
+            queryParams,
+        );
     }
 
     /**
@@ -317,43 +424,49 @@ export class ConferenceComponent implements OnInit {
      * @param field
      */
     onFilter(event: any, field: string) {
-        const noWaitFields = ['beginDate', 'endDate', 'firstMeal', 'lastMeal', 'enabled']
-        let filterValue = ''
+        const noWaitFields = [
+            'beginDate',
+            'endDate',
+            'firstMeal',
+            'lastMeal',
+            'enabled',
+        ];
+        let filterValue = '';
 
         // For enabled field convert true to "1" and false to "0"
         if (field === 'enabled') {
-            filterValue = event
+            filterValue = event;
         }
         // Calendar date as String
         else if (event instanceof Date) {
-            filterValue = formatDateDots(event)
+            filterValue = formatDateDots(event);
         } else {
             if (event && (event.value || event.target?.value)) {
-                filterValue = event.value || event.target?.value
-                filterValue = filterValue.toString()
+                filterValue = event.value || event.target?.value;
+                filterValue = filterValue.toString();
             } else {
-                this.filterValues[field] = ''
+                this.filterValues[field] = '';
             }
         }
 
-        this.filterValues[field] = filterValue
+        this.filterValues[field] = filterValue;
 
         // If the field is a dropdown, run doQuery immediately
         if (noWaitFields.includes(field)) {
             if (this.filterValues[field] === filterValue) {
-                this.doQuery()
+                this.doQuery();
             }
             // otherwise wait for the debounce time
         } else {
             if (this.debounce[field]) {
-                clearTimeout(this.debounce[field])
+                clearTimeout(this.debounce[field]);
             }
 
             this.debounce[field] = setTimeout(() => {
                 if (this.filterValues[field] === filterValue) {
-                    this.doQuery()
+                    this.doQuery();
                 }
-            }, 500)
+            }, 500);
         }
     }
 
@@ -364,12 +477,12 @@ export class ConferenceComponent implements OnInit {
      * @param event
      */
     onLazyLoad(event: any) {
-        this.page = event.first! / event.rows!
-        this.rowsPerPage = event.rows ?? this.rowsPerPage
-        this.sortField = event.sortField ?? ''
-        this.sortOrder = event.sortOrder ?? 1
-        this.globalFilter = event.globalFilter ?? ''
-        this.doQuery()
+        this.page = event.first! / event.rows!;
+        this.rowsPerPage = event.rows ?? this.rowsPerPage;
+        this.sortField = event.sortField ?? '';
+        this.sortOrder = event.sortOrder ?? 1;
+        this.globalFilter = event.globalFilter ?? '';
+        this.doQuery();
     }
 
     /**
@@ -378,7 +491,10 @@ export class ConferenceComponent implements OnInit {
      * @param event
      */
     onGlobalFilter(table: Table, event: Event) {
-        table.filterGlobal((event.target as HTMLInputElement).value, 'contains')
+        table.filterGlobal(
+            (event.target as HTMLInputElement).value,
+            'contains',
+        );
     }
 
     /**
@@ -387,125 +503,174 @@ export class ConferenceComponent implements OnInit {
      * @param conference The conference object for the row that was expanded.
      */
     onRowExpand(conference: Conference): void {
-        const conferenceId = Number(conference?.id)
-        if (!Number.isFinite(conferenceId)) return
+        const conferenceId = Number(conference?.id);
+        if (!Number.isFinite(conferenceId)) return;
 
         // Skip if already loaded for this row
         if (this.expandedConferenceDetails[conferenceId]) {
-            this.loadOrganizerForConference(conferenceId, this.expandedConferenceDetails[conferenceId].organizer_user_id)
-            return
+            this.loadOrganizerForConference(
+                conferenceId,
+                this.expandedConferenceDetails[conferenceId].organizer_user_id,
+            );
+            return;
         }
 
-        this.loadingExpandedConferenceIds.add(conferenceId)
+        this.loadingExpandedConferenceIds.add(conferenceId);
         this.conferenceService.getById(conferenceId).subscribe({
             next: (response: any) => {
-                const detailedConference = this.normalizeConferenceFromResponse(response, conference)
-                this.expandedConferenceDetails[conferenceId] = detailedConference
-                this.loadOrganizerForConference(conferenceId, detailedConference.organizer_user_id)
-                this.loadingExpandedConferenceIds.delete(conferenceId)
+                const detailedConference = this.normalizeConferenceFromResponse(
+                    response,
+                    conference,
+                );
+                this.expandedConferenceDetails[conferenceId] =
+                    detailedConference;
+                this.loadOrganizerForConference(
+                    conferenceId,
+                    detailedConference.organizer_user_id,
+                );
+                this.loadingExpandedConferenceIds.delete(conferenceId);
             },
             error: () => {
                 // Fallback to the row data if details fetch fails
-                this.expandedConferenceDetails[conferenceId] = { ...conference }
-                this.loadOrganizerForConference(conferenceId, conference.organizer_user_id)
-                this.loadingExpandedConferenceIds.delete(conferenceId)
-            }
-        })
+                this.expandedConferenceDetails[conferenceId] = {
+                    ...conference,
+                };
+                this.loadOrganizerForConference(
+                    conferenceId,
+                    conference.organizer_user_id,
+                );
+                this.loadingExpandedConferenceIds.delete(conferenceId);
+            },
+        });
     }
 
-    private normalizeConferenceFromResponse(response: any, fallbackConference: Conference): Conference {
+    private normalizeConferenceFromResponse(
+        response: any,
+        fallbackConference: Conference,
+    ): Conference {
         if (response && typeof response === 'object') {
-            if (response.rows && Array.isArray(response.rows) && response.rows.length > 0) {
-                return this.normalizeExpandedConference({ ...fallbackConference, ...response.rows[0] })
+            if (
+                response.rows &&
+                Array.isArray(response.rows) &&
+                response.rows.length > 0
+            ) {
+                return this.normalizeExpandedConference({
+                    ...fallbackConference,
+                    ...response.rows[0],
+                });
             }
             if (response.row && typeof response.row === 'object') {
-                return this.normalizeExpandedConference({ ...fallbackConference, ...response.row })
+                return this.normalizeExpandedConference({
+                    ...fallbackConference,
+                    ...response.row,
+                });
             }
-            return this.normalizeExpandedConference({ ...fallbackConference, ...response })
+            return this.normalizeExpandedConference({
+                ...fallbackConference,
+                ...response,
+            });
         }
-        return this.normalizeExpandedConference({ ...fallbackConference })
+        return this.normalizeExpandedConference({ ...fallbackConference });
     }
 
     getExpandedConference(conference: Conference): Conference {
-        const conferenceId = Number(conference?.id)
-        if (!Number.isFinite(conferenceId)) return conference
-        return this.expandedConferenceDetails[conferenceId] || conference
+        const conferenceId = Number(conference?.id);
+        if (!Number.isFinite(conferenceId)) return conference;
+        return this.expandedConferenceDetails[conferenceId] || conference;
     }
 
     getExpandedConferenceQuestions(conference: Conference): any[] {
-        const currentQuestionSet = getCurrentQuestionSet((this.getExpandedConference(conference) as any)?.questions)
-        return currentQuestionSet ? [currentQuestionSet] : []
+        const currentQuestionSet = getCurrentQuestionSet(
+            (this.getExpandedConference(conference) as any)?.questions,
+        );
+        return currentQuestionSet ? [currentQuestionSet] : [];
     }
 
     getQuestionTranslations(question: any): any[] {
-        return normalizeQuestionTranslations(question?.translations)
+        return normalizeQuestionTranslations(question?.translations);
     }
 
     isExpandedConferenceLoading(conference: Conference): boolean {
-        const conferenceId = Number(conference?.id)
-        if (!Number.isFinite(conferenceId)) return false
-        return this.loadingExpandedConferenceIds.has(conferenceId)
+        const conferenceId = Number(conference?.id);
+        if (!Number.isFinite(conferenceId)) return false;
+        return this.loadingExpandedConferenceIds.has(conferenceId);
     }
 
-    private loadOrganizerForConference(conferenceId: number, organizerId: any): void {
+    private loadOrganizerForConference(
+        conferenceId: number,
+        organizerId: any,
+    ): void {
         if (!organizerId) {
-            this.organizerByConferenceId[conferenceId] = null
-            return
+            this.organizerByConferenceId[conferenceId] = null;
+            return;
         }
-        this.organizerByConferenceId[conferenceId] = null
-        this.userService.getUserById(organizerId).subscribe((user: User | null) => {
-            this.organizerByConferenceId[conferenceId] = user
-        })
+        this.organizerByConferenceId[conferenceId] = null;
+        this.userService
+            .getUserById(organizerId)
+            .subscribe((user: User | null) => {
+                this.organizerByConferenceId[conferenceId] = user;
+            });
     }
 
     getOrganizerName(conference: Conference): string {
-        const conferenceId = Number(conference?.id)
-        if (!Number.isFinite(conferenceId)) return ''
-        return this.organizerByConferenceId[conferenceId]?.fullname || ''
+        const conferenceId = Number(conference?.id);
+        if (!Number.isFinite(conferenceId)) return '';
+        return this.organizerByConferenceId[conferenceId]?.fullname || '';
     }
 
     private normalizeExpandedConference(conference: Conference): Conference {
-        const normalized = { ...conference } as any
+        const normalized = { ...conference } as any;
 
         if (normalized.questions && !Array.isArray(normalized.questions)) {
-            normalized.questions = [normalized.questions]
+            normalized.questions = [normalized.questions];
         }
 
         if (Array.isArray(normalized.questions)) {
-            normalized.questions = normalized.questions.map((question: any) => ({
-                ...question,
-                translations: Array.isArray(question?.translations)
-                    ? question.translations
-                    : (question?.translations ? [question.translations] : [])
-            }))
+            normalized.questions = normalized.questions.map(
+                (question: any) => ({
+                    ...question,
+                    translations: Array.isArray(question?.translations)
+                        ? question.translations
+                        : question?.translations
+                          ? [question.translations]
+                          : [],
+                }),
+            );
         }
 
-        return normalized
+        return normalized;
     }
 
-    private withConferenceDetails(conference: Conference, onReady: (detailedConference: Conference) => void): void {
-        const conferenceId = Number(conference?.id)
+    private withConferenceDetails(
+        conference: Conference,
+        onReady: (detailedConference: Conference) => void,
+    ): void {
+        const conferenceId = Number(conference?.id);
         if (!Number.isFinite(conferenceId)) {
-            onReady(conference)
-            return
+            onReady(conference);
+            return;
         }
 
-        const cached = this.expandedConferenceDetails[conferenceId]
+        const cached = this.expandedConferenceDetails[conferenceId];
         if (cached) {
-            onReady(cached)
-            return
+            onReady(cached);
+            return;
         }
 
         this.conferenceService.getById(conferenceId).subscribe({
             next: (response: any) => {
-                const detailedConference = this.normalizeConferenceFromResponse(response, conference)
-                this.expandedConferenceDetails[conferenceId] = detailedConference
-                onReady(detailedConference)
+                const detailedConference = this.normalizeConferenceFromResponse(
+                    response,
+                    conference,
+                );
+                this.expandedConferenceDetails[conferenceId] =
+                    detailedConference;
+                onReady(detailedConference);
             },
             error: () => {
-                onReady(conference)
-            }
-        })
+                onReady(conference);
+            },
+        });
     }
 
     /**
@@ -514,26 +679,26 @@ export class ConferenceComponent implements OnInit {
      * @param message service response message
      */
     handleMessage(message: any) {
-        if (!message) return
+        if (!message) return;
 
-        this.loading = false
+        this.loading = false;
 
         if (message == 'ERROR') {
             this.messageService.add({
                 severity: 'error',
                 summary: 'Error',
-                detail: 'Hiba történt!'
-            })
+                detail: 'Hiba történt!',
+            });
         } else {
             // Show service response message
-            this.messageService.add(message)
+            this.messageService.add(message);
 
             // Reset selected table Item(s)
-            this.tableItem = {}
-            this.selected = []
+            this.tableItem = {};
+            this.selected = [];
 
             // Query for data changes
-            this.doQuery()
+            this.doQuery();
         }
     }
 
@@ -541,32 +706,36 @@ export class ConferenceComponent implements OnInit {
      * Initializes the form field infos form
      */
     initializeFormFieldInfosForm(fieldInfos?: FormFieldInfo[]) {
-
         this.formFieldsInfosPosition = [
             { label: 'Mező alatti szöveg', value: 'text' },
-            { label: 'Információs buborék', value: 'bubble' }
-        ]
+            { label: 'Információs buborék', value: 'bubble' },
+        ];
 
         // Reinitialize the form, including the questions FormArray
         this.formFieldInfosForm = this.formBuilder.group({
             conferenceId: [this.tableItem.id, Validators.required],
             fields: this.formBuilder.array(
-                this.FORM_FIELD_INFOS_CONFIG.map(cfg => {
-                    const found = fieldInfos?.find(f => f.field === cfg.field)
-                    return this.formBuilder.group({
-                        field: [cfg.field],
-                        info: this.formBuilder.group({
-                            hu: [found?.info['hu'] || ''],
-                            en: [found?.info['en'] || ''],
-                        }),
-                        position: [found?.position || 'text'],
-                    }, { validators: allLanguagesRequiredValidator() })
-                })
-            )
-        })
+                this.FORM_FIELD_INFOS_CONFIG.map((cfg) => {
+                    const found = fieldInfos?.find(
+                        (f) => f.field === cfg.field,
+                    );
+                    return this.formBuilder.group(
+                        {
+                            field: [cfg.field],
+                            info: this.formBuilder.group({
+                                hu: [found?.info['hu'] || ''],
+                                en: [found?.info['en'] || ''],
+                            }),
+                            position: [found?.position || 'text'],
+                        },
+                        { validators: allLanguagesRequiredValidator() },
+                    );
+                }),
+            ),
+        });
 
         // Store original values for comparison
-        this.originalFormFieldInfosFormValues = this.formFieldInfosForm.value
+        this.originalFormFieldInfosFormValues = this.formFieldInfosForm.value;
     }
 
     /**
@@ -579,41 +748,53 @@ export class ConferenceComponent implements OnInit {
      * corresponding language.
      */
     initializeQuestionsForm() {
-        const maxQuestions = 5
-        const currentQuestionSet = getCurrentQuestionSet(this.tableItem.questions)
-        const existingQuestions = normalizeQuestionTranslations(currentQuestionSet?.translations)
-            .filter((translation) => hasTranslationContent(translation))
+        const maxQuestions = 5;
+        const currentQuestionSet = getCurrentQuestionSet(
+            this.tableItem.questions,
+        );
+        const existingQuestions = normalizeQuestionTranslations(
+            currentQuestionSet?.translations,
+        ).filter((translation) => hasTranslationContent(translation));
 
         // Reinitialize the form, including the questions FormArray
         this.questionsForm = this.formBuilder.group({
             conferenceid: [this.tableItem.id],
-            questions: this.formBuilder.array([])
-        })
+            questions: this.formBuilder.array([]),
+        });
 
         // Use local variable instead of this.questions getter
-        const questionsArray = this.questionsForm.get('questions') as FormArray
+        const questionsArray = this.questionsForm.get('questions') as FormArray;
 
         // Fill form with stored questions
         existingQuestions.forEach((question: any) => {
-            questionsArray.push(this.formBuilder.group({
-                hu: [question.hu],
-                en: [question.en]
-            }, { validators: allLanguagesRequiredValidator() }))
-        })
+            questionsArray.push(
+                this.formBuilder.group(
+                    {
+                        hu: [question.hu],
+                        en: [question.en],
+                    },
+                    { validators: allLanguagesRequiredValidator() },
+                ),
+            );
+        });
 
         // Add empty questions if needed
         const missingQuestions = maxQuestions - questionsArray.length;
         for (let i = 0; i < missingQuestions; i++) {
-            questionsArray.push(this.formBuilder.group({
-                hu: [''],
-                en: ['']
-            }, { validators: allLanguagesRequiredValidator() }))
+            questionsArray.push(
+                this.formBuilder.group(
+                    {
+                        hu: [''],
+                        en: [''],
+                    },
+                    { validators: allLanguagesRequiredValidator() },
+                ),
+            );
         }
 
         // Store original values for comparison
-        this.originalQuestionsFormValues = this.questionsForm.value
+        this.originalQuestionsFormValues = this.questionsForm.value;
     }
-
 
     /**
      * Generates a slugified formUrl based on the name of the conference,
@@ -621,9 +802,9 @@ export class ConferenceComponent implements OnInit {
      * Takes env into account, doesn't link to PROD on DEV
      */
     setFormUrl() {
-        let formUrl = this.tableItem.name || ''
-        formUrl = this.slugify(formUrl)
-        this.tableItem.formUrl = `/conference-form/${formUrl}`
+        let formUrl = this.tableItem.name || '';
+        formUrl = this.slugify(formUrl);
+        this.tableItem.formUrl = `/conference-form/${formUrl}`;
     }
 
     /**
@@ -633,25 +814,26 @@ export class ConferenceComponent implements OnInit {
      * @param conference the conference object
      */
     navigateToConferenceForm(conference: any) {
-        const formUrl = this.slugify(conference.name)
-        this.router.navigate(['/conference-form', formUrl])
+        const formUrl = this.slugify(conference.name);
+        this.router.navigate(['/conference-form', formUrl]);
     }
 
     /**
      * Create new Conference
      */
     create() {
-        this.suppressOrganizerSelectionEffect = true
-        this.suppressContractingPartySelectionEffect = true
-        this.conferenceForm.reset(this.initialFormValues)
-        this.suppressOrganizerSelectionEffect = false
-        this.suppressContractingPartySelectionEffect = false
-        this.clearOrganizerContractingParties(false)
+        this.suppressOrganizerSelectionEffect = true;
+        this.suppressContractingPartySelectionEffect = true;
+        this.conferenceForm.reset(this.initialFormValues);
+        this.suppressOrganizerSelectionEffect = false;
+        this.suppressContractingPartySelectionEffect = false;
+        this.clearOrganizerContractingParties(false);
+        this.conferenceSelectableRoomTypeIds = undefined;
 
         // Store original values for Cancel (create mode)
-        this.originalFormValues = this.conferenceForm.getRawValue()
+        this.originalFormValues = this.conferenceForm.getRawValue();
 
-        this.sidebar = true
+        this.sidebar = true;
     }
 
     /**
@@ -659,84 +841,93 @@ export class ConferenceComponent implements OnInit {
      * @param conference
      */
     edit(conference: Conference) {
-        this.suppressOrganizerSelectionEffect = true
-        this.suppressContractingPartySelectionEffect = true
-        this.conferenceForm.reset(this.initialFormValues)
+        this.loading = true;
+        this.suppressOrganizerSelectionEffect = true;
+        this.suppressContractingPartySelectionEffect = true;
+        this.conferenceForm.reset(this.initialFormValues);
 
-        // Normalize backend payload to number[] for the MultiSelect.
-        // Supports both shapes:
-        // - conference.paymentMethods: [{ id: 1, ... }, ...]
-        // - conference.paymentMethodIds: [1,2,3] or [{ id: 1 }, ...]
-        const raw = (conference as any).paymentMethods
-            ?? (conference as any).paymentMethodIds
-            ?? []
+        this.withConferenceDetails(conference, (detailedConference) => {
+            const raw =
+                (detailedConference as any).paymentMethods ??
+                (detailedConference as any).paymentMethodIds ??
+                [];
 
-        const paymentMethodIds = (Array.isArray(raw) ? raw : [])
-            .map((pm: any) => Number(pm?.id ?? pm))
-            .filter((n: number) => Number.isFinite(n))
+            const paymentMethodIds = (Array.isArray(raw) ? raw : [])
+                .map((pm: any) => Number(pm?.id ?? pm))
+                .filter((n: number) => Number.isFinite(n));
 
-        this.conferenceForm.patchValue({
-            ...conference,
-            paymentMethodIds
-        })
-        this.suppressOrganizerSelectionEffect = false
-        this.suppressContractingPartySelectionEffect = false
+            const roomTypeIds =
+                extractConfiguredConferenceRoomTypeIds(detailedConference);
+            this.conferenceSelectableRoomTypeIds =
+                resolveConferenceEditorSelectableRoomTypeIds(
+                    detailedConference,
+                );
 
-        const organizerUserId = Number(conference.organizer_user_id)
-        if (Number.isFinite(organizerUserId)) {
-            this.loadOrganizerContractingParties(organizerUserId, {
-                selectedContractingPartyId: conference.contracting_party_id,
-                applySnapshotValues: false,
-            })
-        } else {
-            this.clearOrganizerContractingParties(false)
-        }
+            this.conferenceForm.patchValue({
+                ...detailedConference,
+                paymentMethodIds,
+                roomTypeIds,
+            });
+            this.suppressOrganizerSelectionEffect = false;
+            this.suppressContractingPartySelectionEffect = false;
 
-        // Store original values for Cancel (edit mode)
-        this.originalFormValues = this.conferenceForm.getRawValue()
+            const organizerUserId = Number(
+                detailedConference.organizer_user_id,
+            );
+            if (Number.isFinite(organizerUserId)) {
+                this.loadOrganizerContractingParties(organizerUserId, {
+                    selectedContractingPartyId:
+                        detailedConference.contracting_party_id,
+                    applySnapshotValues: false,
+                });
+            } else {
+                this.clearOrganizerContractingParties(false);
+            }
 
-        // Force validation + reveal already-invalid persisted values
-        this.conferenceForm.updateValueAndValidity({ emitEvent: false })
-        this.markInvalidControlsTouched(this.conferenceForm)
+            this.originalFormValues = this.conferenceForm.getRawValue();
+            this.conferenceForm.updateValueAndValidity({ emitEvent: false });
+            this.markInvalidControlsTouched(this.conferenceForm);
 
-        this.sidebar = true
+            this.loading = false;
+            this.sidebar = true;
+        });
     }
 
     /**
      * Delete the Conference
      */
     delete() {
-        this.loading = true
-        this.deleteDialog = false
-        this.conferenceService.delete(this.tableItem)
+        this.loading = true;
+        this.deleteDialog = false;
+        this.conferenceService.delete(this.tableItem);
     }
 
     /**
      * Delete selected Conferences
      */
     deleteSelected() {
-        this.loading = true
-        this.deleteDialog = false
-        this.conferenceService.bulkdelete(this.selected)
+        this.loading = true;
+        this.deleteDialog = false;
+        this.conferenceService.bulkdelete(this.selected);
     }
 
     /**
      * Saving the form
      */
     save() {
-        this.conferenceForm.markAllAsTouched()
-        this.conferenceForm.updateValueAndValidity()
+        this.conferenceForm.markAllAsTouched();
+        this.conferenceForm.updateValueAndValidity();
 
-        this.loading = true
-        const formValues = this.conferenceForm.getRawValue()
+        this.loading = true;
+        const formValues = this.conferenceForm.getRawValue();
 
         if (!formValues.id) {
-            this.conferenceService.create(formValues)
+            this.conferenceService.create(formValues);
         } else {
-            this.conferenceService.update(formValues)
+            this.conferenceService.update(formValues);
         }
 
-        this.sidebar = false
+        this.sidebar = false;
     }
 
     /**
@@ -744,20 +935,25 @@ export class ConferenceComponent implements OnInit {
      */
     cancel() {
         // Fallback to initial values if original is missing for any reason
-        this.suppressOrganizerSelectionEffect = true
-        this.suppressContractingPartySelectionEffect = true
-        this.conferenceForm.reset(this.originalFormValues ?? this.initialFormValues)
-        this.suppressOrganizerSelectionEffect = false
-        this.suppressContractingPartySelectionEffect = false
+        this.suppressOrganizerSelectionEffect = true;
+        this.suppressContractingPartySelectionEffect = true;
+        this.conferenceForm.reset(
+            this.originalFormValues ?? this.initialFormValues,
+        );
+        this.suppressOrganizerSelectionEffect = false;
+        this.suppressContractingPartySelectionEffect = false;
 
-        const organizerUserId = Number(this.originalFormValues?.organizer_user_id)
+        const organizerUserId = Number(
+            this.originalFormValues?.organizer_user_id,
+        );
         if (Number.isFinite(organizerUserId)) {
             this.loadOrganizerContractingParties(organizerUserId, {
-                selectedContractingPartyId: this.originalFormValues?.contracting_party_id,
+                selectedContractingPartyId:
+                    this.originalFormValues?.contracting_party_id,
                 applySnapshotValues: false,
-            })
+            });
         } else {
-            this.clearOrganizerContractingParties(false)
+            this.clearOrganizerContractingParties(false);
         }
     }
 
@@ -767,40 +963,43 @@ export class ConferenceComponent implements OnInit {
      */
     editFormFieldInfos(conference: Conference) {
         this.withConferenceDetails(conference, (detailedConference) => {
-            this.tableItem = detailedConference
-            this.formFieldInfosForm.reset()
-            this.initializeFormFieldInfosForm(detailedConference.formFieldInfos)
-            this.formFieldsInfosSidebar = true
-        })
+            this.tableItem = detailedConference;
+            this.formFieldInfosForm.reset();
+            this.initializeFormFieldInfosForm(
+                detailedConference.formFieldInfos,
+            );
+            this.formFieldsInfosSidebar = true;
+        });
     }
 
     /**
      * Saving the form field infos form
      */
     saveFormFieldInfos() {
-        if (this.formFieldInfosForm.invalid) return
+        if (this.formFieldInfosForm.invalid) return;
 
-        const val = this.formFieldInfosForm.value
+        const val = this.formFieldInfosForm.value;
 
         // Only where at least one language is filled in
         const infosToSave = val.fields.filter(
-            (f: { info: { hu: string; en: string } }) => f.info.hu?.trim() || f.info.en?.trim()
-        )
+            (f: { info: { hu: string; en: string } }) =>
+                f.info.hu?.trim() || f.info.en?.trim(),
+        );
 
         const updatedConference = {
             ...this.tableItem,
-            formFieldInfos: infosToSave
-        }
+            formFieldInfos: infosToSave,
+        };
 
-        this.conferenceService.update(updatedConference)
-        this.formFieldsInfosSidebar = false
+        this.conferenceService.update(updatedConference);
+        this.formFieldsInfosSidebar = false;
     }
 
     /**
      * Cancel saving the form field infos form
      */
     cancelFormFieldInfos() {
-        this.formFieldInfosForm.reset(this.originalFormFieldInfosFormValues)
+        this.formFieldInfosForm.reset(this.originalFormFieldInfosFormValues);
     }
 
     /**
@@ -809,40 +1008,42 @@ export class ConferenceComponent implements OnInit {
      */
     editQuestions(conference: Conference) {
         this.withConferenceDetails(conference, (detailedConference) => {
-            this.tableItem = detailedConference
-            this.questionsForm.reset()
-            this.initializeQuestionsForm()
-            this.questionsSidebar = true
-        })
+            this.tableItem = detailedConference;
+            this.questionsForm.reset();
+            this.initializeQuestionsForm();
+            this.questionsSidebar = true;
+        });
     }
 
     /**
      * Saving the questions form
      */
     saveQuestions() {
-        this.loading = true
-        const currentQuestionSet = getCurrentQuestionSet(this.tableItem.questions)
+        this.loading = true;
+        const currentQuestionSet = getCurrentQuestionSet(
+            this.tableItem.questions,
+        );
         const questions = {
             id: currentQuestionSet?.id ?? null,
             conferenceid: this.tableItem.id,
             translations: this.questionsForm.value.questions,
-        }
+        };
         // Question insert
         if (questions.id == null) {
-            this.questionService.create(questions)
+            this.questionService.create(questions);
         }
         // Question update
         else {
-            this.questionService.update(questions)
+            this.questionService.update(questions);
         }
-        this.questionsSidebar = false
+        this.questionsSidebar = false;
     }
 
     /**
      * Cancel saving the questions form
      */
     cancelQuestions() {
-        this.questionsForm.reset(this.originalQuestionsFormValues)
+        this.questionsForm.reset(this.originalQuestionsFormValues);
     }
 
     /**
@@ -855,23 +1056,40 @@ export class ConferenceComponent implements OnInit {
 
         // Define replacements for accented Hungarian characters
         const map: { [key: string]: string } = {
-            'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ö': 'o', 'ő': 'o',
-            'ú': 'u', 'ü': 'u', 'ű': 'u', 'Á': 'A', 'É': 'E', 'Í': 'I',
-            'Ó': 'O', 'Ö': 'O', 'Ő': 'O', 'Ú': 'U', 'Ü': 'U', 'Ű': 'U'
-        }
+            á: 'a',
+            é: 'e',
+            í: 'i',
+            ó: 'o',
+            ö: 'o',
+            ő: 'o',
+            ú: 'u',
+            ü: 'u',
+            ű: 'u',
+            Á: 'A',
+            É: 'E',
+            Í: 'I',
+            Ó: 'O',
+            Ö: 'O',
+            Ő: 'O',
+            Ú: 'U',
+            Ü: 'U',
+            Ű: 'U',
+        };
 
         // Replace accented characters
-        str = str.split('')
-            .map(char => map[char] || char) // Replace if in map
-            .join('')
+        str = str
+            .split('')
+            .map((char) => map[char] || char) // Replace if in map
+            .join('');
 
-        str = str.trim()                        // trim leading/trailing white space
-            .toLowerCase()                 // convert string to lowercase
-            .replace(/[^a-z0-9 -]/g, '')   // remove any non-alphanumeric characters
-            .replace(/\s+/g, '-')          // replace spaces with hyphens
-            .replace(/-+/g, '-')           // remove consecutive hyphens
+        str = str
+            .trim() // trim leading/trailing white space
+            .toLowerCase() // convert string to lowercase
+            .replace(/[^a-z0-9 -]/g, '') // remove any non-alphanumeric characters
+            .replace(/\s+/g, '-') // replace spaces with hyphens
+            .replace(/-+/g, '-'); // remove consecutive hyphens
 
-        return str
+        return str;
     }
 
     /**
@@ -879,26 +1097,26 @@ export class ConferenceComponent implements OnInit {
      * @param url
      */
     copyUrl(url: string) {
-        if (!url) return
-        navigator.clipboard.writeText(url)
+        if (!url) return;
+        navigator.clipboard.writeText(url);
         this.messageService.add({
             severity: 'success',
             summary: 'Link a vágólapra másolva',
-            detail: url
-        })
+            detail: url,
+        });
     }
 
     // Get the style class for a meal
     getMealStyle(meal: string) {
         switch (meal) {
             case 'reggeli':
-                return 'breakfast'
+                return 'breakfast';
             case 'ebéd':
-                return 'lunch'
+                return 'lunch';
             case 'vacsora':
-                return 'dinner'
+                return 'dinner';
             default:
-                return 'nothing'
+                return 'nothing';
         }
     }
 
@@ -912,19 +1130,24 @@ export class ConferenceComponent implements OnInit {
      * When the new style sheet is loaded, it calls the onComplete callback.
      */
     replaceThemeLink(href: string, onComplete: () => void) {
-        const themeLink = <HTMLLinkElement>document.getElementById('theme-link')
-        const cloneLinkElement = <HTMLLinkElement>themeLink.cloneNode(true)
+        const themeLink = <HTMLLinkElement>(
+            document.getElementById('theme-link')
+        );
+        const cloneLinkElement = <HTMLLinkElement>themeLink.cloneNode(true);
 
-        cloneLinkElement.setAttribute('href', href)
-        cloneLinkElement.setAttribute('id', 'theme-link-clone')
+        cloneLinkElement.setAttribute('href', href);
+        cloneLinkElement.setAttribute('id', 'theme-link-clone');
 
-        themeLink.parentNode!.insertBefore(cloneLinkElement, themeLink.nextSibling)
+        themeLink.parentNode!.insertBefore(
+            cloneLinkElement,
+            themeLink.nextSibling,
+        );
 
         cloneLinkElement.addEventListener('load', () => {
-            themeLink.remove()
-            cloneLinkElement.setAttribute('id', 'theme-link')
-            onComplete()
-        })
+            themeLink.remove();
+            cloneLinkElement.setAttribute('id', 'theme-link');
+            onComplete();
+        });
     }
 
     /**
@@ -934,165 +1157,219 @@ export class ConferenceComponent implements OnInit {
      * After the new style sheet is loaded, updates the layout service's theme and notifies the listeners.
      */
     changeTheme(theme: string) {
-        const themeLink = <HTMLLinkElement>document.getElementById('theme-link')
+        const themeLink = <HTMLLinkElement>(
+            document.getElementById('theme-link')
+        );
         if (themeLink) {
-            const newHref = themeLink.getAttribute('href')!.replace(this.layoutService.config.theme, theme)
+            const newHref = themeLink
+                .getAttribute('href')!
+                .replace(this.layoutService.config.theme, theme);
             this.replaceThemeLink(newHref, () => {
-                this.layoutService.config.theme = theme
-                this.layoutService.onConfigUpdate()
-            })
+                this.layoutService.config.theme = theme;
+                this.layoutService.onConfigUpdate();
+            });
         }
     }
 
     private onOrganizerSelectionChange(organizerUserId: any): void {
-        const normalizedOrganizerUserId = Number(organizerUserId)
-        this.clearOrganizerContractingParties(true)
+        const normalizedOrganizerUserId = Number(organizerUserId);
+        this.clearOrganizerContractingParties(true);
 
         if (!Number.isFinite(normalizedOrganizerUserId)) {
-            return
+            return;
         }
 
         this.loadOrganizerContractingParties(normalizedOrganizerUserId, {
             applySnapshotValues: true,
-        })
+        });
     }
 
     private onContractingPartySelectionChange(contractingPartyId: any): void {
-        const relation = this.findOrganizerContractingPartyById(contractingPartyId)
+        const relation =
+            this.findOrganizerContractingPartyById(contractingPartyId);
 
         if (!relation) {
-            this.conferenceForm.patchValue({
-                contractorName: '',
-                contractorAdress: '',
-                contractorTaxNumber: '',
-                contactName: '',
-                contactEmail: '',
-                contactPhone: '',
-            }, { emitEvent: false })
+            this.conferenceForm.patchValue(
+                {
+                    contractorName: '',
+                    contractorAdress: '',
+                    contractorTaxNumber: '',
+                    contactName: '',
+                    contactEmail: '',
+                    contactPhone: '',
+                },
+                { emitEvent: false },
+            );
             if (this.organizerContractingParties.length > 1) {
-                this.organizerContractingPartiesMessage = 'Ehhez a szervezőhöz több szerződő tartozik. Válassz egyet a listából.'
+                this.organizerContractingPartiesMessage =
+                    'Ehhez a szervezőhöz több szerződő tartozik. Válassz egyet a listából.';
             }
-            return
+            return;
         }
 
-        this.organizerContractingPartiesMessage = ''
-        this.patchConferenceContractingFields(relation)
+        this.organizerContractingPartiesMessage = '';
+        this.patchConferenceContractingFields(relation);
     }
 
     private loadOrganizerContractingParties(
         organizerUserId: number,
-        options: { selectedContractingPartyId?: any; applySnapshotValues: boolean }
+        options: {
+            selectedContractingPartyId?: any;
+            applySnapshotValues: boolean;
+        },
     ): void {
-        this.organizerContractingPartiesLoading = true
-        this.organizerContractingPartiesMessage = ''
+        this.organizerContractingPartiesLoading = true;
+        this.organizerContractingPartiesMessage = '';
 
-        this.userService.getOrganizerContractingParties$(organizerUserId).subscribe({
-            next: (relations) => {
-                this.organizerContractingParties = relations.filter(relation => relation.enabled !== false)
-                this.organizerContractingPartiesLoading = false
+        this.userService
+            .getOrganizerContractingParties$(organizerUserId)
+            .subscribe({
+                next: (relations) => {
+                    this.organizerContractingParties = relations.filter(
+                        (relation) => relation.enabled !== false,
+                    );
+                    this.organizerContractingPartiesLoading = false;
 
-                const selectedRelation = this.findOrganizerContractingPartyById(options.selectedContractingPartyId)
+                    const selectedRelation =
+                        this.findOrganizerContractingPartyById(
+                            options.selectedContractingPartyId,
+                        );
 
-                if (selectedRelation) {
-                    this.setSelectedContractingParty(selectedRelation.contractingPartyId ?? null)
-                    return
-                }
-
-                if (this.organizerContractingParties.length === 0) {
-                    this.organizerContractingPartiesMessage = 'Ehhez a szervezőhöz nincs mentett szerződő profil.'
-                    return
-                }
-
-                if (options.applySnapshotValues) {
-                    const preferredRelation = this.organizerContractingParties.find(relation => relation.isDefault)
-                        ?? (this.organizerContractingParties.length === 1 ? this.organizerContractingParties[0] : null)
-
-                    if (preferredRelation) {
-                        this.setSelectedContractingParty(preferredRelation.contractingPartyId ?? null)
-                        this.patchConferenceContractingFields(preferredRelation)
-                        return
+                    if (selectedRelation) {
+                        this.setSelectedContractingParty(
+                            selectedRelation.contractingPartyId ?? null,
+                        );
+                        return;
                     }
-                }
 
-                if (this.organizerContractingParties.length > 1) {
-                    this.organizerContractingPartiesMessage = 'Ehhez a szervezőhöz több szerződő tartozik. Válassz egyet a listából.'
-                }
-            },
-            error: () => {
-                this.organizerContractingParties = []
-                this.organizerContractingPartiesLoading = false
-                this.organizerContractingPartiesMessage = 'Nem sikerült betölteni a szervező szerződő adatait.'
-            }
-        })
+                    if (this.organizerContractingParties.length === 0) {
+                        this.organizerContractingPartiesMessage =
+                            'Ehhez a szervezőhöz nincs mentett szerződő profil.';
+                        return;
+                    }
+
+                    if (options.applySnapshotValues) {
+                        const preferredRelation =
+                            this.organizerContractingParties.find(
+                                (relation) => relation.isDefault,
+                            ) ??
+                            (this.organizerContractingParties.length === 1
+                                ? this.organizerContractingParties[0]
+                                : null);
+
+                        if (preferredRelation) {
+                            this.setSelectedContractingParty(
+                                preferredRelation.contractingPartyId ?? null,
+                            );
+                            this.patchConferenceContractingFields(
+                                preferredRelation,
+                            );
+                            return;
+                        }
+                    }
+
+                    if (this.organizerContractingParties.length > 1) {
+                        this.organizerContractingPartiesMessage =
+                            'Ehhez a szervezőhöz több szerződő tartozik. Válassz egyet a listából.';
+                    }
+                },
+                error: () => {
+                    this.organizerContractingParties = [];
+                    this.organizerContractingPartiesLoading = false;
+                    this.organizerContractingPartiesMessage =
+                        'Nem sikerült betölteni a szervező szerződő adatait.';
+                },
+            });
     }
 
-    private clearOrganizerContractingParties(clearContractingFields: boolean): void {
-        this.organizerContractingParties = []
-        this.organizerContractingPartiesLoading = false
-        this.organizerContractingPartiesMessage = ''
-        this.setSelectedContractingParty(null)
+    private clearOrganizerContractingParties(
+        clearContractingFields: boolean,
+    ): void {
+        this.organizerContractingParties = [];
+        this.organizerContractingPartiesLoading = false;
+        this.organizerContractingPartiesMessage = '';
+        this.setSelectedContractingParty(null);
 
         if (clearContractingFields) {
-            this.conferenceForm.patchValue({
-                contractorName: '',
-                contractorAdress: '',
-                contractorTaxNumber: '',
-                contactName: '',
-                contactEmail: '',
-                contactPhone: '',
-            }, { emitEvent: false })
+            this.conferenceForm.patchValue(
+                {
+                    contractorName: '',
+                    contractorAdress: '',
+                    contractorTaxNumber: '',
+                    contactName: '',
+                    contactEmail: '',
+                    contactPhone: '',
+                },
+                { emitEvent: false },
+            );
         }
     }
 
-    private setSelectedContractingParty(contractingPartyId: number | null): void {
-        this.suppressContractingPartySelectionEffect = true
-        this.conferenceForm.patchValue({
-            contracting_party_id: contractingPartyId ?? ''
-        }, { emitEvent: false })
-        this.suppressContractingPartySelectionEffect = false
+    private setSelectedContractingParty(
+        contractingPartyId: number | null,
+    ): void {
+        this.suppressContractingPartySelectionEffect = true;
+        this.conferenceForm.patchValue(
+            {
+                contracting_party_id: contractingPartyId ?? '',
+            },
+            { emitEvent: false },
+        );
+        this.suppressContractingPartySelectionEffect = false;
     }
 
-    private findOrganizerContractingPartyById(contractingPartyId: any): OrganizerContractingParty | undefined {
-        const normalizedContractingPartyId = Number(contractingPartyId)
+    private findOrganizerContractingPartyById(
+        contractingPartyId: any,
+    ): OrganizerContractingParty | undefined {
+        const normalizedContractingPartyId = Number(contractingPartyId);
         if (!Number.isFinite(normalizedContractingPartyId)) {
-            return undefined
+            return undefined;
         }
 
         return this.organizerContractingParties.find(
-            relation => Number(relation.contractingPartyId) === normalizedContractingPartyId
-        )
+            (relation) =>
+                Number(relation.contractingPartyId) ===
+                normalizedContractingPartyId,
+        );
     }
 
-    private patchConferenceContractingFields(relation: OrganizerContractingParty): void {
-        this.conferenceForm.patchValue({
-            contractorName: relation.legalName ?? '',
-            contractorAdress: relation.address ?? '',
-            contractorTaxNumber: relation.taxNumber ?? '',
-            contactName: relation.contactName ?? '',
-            contactEmail: relation.contactEmail ?? '',
-            contactPhone: relation.contactPhone ?? '',
-        }, { emitEvent: false })
+    private patchConferenceContractingFields(
+        relation: OrganizerContractingParty,
+    ): void {
+        this.conferenceForm.patchValue(
+            {
+                contractorName: relation.legalName ?? '',
+                contractorAdress: relation.address ?? '',
+                contractorTaxNumber: relation.taxNumber ?? '',
+                contactName: relation.contactName ?? '',
+                contactEmail: relation.contactEmail ?? '',
+                contactPhone: relation.contactPhone ?? '',
+            },
+            { emitEvent: false },
+        );
     }
 
     private markInvalidControlsTouched(group: FormGroup | FormArray): void {
-        Object.values(group.controls).forEach(control => {
+        Object.values(group.controls).forEach((control) => {
             if (control instanceof FormGroup || control instanceof FormArray) {
-                this.markInvalidControlsTouched(control)
-                return
+                this.markInvalidControlsTouched(control);
+                return;
             }
 
             // Ensure validators are evaluated
-            control.updateValueAndValidity({ onlySelf: true, emitEvent: false })
+            control.updateValueAndValidity({
+                onlySelf: true,
+                emitEvent: false,
+            });
 
             if (control.invalid) {
                 // Use touched for error visibility (or markAsDirty if your CSS relies on dirty)
-                control.markAsTouched({ onlySelf: true })
+                control.markAsTouched({ onlySelf: true });
                 // control.markAsDirty({ onlySelf: true }) // <- alternative if needed
             }
-        })
+        });
     }
 
     // Don't delete this, its needed from a performance point of view,
-    ngOnDestroy(): void {
-    }
+    ngOnDestroy(): void {}
 }

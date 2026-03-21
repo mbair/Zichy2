@@ -1,5 +1,56 @@
 <!-- ReactiveForms -->
-<p-dropdown *ngIf="getFormControl() as control; else useNgModel"
+<ng-container *ngIf="getFormControl() as control; else useNgModel">
+    <p-multiSelect
+        *ngIf="multiple; else singleReactive"
+        [formControl]="control"
+        [options]="roomTypes"
+        optionLabel="label"
+        [optionValue]="optionValue"
+        (onChange)="handleOnChange($event)"
+        placeholder="{{ 'Válasszon...' | translate }}"
+        emptyMessage="{{ 'Nincs találat...' | translate }}"
+        [showClear]="showClear"
+        styleClass="w-full"
+        appendTo="body"
+    >
+        <ng-template pTemplate="item" let-option>
+            <div [ngClass]="'color-badge roomtype-badge ' + option?.color">
+                <div>{{ option.label }}</div>
+                <small *ngIf="option.description">{{
+                    option.description
+                }}</small>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="selectedItems" let-value>
+            <ng-container
+                *ngIf="(value?.length ?? 0) > 0; else reactivePlaceholderTpl"
+            >
+                <ng-container *ngFor="let opt of getSelectedOptions(value)">
+                    <div
+                        [ngClass]="
+                            'color-badge roomtype-badge inline-flex mr-2 mb-2 ' +
+                            opt.color
+                        "
+                    >
+                        <div>{{ opt.label }}</div>
+                        <small *ngIf="opt.description">{{
+                            opt.description
+                        }}</small>
+                    </div>
+                </ng-container>
+            </ng-container>
+
+            <ng-template #reactivePlaceholderTpl>
+                <span class="p-placeholder">
+                    {{ "Válasszon..." | translate }}
+                </span>
+            </ng-template>
+        </ng-template>
+    </p-multiSelect>
+
+    <ng-template #singleReactive>
+        <p-dropdown
             [formControl]="control"
             [options]="roomTypes"
             optionLabel="label"
@@ -8,47 +59,121 @@
             placeholder="{{ 'Válasszon...' | translate }}"
             emptyMessage="{{ 'Nincs találat...' | translate }}"
             [showClear]="showClear"
-            appendTo="body">
+            styleClass="w-full"
+            appendTo="body"
+        >
+            <ng-template pTemplate="item" let-option>
+                <div [ngClass]="'color-badge roomtype-badge ' + option?.color">
+                    <div>{{ option.label }}</div>
+                    <small *ngIf="option.description">{{
+                        option.description
+                    }}</small>
+                </div>
+            </ng-template>
 
-    <ng-template pTemplate="item" let-option>
-        <div [ngClass]="'color-badge roomtype-badge ' + option?.color">
-            <div>{{ option.label }}</div>
-            <small *ngIf="option.description">{{ option.description }}</small>
-        </div>
+            <ng-template pTemplate="selectedItem" let-selectedItem>
+                <div
+                    [ngClass]="
+                        'color-badge roomtype-badge ' + selectedItem?.color
+                    "
+                >
+                    <div>{{ selectedItem?.label }}</div>
+                    <small *ngIf="selectedItem?.description">{{
+                        selectedItem?.description
+                    }}</small>
+                </div>
+            </ng-template>
+        </p-dropdown>
     </ng-template>
-
-    <ng-template pTemplate="selectedItem" let-selectedItem>
-        <div [ngClass]="'color-badge roomtype-badge ' + selectedItem?.color">
-            <div>{{ selectedItem?.label }}</div>
-            <small *ngIf="selectedItem.description">{{ selectedItem?.description }}</small>
-        </div>
-    </ng-template>
-</p-dropdown>
+</ng-container>
 
 <!-- ngModel -->
 <ng-template #useNgModel>
-    <p-dropdown [(ngModel)]="selectedRoomType"
-                [options]="roomTypes"
-                optionLabel="label"
-                [optionValue]="optionValue"
-                (onChange)="handleOnChange($event)"
-                placeholder="{{ 'Válasszon...' | translate }}"
-                emptyMessage="{{ 'Nincs találat...' | translate }}"
-                [showClear]="showClear"
-                appendTo="body">
-
+    <p-multiSelect
+        *ngIf="multiple; else singleNgModel"
+        [(ngModel)]="selectedRoomType"
+        [options]="roomTypes"
+        optionLabel="label"
+        [optionValue]="optionValue"
+        (onChange)="handleOnChange($event)"
+        placeholder="{{ 'Válasszon...' | translate }}"
+        emptyMessage="{{ 'Nincs találat...' | translate }}"
+        [showClear]="showClear"
+        [disabled]="disabled"
+        styleClass="w-full"
+        appendTo="body"
+    >
         <ng-template pTemplate="item" let-option>
             <div [ngClass]="'color-badge roomtype-badge ' + option?.color">
                 <div>{{ option.label }}</div>
-                <small *ngIf="option.description">{{ option.description }}</small>
+                <small *ngIf="option.description">{{
+                    option.description
+                }}</small>
             </div>
         </ng-template>
 
-        <ng-template pTemplate="selectedItem" let-selectedItem>
-            <div [ngClass]="'color-badge roomtype-badge ' + selectedItem?.color">
-                <div>{{ selectedItem?.label }}</div>
-                <small *ngIf="selectedItem.description">{{ selectedItem?.description }}</small>
-            </div>
+        <ng-template pTemplate="selectedItems" let-value>
+            <ng-container
+                *ngIf="(value?.length ?? 0) > 0; else ngModelPlaceholderTpl"
+            >
+                <ng-container *ngFor="let opt of getSelectedOptions(value)">
+                    <div
+                        [ngClass]="
+                            'color-badge roomtype-badge inline-flex mr-2 mb-2 ' +
+                            opt.color
+                        "
+                    >
+                        <div>{{ opt.label }}</div>
+                        <small *ngIf="opt.description">{{
+                            opt.description
+                        }}</small>
+                    </div>
+                </ng-container>
+            </ng-container>
+
+            <ng-template #ngModelPlaceholderTpl>
+                <span class="p-placeholder">
+                    {{ "Válasszon..." | translate }}
+                </span>
+            </ng-template>
         </ng-template>
-    </p-dropdown>
+    </p-multiSelect>
+
+    <ng-template #singleNgModel>
+        <p-dropdown
+            [(ngModel)]="selectedRoomType"
+            [options]="roomTypes"
+            optionLabel="label"
+            [optionValue]="optionValue"
+            (onChange)="handleOnChange($event)"
+            placeholder="{{ 'Válasszon...' | translate }}"
+            emptyMessage="{{ 'Nincs találat...' | translate }}"
+            [showClear]="showClear"
+            [disabled]="disabled"
+            styleClass="w-full"
+            appendTo="body"
+        >
+            <ng-template pTemplate="item" let-option>
+                <div [ngClass]="'color-badge roomtype-badge ' + option?.color">
+                    <div>{{ option.label }}</div>
+                    <small *ngIf="option.description">{{
+                        option.description
+                    }}</small>
+                </div>
+            </ng-template>
+
+            <ng-template pTemplate="selectedItem" let-selectedItem>
+                <div
+                    [ngClass]="
+                        'color-badge roomtype-badge ' + selectedItem?.color
+                    "
+                >
+                    <div>{{ selectedItem?.label }}</div>
+                    <small *ngIf="selectedItem?.description">{{
+                        selectedItem?.description
+                    }}</small>
+                </div>
+            </ng-template>
+        </p-dropdown>
+    </ng-template>
 </ng-template>
