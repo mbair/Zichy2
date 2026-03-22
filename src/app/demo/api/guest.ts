@@ -1,5 +1,6 @@
 import { Conference } from "./conference";
 import { Reservation } from "./reservation";
+import { ConferenceRoomType } from "./conference";
 
 export interface Guest {
     id: number;
@@ -27,6 +28,9 @@ export interface Guest {
     email?: string;
     telephone?: string;
     roomType?: string;
+    requested_room_type_id?: number | null;
+    requestedRoomTypeId?: number | null;
+    requestedRoomType?: ConferenceRoomType | null;
     payment?: string | number | null;
     paymentName?: string;
     paymentMethodName?: string;

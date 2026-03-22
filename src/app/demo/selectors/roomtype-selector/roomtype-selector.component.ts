@@ -21,9 +21,13 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
 import { MultiSelectChangeEvent, MultiSelectModule } from 'primeng/multiselect';
 import {
+    BackendRoomType,
     getRoomTypeOptions,
+    mapLegacyRoomTypeIdToBackendId,
+    mapBackendRoomTypeToOption,
     RoomTypeOption,
 } from '../../utils/room-type.utils';
+import { ApiService } from '../../service/api.service';
 
 export interface changeEvent {
     value: any;
@@ -64,10 +68,13 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
     selectedRoomType: any = null; // Selected room type
     disabled = false;
     lastWrittenValue: any = null;
+    private backendRoomTypes: BackendRoomType[] | null = null;
+    private backendRoomTypesLoading = false;
 
     constructor(
         private translate: TranslateService,
         private cdRef: ChangeDetectorRef,
+        private apiService: ApiService,
     ) {}
 
     /**
@@ -135,6 +142,27 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
         return this.optionValue === 'id' ? roomType.id : roomType.value;
     }
 
+    private normalizeIncomingOptionValue(value: any): number | string | null {
+        if (value == null || value === '') {
+            return null;
+        }
+
+        if (this.optionValue !== 'id') {
+            return value;
+        }
+
+        const mappedId = mapLegacyRoomTypeIdToBackendId(
+            value,
+            this.backendRoomTypes,
+        );
+        if (mappedId !== null) {
+            return mappedId;
+        }
+
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue) ? numericValue : null;
+    }
+
     private normalizeToSelectorValue(
         raw: any,
     ): number | string | Array<number | string> | null {
@@ -142,21 +170,26 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
 
         if (this.multiple) {
             const values = Array.isArray(raw) ? raw : raw == null ? [] : [raw];
-            const normalized = values.filter((value) =>
-                allowedValues ? allowedValues.has(value) : true,
-            );
+            const normalized = values
+                .map((value) => this.normalizeIncomingOptionValue(value))
+                .filter(
+                    (value): value is number | string =>
+                        value !== null &&
+                        (allowedValues ? allowedValues.has(value) : true),
+                );
             return Array.from(new Set(normalized));
         }
 
-        if (raw == null || raw === '') {
+        const normalized = this.normalizeIncomingOptionValue(raw);
+        if (normalized == null) {
             return null;
         }
 
-        if (allowedValues && !allowedValues.has(raw)) {
+        if (allowedValues && !allowedValues.has(normalized)) {
             return null;
         }
 
-        return raw;
+        return normalized;
     }
 
     private syncControlValueWithModeAndAllowed(): void {
@@ -181,6 +214,11 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
     }
 
     setRoomTypes() {
+        if (this.optionValue === 'id') {
+            this.setBackendRoomTypes();
+            return;
+        }
+
         const allRoomTypes = getRoomTypeOptions(this.translate);
         const visibleRoomTypes = this.includeNoAccommodation
             ? allRoomTypes
@@ -201,6 +239,88 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
         } else {
             this.roomTypes = visibleRoomTypes;
         }
+    }
+
+    private getLegacyFallbackRoomTypes(): RoomTypeOption[] {
+        const allRoomTypes = getRoomTypeOptions(this.translate);
+        const visibleRoomTypes = this.includeNoAccommodation
+            ? allRoomTypes
+            : allRoomTypes.filter((roomType) => roomType.id !== 0);
+
+        return this.filterBackendRoomTypes(visibleRoomTypes);
+    }
+
+    private setBackendRoomTypes(): void {
+        if (this.backendRoomTypes) {
+            const options = this.backendRoomTypes
+                .map((roomType) =>
+                    mapBackendRoomTypeToOption(roomType, this.translate),
+                )
+                .filter((option): option is RoomTypeOption => option !== null);
+
+            this.roomTypes =
+                options.length > 0
+                    ? this.filterBackendRoomTypes(options)
+                    : this.getLegacyFallbackRoomTypes();
+            this.syncControlValueWithModeAndAllowed();
+            return;
+        }
+
+        if (this.backendRoomTypesLoading) {
+            return;
+        }
+
+        this.backendRoomTypesLoading = true;
+        this.apiService
+            .get<{ rows?: BackendRoomType[] }>('roomtype/get/0/1000', {
+                params: { sort: 'id', order: 'ASC' },
+            })
+            .subscribe({
+                next: (response) => {
+                    const rows = response?.rows ?? [];
+                    const options = rows
+                        .map((roomType) =>
+                            mapBackendRoomTypeToOption(roomType, this.translate),
+                        )
+                        .filter((option): option is RoomTypeOption => option !== null);
+
+                    this.backendRoomTypes = rows.length > 0 ? rows : null;
+                    this.roomTypes =
+                        options.length > 0
+                            ? this.filterBackendRoomTypes(options)
+                            : this.getLegacyFallbackRoomTypes();
+                    this.backendRoomTypesLoading = false;
+                    this.syncControlValueWithModeAndAllowed();
+                    this.cdRef.detectChanges();
+                },
+                error: () => {
+                    this.backendRoomTypesLoading = false;
+                    this.backendRoomTypes = null;
+                    this.roomTypes = this.getLegacyFallbackRoomTypes();
+                    this.syncControlValueWithModeAndAllowed();
+                    this.cdRef.detectChanges();
+                },
+            });
+    }
+
+    private filterBackendRoomTypes(options: RoomTypeOption[]): RoomTypeOption[] {
+        if (!Array.isArray(this.allowedRoomTypeIds)) {
+            return options;
+        }
+
+        const allowed = new Set(
+            this.allowedRoomTypeIds
+                .map((id) => Number(id))
+                .filter((id) => Number.isFinite(id)),
+        );
+
+        const filtered = options.filter((roomType) =>
+            allowed.has(roomType.id),
+        );
+
+        // Conference editor fallback: legacy room-bound IDs may be stale or invalid,
+        // but we still want the operator to be able to pick a valid room type.
+        return filtered.length > 0 ? filtered : options;
     }
 
     /**
