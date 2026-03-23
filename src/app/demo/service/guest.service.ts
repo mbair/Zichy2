@@ -69,7 +69,7 @@ export class GuestService {
      * @param rowsPerPage
      * @param sort
      */
-    public get(page: number, rowsPerPage: number, sort: any, queryParams: string): void {
+    private buildGetUrl(page: number, rowsPerPage: number, sort: any, queryParams: string): string {
         let pageSort: string = '';
         if (sort !== '') {
             const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC';
@@ -80,9 +80,16 @@ export class GuestService {
             pageSort !== '' && queryParams === '' ? pageSort :
                 pageSort === '' && queryParams !== '' ? queryParams : '';
 
-        const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
+        return `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
+    }
 
-        this.apiService.get<ApiResponse>(`guest/get/${url}`)
+    public get$(page: number, rowsPerPage: number, sort: any, queryParams: string): Observable<ApiResponse> {
+        const url = this.buildGetUrl(page, rowsPerPage, sort, queryParams);
+        return this.apiService.get<ApiResponse>(`guest/get/${url}`)
+    }
+
+    public get(page: number, rowsPerPage: number, sort: any, queryParams: string): void {
+        this.get$(page, rowsPerPage, sort, queryParams)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)
@@ -99,7 +106,7 @@ export class GuestService {
      * @param sort 
      * @param conferenceIds 
      */
-    public getBySearch(globalFilter: string, sort: any, conferenceIds: number[], extraParams: Record<string, string> = {}): void {
+    public getBySearch$(globalFilter: string, sort: any, conferenceIds: number[], extraParams: Record<string, string> = {}): Observable<ApiResponse> {
         let params: any = {}
         if (sort && sort.sortField) {
             params['sort'] = sort.sortField
@@ -109,7 +116,11 @@ export class GuestService {
             params['conferenceIds'] = conferenceIds.join(',')
         }
         Object.assign(params, extraParams)
-        this.apiService.get<ApiResponse>(`guest/search/${encodeURIComponent(globalFilter)}`, { params })
+        return this.apiService.get<ApiResponse>(`guest/search/${encodeURIComponent(globalFilter)}`, { params })
+    }
+
+    public getBySearch(globalFilter: string, sort: any, conferenceIds: number[], extraParams: Record<string, string> = {}): void {
+        this.getBySearch$(globalFilter, sort, conferenceIds, extraParams)
             .subscribe({
                 next: (response: ApiResponse) => { this.data$.next(response) },
                 error: (error: any) => { this.message$.next(error) }

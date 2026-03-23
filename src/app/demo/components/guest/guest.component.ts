@@ -3,7 +3,7 @@ import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms'
 import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { ConfirmationService, MenuItem, Message, MessageService } from 'primeng/api';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { FileSendEvent, FileUpload, FileUploadErrorEvent } from 'primeng/fileupload';
 import { Table } from 'primeng/table';
 import { dateRangeValidator } from '../../utils/date-range-validator';
@@ -14,6 +14,7 @@ import { TagService } from '../../service/tag.service';
 import { DietService } from '../../service/diet.service';
 import { CountryService } from '../../service/country.service';
 import { LogService } from '../../service/log.service';
+import { SessionService } from '../../service/session.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Reservation } from '../../api/reservation';
 import { Conference } from '../../api/conference';
@@ -106,8 +107,12 @@ export class GuestComponent implements OnInit {
     acutalReservation: any | null = null         // Actual guest reservation
     firstRowIndex: number = 0                    // Helper for rows
     retryingEmailGuestIds: Record<number, boolean> = {}
+    hasPendingGuestViewUpdate: boolean = false
+    pendingGuestViewMessage: string = ''
 
     private static readonly NONE_CONF_ID = -1
+    private static readonly BACKGROUND_REFRESH_INTERVAL_MS = 15000
+    private static readonly MISSING_EMAIL_STATUS_MESSAGE = 'Nincs e-mail cím megadva a küldéshez.'
     noConferenceMode: boolean = false
 
     private initialFormValues = {
@@ -153,6 +158,9 @@ export class GuestComponent implements OnInit {
     private guestObs$: Observable<any> | undefined
     private genderObs$: Observable<any> | undefined
     private messageObs$: Observable<any> | undefined
+    private guestViewPollTimer: ReturnType<typeof setInterval> | null = null
+    private guestViewPollInFlight: boolean = false
+    private lastAppliedGuestViewFingerprint: string = ''
 
     getEmailStatusLabel(guest: Guest): string {
         switch (guest.emailStatus?.status) {
@@ -190,7 +198,9 @@ export class GuestComponent implements OnInit {
     getEmailStatusMeta(guest: Guest): string | null {
         const emailStatus = guest.emailStatus;
         if (!emailStatus) return null;
-        if (emailStatus.lastError) return emailStatus.lastError;
+        if (emailStatus.lastError && !this.shouldHideMissingEmailStatusMeta(guest)) {
+            return emailStatus.lastError;
+        }
         if (emailStatus.sentAt) return `Küldve: ${this.formatEmailStatusTimestamp(emailStatus.sentAt)}`;
         if (emailStatus.nextAttemptAt) return `Következő próbálkozás: ${this.formatEmailStatusTimestamp(emailStatus.nextAttemptAt)}`;
         if (emailStatus.lastAttemptAt) return `Utolsó próbálkozás: ${this.formatEmailStatusTimestamp(emailStatus.lastAttemptAt)}`;
@@ -204,9 +214,28 @@ export class GuestComponent implements OnInit {
         return `Próbálkozások: ${attemptCount} / ${maxAttempts}`
     }
 
+    private getGuestEmailForRetry(guest: Guest): string {
+        const guestEmail = typeof guest.email === 'string' ? guest.email.trim() : ''
+        if (guestEmail) return guestEmail
+
+        const statusEmail = typeof guest.emailStatus?.toEmail === 'string'
+            ? guest.emailStatus.toEmail.trim()
+            : ''
+        return statusEmail
+    }
+
+    private shouldHideMissingEmailStatusMeta(guest: Guest): boolean {
+        const lastError = guest.emailStatus?.lastError?.trim()
+        return !!this.getGuestEmailForRetry(guest)
+            && lastError === GuestComponent.MISSING_EMAIL_STATUS_MESSAGE
+    }
+
     canRetryGuestEmail(guest: Guest): boolean {
         const status = guest.emailStatus?.status
-        return this.canEditByRole && !!guest.id && (status === 'failed' || status === 'skipped')
+        return this.canEditByRole
+            && !!guest.id
+            && !!this.getGuestEmailForRetry(guest)
+            && (status === 'failed' || status === 'skipped')
     }
 
     isRetryingGuestEmail(guest: Guest): boolean {
@@ -228,6 +257,7 @@ export class GuestComponent implements OnInit {
         private genderService: GenderService,
         private dietService: DietService,
         private countryService: CountryService,
+        private sessionService: SessionService,
         private messageService: MessageService,
         private confirmationService: ConfirmationService,
         private logService: LogService,
@@ -345,20 +375,7 @@ export class GuestComponent implements OnInit {
         // Guests
         this.guestObs$ = this.guestService.guestObs
         this.guestObs$.subscribe((data: ApiResponse) => {
-            this.loading = false
-            if (data && data.rows) {
-                // Filter out test users on production
-                let rows = data.rows || []
-                if (!isDevMode()) {
-                    rows = rows.filter((guest: any) => guest.is_test !== true)
-                }
-
-                this.tableData = rows.map((guest: any) => this.normalizeGuestRow(guest))
-
-                this.totalRecords = data.totalItems || 0
-                this.page = data.currentPage || 0
-                this.totalTaggedGuests = data.rfidCount || 0
-            }
+            this.applyGuestResponse(data)
         })
 
         // Genders
@@ -502,6 +519,8 @@ export class GuestComponent implements OnInit {
                 ids
             )
         })
+
+        this.startGuestViewPolling()
     }
 
     // Getters for form validation
@@ -555,57 +574,19 @@ export class GuestComponent implements OnInit {
      * @returns
      */
     doQuery() {
-        // Organizer need select conference
-        if (this.isOrganizer && !this.selectedConferences.length) return
-
-        this.loading = true
-
-        // build base filters from table filters
-        const filters = this.buildActiveFilterParams()
-
-        // translate conference selection to API params
-        const ids = this.selectedConferences
-            .map(c => Number(c.id))
-            .filter(n => Number.isFinite(n) && n !== GuestComponent.NONE_CONF_ID) as number[]
-
-        if (this.noConferenceMode) {
-            filters.push('noConference=1')
-        } else if (ids.length) {
-            filters.push(`conferenceIds=${ids.join(',')}`)
+        if (!this.hasActiveSession()) {
+            this.loading = false
+            this.stopGuestViewPolling()
+            return
         }
 
-        const queryParams = filters.join('&')
-
-        // global search path
-        if (this.globalFilter !== '') {
-            // if "no conference" mode, use get() with search param
-            if (this.noConferenceMode) {
-                const qp = [`search=${encodeURIComponent(this.globalFilter)}`]
-                if (queryParams) qp.push(queryParams);
-                return this.guestService.get(
-                    this.page,
-                    this.rowsPerPage,
-                    { sortField: this.sortField, sortOrder: this.sortOrder },
-                    qp.join('&')
-                )
-            }
-
-            // normal path (has real conference IDs or none selected): keep using getBySearch
-            return this.guestService.getBySearch(
-                this.globalFilter,
-                { sortField: this.sortField, sortOrder: this.sortOrder },
-                ids,
-                this.buildActiveFilterObject()
-            )
+        const queryDescriptor = this.buildCurrentGuestQueryDescriptor()
+        if (!queryDescriptor) {
+            this.loading = false
+            return
         }
 
-        // default list path
-        return this.guestService.get(
-            this.page,
-            this.rowsPerPage,
-            { sortField: this.sortField, sortOrder: this.sortOrder },
-            queryParams
-        )
+        this.dispatchGuestQueryRequest(queryDescriptor)
     }
 
     onFilter(event: any, field: string) {
@@ -669,6 +650,288 @@ export class GuestComponent implements OnInit {
     private buildActiveFilterParams(): string[] {
         return Object.entries(this.buildActiveFilterObject())
             .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    }
+
+    private buildCurrentGuestQueryDescriptor() {
+        if (this.isOrganizer && !this.selectedConferences.length) {
+            return null
+        }
+
+        const conferenceIds = this.selectedConferences
+            .map((conference) => Number(conference.id))
+            .filter((id) => Number.isFinite(id) && id !== GuestComponent.NONE_CONF_ID) as number[]
+
+        const filterObject = this.buildActiveFilterObject()
+        const filters = Object.entries(filterObject)
+            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+
+        if (this.noConferenceMode) {
+            filters.push('noConference=1')
+        } else if (conferenceIds.length) {
+            filters.push(`conferenceIds=${conferenceIds.join(',')}`)
+        }
+
+        return {
+            page: this.page,
+            rowsPerPage: this.rowsPerPage,
+            sort: {
+                sortField: this.sortField,
+                sortOrder: this.sortOrder
+            },
+            globalFilter: this.globalFilter,
+            noConferenceMode: this.noConferenceMode,
+            conferenceIds,
+            filterObject,
+            queryParams: filters.join('&')
+        }
+    }
+
+    private dispatchGuestQueryRequest(queryDescriptor: {
+        page: number
+        rowsPerPage: number
+        sort: { sortField: string, sortOrder: number }
+        globalFilter: string
+        noConferenceMode: boolean
+        conferenceIds: number[]
+        filterObject: Record<string, string>
+        queryParams: string
+    }) {
+        this.loading = true
+
+        if (queryDescriptor.globalFilter !== '') {
+            if (queryDescriptor.noConferenceMode) {
+                const queryParts = [`search=${encodeURIComponent(queryDescriptor.globalFilter)}`]
+                if (queryDescriptor.queryParams) {
+                    queryParts.push(queryDescriptor.queryParams)
+                }
+
+                this.guestService.get(
+                    queryDescriptor.page,
+                    queryDescriptor.rowsPerPage,
+                    queryDescriptor.sort,
+                    queryParts.join('&')
+                )
+                return
+            }
+
+            this.guestService.getBySearch(
+                queryDescriptor.globalFilter,
+                queryDescriptor.sort,
+                queryDescriptor.conferenceIds,
+                queryDescriptor.filterObject
+            )
+            return
+        }
+
+        this.guestService.get(
+            queryDescriptor.page,
+            queryDescriptor.rowsPerPage,
+            queryDescriptor.sort,
+            queryDescriptor.queryParams
+        )
+    }
+
+    private executeGuestQueryRequest$(queryDescriptor: {
+        page: number
+        rowsPerPage: number
+        sort: { sortField: string, sortOrder: number }
+        globalFilter: string
+        noConferenceMode: boolean
+        conferenceIds: number[]
+        filterObject: Record<string, string>
+        queryParams: string
+    }): Observable<ApiResponse> {
+        if (queryDescriptor.globalFilter !== '') {
+            if (queryDescriptor.noConferenceMode) {
+                const queryParts = [`search=${encodeURIComponent(queryDescriptor.globalFilter)}`]
+                if (queryDescriptor.queryParams) {
+                    queryParts.push(queryDescriptor.queryParams)
+                }
+
+                return this.guestService.get$(
+                    queryDescriptor.page,
+                    queryDescriptor.rowsPerPage,
+                    queryDescriptor.sort,
+                    queryParts.join('&')
+                )
+            }
+
+            return this.guestService.getBySearch$(
+                queryDescriptor.globalFilter,
+                queryDescriptor.sort,
+                queryDescriptor.conferenceIds,
+                queryDescriptor.filterObject
+            )
+        }
+
+        return this.guestService.get$(
+            queryDescriptor.page,
+            queryDescriptor.rowsPerPage,
+            queryDescriptor.sort,
+            queryDescriptor.queryParams
+        )
+    }
+
+    private applyGuestResponse(data: ApiResponse | null): void {
+        this.loading = false
+        if (!data) return
+
+        this.tableData = this.getNormalizedGuestRows(data)
+        this.totalRecords = data.totalItems || 0
+        this.page = data.currentPage || 0
+        this.totalTaggedGuests = data.rfidCount || 0
+        this.hasPendingGuestViewUpdate = false
+        this.pendingGuestViewMessage = ''
+        this.lastAppliedGuestViewFingerprint = this.buildGuestResponseFingerprint(data)
+    }
+
+    private getNormalizedGuestRows(data: ApiResponse | null): Guest[] {
+        if (!data?.rows) return []
+
+        let rows = data.rows || []
+        if (!isDevMode()) {
+            rows = rows.filter((guest: any) => guest.is_test !== true)
+        }
+
+        return rows.map((guest: any) => this.normalizeGuestRow(guest))
+    }
+
+    private buildGuestResponseFingerprint(data: ApiResponse | null): string {
+        return JSON.stringify({
+            currentPage: data?.currentPage || 0,
+            totalItems: data?.totalItems || 0,
+            rfidCount: data?.rfidCount || 0,
+            rows: this.getNormalizedGuestRows(data).map((guest) => this.summarizeGuestRowForFingerprint(guest))
+        })
+    }
+
+    private summarizeGuestRowForFingerprint(guest: Guest) {
+        return {
+            id: guest.id ?? null,
+            updatedAt: guest.updatedAt ?? null,
+            email: guest.email ?? null,
+            roomNum: guest.displayRoomNum ?? guest.roomNum ?? null,
+            rfid: guest.rfid ?? null,
+            lastRfidUsage: guest.lastRfidUsage ?? null,
+            roomKeyIssued: guest.roomKeyIssued ?? false,
+            roomKeyIssuedAt: guest.roomKeyIssuedAt ?? null,
+            roomKeyReturnedAt: guest.roomKeyReturnedAt ?? null,
+            emailStatus: guest.emailStatus
+                ? {
+                    id: guest.emailStatus.id ?? null,
+                    status: guest.emailStatus.status,
+                    attemptCount: guest.emailStatus.attemptCount ?? 0,
+                    maxAttempts: guest.emailStatus.maxAttempts ?? 0,
+                    lastAttemptAt: guest.emailStatus.lastAttemptAt ?? null,
+                    nextAttemptAt: guest.emailStatus.nextAttemptAt ?? null,
+                    sentAt: guest.emailStatus.sentAt ?? null,
+                    lastError: guest.emailStatus.lastError ?? null,
+                    toEmail: guest.emailStatus.toEmail ?? null
+                }
+                : null
+        }
+    }
+
+    private syncAppliedGuestViewFingerprintFromCurrentState(): void {
+        this.lastAppliedGuestViewFingerprint = JSON.stringify({
+            currentPage: this.page,
+            totalItems: this.totalRecords,
+            rfidCount: this.totalTaggedGuests,
+            rows: this.tableData.map((guest) => this.summarizeGuestRowForFingerprint(guest))
+        })
+    }
+
+    private startGuestViewPolling(): void {
+        if (!this.hasActiveSession()) {
+            this.stopGuestViewPolling()
+            return
+        }
+
+        if (this.guestViewPollTimer) {
+            clearInterval(this.guestViewPollTimer)
+        }
+
+        this.guestViewPollTimer = setInterval(() => {
+            this.checkForGuestViewUpdates()
+        }, GuestComponent.BACKGROUND_REFRESH_INTERVAL_MS)
+    }
+
+    private checkForGuestViewUpdates(): void {
+        if (!this.hasActiveSession()) {
+            this.stopGuestViewPolling()
+            return
+        }
+
+        if (this.guestViewPollInFlight || this.loading) {
+            return
+        }
+
+        const queryDescriptor = this.buildCurrentGuestQueryDescriptor()
+        if (!queryDescriptor) {
+            return
+        }
+
+        this.guestViewPollInFlight = true
+        this.executeGuestQueryRequest$(queryDescriptor).subscribe({
+            next: (response) => {
+                const nextFingerprint = this.buildGuestResponseFingerprint(response)
+                if (!this.lastAppliedGuestViewFingerprint) {
+                    this.lastAppliedGuestViewFingerprint = nextFingerprint
+                    this.guestViewPollInFlight = false
+                    return
+                }
+
+                if (nextFingerprint !== this.lastAppliedGuestViewFingerprint) {
+                    this.hasPendingGuestViewUpdate = true
+                    this.pendingGuestViewMessage = this.buildPendingGuestViewMessage(response)
+                    this.guestViewPollInFlight = false
+                    return
+                }
+
+                this.hasPendingGuestViewUpdate = false
+                this.pendingGuestViewMessage = ''
+                this.guestViewPollInFlight = false
+            },
+            error: (error: HttpErrorResponse) => {
+                this.guestViewPollInFlight = false
+                if (error?.status === 401 || error?.status === 403) {
+                    this.stopGuestViewPolling()
+                }
+            }
+        })
+    }
+
+    private buildPendingGuestViewMessage(response: ApiResponse | null): string {
+        const nextTotal = Number(response?.totalItems || 0)
+
+        if (nextTotal > this.totalRecords) {
+            return 'Új vagy módosult vendégadat érkezett. A jelenlegi nézet frissíthető.'
+        }
+
+        if (nextTotal < this.totalRecords) {
+            return 'A vendéglista megváltozott. A jelenlegi nézet frissíthető.'
+        }
+
+        return 'A megjelenített vendégadatok frissültek. A jelenlegi nézet frissíthető.'
+    }
+
+    refreshGuestView(): void {
+        this.doQuery()
+    }
+
+    private hasActiveSession(): boolean {
+        return this.sessionService.hasActiveSessionSnapshot()
+    }
+
+    private stopGuestViewPolling(): void {
+        if (this.guestViewPollTimer) {
+            clearInterval(this.guestViewPollTimer)
+            this.guestViewPollTimer = null
+        }
+
+        this.guestViewPollInFlight = false
+        this.hasPendingGuestViewUpdate = false
+        this.pendingGuestViewMessage = ''
     }
 
     /**
@@ -1016,6 +1279,7 @@ export class GuestComponent implements OnInit {
         const nextRows = [...this.tableData]
         nextRows[guestIndex] = normalizedGuest
         this.tableData = nextRows
+        this.syncAppliedGuestViewFingerprintFromCurrentState()
     }
 
     findIndexById(id: number | undefined): number {
@@ -1064,6 +1328,7 @@ export class GuestComponent implements OnInit {
                 ...this.tableData.slice(idx + 1)
             ];
             this.guest = updated;
+            this.syncAppliedGuestViewFingerprintFromCurrentState()
         }
 
         // UI feedback
@@ -1074,6 +1339,7 @@ export class GuestComponent implements OnInit {
         }];
 
         this.totalTaggedGuests--;
+        this.syncAppliedGuestViewFingerprintFromCurrentState()
         setTimeout(() => {
             this.tagDialog = false
         }, 200)
@@ -1144,6 +1410,7 @@ export class GuestComponent implements OnInit {
                 updatedGuest,
                 ...this.tableData.slice(idx + 1)
             ]
+            this.syncAppliedGuestViewFingerprintFromCurrentState()
         }
         this.guest = updatedGuest
     }
@@ -1284,6 +1551,7 @@ export class GuestComponent implements OnInit {
                                         }
                                     ]
                                     this.totalTaggedGuests++
+                                    this.syncAppliedGuestViewFingerprintFromCurrentState()
                                     setTimeout(() => {
                                         this.tagDialog = false
                                     }, 200)
@@ -1921,5 +2189,6 @@ export class GuestComponent implements OnInit {
 
     // Don't delete this, its needed from a performance point of view,
     ngOnDestroy(): void {
+        this.stopGuestViewPolling()
     }
 }

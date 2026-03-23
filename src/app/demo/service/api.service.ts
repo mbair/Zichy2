@@ -109,7 +109,10 @@ export class ApiService {
     }
 
     private handleError(error: HttpErrorResponse) {
-        console.error('An error occurred:', error);
+        const isAuthError = error.status === 401 || error.status === 403
+        if (!isAuthError) {
+            console.error('An error occurred:', error);
+        }
         return throwError(() => error)
     }
 }

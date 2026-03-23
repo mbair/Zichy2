@@ -46,3 +46,10 @@
 .guest-expansion-shell {
     padding: 0.75rem 1rem 1rem;
 }
+
+.guest-email-status-actions {
+    align-items: center;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
