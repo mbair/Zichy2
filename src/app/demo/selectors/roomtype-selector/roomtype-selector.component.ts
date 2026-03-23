@@ -133,6 +133,18 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
             return null;
         }
 
+        if (this.optionValue === 'id') {
+            return new Set(
+                this.allowedRoomTypeIds
+                    .map((roomTypeId) =>
+                        this.normalizeIncomingOptionValue(roomTypeId),
+                    )
+                    .filter(
+                        (value): value is number | string => value !== null,
+                    ),
+            );
+        }
+
         return new Set(
             this.roomTypes.map((roomType) => this.getOptionValue(roomType)),
         );
