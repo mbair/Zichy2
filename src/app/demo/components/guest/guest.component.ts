@@ -423,8 +423,8 @@ export class GuestComponent implements OnInit {
 
         // Prepaid options
         this.prepaidOptions = [
-            { name: 'Igen', value: 'true' },
-            { name: 'Nem', value: 'false' }
+            { name: 'Igen', value: '1' },
+            { name: 'Nem', value: '0' }
         ]
         this.isFormValid$ = this.formChanges$.pipe(
             debounceTime(300),
@@ -600,12 +600,15 @@ export class GuestComponent implements OnInit {
         if (event instanceof Date) {
             filterValue = formatDateDots(event)
         } else {
-            if (event && (event.value || event.target?.value)) {
+            const hasEventValue = event && Object.prototype.hasOwnProperty.call(event, 'value')
+            const hasTargetValue = event?.target?.value !== undefined
+
+            if (event && (hasEventValue || hasTargetValue)) {
                 if (field == "rfid") {
                     filterValue = event.target?.value.replaceAll('ö', '0').replaceAll('Ö', '0')
                     this.rfidFilterValue = filterValue
                 } else {
-                    filterValue = event.value || event.target?.value
+                    filterValue = hasEventValue ? event.value : event.target?.value
                 }
             }
         }

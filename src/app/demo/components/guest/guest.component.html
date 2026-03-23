@@ -148,6 +148,24 @@
                                 (onChange)="onFilter($event, 'prepaid')"
                                 [showClear]="true"
                                 placeholder="Válasszon...">
+                                <ng-template pTemplate="item" let-option>
+                                    <span [ngClass]="'color-badge prepaid-badge ' + (option?.value == '1' ? 'green' : 'red')">
+                                        <i class="pi mr-1"
+                                           [ngClass]="option?.value == '1' ? 'true-icon pi-check-circle text-green-500' : 'false-icon pi-times-circle text-red-500'"></i>
+                                        {{ option?.name }}
+                                    </span>
+                                </ng-template>
+                                <ng-template pTemplate="selectedItem" let-selectedItem>
+                                    <span *ngIf="selectedItem; else prepaidPlaceholder"
+                                          [ngClass]="'color-badge prepaid-badge ' + (selectedItem?.value == '1' ? 'green' : 'red')">
+                                        <i class="pi mr-1"
+                                           [ngClass]="selectedItem?.value == '1' ? 'true-icon pi-check-circle text-green-500' : 'false-icon pi-times-circle text-red-500'"></i>
+                                        {{ selectedItem?.name }}
+                                    </span>
+                                </ng-template>
+                                <ng-template #prepaidPlaceholder>
+                                    <span class="text-500">Válasszon...</span>
+                                </ng-template>
                             </p-dropdown>
                         </th>
                         <th>
@@ -274,7 +292,11 @@
                         </td>
                         <td *ngIf="isOrganizer">
                             <span class="p-column-title">Előleget fizetett</span>
-                            {{guest.prepaid ? 'Igen' : 'Nem'}}
+                            <span [ngClass]="'color-badge prepaid-badge ' + (guest.prepaid ? 'green' : 'red')">
+                                <i class="pi mr-1"
+                                   [ngClass]="guest.prepaid ? 'true-icon pi-check-circle text-green-500' : 'false-icon pi-times-circle text-red-500'"></i>
+                                {{ guest.prepaid ? 'Igen' : 'Nem' }}
+                            </span>
                         </td>
                         <td style="width:14%; min-width:10rem;">
                             <span class="p-column-title">Utolsó NFC használat</span>
