@@ -2,6 +2,21 @@ import { Conference } from "./conference";
 import { Reservation } from "./reservation";
 import { ConferenceRoomType } from "./conference";
 
+export interface EmailStatusSummary {
+    id?: number;
+    type?: string;
+    status: 'queued' | 'processing' | 'sent' | 'failed' | 'skipped' | 'unknown';
+    attemptCount?: number;
+    maxAttempts?: number;
+    toEmail?: string | null;
+    subject?: string | null;
+    lastAttemptAt?: string | null;
+    nextAttemptAt?: string | null;
+    sentAt?: string | null;
+    providerMessageId?: string | null;
+    lastError?: string | null;
+}
+
 export interface Guest {
     id: number;
     firstName?: string;
@@ -53,6 +68,7 @@ export interface Guest {
     idCardUploaded?: any;
     conference?: Conference[]
     reservations?: Reservation[]
+    actualReservation?: Reservation | null;
     roomKeyIssued?: boolean;
     roomKeyIssuedAt?: string | null;
     roomKeyReturnedAt?: string | null;
@@ -60,6 +76,7 @@ export interface Guest {
     roomKeyReturnedByUserId?: number | null;
     roomKeyIssuedByUserName?: string | null;
     roomKeyReturnedByUserName?: string | null;
+    emailStatus?: EmailStatusSummary | null;
 }
 
 export type GuestFilter = {

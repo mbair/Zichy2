@@ -327,6 +327,32 @@
                                                     <td>{{guest.email}}</td>
                                                 </tr>
                                                 <tr>
+                                                    <td class="font-medium">E-mail státusz:</td>
+                                                    <td>
+                                                        <span [ngClass]="'color-badge email-status-badge ' + getEmailStatusColor(guest)">
+                                                            <i class="mr-2" [ngClass]="getEmailStatusIcon(guest)"></i>
+                                                            {{ getEmailStatusLabel(guest) }}
+                                                        </span>
+                                                        <div *ngIf="getEmailStatusMeta(guest) as emailMeta" class="text-500 mt-2">
+                                                            {{ emailMeta }}
+                                                        </div>
+                                                        <div *ngIf="getEmailStatusAttemptLabel(guest) as attemptLabel" class="text-500 mt-1">
+                                                            {{ attemptLabel }}
+                                                        </div>
+                                                        <button
+                                                            *ngIf="canRetryGuestEmail(guest)"
+                                                            pButton
+                                                            pRipple
+                                                            type="button"
+                                                            label="E-mail újraküldése"
+                                                            icon="pi pi-refresh"
+                                                            class="p-button-sm p-button-outlined mt-2"
+                                                            [loading]="isRetryingGuestEmail(guest)"
+                                                            (click)="retryGuestEmail(guest)">
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
                                                     <td class="font-medium">Irányítószám:</td>
                                                     <td>{{guest.zipCode}}</td>
                                                 </tr>
@@ -1072,6 +1098,16 @@
                         [showClear]="true"
                         (change)="onFilter($event, 'roomKeyIssued')">
                     </app-roomkey-selector>
+                </div>
+
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="emailStatus" class="font-medium text-900">E-mail státusz</label>
+                    <app-email-status-selector
+                        [parentForm]="dialogFiltersForm"
+                        controlName="emailStatus"
+                        [showClear]="true"
+                        (change)="onFilter($event, 'emailStatus')">
+                    </app-email-status-selector>
                 </div>
             </form>
 

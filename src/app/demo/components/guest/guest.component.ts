@@ -17,7 +17,7 @@ import { LogService } from '../../service/log.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Reservation } from '../../api/reservation';
 import { Conference } from '../../api/conference';
-import { Guest } from '../../api/guest';
+import { EmailStatusSummary, Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
 import { calculateAgeYears, formatDateCompact, formatDateDots, isSameDay, isSameOrBeforeDay, parseDateOnly } from '../../utils/date.utils';
 import { saveBlobAsFile } from '../../utils/file-saver.utils';
@@ -105,6 +105,7 @@ export class GuestComponent implements OnInit {
     guestReservations: Reservation[] = []        // Guest reservations
     acutalReservation: any | null = null         // Actual guest reservation
     firstRowIndex: number = 0                    // Helper for rows
+    retryingEmailGuestIds: Record<number, boolean> = {}
 
     private static readonly NONE_CONF_ID = -1
     noConferenceMode: boolean = false
@@ -152,6 +153,73 @@ export class GuestComponent implements OnInit {
     private guestObs$: Observable<any> | undefined
     private genderObs$: Observable<any> | undefined
     private messageObs$: Observable<any> | undefined
+
+    getEmailStatusLabel(guest: Guest): string {
+        switch (guest.emailStatus?.status) {
+            case 'queued': return 'Küldésre vár';
+            case 'processing': return 'Küldés folyamatban';
+            case 'sent': return 'Elküldve';
+            case 'failed': return 'Sikertelen';
+            case 'skipped': return 'Nem küldött';
+            default: return 'Ismeretlen';
+        }
+    }
+
+    getEmailStatusColor(guest: Guest): string {
+        switch (guest.emailStatus?.status) {
+            case 'queued': return 'indigo';
+            case 'processing': return 'blue';
+            case 'sent': return 'green';
+            case 'failed': return 'pink';
+            case 'skipped': return 'orange';
+            default: return 'gray';
+        }
+    }
+
+    getEmailStatusIcon(guest: Guest): string {
+        switch (guest.emailStatus?.status) {
+            case 'queued': return 'pi pi-clock';
+            case 'processing': return 'pi pi-spin pi-spinner';
+            case 'sent': return 'pi pi-check-circle';
+            case 'failed': return 'pi pi-times-circle';
+            case 'skipped': return 'pi pi-ban';
+            default: return 'pi pi-question-circle';
+        }
+    }
+
+    getEmailStatusMeta(guest: Guest): string | null {
+        const emailStatus = guest.emailStatus;
+        if (!emailStatus) return null;
+        if (emailStatus.lastError) return emailStatus.lastError;
+        if (emailStatus.sentAt) return `Küldve: ${this.formatEmailStatusTimestamp(emailStatus.sentAt)}`;
+        if (emailStatus.nextAttemptAt) return `Következő próbálkozás: ${this.formatEmailStatusTimestamp(emailStatus.nextAttemptAt)}`;
+        if (emailStatus.lastAttemptAt) return `Utolsó próbálkozás: ${this.formatEmailStatusTimestamp(emailStatus.lastAttemptAt)}`;
+        return null;
+    }
+
+    getEmailStatusAttemptLabel(guest: Guest): string | null {
+        const attemptCount = Number(guest.emailStatus?.attemptCount || 0)
+        const maxAttempts = Number(guest.emailStatus?.maxAttempts || 0)
+        if (attemptCount <= 0 || maxAttempts <= 0) return null
+        return `Próbálkozások: ${attemptCount} / ${maxAttempts}`
+    }
+
+    canRetryGuestEmail(guest: Guest): boolean {
+        const status = guest.emailStatus?.status
+        return this.canEditByRole && !!guest.id && (status === 'failed' || status === 'skipped')
+    }
+
+    isRetryingGuestEmail(guest: Guest): boolean {
+        return Boolean(guest?.id && this.retryingEmailGuestIds[guest.id])
+    }
+
+    private formatEmailStatusTimestamp(value: string | null | undefined): string {
+        if (!value) return '';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return '';
+        const pad = (part: number) => String(part).padStart(2, '0');
+        return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    }
 
     constructor(private http: HttpClient,
         private guestService: GuestService,
@@ -232,7 +300,8 @@ export class GuestComponent implements OnInit {
             babyBed: [],
             prepaid: [],
             roomMate: [],
-            roomKeyIssued: []
+            roomKeyIssued: [],
+            emailStatus: []
         })
 
         this.exportButtonItems = [
@@ -284,48 +353,7 @@ export class GuestComponent implements OnInit {
                     rows = rows.filter((guest: any) => guest.is_test !== true)
                 }
 
-                this.tableData = rows.map((guest: any) => {
-                    // answers -> mindig egységes tömb/tömb-of-translation
-                    const normalizedAnswers =
-                        Array.isArray(guest.answers)
-                            ? guest.answers.map((answer: any) => ({
-                                ...answer,
-                                translations: Array.isArray(answer.translations)
-                                    ? answer.translations
-                                    : answer.translations
-                                        ? [answer.translations]
-                                        : []
-                            }))
-                            : guest.answers
-                                ? [{
-                                    ...guest.answers,
-                                    translations: Array.isArray(guest.answers.translations)
-                                        ? guest.answers.translations
-                                        : guest.answers.translations
-                                            ? [guest.answers.translations]
-                                            : []
-                                }]
-                                : []
-
-                    const reservations = Array.isArray(guest.reservations) ? guest.reservations : []
-                    // FONTOS: a pickActualReservation a selectedConferences-t is figyelembe veheti
-                    const actualReservation = this.pickActualReservation({ ...guest, reservations })
-
-                    const computedRoomNum =
-                        actualReservation?.room?.roomNum ??
-                        guest.displayRoomNum ??
-                        guest.roomNum ??
-                        null
-
-                    return {
-                        ...guest,
-                        answers: normalizedAnswers,
-                        reservations,
-                        actualReservation,         // <<< ezt használd a template-ben a linkhez/címkéhez
-                        displayRoomNum: computedRoomNum,
-                        roomNum: computedRoomNum
-                    }
-                })
+                this.tableData = rows.map((guest: any) => this.normalizeGuestRow(guest))
 
                 this.totalRecords = data.totalItems || 0
                 this.page = data.currentPage || 0
@@ -381,7 +409,6 @@ export class GuestComponent implements OnInit {
             { name: 'Igen', value: 'true' },
             { name: 'Nem', value: 'false' }
         ]
-
         this.isFormValid$ = this.formChanges$.pipe(
             debounceTime(300),
             distinctUntilChanged(),
@@ -567,7 +594,8 @@ export class GuestComponent implements OnInit {
             return this.guestService.getBySearch(
                 this.globalFilter,
                 { sortField: this.sortField, sortOrder: this.sortOrder },
-                ids
+                ids,
+                this.buildActiveFilterObject()
             )
         }
 
@@ -584,7 +612,7 @@ export class GuestComponent implements OnInit {
         // Organizer need select conference
         if (this.isOrganizer && !this.selectedConferences) return
 
-        const noWaitFields = ['diet', 'lastRfidUsage', 'dateOfArrival', 'dateOfDeparture', 'prepaid', 'roomKeyIssued', 'payment']
+        const noWaitFields = ['diet', 'lastRfidUsage', 'dateOfArrival', 'dateOfDeparture', 'prepaid', 'roomKeyIssued', 'payment', 'emailStatus']
         let filterValue = ''
 
         // Calendar date as String
@@ -629,10 +657,18 @@ export class GuestComponent implements OnInit {
         return true
     }
 
-    private buildActiveFilterParams(): string[] {
+    private buildActiveFilterObject(): Record<string, string> {
         return Object.keys(this.filterValues)
             .filter((key) => this.hasActiveFilterValue(this.filterValues[key]))
-            .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(String(this.filterValues[key]))}`)
+            .reduce((acc, key) => {
+                acc[key] = String(this.filterValues[key])
+                return acc
+            }, {} as Record<string, string>)
+    }
+
+    private buildActiveFilterParams(): string[] {
+        return Object.entries(this.buildActiveFilterObject())
+            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
     }
 
     /**
@@ -893,8 +929,93 @@ export class GuestComponent implements OnInit {
         this.filterValues['prepaid'] = ''
         this.filterValues['roomMate'] = ''
         this.filterValues['roomKeyIssued'] = ''
+        this.filterValues['emailStatus'] = ''
 
         this.doQuery()
+    }
+
+    retryGuestEmail(guest: Guest) {
+        if (!guest?.id || this.isRetryingGuestEmail(guest) || !this.canRetryGuestEmail(guest)) return
+
+        this.retryingEmailGuestIds[guest.id] = true
+        this.guestService.retryEmail(guest.id).subscribe({
+            next: (response) => {
+                if (response?.guest) {
+                    this.replaceGuestRow(response.guest)
+                }
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'E-mail',
+                    detail: response?.email?.status === 'skipped'
+                        ? 'A visszaigazoló e-mail nem került elküldésre.'
+                        : 'A visszaigazoló e-mail újra küldésre vár.'
+                })
+            },
+            error: (error) => {
+                delete this.retryingEmailGuestIds[guest.id!]
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'E-mail',
+                    detail: error?.error?.message || 'A visszaigazoló e-mail újraküldése sikertelen.'
+                })
+            },
+            complete: () => {
+                delete this.retryingEmailGuestIds[guest.id!]
+            }
+        })
+    }
+
+    private normalizeGuestRow(guest: any): Guest {
+        const normalizedAnswers =
+            Array.isArray(guest.answers)
+                ? guest.answers.map((answer: any) => ({
+                    ...answer,
+                    translations: Array.isArray(answer.translations)
+                        ? answer.translations
+                        : answer.translations
+                            ? [answer.translations]
+                            : []
+                }))
+                : guest.answers
+                    ? [{
+                        ...guest.answers,
+                        translations: Array.isArray(guest.answers.translations)
+                            ? guest.answers.translations
+                            : guest.answers.translations
+                                ? [guest.answers.translations]
+                                : []
+                    }]
+                    : []
+
+        const reservations = Array.isArray(guest.reservations) ? guest.reservations : []
+        const actualReservation = this.pickActualReservation({ ...guest, reservations })
+        const computedRoomNum =
+            actualReservation?.room?.roomNum ??
+            guest.displayRoomNum ??
+            guest.roomNum ??
+            null
+
+        return {
+            ...guest,
+            answers: normalizedAnswers,
+            reservations,
+            actualReservation,
+            displayRoomNum: computedRoomNum,
+            roomNum: computedRoomNum
+        }
+    }
+
+    private replaceGuestRow(guest: Guest) {
+        const normalizedGuest = this.normalizeGuestRow(guest)
+        const guestIndex = this.findIndexById(normalizedGuest.id)
+        if (guestIndex === -1) {
+            this.doQuery()
+            return
+        }
+
+        const nextRows = [...this.tableData]
+        nextRows[guestIndex] = normalizedGuest
+        this.tableData = nextRows
     }
 
     findIndexById(id: number | undefined): number {

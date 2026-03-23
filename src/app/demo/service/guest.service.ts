@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
-import { Guest, GuestFilter } from '../api/guest';
+import { EmailStatusSummary, Guest, GuestFilter } from '../api/guest';
 
 type ToastMsg = {
     severity: 'success' | 'info' | 'warn' | 'error';
@@ -12,15 +12,26 @@ type ToastMsg = {
 }
 
 type EmailStatus = {
-    status: 'sent' | 'failed' | 'timeout' | 'unknown';
+    status: 'queued' | 'processing' | 'sent' | 'failed' | 'skipped' | 'unknown';
+    id?: number;
+    type?: string;
+    attemptCount?: number;
+    maxAttempts?: number;
     message?: string;
-    code?: string | number;
-    providerResponse?: any;
+    lastError?: string | null;
+    lastAttemptAt?: string | null;
+    nextAttemptAt?: string | null;
+    sentAt?: string | null;
 }
 
 type CreateGuestResponse = {
     guest: Guest;
     email?: EmailStatus;
+}
+
+type RetryEmailResponse = {
+    guest: Guest;
+    email?: EmailStatusSummary;
 }
 
 @Injectable({
@@ -88,7 +99,7 @@ export class GuestService {
      * @param sort 
      * @param conferenceIds 
      */
-    public getBySearch(globalFilter: string, sort: any, conferenceIds: number[]): void {
+    public getBySearch(globalFilter: string, sort: any, conferenceIds: number[], extraParams: Record<string, string> = {}): void {
         let params: any = {}
         if (sort && sort.sortField) {
             params['sort'] = sort.sortField
@@ -97,6 +108,7 @@ export class GuestService {
         if (conferenceIds && conferenceIds.length > 0) {
             params['conferenceIds'] = conferenceIds.join(',')
         }
+        Object.assign(params, extraParams)
         this.apiService.get<ApiResponse>(`guest/search/${encodeURIComponent(globalFilter)}`, { params })
             .subscribe({
                 next: (response: ApiResponse) => { this.data$.next(response) },
@@ -168,6 +180,10 @@ export class GuestService {
 
     public returnRoomKey(guestId: number): Observable<any> {
         return this.apiService.post(`guest/${guestId}/roomkey/return`, {})
+    }
+
+    public retryEmail(guestId: number): Observable<RetryEmailResponse> {
+        return this.apiService.post<RetryEmailResponse>(`guest/${guestId}/email/retry`, {})
     }
 
     /**
@@ -344,13 +360,15 @@ export class GuestService {
 
     private emailStatusToast(email?: EmailStatus): ToastMsg {
         if (!email) {
-            return { severity: 'warn', summary: 'E-mail', detail: 'E-mail státusz ismeretlen.' };
+            return { severity: 'warn', summary: 'E-mail', detail: 'A visszaigazoló e-mail státusza ismeretlen.' };
         }
         switch (email.status) {
-            case 'sent': return { severity: 'success', summary: 'E-mail', detail: 'Visszaigazoló e-mail elküldve.' };
-            case 'timeout': return { severity: 'warn', summary: 'E-mail', detail: 'Az e-mail küldés időkorlátot ért el.' };
-            case 'failed': return { severity: 'error', summary: 'E-mail hiba', detail: email.message || 'Az e-mail küldés nem sikerült.' };
-            default: return { severity: 'info', summary: 'E-mail', detail: 'E-mail státusz: ismeretlen.' };
+            case 'queued': return { severity: 'info', summary: 'E-mail', detail: 'A visszaigazoló e-mail küldésre vár.' };
+            case 'processing': return { severity: 'info', summary: 'E-mail', detail: 'A visszaigazoló e-mail küldése folyamatban van.' };
+            case 'sent': return { severity: 'success', summary: 'E-mail', detail: 'A visszaigazoló e-mail sikeresen elküldve.' };
+            case 'failed': return { severity: 'error', summary: 'E-mail hiba', detail: email.lastError || email.message || 'A visszaigazoló e-mail küldése sikertelen volt.' };
+            case 'skipped': return { severity: 'warn', summary: 'E-mail', detail: email.lastError || email.message || 'A visszaigazoló e-mail nem került elküldésre.' };
+            default: return { severity: 'info', summary: 'E-mail', detail: 'A visszaigazoló e-mail státusza ismeretlen.' };
         }
     }
 
