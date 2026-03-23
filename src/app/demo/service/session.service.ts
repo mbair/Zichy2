@@ -69,6 +69,7 @@ export class SessionService {
 
     private readonly focusListener = () => {
         this.ensureSessionValidity();
+        this.refreshSessionOnActivityIfNeeded();
     };
 
     private readonly activityListener = () => {
@@ -79,6 +80,7 @@ export class SessionService {
     private readonly visibilityListener = () => {
         if (this.document.visibilityState === 'visible') {
             this.ensureSessionValidity();
+            this.refreshSessionOnActivityIfNeeded();
         }
     };
 

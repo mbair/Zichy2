@@ -46,12 +46,31 @@ describe('SessionService', () => {
         expect(activityEvents).toContain('input');
         expect(activityEvents).toContain('change');
         expect(activityEvents).toContain('focusin');
+        expect(activityEvents).toContain('mousedown');
+        expect(activityEvents).toContain('touchstart');
     });
 
     it('refreshes the session on activity when expiry is near', () => {
         setActiveSession(4 * 60 * 1000);
 
         (service as any).activityListener();
+
+        expect(userServiceSpy.refreshSession$).toHaveBeenCalledTimes(1);
+    });
+
+    it('refreshes the session when the window regains focus near expiry', () => {
+        setActiveSession(4 * 60 * 1000);
+
+        (service as any).focusListener();
+
+        expect(userServiceSpy.refreshSession$).toHaveBeenCalledTimes(1);
+    });
+
+    it('refreshes the session when the tab becomes visible near expiry', () => {
+        setActiveSession(4 * 60 * 1000);
+        spyOnProperty(document, 'visibilityState', 'get').and.returnValue('visible');
+
+        (service as any).visibilityListener();
 
         expect(userServiceSpy.refreshSession$).toHaveBeenCalledTimes(1);
     });
