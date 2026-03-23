@@ -66,22 +66,31 @@
 
                 <!-- Number of Guests -->
                 <span class="block ml-2 mt-2 md:mt-0 p-input-icon-left">
-                    <div class="border-round-xl w-min p-0"
+                    <div class="border-round-xl w-min p-0 binder-summary-card"
                          style="background-color: #E2E8F0;"
                          [pTooltip]="guestSummaryTooltip"
                          tooltipPosition="top"
                          tooltipStyleClass="binder-summary-tooltip">
                         <div class="flex align-items-center justify-content-center py-1 px-1">
-                            <div class="flex align-items-center gap-2 px-2 py-1 binder-summary-inline">
-                                <i class="pi pi-users" style="font-size: 1.5rem"></i>
-                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle text-left">
-                                    {{ numberOfGuests }}
-                                </span>
-                                <span class="binder-summary-separator">/</span>
-                                <span class="text-xl font-semibold white-space-nowrap binder-inline-value binder-waiting-value"
-                                      [class.is-clear]="numberOfGuestsWaitingForRoom === 0">
-                                    {{ numberOfGuestsWaitingForRoom }}
-                                </span>
+                            <div class="flex align-items-center gap-2 px-2 py-1 binder-summary-inline binder-summary-inline--wide">
+                                <i class="pi pi-users text-xl binder-summary-icon"></i>
+                                <div class="flex flex-column gap-1">
+                                    <span class="binder-summary-caption">Vendég / vár</span>
+                                    <span class="flex align-items-center gap-2">
+                                        <span class="text-2xl font-normal white-space-nowrap vertical-align-middle text-left">
+                                            {{ numberOfGuests }}
+                                        </span>
+                                        <span class="binder-summary-separator">/</span>
+                                        <span class="text-xl font-semibold white-space-nowrap binder-inline-value binder-waiting-value"
+                                              [class.is-clear]="numberOfGuestsWaitingForRoom === 0">
+                                            {{ numberOfGuestsWaitingForRoom }}
+                                        </span>
+                                    </span>
+                                    <span class="binder-summary-note binder-summary-note--waiting"
+                                          [class.is-clear]="numberOfGuestsWaitingForRoom === 0">
+                                        Szobára vár: {{ numberOfGuestsWaitingForRoom }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -89,14 +98,14 @@
 
                 <!-- Number of Beds -->
                 <span class="block ml-2 mt-2 md:mt-0 p-input-icon-left">
-                    <div class="border-round-xl w-min p-0"
+                    <div class="border-round-xl w-min p-0 binder-summary-card"
                          style="background-color: #E2E8F0;"
                          [pTooltip]="bedAvailabilityTooltip"
                          tooltipPosition="top"
                          tooltipStyleClass="binder-summary-tooltip">
                         <div class="flex align-items-center justify-content-center py-1 px-1">
-                            <div class="flex align-items-center gap-2 px-2 py-1 binder-summary-inline">
-                                <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
+                            <div class="flex align-items-center gap-2 px-2 py-1 binder-summary-inline binder-summary-inline--wide">
+                                <svg class="binder-summary-icon" width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
                                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                                     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                                     <g id="SVGRepo_iconCarrier">
@@ -107,16 +116,54 @@
                                         </g>
                                     </g>
                                 </svg>
-                                <span class="text-2xl font-normal white-space-nowrap vertical-align-middle text-left">
-                                    {{ numberOfBeds }}
-                                </span>
-                                <span class="binder-summary-separator">/</span>
-                                <span class="text-xl font-semibold white-space-nowrap binder-inline-value"
-                                      [class.is-available]="numberOfFreeBeds > 0"
-                                      [class.is-full]="numberOfFreeBeds === 0 && numberOfMissingBeds === 0"
-                                      [class.is-overbooked]="numberOfMissingBeds > 0">
-                                    {{ bedAvailabilityValue }}
-                                </span>
+                                <div class="flex flex-column gap-1">
+                                    <span class="binder-summary-caption">Ágy / szabad</span>
+                                    <span class="flex align-items-center gap-2">
+                                        <span class="text-2xl font-normal white-space-nowrap vertical-align-middle text-left">
+                                            {{ numberOfBeds }}
+                                        </span>
+                                        <span class="binder-summary-separator">/</span>
+                                        <span class="text-xl font-semibold white-space-nowrap binder-inline-value"
+                                              [class.is-available]="numberOfFreeBeds > 0"
+                                              [class.is-full]="numberOfFreeBeds === 0 && numberOfMissingBeds === 0"
+                                              [class.is-overbooked]="numberOfMissingBeds > 0">
+                                            {{ bedAvailabilityValue }}
+                                        </span>
+                                    </span>
+                                    <span class="binder-summary-note"
+                                          [class.is-overbooked]="numberOfMissingBeds > 0">
+                                        {{ numberOfMissingBeds > 0 ? 'Hiányzik: ' : 'Még szabad: ' }}{{ bedAvailabilityValue }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </span>
+
+                <span class="block ml-2 mt-2 md:mt-0 p-input-icon-left">
+                    <div class="border-round-xl w-min p-0 binder-summary-card"
+                         style="background-color: #E2E8F0;"
+                         [pTooltip]="assignableBedSelectionTooltip"
+                         tooltipPosition="top"
+                         tooltipStyleClass="binder-summary-tooltip binder-summary-tooltip--stacked binder-summary-tooltip--assignable">
+                        <div class="flex align-items-center justify-content-center py-1 px-1">
+                            <div class="flex align-items-center gap-2 px-2 py-1 binder-summary-inline binder-summary-inline--wide">
+                                <i class="pi pi-building text-xl binder-summary-icon"></i>
+                                <div class="flex flex-column gap-1">
+                                    <span class="binder-summary-caption">Lista / kijelölt</span>
+                                    <span class="flex align-items-center gap-2">
+                                        <span class="text-2xl font-normal white-space-nowrap vertical-align-middle text-left">
+                                            {{ numberOfAssignableBeds }}
+                                        </span>
+                                        <span class="binder-summary-separator">/</span>
+                                        <span class="text-xl font-semibold white-space-nowrap binder-inline-value binder-inline-value--selection">
+                                            {{ numberOfSelectedRoomBeds }}
+                                        </span>
+                                    </span>
+                                    <span class="binder-summary-note">
+                                        Még hozzáadható: {{ numberOfRemainingAssignableBeds }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
