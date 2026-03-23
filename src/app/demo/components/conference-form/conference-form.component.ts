@@ -83,6 +83,7 @@ export class ConferenceFormComponent implements OnInit {
 
     private readonly subs = new Subscription();
     private readonly ROOMTYPE_NO_ACCOMMODATION = 'Nem kérek szállást';
+    private lastLoadedConferenceIdentity: string | null = null;
     readonly idCardMaxFileSizeBytes = 15 * 1024 * 1024;
     readonly idCardMaxFileSizeMb = 15;
 
@@ -307,6 +308,7 @@ export class ConferenceFormComponent implements OnInit {
                     if (data && data.rows) {
                         if (data.rows.length > 0) {
                             this.conference = data.rows[0];
+                            this.resetRoomSelectionIfConferenceChanged();
                             this.beginDate = this.conference.beginDate
                                 ? (parseDateOnly(this.conference.beginDate) ??
                                   undefined)
@@ -1367,6 +1369,51 @@ export class ConferenceFormComponent implements OnInit {
         }
 
         return [];
+    }
+
+    private getConferenceIdentity(
+        conf: Conference | null | undefined,
+    ): string | null {
+        if (!conf) {
+            return null;
+        }
+
+        if (conf.id !== null && conf.id !== undefined) {
+            return `id:${conf.id}`;
+        }
+
+        const formUrl =
+            typeof conf.formUrl === 'string' ? conf.formUrl.trim() : '';
+        if (formUrl) {
+            return `form:${formUrl}`;
+        }
+
+        const name = typeof conf.name === 'string' ? conf.name.trim() : '';
+        return name ? `name:${name}` : null;
+    }
+
+    private resetRoomSelectionIfConferenceChanged(): void {
+        const nextConferenceIdentity = this.getConferenceIdentity(
+            this.conference,
+        );
+        const conferenceChanged =
+            !!this.lastLoadedConferenceIdentity &&
+            !!nextConferenceIdentity &&
+            this.lastLoadedConferenceIdentity !== nextConferenceIdentity;
+
+        this.lastLoadedConferenceIdentity = nextConferenceIdentity;
+
+        if (!conferenceChanged) {
+            return;
+        }
+
+        this.roomMate?.reset(null, { emitEvent: false });
+        this.roomMate?.markAsPristine();
+        this.roomMate?.markAsUntouched();
+
+        this.roomType?.reset('', { emitEvent: true });
+        this.roomType?.markAsPristine();
+        this.roomType?.markAsUntouched();
     }
 
     /**
