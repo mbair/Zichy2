@@ -81,7 +81,17 @@ export class ConferenceComponent implements OnInit {
     isOrganizer: boolean = false; // User has organizer role
     loggedInUserId: number; // Logged in user id
     isMobile: boolean = false; // Mobile screen detection
+    isOrganizerLimitedEditMode: boolean = false;
     conferenceSelectableRoomTypeIds: number[] | undefined = undefined;
+    private readonly organizerEditableFieldNames = [
+        'contractorName',
+        'contractorAdress',
+        'contractorTaxNumber',
+        'contactName',
+        'contactPhone',
+        'paymentMethodIds',
+        'roomTypeIds',
+    ];
 
     FORM_FIELD_INFOS_CONFIG = [
         { field: 'lastName', label: 'Vezetéknév' },
@@ -829,6 +839,7 @@ export class ConferenceComponent implements OnInit {
         this.suppressContractingPartySelectionEffect = false;
         this.clearOrganizerContractingParties(false);
         this.conferenceSelectableRoomTypeIds = undefined;
+        this.applyConferenceFormEditAccess(false);
 
         // Store original values for Cancel (create mode)
         this.originalFormValues = this.conferenceForm.getRawValue();
@@ -841,6 +852,10 @@ export class ConferenceComponent implements OnInit {
      * @param conference
      */
     edit(conference: Conference) {
+        if (!this.canEditConference(conference)) {
+            return;
+        }
+
         this.loading = true;
         this.suppressOrganizerSelectionEffect = true;
         this.suppressContractingPartySelectionEffect = true;
@@ -868,6 +883,10 @@ export class ConferenceComponent implements OnInit {
                 paymentMethodIds,
                 roomTypeIds,
             });
+            this.applyConferenceFormEditAccess(
+                this.isOrganizerOwnConference(detailedConference) &&
+                    !this.canEdit,
+            );
             this.suppressOrganizerSelectionEffect = false;
             this.suppressContractingPartySelectionEffect = false;
 
@@ -940,6 +959,7 @@ export class ConferenceComponent implements OnInit {
         this.conferenceForm.reset(
             this.originalFormValues ?? this.initialFormValues,
         );
+        this.applyConferenceFormEditAccess(this.isOrganizerLimitedEditMode);
         this.suppressOrganizerSelectionEffect = false;
         this.suppressContractingPartySelectionEffect = false;
 
@@ -1169,6 +1189,38 @@ export class ConferenceComponent implements OnInit {
                 this.layoutService.onConfigUpdate();
             });
         }
+    }
+
+    canEditConference(conference: Conference): boolean {
+        return this.canEdit || this.isOrganizerOwnConference(conference);
+    }
+
+    private isOrganizerOwnConference(conference: Conference | null | undefined): boolean {
+        return (
+            this.isOrganizer &&
+            Number(conference?.organizer_user_id) === Number(this.loggedInUserId)
+        );
+    }
+
+    private applyConferenceFormEditAccess(
+        organizerLimitedEdit: boolean,
+    ): void {
+        this.isOrganizerLimitedEditMode = organizerLimitedEdit;
+
+        Object.entries(this.conferenceForm.controls).forEach(
+            ([controlName, control]) => {
+                const shouldEnable =
+                    !organizerLimitedEdit ||
+                    controlName === 'id' ||
+                    this.organizerEditableFieldNames.includes(controlName);
+
+                if (shouldEnable) {
+                    control.enable({ emitEvent: false });
+                } else {
+                    control.disable({ emitEvent: false });
+                }
+            },
+        );
     }
 
     private onOrganizerSelectionChange(organizerUserId: any): void {

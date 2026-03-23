@@ -173,7 +173,8 @@
                                     "></button>
                                 <button pButton pRipple icon="pi pi-pencil"
                                     class="p-button-rounded p-button-success mr-2" pTooltip="Konferencia szerkesztése"
-                                    tooltipPosition="top" (click)="edit(conference)" [disabled]="!canEdit"></button>
+                                    tooltipPosition="top" (click)="edit(conference)"
+                                    [disabled]="!canEditConference(conference)"></button>
                                 <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning"
                                     pTooltip="Konferencia törlése" tooltipPosition="top" (click)="
                                         tableItem = conference;
