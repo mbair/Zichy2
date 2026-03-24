@@ -35,6 +35,7 @@ export class AppLayoutComponent implements OnDestroy {
         refreshing: false,
         error: null,
     };
+    dismissedSessionWarningError = false;
 
     currentHelpContent: HelpSidebarContent = this.createDefaultHelpContent();
 
@@ -82,6 +83,9 @@ export class AppLayoutComponent implements OnDestroy {
 
         this.sessionWarningSubscription = this.sessionService.sessionWarning$.subscribe((state) => {
             this.sessionWarning = state;
+            if (!state.visible || !state.error) {
+                this.dismissedSessionWarningError = false;
+            }
         });
 
         this.updateHelpContent();
@@ -159,11 +163,47 @@ export class AppLayoutComponent implements OnDestroy {
     }
 
     staySignedIn(): void {
+        this.dismissedSessionWarningError = false;
         this.sessionService.extendSession();
     }
 
     logout(): void {
         this.authService.logout();
+    }
+
+    get shouldShowSessionWarning(): boolean {
+        return this.sessionWarning.visible
+            && !(this.hasSessionWarningError && this.dismissedSessionWarningError);
+    }
+
+    get hasSessionWarningError(): boolean {
+        return !!this.sessionWarning.error;
+    }
+
+    get sessionWarningDescription(): string {
+        return this.hasSessionWarningError
+            ? 'A szerver jelenleg nem érhető el, ezért a munkamenet meghosszabbítása sem sikerült.'
+            : 'Ha tovább dolgozik, hosszabbítsa meg most a bejelentkezést.';
+    }
+
+    get staySignedInLabel(): string {
+        return this.hasSessionWarningError
+            ? 'Újrapróbálom'
+            : 'Maradok bejelentkezve';
+    }
+
+    get staySignedInIcon(): string {
+        return this.hasSessionWarningError
+            ? 'pi pi-refresh'
+            : 'pi pi-refresh';
+    }
+
+    onSessionWarningHide(): void {
+        if (!this.hasSessionWarningError) {
+            return;
+        }
+
+        this.dismissedSessionWarningError = true;
     }
 
     private updateHelpContent(): void {

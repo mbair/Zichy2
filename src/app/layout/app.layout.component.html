@@ -36,14 +36,15 @@
     <div class="layout-mask"></div>
 </div>
 <p-dialog
-    [visible]="sessionWarning.visible"
+    [visible]="shouldShowSessionWarning"
     header="Közeleg a munkamenet vége"
-    [modal]="true"
-    [closable]="false"
+    [modal]="!hasSessionWarningError"
+    [closable]="hasSessionWarningError"
     [draggable]="false"
     [resizable]="false"
-    [dismissableMask]="false"
-    [style]="{ width: 'min(32rem, calc(100vw - 2rem))' }">
+    [dismissableMask]="hasSessionWarningError"
+    [style]="{ width: 'min(32rem, calc(100vw - 2rem))' }"
+    (onHide)="onSessionWarningHide()">
     <div class="flex gap-3 align-items-start">
         <i class="pi pi-exclamation-triangle text-orange-500 mt-1" style="font-size: 1.75rem"></i>
         <div class="flex-1">
@@ -54,7 +55,7 @@
                 múlva.
             </p>
             <p class="m-0 text-600 line-height-3">
-                Ha tovább dolgozik, hosszabbítsa meg most a bejelentkezést.
+                {{ sessionWarningDescription }}
             </p>
             <small *ngIf="sessionWarning.error" class="block mt-3 text-red-500 line-height-3">
                 {{ sessionWarning.error }}
@@ -76,8 +77,8 @@
                 pButton
                 pRipple
                 type="button"
-                icon="pi pi-refresh"
-                label="Maradok bejelentkezve"
+                [icon]="staySignedInIcon"
+                [label]="staySignedInLabel"
                 [loading]="sessionWarning.refreshing"
                 (click)="staySignedIn()"></button>
         </div>

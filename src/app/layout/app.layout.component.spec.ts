@@ -156,4 +156,61 @@ describe('AppLayoutComponent', () => {
         expect(layoutServiceSpy.hideHelpSidebar).not.toHaveBeenCalled();
         expect(component.currentHelpContent).toBe(HELP_SIDEBAR_CONTENT.default);
     });
+
+    it('shows the normal session warning text when there is no refresh error', () => {
+        const component = createComponent();
+
+        sessionWarning$.next({
+            visible: true,
+            remainingMs: 20_000,
+            refreshing: false,
+            error: null,
+        });
+
+        expect(component.shouldShowSessionWarning).toBeTrue();
+        expect(component.hasSessionWarningError).toBeFalse();
+        expect(component.sessionWarningDescription).toBe(
+            'Ha tovább dolgozik, hosszabbítsa meg most a bejelentkezést.',
+        );
+        expect(component.staySignedInLabel).toBe('Maradok bejelentkezve');
+    });
+
+    it('allows dismissing the session warning when refresh fails because of a server error', () => {
+        const component = createComponent();
+
+        sessionWarning$.next({
+            visible: true,
+            remainingMs: 20_000,
+            refreshing: false,
+            error: 'Nem sikerült kapcsolódni a szerverhez, ezért a munkamenet sem hosszabbítható meg. Ellenőrizze a kapcsolatot, majd próbálja újra.',
+        });
+
+        expect(component.shouldShowSessionWarning).toBeTrue();
+        expect(component.hasSessionWarningError).toBeTrue();
+        expect(component.sessionWarningDescription).toBe(
+            'A szerver jelenleg nem érhető el, ezért a munkamenet meghosszabbítása sem sikerült.',
+        );
+        expect(component.staySignedInLabel).toBe('Újrapróbálom');
+
+        component.onSessionWarningHide();
+
+        expect(component.shouldShowSessionWarning).toBeFalse();
+    });
+
+    it('shows the warning again after retrying from a dismissed error state', () => {
+        const component = createComponent();
+
+        sessionWarning$.next({
+            visible: true,
+            remainingMs: 20_000,
+            refreshing: false,
+            error: 'Nem sikerült kapcsolódni a szerverhez, ezért a munkamenet sem hosszabbítható meg. Ellenőrizze a kapcsolatot, majd próbálja újra.',
+        });
+        component.onSessionWarningHide();
+
+        component.staySignedIn();
+
+        expect(sessionServiceSpy.extendSession).toHaveBeenCalled();
+        expect(component.shouldShowSessionWarning).toBeTrue();
+    });
 });

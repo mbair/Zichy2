@@ -22,6 +22,11 @@ const INITIAL_SESSION_WARNING_STATE: SessionWarningState = {
     error: null,
 };
 
+const SESSION_REFRESH_UNCHANGED_ERROR =
+    'A munkamenet nem hosszabbodott meg. Kérjük, ellenőrizze a kapcsolatot, majd jelentkezzen be újra.';
+const SESSION_REFRESH_FAILED_ERROR =
+    'Nem sikerült kapcsolódni a szerverhez, ezért a munkamenet sem hosszabbítható meg. Ellenőrizze a kapcsolatot, majd próbálja újra.';
+
 @Injectable({
     providedIn: 'root'
 })
@@ -454,7 +459,7 @@ export class SessionService {
 
         this.patchSessionWarningState({
             refreshing: false,
-            error: 'A munkamenet nem hosszabbodott meg. Mentse a módosításokat, majd jelentkezzen be újra.',
+            error: SESSION_REFRESH_UNCHANGED_ERROR,
         });
         this.updateSessionWarningState();
     }
@@ -466,7 +471,7 @@ export class SessionService {
 
         this.patchSessionWarningState({
             refreshing: false,
-            error: 'Nem sikerült meghosszabbítani a munkamenetet. Mentse a módosításokat, majd próbálja újra.',
+            error: SESSION_REFRESH_FAILED_ERROR,
         });
         this.updateSessionWarningState();
     }
