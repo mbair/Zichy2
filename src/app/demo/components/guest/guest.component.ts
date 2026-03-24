@@ -1150,16 +1150,32 @@ export class GuestComponent implements OnInit {
             // CREATE
             if (!formValues.id) {
                 this.guestService.create(formValues, files)
+                this.sidebar = false
             }
             // UPDATE
             else {
-                this.guestService.update(formValues, files)
-
-                // Update Guest in the table and rowexpansion
-                this.doQuery()
+                this.guestService.update$(formValues, files).subscribe({
+                    next: (updatedGuest) => {
+                        this.replaceGuestRow(updatedGuest)
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Sikeres mentés',
+                            detail: 'A vendég adatai frissültek.'
+                        })
+                        this.sidebar = false
+                        this.loading = false
+                    },
+                    error: (error) => {
+                        this.loading = false
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Mentési hiba',
+                            detail: error?.error?.message || 'A vendég mentése nem sikerült.'
+                        })
+                    }
+                })
+                return
             }
-
-            this.sidebar = false
         }
     }
 

@@ -34,6 +34,8 @@ type RetryEmailResponse = {
     email?: EmailStatusSummary;
 }
 
+type UpdateGuestResponse = Guest
+
 @Injectable({
     providedIn: 'root',
 })
@@ -245,7 +247,7 @@ export class GuestService {
      * Guest update
      * @param guest
      */
-    public update(guest: Guest, files: File[] = []): void {
+    public update$(guest: Guest, files: File[] = []): Observable<UpdateGuestResponse> {
         // Remove idcard field from FormData
         const cleanedGuest = { ...guest }
         delete cleanedGuest.idcard
@@ -257,28 +259,24 @@ export class GuestService {
             for (const file of files) {
                 if (file) formData.append('idcard', file, file.name)
             }
-            this.apiService.put(`guest/update/${guest.id}`, formData)
-                .subscribe({
-                    next: () => {
-                        this.message$.next('success')
-                    },
-                    error: (error: any) => {
-                        this.message$.next(error)
-                    }
-                })
+            return this.apiService.put<UpdateGuestResponse>(`guest/update/${guest.id}`, formData)
         } else {
             // Nincs file, maradhat sima JSON
             cleanedGuest.idCardUploaded = 0 // Szerver elvárja, hogy jelezzük, ha nincs új fájl
-            this.apiService.put(`guest/update/${guest.id}`, cleanedGuest)
-                .subscribe({
-                    next: () => {
-                        this.message$.next('success')
-                    },
-                    error: (error: any) => {
-                        this.message$.next(error)
-                    }
-                })
+            return this.apiService.put<UpdateGuestResponse>(`guest/update/${guest.id}`, cleanedGuest)
         }
+    }
+
+    public update(guest: Guest, files: File[] = []): void {
+        this.update$(guest, files)
+            .subscribe({
+                next: () => {
+                    this.message$.next('success')
+                },
+                error: (error: any) => {
+                    this.message$.next(error)
+                }
+            })
     }
 
     public updateGuest2(modifiedGuest: any): Observable<any> {
