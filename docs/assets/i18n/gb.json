@@ -280,6 +280,8 @@
         "messages": {
             "saveSuccessSummary": "Registration successful!",
             "saveSuccessDetail": "We look forward to welcoming you to the conference!",
+            "savePartialSummary": "Registration completed with a follow-up needed",
+            "savePartialDetail": "Your registration was saved, but we could not store the additional answers separately. Please let the organizer know.",
             "saveFailedSummary": "Something went wrong!",
             "saveFailedDetail": "We could not save your data"
         }

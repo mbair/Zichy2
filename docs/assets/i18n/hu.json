@@ -280,6 +280,8 @@
         "messages": {
             "saveSuccessSummary": "Sikeresen regisztrált!",
             "saveSuccessDetail": "Sok szeretettel várjuk a konferenciára!",
+            "savePartialSummary": "A regisztráció sikerült, de maradt egy teendő",
+            "savePartialDetail": "A regisztrációdat elmentettük, de a kiegészítő válaszokat nem sikerült külön rögzíteni. Kérjük, jelezd ezt a szervezőnek.",
             "saveFailedSummary": "Hiba történt!",
             "saveFailedDetail": "Nem sikerült menteni az adatokat"
         }
