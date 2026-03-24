@@ -10,6 +10,7 @@ import { ResponsiveService } from '../../service/responsive.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Tag } from '../../api/tag';
 import { formatDateDots } from '../../utils/date.utils';
+import { replaceTableRowById, shouldRequeryAfterTableRowUpdate } from '../../utils/table-row-update.utils';
 
 @Component({
     templateUrl: './nfc-tag.component.html',
@@ -271,13 +272,37 @@ export class NFCTagComponent implements OnInit {
             // Create
             if (!formValues.id) {
                 this.tagService.create(formValues)
+                this.sidebar = false
 
             // Update
             } else {
-                this.tagService.update(formValues)
+                this.tagService.update$(formValues)
+                    .subscribe({
+                        next: (updatedTag) => {
+                            this.applyUpdatedTag({
+                                ...updatedTag,
+                                identifier: updatedTag.rfid,
+                            } as Tag & { identifier?: string })
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Sikeres címke módosítás',
+                                detail: `${updatedTag.rfid} módosítva`,
+                            })
+                            this.tableItem = {}
+                            this.selected = []
+                            this.loading = false
+                            this.sidebar = false
+                        },
+                        error: (error: any) => {
+                            this.loading = false
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Hiba',
+                                detail: error?.error?.message || 'Hiba történt!'
+                            })
+                        }
+                    })
             }
-
-            this.sidebar = false
         }
     }
 
@@ -354,6 +379,30 @@ export class NFCTagComponent implements OnInit {
             this.selected = []
 
             // Query for data changes
+            this.doQuery()
+        }
+    }
+
+    private applyUpdatedTag(updatedTag: Tag): void {
+        const { rows, previousRow, replaced } = replaceTableRowById({
+            rows: this.tableData,
+            nextRow: updatedTag,
+        })
+
+        if (!replaced) {
+            this.doQuery()
+            return
+        }
+
+        this.tableData = rows
+
+        if (shouldRequeryAfterTableRowUpdate({
+            globalFilter: this.globalFilter,
+            filterValues: this.filterValues,
+            sortField: this.sortField,
+            previousRow,
+            nextRow: updatedTag,
+        })) {
             this.doQuery()
         }
     }

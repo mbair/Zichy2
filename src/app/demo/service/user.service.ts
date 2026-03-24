@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { BehaviorSubject, map, Observable, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { User } from '../api/user';
@@ -135,7 +135,7 @@ export class UserService {
      * @param user
      */
     public update(modifiedUser: User): void {
-        this.apiService.put(`users/update/${modifiedUser.id}`, modifiedUser)
+        this.update$(modifiedUser)
             .subscribe({
                 next: () => {
                     this.message$.next({
@@ -148,6 +148,12 @@ export class UserService {
                     this.message$.next(error)
                 }
             })
+    }
+
+    public update$(modifiedUser: User): Observable<User> {
+        return this.apiService
+            .put<{ message: string; user: User }>(`users/update/${modifiedUser.id}`, modifiedUser)
+            .pipe(map((response) => response.user))
     }
 
     /**

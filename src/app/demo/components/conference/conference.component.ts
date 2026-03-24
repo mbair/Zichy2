@@ -30,6 +30,10 @@ import {
     extractConfiguredConferenceRoomTypeIds,
     resolveConferenceEditorSelectableRoomTypeIds,
 } from '../../utils/conference-room-type.utils';
+import {
+    replaceTableRowById,
+    shouldRequeryAfterTableRowUpdate,
+} from '../../utils/table-row-update.utils';
 
 type Option = { label: string; value: string };
 
@@ -712,6 +716,40 @@ export class ConferenceComponent implements OnInit {
         }
     }
 
+    private applyUpdatedConference(updatedConference: Conference) {
+        const { rows, previousRow, replaced } = replaceTableRowById({
+            rows: this.tableData,
+            nextRow: updatedConference,
+        });
+
+        if (!replaced) {
+            this.doQuery();
+            return;
+        }
+
+        this.tableData = rows;
+
+        const conferenceId = Number(updatedConference.id);
+        if (Number.isFinite(conferenceId)) {
+            this.expandedConferenceDetails[conferenceId] = {
+                ...(this.expandedConferenceDetails[conferenceId] ?? {}),
+                ...updatedConference,
+            };
+        }
+
+        if (
+            shouldRequeryAfterTableRowUpdate({
+                globalFilter: this.globalFilter,
+                filterValues: this.filterValues,
+                sortField: this.sortField,
+                previousRow,
+                nextRow: updatedConference,
+            })
+        ) {
+            this.doQuery();
+        }
+    }
+
     /**
      * Initializes the form field infos form
      */
@@ -942,11 +980,31 @@ export class ConferenceComponent implements OnInit {
 
         if (!formValues.id) {
             this.conferenceService.create(formValues);
+            this.sidebar = false;
         } else {
-            this.conferenceService.update(formValues);
+            this.conferenceService.update$(formValues).subscribe({
+                next: (updatedConference) => {
+                    this.applyUpdatedConference(updatedConference);
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Sikeres konferencia módosítás',
+                        detail: `${updatedConference.name} módosítva`,
+                    });
+                    this.tableItem = {};
+                    this.selected = [];
+                    this.loading = false;
+                    this.sidebar = false;
+                },
+                error: (error: any) => {
+                    this.loading = false;
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Hiba',
+                        detail: error?.error?.message || 'Hiba történt!',
+                    });
+                },
+            });
         }
-
-        this.sidebar = false;
     }
 
     /**
@@ -1011,8 +1069,29 @@ export class ConferenceComponent implements OnInit {
             formFieldInfos: infosToSave,
         };
 
-        this.conferenceService.update(updatedConference);
-        this.formFieldsInfosSidebar = false;
+        this.loading = true;
+        this.conferenceService.update$(updatedConference).subscribe({
+            next: (savedConference) => {
+                this.applyUpdatedConference(savedConference);
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Sikeres konferencia módosítás',
+                    detail: `${savedConference.name} módosítva`,
+                });
+                this.tableItem = {};
+                this.selected = [];
+                this.loading = false;
+                this.formFieldsInfosSidebar = false;
+            },
+            error: (error: any) => {
+                this.loading = false;
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Hiba',
+                    detail: error?.error?.message || 'Hiba történt!',
+                });
+            },
+        });
     }
 
     /**

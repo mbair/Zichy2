@@ -10,6 +10,7 @@ import { ResponsiveService } from '../../service/responsive.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Diet } from '../../api/diet';
 import { formatDateDots } from '../../utils/date.utils';
+import { replaceTableRowById, shouldRequeryAfterTableRowUpdate } from '../../utils/table-row-update.utils';
 
 @Component({
     templateUrl: './diet.component.html',
@@ -262,13 +263,34 @@ export class DietComponent implements OnInit {
             // Create
             if (!formValues.id) {
                 this.dietService.create(formValues)
+                this.sidebar = false
 
             // Update
             } else {
-                this.dietService.update(formValues)
+                this.dietService.update$(formValues)
+                    .subscribe({
+                        next: (updatedDiet) => {
+                            this.applyUpdatedDiet(updatedDiet)
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Sikeres étrend módosítás',
+                                detail: `${updatedDiet.name} módosítva`,
+                            })
+                            this.tableItem = {}
+                            this.selected = []
+                            this.loading = false
+                            this.sidebar = false
+                        },
+                        error: (error: any) => {
+                            this.loading = false
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Hiba',
+                                detail: error?.error?.message || 'Hiba történt!'
+                            })
+                        }
+                    })
             }
-
-            this.sidebar = false
         }
     }
 
@@ -305,6 +327,30 @@ export class DietComponent implements OnInit {
             this.selected = []
 
             // Query for data changes
+            this.doQuery()
+        }
+    }
+
+    private applyUpdatedDiet(updatedDiet: Diet): void {
+        const { rows, previousRow, replaced } = replaceTableRowById({
+            rows: this.tableData,
+            nextRow: updatedDiet,
+        })
+
+        if (!replaced) {
+            this.doQuery()
+            return
+        }
+
+        this.tableData = rows
+
+        if (shouldRequeryAfterTableRowUpdate({
+            globalFilter: this.globalFilter,
+            filterValues: this.filterValues,
+            sortField: this.sortField,
+            previousRow,
+            nextRow: updatedDiet,
+        })) {
             this.doQuery()
         }
     }

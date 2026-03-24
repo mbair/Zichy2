@@ -161,7 +161,7 @@ export class ConferenceService {
      * @param conference
      */
     public update(modifiedConference: Conference): void {
-        this.apiService.put(`conference/update/${modifiedConference.id}`, modifiedConference)
+        this.update$(modifiedConference)
             .subscribe({
                 next: () => {
                     this.message$.next({
@@ -174,6 +174,10 @@ export class ConferenceService {
                     this.message$.next(error)
                 }
             })
+    }
+
+    public update$(modifiedConference: Conference): Observable<Conference> {
+        return this.apiService.put<Conference>(`conference/update/${modifiedConference.id}`, modifiedConference)
     }
 
     /**

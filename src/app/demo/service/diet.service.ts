@@ -131,7 +131,7 @@ export class DietService {
      * @param diet
      */
     public update(modifiedDiet: Diet): void {
-        this.apiService.put(`diet/update/${modifiedDiet.id}`, modifiedDiet)
+        this.update$(modifiedDiet)
             .subscribe({
                 next: () => {
                     this.message$.next({
@@ -144,6 +144,10 @@ export class DietService {
                     this.message$.next(error)
                 }
             })
+    }
+
+    public update$(modifiedDiet: Diet): Observable<Diet> {
+        return this.apiService.put<Diet>(`diet/update/${modifiedDiet.id}`, modifiedDiet)
     }
 
     /**

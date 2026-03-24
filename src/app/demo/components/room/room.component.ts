@@ -15,6 +15,7 @@ import { Room } from '../../api/room';
 import { formatDateCompact, formatDateDots } from '../../utils/date.utils';
 import { saveBlobAsFile } from '../../utils/file-saver.utils';
 import { getRoomTypeOptionById, getRoomTypeOptions, RoomTypeOption } from '../../utils/room-type.utils';
+import { replaceTableRowById, shouldRequeryAfterTableRowUpdate } from '../../utils/table-row-update.utils';
 
 @Component({
     selector: 'room-component',
@@ -337,13 +338,34 @@ export class RoomComponent implements OnInit {
             // Create
             if (!formValues.id) {
                 this.roomService.create(formValues)
+                this.sidebar = false
 
             // Update
             } else {
-                this.roomService.update(formValues)
+                this.roomService.update$(formValues)
+                    .subscribe({
+                        next: (updatedRoom) => {
+                            this.applyUpdatedRoom(updatedRoom)
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Sikeres szoba módosítás',
+                                detail: `${updatedRoom.roomNum} számú szoba módosítva`,
+                            })
+                            this.tableItem = {}
+                            this.selected = []
+                            this.loading = false
+                            this.sidebar = false
+                        },
+                        error: (error: any) => {
+                            this.loading = false
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Hiba',
+                                detail: error?.error?.message || 'Hiba történt!'
+                            })
+                        }
+                    })
             }
-
-            this.sidebar = false
         }
     }
 
@@ -379,6 +401,30 @@ export class RoomComponent implements OnInit {
             this.selected = []
 
             // Query for data changes
+            this.doQuery()
+        }
+    }
+
+    private applyUpdatedRoom(updatedRoom: Room): void {
+        const { rows, previousRow, replaced } = replaceTableRowById({
+            rows: this.tableData,
+            nextRow: updatedRoom,
+        })
+
+        if (!replaced) {
+            this.doQuery()
+            return
+        }
+
+        this.tableData = rows
+
+        if (shouldRequeryAfterTableRowUpdate({
+            globalFilter: this.globalFilter,
+            filterValues: this.filterValues,
+            sortField: this.sortField,
+            previousRow,
+            nextRow: updatedRoom,
+        })) {
             this.doQuery()
         }
     }
