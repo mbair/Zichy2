@@ -5,6 +5,15 @@ import { ConferenceFormComponent } from './conference-form.component';
 describe('ConferenceFormComponent', () => {
     let langChange$: Subject<any>;
 
+    type Harness = {
+        component: ConferenceFormComponent;
+        answerMessages$: Subject<any>;
+        createdGuest$: Subject<any>;
+        guestMessages$: Subject<any>;
+        messageServiceAddSpy: jasmine.Spy;
+        answerCreateSpy: jasmine.Spy;
+    };
+
     function ensureThemeLink(): void {
         if (document.getElementById('theme-link')) {
             return;
@@ -24,11 +33,24 @@ describe('ConferenceFormComponent', () => {
         document.getElementById('theme-link-clone')?.remove();
     }
 
-    function createComponent(): ConferenceFormComponent {
+    function createHarness(): Harness {
         langChange$ = new Subject<any>();
         ensureThemeLink();
 
-        return new ConferenceFormComponent(
+        const createdGuest$ = new Subject<any>();
+        const guestMessages$ = new Subject<any>();
+        const answerMessages$ = new Subject<any>();
+        const messageServiceAddSpy = jasmine.createSpy('add');
+        const answerCreateSpy = jasmine.createSpy('create');
+
+        const translations: Record<string, string> = {
+            'conferenceForm.messages.savePartialSummary':
+                'conferenceForm.messages.savePartialSummary',
+            'conferenceForm.messages.savePartialDetail':
+                'conferenceForm.messages.savePartialDetail',
+        };
+
+        const component = new ConferenceFormComponent(
             {
                 url: '/conference-form/test-slug',
                 navigateByUrl: () => Promise.resolve(true),
@@ -43,7 +65,7 @@ describe('ConferenceFormComponent', () => {
                 onConfigUpdate: () => undefined,
             } as any,
             {
-                add: () => undefined,
+                add: messageServiceAddSpy,
                 clear: () => undefined,
             } as any,
             {
@@ -51,12 +73,12 @@ describe('ConferenceFormComponent', () => {
                 getByFormSlug: () => undefined,
             } as any,
             {
-                messageObs: of(null),
-                create: () => undefined,
+                messageObs: answerMessages$,
+                create: answerCreateSpy,
             } as any,
             {
-                createdGuestObs: of(null),
-                messageObs: of(null),
+                createdGuestObs: createdGuest$,
+                messageObs: guestMessages$,
             } as any,
             {
                 hasActiveSessionSnapshot: () => false,
@@ -66,7 +88,8 @@ describe('ConferenceFormComponent', () => {
                 currentLang: 'hu',
                 setDefaultLang: () => undefined,
                 use: () => undefined,
-                instant: (key: string) => key,
+                get: (key: string) => of(translations[key] || key),
+                instant: (key: string) => translations[key] || key,
                 onLangChange: langChange$,
             } as any,
             {
@@ -77,6 +100,17 @@ describe('ConferenceFormComponent', () => {
                 detectChanges: () => undefined,
             } as any,
         );
+
+        component.ngOnInit();
+
+        return {
+            component,
+            answerMessages$,
+            createdGuest$,
+            guestMessages$,
+            messageServiceAddSpy,
+            answerCreateSpy,
+        };
     }
 
     afterEach(() => {
@@ -84,7 +118,7 @@ describe('ConferenceFormComponent', () => {
     });
 
     it('clears room selection when a different conference is loaded', () => {
-        const component = createComponent();
+        const { component } = createHarness();
 
         component.conferenceForm.patchValue({
             roomType: 'Kastely szallas 4 agyas szoba',
@@ -104,5 +138,41 @@ describe('ConferenceFormComponent', () => {
 
         expect(component.roomType?.value).toBe('');
         expect(component.roomMate?.value).toBeNull();
+    });
+
+    it('closes the form with a warning when guest save succeeds but answer save fails', () => {
+        const {
+            component,
+            createdGuest$,
+            answerMessages$,
+            answerCreateSpy,
+            messageServiceAddSpy,
+        } = createHarness();
+
+        (component as any).conference = {
+            questions: [
+                {
+                    id: 42,
+                    translations: [{ hu: 'Van megjegyzes' }],
+                },
+            ],
+        } as any;
+
+        component.answers.push(new FormBuilder().control('Teszt valasz'));
+
+        createdGuest$.next({ id: 99 });
+
+        expect(answerCreateSpy).toHaveBeenCalled();
+
+        answerMessages$.next({ message: 'Kulon valasz mentesi hiba' });
+
+        expect(component.showForm).toBeFalse();
+        expect(messageServiceAddSpy).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                severity: 'warn',
+                summary: 'conferenceForm.messages.savePartialSummary',
+                detail: 'Kulon valasz mentesi hiba',
+            }),
+        );
     });
 });

@@ -78,6 +78,7 @@ export class ConferenceFormComponent implements OnInit {
     formFieldInfosMap: { [key: string]: FormFieldInfo } = {};
     allowedPaymentMethodIds: number[] | null | undefined = undefined;
     allowedConferenceRoomTypeIds: number[] | null | undefined = undefined;
+    private guestCreatedForCurrentSubmission: boolean = false;
 
     private guestServiceMessageObs$: Observable<any>;
     private answerServiceMessageObs$: Observable<any>;
@@ -401,7 +402,6 @@ export class ConferenceFormComponent implements OnInit {
         this.subs.add(
             this.guestService.createdGuestObs.subscribe(
                 (createdGuest: any | null) => {
-                    this.loading = false;
                     if (!createdGuest) return;
 
                     // If there are extra questions: save answers
@@ -413,6 +413,7 @@ export class ConferenceFormComponent implements OnInit {
                         currentQuestionSet?.id &&
                         currentQuestionTranslations.length > 0
                     ) {
+                        this.guestCreatedForCurrentSubmission = true;
                         const answers: Answer = {
                             translations: [],
                             guestid: createdGuest.id,
@@ -436,7 +437,10 @@ export class ConferenceFormComponent implements OnInit {
                         );
 
                         this.answerService.create(answers);
+                        return;
                     }
+
+                    this.loading = false;
                 },
             ),
         );
@@ -445,7 +449,6 @@ export class ConferenceFormComponent implements OnInit {
         this.guestServiceMessageObs$ = this.guestService.messageObs;
         this.subs.add(
             this.guestServiceMessageObs$.subscribe((message) => {
-                this.loading = false;
                 if (!message) return;
 
                 // If message is a Toast
@@ -455,16 +458,22 @@ export class ConferenceFormComponent implements OnInit {
                         !!this.getCurrentQuestionSet()?.id &&
                         this.getVisibleQuestionTranslations().length > 0;
                     if (message.summary === 'Vendég rögzítés sikertelen') {
+                        this.loading = false;
+                        this.resetSubmissionState();
                         this.saveFailed();
                     } else if (
                         message.summary === 'Vendég rögzítve' &&
                         !hasSeparateAnswerSave
                     ) {
+                        this.loading = false;
+                        this.resetSubmissionState();
                         this.saveSuccess();
                     }
                     return;
                 }
 
+                this.loading = false;
+                this.resetSubmissionState();
                 // If message is NOT a Toast
                 this.messageService.add({
                     severity: 'error',
@@ -483,12 +492,24 @@ export class ConferenceFormComponent implements OnInit {
         this.subs.add(
             this.answerServiceMessageObs$.subscribe((message) => {
                 this.loading = false;
-                if (message && message.severity) {
-                    // Show success message if we have no answers to save
-                    message.severity == 'success'
-                        ? this.saveSuccess()
-                        : this.saveFailed();
+                if (!message) {
+                    return;
                 }
+
+                if (message?.severity === 'success') {
+                    this.resetSubmissionState();
+                    this.saveSuccess();
+                    return;
+                }
+
+                if (this.guestCreatedForCurrentSubmission) {
+                    this.savePartialSuccess(this.extractErrorMessage(message));
+                    this.resetSubmissionState();
+                    return;
+                }
+
+                this.resetSubmissionState();
+                this.saveFailed();
             }),
         );
 
@@ -1013,6 +1034,7 @@ export class ConferenceFormComponent implements OnInit {
      */
     onSubmit(): void {
         this.messageService.clear();
+        this.resetSubmissionState();
 
         // Mark all form elements as dirty and touched
         Object.keys(this.conferenceForm.controls).forEach((key) => {
@@ -1122,6 +1144,35 @@ export class ConferenceFormComponent implements OnInit {
         });
     }
 
+    private savePartialSuccess(detail?: string) {
+        this.showForm = false;
+        this.messageService.add({
+            severity: 'warn',
+            summary: this.translate.instant(
+                'conferenceForm.messages.savePartialSummary',
+            ),
+            detail:
+                detail?.trim() ||
+                this.translate.instant(
+                    'conferenceForm.messages.savePartialDetail',
+                ),
+        });
+    }
+
+    private extractErrorMessage(message: any): string {
+        return (
+            message?.errorMessage ||
+            message?.error?.message ||
+            message?.error?.errorMessage ||
+            message?.message ||
+            ''
+        );
+    }
+
+    private resetSubmissionState(): void {
+        this.guestCreatedForCurrentSubmission = false;
+    }
+
     /**
      * New guest registration
      *
@@ -1130,6 +1181,7 @@ export class ConferenceFormComponent implements OnInit {
      */
     newRegistration() {
         this.showForm = true;
+        this.resetSubmissionState();
         this.messageService.clear();
 
         // Reset form state
