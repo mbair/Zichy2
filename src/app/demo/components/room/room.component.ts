@@ -501,22 +501,22 @@ export class RoomComponent implements OnInit {
             : ''
 
         return {
-            'Szoba-szám': room?.roomNum ?? '',
+            'Szobaszám': room?.roomNum ?? '',
             'Szoba kód': room?.roomCode ?? '',
+            'Ágyak száma': room?.beds ?? '',
+            'Pótágy (Matrac/gyerekágy)': spareBeds,
+            'Épület/folyosó': translatedBuilding,
+            'Ágy típus': room?.bedType ?? '',
+            'Fürdőszoba': room?.bathroom ?? '',
+            'Megjegyzés': room?.comment ?? '',
+            'Emelet': room?.floor ?? '',
+            'Klimatizált': room?.climate ? 'Igen' : 'Nem',
+            'Családi szoba': room?.familyRoom ? 'Igen' : 'Nem',
+            'Extra férőhely': room?.extraBeds ?? '',
             'Szobatípus': roomType?.label ?? '',
             'Szobatípus leírás': roomType?.description ?? '',
             'Szobatípus státusz': roomType ? 'Megadva' : 'Nincs szobatípus megadva',
-            'Épület / folyosó': translatedBuilding,
-            'Emelet': room?.floor ?? '',
-            'Ágyak száma': room?.beds ?? '',
-            'Extra férőhely': room?.extraBeds ?? '',
-            'Ágy típus': room?.bedType ?? '',
-            'Fürdőszoba': room?.bathroom ?? '',
-            'Pótágy': spareBeds,
-            'Klimatizált': room?.climate ? 'Igen' : 'Nem',
-            'Családi szoba': room?.familyRoom ? 'Igen' : 'Nem',
             'Konferenciák': conferenceNames,
-            'Megjegyzés': room?.comment ?? ''
         }
     }
 }
