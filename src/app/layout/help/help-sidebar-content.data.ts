@@ -47,15 +47,28 @@ export const HELP_SIDEBAR_CONTENT = {
                 'Itt tudod kiválasztani a hozzád rendelt konferenciák közül az aktuálisat.',
                 'Ha nem látsz adatokat az oldalon, először válassz ki egy konferenciát.'
             ]),
-            section('Információs dobozok jelentése', [
-                'Regisztrációk száma: azoknak a jelentkezőknek a száma, akik már kitöltötték és elküldték a regisztrációs űrlapot.',
-                'Szobára várók: azon vendégek száma, akikhez még nem lett szoba rendelve. A szobák kiosztását a Foglalás menüpontban tudod elvégezni.',
-                'Regisztrációs határidő: az az időpont, ameddig a jelentkezők kitölthetik az űrlapot, regisztrálhatnak a konferenciára. A határidő lejárta után új regisztráció külső fél számára már nem adható le.',
-                'Regisztrációs határidő - Fontos: eddig az időpontig szükséges a vendégek adatainak véglegesítése és szobákhoz rendelése.',
-                'Regisztrációs határidő - Fontos: a határidő módosítása kérhető, azonban hosszabbítás esetén kötbér merülhet fel a szerződés szerint.',
-                'Módosítási határidő: eddig az időpontig tudod módosítani a meglévő vendégadatokat a Vendég menüpontban, illetve új vendéget regisztrálni az űrlap kitöltésével.',
-                'Előleget fizetett / összes vendég (jelenleg nem aktív): azoknak a számát fogja megjeleníteni, akiknél jelölve van, hogy előleget fizetett.',
-                'Teendők (jelenleg nem aktív): a rendszer ide fogja gyűjteni a szükséges feladatokat és figyelmeztetéseket.'
+            section('Információs dobozok jelentése', []), 
+            section('Regisztrációk száma:', [
+                'Azoknak a jelentkezőknek a száma, akik már kitöltötték és elküldték a regisztrációs űrlapot.',
+            ]),
+            section('Szobára várók:', [
+                'Azon vendégek száma, akikhez még nem lett szoba rendelve. A szobák kiosztását a Foglalás menüpontban tudod elvégezni.',
+            ]),
+            section('Regisztrációs határidő:', [
+                'Az az időpont, ameddig a jelentkezők kitölthetik az űrlapot, regisztrálhatnak a konferenciára. A határidő lejárta után új regisztráció külső fél számára már nem adható le.',
+            ]),
+            section('Fontos', [
+                'Eddig az időpontig szükséges a vendégek adatainak véglegesítése és szobákhoz rendelése.',
+                'A határidő módosítása kérhető, azonban hosszabbítás esetén kötbér merülhet fel a szerződés szerint.',
+            ]),
+            section('Módosítási határidő:', [
+                'Eddig az időpontig tudod módosítani a meglévő vendégadatokat a Vendég menüpontban, illetve új vendéget regisztrálni az űrlap kitöltésével.',
+            ]),
+            section('Előleget fizetett / összes vendég (jelenleg nem aktív):', [
+                'Azoknak a számát fogja megjeleníteni, akiknél jelölve van, hogy előleget fizetett.',
+            ]),
+            section('Teendők (jelenleg nem aktív):', [
+                'A rendszer ide fogja gyűjteni a szükséges feladatokat és figyelmeztetéseket.'
             ])
         ]
     ),
@@ -103,22 +116,21 @@ export const HELP_SIDEBAR_CONTENT = {
     ),
     guest: help(
         'Vendégek',
-        'Ez a legfontosabb operatív lista a napi munkában: itt kezeled a vendégadatokat, a szobához rendelést, az étrendet, az NFC címkét és a szobakulcs állapotát.',
+        'Ez a legfontosabb operatív lista a napi munkában: itt kezeled a vendégadatokat',
         [
             section('Ajánlott munkamenet', [
                 'Mindig konferencia kiválasztásával kezdj, különben könnyen olyan vendéglistán dolgozol, amely nem a jelenlegi feladathoz tartozik.',
                 'A sorok kibontásával részletesen ellenőrizheted az érkezést, távozást, szobát, dokumentumokat és kapcsolódó adatokat, mielőtt módosítasz.',
-                'Ha tömeges ellenőrzést végzel, használd együtt a név-, szoba-, étrend-, NFC- és dátumszűrőket a gyorsabb szűkítéshez.'
+                'Ha tömeges ellenőrzést végzel, használd együtt a név-, szoba-, étrend- és dátumszűrőket a gyorsabb szűkítéshez. Vagy használd a  „Szűrők” – gombot a sor végén.'
             ]),
             section('Mire jók a fő műveletek?', [
-                'Az import csak a rendszerhez készült sablonfájllal működik megbízhatóan; import után mindig ellenőrizd a hibajelzéseket és a mintarekordokat.',
-                'Az export akkor hasznos, ha konferencia-, státusz- vagy egyéb szűrő után szeretnél ellenőrizni vagy külső feldolgozásra átadni adatot.',
-                'Az NFC- és kulcsikonok gyors operatív műveletekhez valók: címke hozzárendelés, kulcs kiadás, visszavétel és állapotellenőrzés.'
+                'Az export akkor is hasznos, ha egyéb szűrő után szeretnél ellenőrizni vagy külső feldolgozásra használni az adatokat.',
+                'Az NFC- és kulcsikonok gyors operatív műveletekhez valók: címke hozzárendelés, kulcs kiadás, visszavétel és állapotellenőrzés. (NFC címke hozzárendelése csak a Nagyadmin által engedélyezett művelet)',
+                'Vendég törlése ikon csak a Nagyadmin jogosultsággal engedélyezett művelet, mivel a törlés a szolgáltatás lemondásának minősül.'
             ]),
             section('Mire figyelj különösen?', [
-                'Ha egy vendégnél hibás vagy hiányzó étrend látszik, azt mielőbb javítsd, mert a konyhai és ételkiadási folyamatok erre épülnek.',
-                'A vendég szobája és foglalása nem ugyanaz: ha kétség merül fel, a foglalás gombbal nyisd meg a kapcsolódó foglalási rekordot.',
-                'NFC címke kiosztásakor mindig győződj meg róla, hogy a vendégnél nincs már aktív címke vagy nyitott kulcskezelési helyzet.'
+                'Ha egy vendégnél hibás étrend látszik, azt mielőbb javítsd, mert a konyhai és ételkiadási folyamatok erre épülnek.',
+                'Szállóvendéghez mindig tartozzon szobaszám! Ha kétség merül fel, nyisd meg a Foglalás menüpontot és ellenőrizd a vendéget.',
             ])
         ]
     ),
@@ -129,59 +141,73 @@ export const HELP_SIDEBAR_CONTENT = {
             section('Mielőtt módosítasz', [
                 'Először válassz konferenciát, mert a felső mutatók, a szabad kapacitás és a listanézet csak így értelmezhető helyesen.',
                 'A felső számok gyors jelzők: összes ágy, regisztrált vendég, foglalással rendelkező vendég és szobára váró vendég.',
-                'Ha a „Szobára várók” szám magas, a legfontosabb feladat általában nem új foglalás felvitele, hanem a meglévő kiosztás rendezése.'
+                'Ha a „Szobára várók” szám magas, a legfontosabb feladat új foglalás létrehozása.'
+            ]),
+            section('Új foglalás létrehozása', [
+                'Kattints az „Új” gombra. Válaszd ki a kívánt szobát és vendéget (kereséssel vagy listából).',
+                'A sor kibontásával részletes képet kapsz a vendéglistáról, a tartózkodási időről, a kapacitásról, a megjegyzésekről és a foglalás megbízhatóságáról.',
+                'Érkezés: a legkorábbi dátum',
+                'Távozás: a legkésőbbi dátum',
+                'Állítsd be a státuszt (pl. visszaigazolt, feltételes, házon belül).',
+                'Szükség esetén adj hozzá megjegyzést.'
             ]),
             section('Hogyan olvasd a sorokat?', [
                 'A szoba cellában egyszerre látszik a szobaszám, az épület, az emelet, az ágytípus és a fontos elhelyezési jelzések.',
-                'A baby bed és matrac ikonok figyelmeztetnek arra, hogy a szoba kiosztásában speciális elhelyezési igény vagy kapacitásnyomás van.',
+                'A zöld kör alakú ikon a szoba kapacitásához igazodik, nem pedig az ágyak számához. Ahol pl. +1 számot látsz az jelenti, hogy még 1 fő bekerülhet a szobába, de vigyázz, mert ez az 1 fő lehet, hogy csak matracra vagy gyerekágyra fér!',
+                'A gyerekágy és matrac ikonok figyelmeztetnek arra, hogy a szoba kiosztásában speciális elhelyezési igény van.',
                 'A sor kibontásával részletes képet kapsz a vendéglistáról, a tartózkodási időről, a kapacitásról, a megjegyzésekről és a foglalás megbízhatóságáról.'
             ]),
             section('Jó gyakorlat foglaláskezeléshez', [
                 'Új foglalás létrehozásakor először az időszakot és a konferenciát ellenőrizd, utána válassz szobát, majd nézd meg, hogy a férőhely és a speciális igények még beleférnek-e.',
-                'A túlterhelt vagy „utolsó férőhely” állapotú foglalásokat kezeld azonnal, mert ezekből lesznek a későbbi bejelentkezési problémák.',
-                'Mentés előtt ellenőrizd a státuszt, a megjegyzést és azt, hogy a vendégek tényleg a megfelelő foglaláshoz tartoznak-e.'
-            ])
+                'Mentés előtt ellenőrizd a státuszt, a megjegyzést és azt, hogy a vendégek tényleg a megfelelő foglaláshoz tartoznak-e.',
+                'Szobacsere: csak üres szobába helyezhető át vendég. Szükség esetén előbb törölni kell egy meglévő foglalást.',
+                'Szabad szobák: csak azok a szobák jelennek meg az „Új foglalás” listában, amelyek elérhetők egy adott dátum intervallumban.',
+                'Színek: a vendégek színe jelzi a választott szobatípust.',
+                'Csoportok: a rendszer segít az együtt szobát kérő vendégek beazonosításában'
+            ]),
+            section('Foglalás törlése', [
+                'A szoba sorának végén található kuka ikonra kattintva törölheted a foglalást.',
+                'A törlés után a szoba újra szabaddá válik, a vendégek pedig ismét kiválaszthatók.',
+            ]),
         ]
     ),
     conference: help(
         'Konferenciák',
         'A konferencia oldal a rendezvény törzsadatait kezeli: időszak, étkezési határok, szervező, szerződő, regisztrációs űrlap és a vendégoldalon megjelenő kiegészítő mezők.',
         [
-            section('Új konferencia felvitele', [
+            section('Konferencia adatok', [
                 'A név, a kezdő és záró dátum, valamint az első és utolsó étkezés együtt adja meg a konferencia működési keretét, ezért ezeket mindig együtt ellenőrizd.',
                 'A regisztrációs link automatikusan épül a konferencia nevéből, de mentés előtt mindig nézd meg, hogy valóban a várt URL jött-e létre.',
                 'A szervező és a szerződő kapcsolat külön üzleti szerep: ne keverd össze a rendezvény felelősét a számlázási vagy jogi entitással.'
             ]),
             section('Mire jók a sor végi ikonok?', [
-                'A másolás és megnyitás ikon a regisztrációs űrlap gyors ellenőrzésére való: új konferenciánál ezt mindig érdemes végigkattintani.',
-                'Az információ ikon a formmezők alá vagy buborékba kerülő segítő szövegeket kezeli, a kérdőjel ikon pedig az extra szervezői kérdéssort.',
-                'A ceruza a konferencia törzsadatát módosítja, a kibontott sor pedig az összes fontos kapcsolattartói és határidő adatot összefoglalja.'
+                'A megnyitás ikon a regisztrációs űrlap gyors ellenőrzésére való: új konferenciánál ezt mindig érdemes végigkattintani.',
+                'Másolás ikonra kattintva az űrlap linkje a vágólapra kerül. Ezt egyszerűen beillesztheted (Ctrl+V) e-mailbe vagy saját felületedre.',
+                'Információ ikonra kattintva az űrlapmezők alá vagy buborékba kerülő segítő szövegeket kezeli',
+                'Kérdőjel ikon pedig az extra kérdések hozzáadására való. Angol nyelven is kötelező kitölteni!',
+                'A ceruza a konferencia törzsadatát módosítja.'
             ]),
             section('Gyakori hibák elkerülése', [
-                'A regisztráció vége és a vendégmódosítás határideje üzletileg kritikus dátumok; ezek hibája az egész űrlapfolyamatot félreviheti.',
+                'A regisztráció vége és a vendégadat módosítás határideje üzletileg kritikus dátumok; ezek hibája az egész szervezési folyamatot félreviheti. Ne feledd a Regisztrációs határidő a Szolgáltató felé leadott végleges vendéglista határideje! A vendégek regisztrálásának végét korábbira is korlátozhatod, de későbbire csak kötbér mellett van lehetőséged.',
                 'Kérdés vagy mezőinformáció mentése után nyisd meg a publikus űrlapot is, és nézd meg, hogy valóban a kívánt nyelven és helyen jelenik-e meg.',
-                'Ha szobatípusokkal és kiosztással is dolgozol, a konferencia létrehozása után használd a szobákhoz kötődő binder funkciót is.'
+                'Fizetési módok: Alap esetben a 3 fizetési mód közül választhat a vendég. Amennyibe ettől kevesebbet szeretnél jelezd a Szolgáltató felé.'
             ])
         ]
     ),
     room: help(
         'Szobák',
-        'A szobaoldal a fizikai kapacitás és a konferenciákhoz rendelt szobatípusok karbantartására szolgál. Innen lehet eldönteni, milyen készletből tudsz foglalni és ágyazni.',
+        'Az itt látható szobalista a szerződés szerint meghatározott szobákról tartalmaz lényeges információkat.',
         [
             section('Mit kezel ez az oldal?', [
-                'A lista megmutatja a szobaszámot, épületet, emeletet, ágytípust, pótágy-szabályt és a kapcsolódó konferenciákat vagy szobatípust.',
-                'Konferencia nélkül a teljes szobakészletet látod; konferencia kiválasztása után a fókusz a konferenciához tartozó szobatípusokra kerül.',
+                'A lista megmutatja a szobákról a leglényegesebb információkat: számot, épületet, emeletet, ágytípust, pótágy-szabályt és a szobatípust.',
+                'Konferencia nélkül az üres oldalt látod; konferencia kiválasztása után a fókusz a konferenciához tartozó szobatípusokra kerül.',
                 'Az export a szobakészlet vagy a szűrt részhalmaz külső ellenőrzéséhez hasznos.'
             ]),
             section('Ajánlott munkamenet', [
-                'Ha kapacitásproblémát keresel, előbb szűrj épületre, ágytípusra vagy pótágyra, és csak utána kezdj módosítani.',
-                'Ha konferencia-specifikus szobatípust akarsz beállítani, előbb válaszd ki a konferenciát, különben a lista más nézetben működik.',
-                'Új szobánál mindig együtt ellenőrizd a szobaszámot, a kódot, az épületet, az emeletet, az ágytípust és a férőhelyet.'
+                'Ha szoba tulajdonsága érdekel, akkor keress vagy szűrj a mezők segítségével.',
             ]),
             section('Mire figyelj?', [
-                'A hibás szobatípus vagy pótágy-beállítás később hibás foglalási döntéseket okoz, ezért ezek nem „másodlagos” mezők.',
-                'Ha egy szoba inaktív vagy hiányos, nézd meg, van-e hozzá aktív konferencia vagy foglalás, mielőtt módosítod.',
-                'A komment mező rövid operatív információra való; üzleti szabályt vagy hosszú leírást inkább ne itt tárolj.'
+                'Ha a szűrő beállításod nem ad ki megfelelő eredményt ellenőrizd, hogy nem marad-e bent egy szűrő valamelyik mezőben!',
             ])
         ]
     ),
