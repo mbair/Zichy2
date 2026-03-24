@@ -20,6 +20,7 @@ import { zipCodeValidator } from '../../utils/zipcode-validator';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { Message, MessageService } from 'primeng/api';
 import { ConferenceService } from '../../service/conference.service';
+import { LanguageService } from '../../service/language.service';
 import { AnswerService } from '../../service/answer.service';
 import { GuestService } from '../../service/guest.service';
 import { UserService } from '../../service/user.service';
@@ -98,6 +99,7 @@ export class ConferenceFormComponent implements OnInit {
         private sessionService: SessionService,
         private formBuilder: FormBuilder,
         private translate: TranslateService,
+        private languageService: LanguageService,
         private cdRef: ChangeDetectorRef,
     ) {
         this.subs.add(
@@ -113,9 +115,7 @@ export class ConferenceFormComponent implements OnInit {
         // Set default theme
         this.changeTheme('orange');
 
-        // Set default language (fallback)
-        this.translate.setDefaultLang('hu');
-        this.translate.use('hu');
+        this.languageService.initializePublicLanguageFromBrowser();
 
         // Set min and max birth dates
         this.birthDateMin = new Date();
@@ -193,10 +193,7 @@ export class ConferenceFormComponent implements OnInit {
         this.getConferenceBySlug();
 
         // Current language
-        this.currentLang =
-            this.translate.currentLang === 'gb'
-                ? 'en'
-                : this.translate.currentLang;
+        this.currentLang = this.languageService.getCurrentContentLanguage();
 
         // Diet + firstMeal + lastMeal handling
         const dietCtrl = this.conferenceForm.get('diet');
@@ -555,9 +552,7 @@ export class ConferenceFormComponent implements OnInit {
         this.subs.add(
             this.translate.onLangChange.subscribe(() => {
                 this.currentLang =
-                    this.translate.currentLang === 'gb'
-                        ? 'en'
-                        : this.translate.currentLang;
+                    this.languageService.getCurrentContentLanguage();
                 this.setSzepCardMessage();
 
                 // If registration has ended, show error
@@ -1052,10 +1047,7 @@ export class ConferenceFormComponent implements OnInit {
             const guestData = { ...this.conferenceForm.value };
             const rawIdCard = this.conferenceForm.get('idCard')?.value;
             const files: File[] = rawIdCard instanceof File ? [rawIdCard] : [];
-            const lang =
-                this.translate.currentLang === 'gb'
-                    ? 'en'
-                    : this.translate.currentLang;
+            const lang = this.languageService.getCurrentContentLanguage();
 
             guestData.birthDate = formatDateYmd(guestData.birthDate);
             guestData.dateOfArrival = formatDateYmd(guestData.dateOfArrival);

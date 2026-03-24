@@ -1,6 +1,7 @@
 import { NavigationEnd, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { AuthService } from '../demo/service/auth.service';
+import { LanguageService } from '../demo/service/language.service';
 import { SessionService, SessionWarningState } from '../demo/service/session.service';
 import { HELP_SIDEBAR_CONTENT } from './help/help-sidebar-content.data';
 import { AppLayoutComponent } from './app.layout.component';
@@ -15,6 +16,7 @@ describe('AppLayoutComponent', () => {
     let routerStub: Router;
     let authServiceSpy: jasmine.SpyObj<AuthService>;
     let sessionServiceSpy: jasmine.SpyObj<SessionService> & Pick<SessionService, 'sessionWarning$'>;
+    let languageServiceSpy: jasmine.SpyObj<LanguageService>;
 
     function createRouteSnapshotChain(...dataEntries: Array<Record<string, unknown>>): any {
         return dataEntries.reduceRight<any>((firstChild, data) => ({
@@ -75,6 +77,7 @@ describe('AppLayoutComponent', () => {
         } as unknown as Router;
 
         authServiceSpy = jasmine.createSpyObj<AuthService>('AuthService', ['logout']);
+        languageServiceSpy = jasmine.createSpyObj<LanguageService>('LanguageService', ['initializeSystemLanguage']);
 
         sessionServiceSpy = jasmine.createSpyObj<SessionService>('SessionService', ['extendSession']);
         Object.defineProperty(sessionServiceSpy, 'sessionWarning$', {
@@ -90,9 +93,16 @@ describe('AppLayoutComponent', () => {
             rendererSpy as any,
             routerStub,
             authServiceSpy,
-            sessionServiceSpy
+            sessionServiceSpy,
+            languageServiceSpy
         );
     }
+
+    it('forces Hungarian when the system layout is created', () => {
+        createComponent();
+
+        expect(languageServiceSpy.initializeSystemLanguage).toHaveBeenCalled();
+    });
 
     it('uses the deepest route help content on initialization', () => {
         (routerStub.routerState.snapshot as any).root = createRouteSnapshotChain(

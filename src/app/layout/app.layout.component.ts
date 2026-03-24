@@ -2,6 +2,7 @@ import { Component, OnDestroy, Renderer2, ViewChild } from '@angular/core';
 import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { AuthService } from '../demo/service/auth.service';
+import { LanguageService } from '../demo/service/language.service';
 import { SessionService, SessionWarningState } from '../demo/service/session.service';
 import { formatRemainingSessionTime } from '../demo/utils/session-time.utils';
 import { MenuService } from './app.menu.service';
@@ -43,8 +44,11 @@ export class AppLayoutComponent implements OnDestroy {
         public renderer: Renderer2,
         public router: Router,
         private authService: AuthService,
-        private sessionService: SessionService
+        private sessionService: SessionService,
+        private languageService: LanguageService
     ) {
+        this.languageService.initializeSystemLanguage();
+
         this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
             if (!this.menuOutsideClickListener) {
                 this.menuOutsideClickListener = this.renderer.listen('document', 'click', event => {

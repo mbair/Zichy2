@@ -3,6 +3,7 @@ import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { PrimeNGConfig } from 'primeng/api';
 import { TranslateService } from '@ngx-translate/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { LanguageService } from './demo/service/language.service';
 import { SessionService } from './demo/service/session.service';
 import { APP_VERSION, APP_BUILD_TIME } from './app-version';
 import { Subscription } from 'rxjs';
@@ -163,14 +164,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
     constructor(private primengConfig: PrimeNGConfig,
         private translateService: TranslateService,
+        private languageService: LanguageService,
         private sessionService: SessionService,
         private http: HttpClient) {
-
-        // this language will be used as a fallback when a translation isn't found in the current language
-        translateService.setDefaultLang('hu');
-
-        // the lang to use, if the lang isn't available, it will use the current loader to get them
-        translateService.use('hu');
+        this.languageService.initializeSystemLanguage();
     }
 
     ngOnInit(): void {
@@ -184,8 +181,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.startVersionMonitoring();
 
         this.primengConfig.ripple = true;
-        this.translateService.setDefaultLang('hu');
-        this.applyLanguageSettings(this.translateService.currentLang);
+        this.applyLanguageSettings(this.languageService.getCurrentLanguage());
 
         this.languageChangeSubscription = this.translateService.onLangChange.subscribe((event) => {
             this.applyLanguageSettings(event.lang);
@@ -194,7 +190,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
 
     translate(lang: string) {
-        this.translateService.use(lang);
+        this.languageService.setActiveLanguage(lang);
     }
 
     reloadToLatestVersion() {

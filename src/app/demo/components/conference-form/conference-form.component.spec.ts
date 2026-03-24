@@ -70,6 +70,10 @@ describe('ConferenceFormComponent', () => {
                 onLangChange: langChange$,
             } as any,
             {
+                initializePublicLanguageFromBrowser: () => 'hu',
+                getCurrentContentLanguage: () => 'hu',
+            } as any,
+            {
                 detectChanges: () => undefined,
             } as any,
         );
