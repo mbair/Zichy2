@@ -115,39 +115,44 @@ export class AppMenuComponent implements OnInit {
                 let devModel = [
                     {
                         label: '',
-                        items: [
+                        items: this.getFilteredItems([
                             {
                                 label: 'Ételpult',
                                 icon: 'pi pi-fw pi-tablet',
-                                routerLink: ['/food-counter']
+                                routerLink: ['/food-counter'],
+                                requiredRoles: ['Super Admin', 'Nagy Admin', 'Kis Admin']
                             }
-                        ]
+                        ])
                     },
                     {
                         label: 'Pénzügyek',
                         icon: 'pi pi-fw pi-money',
-                        items: [
+                        items: this.getFilteredItems([
                             {
                                 label: 'Árak',
                                 icon: 'pi pi-fw pi-dollar',
-                                routerLink: ['/auth/login']
+                                routerLink: ['/auth/login'],
+                                requiredRoles: ['Super Admin', 'Nagy Admin', 'Kis Admin']
                             },
                             {
                                 label: 'Elszámolólap',
                                 icon: 'pi pi-fw pi-money-bill',
-                                routerLink: ['/auth/error']
+                                routerLink: ['/auth/error'],
+                                requiredRoles: ['Super Admin', 'Nagy Admin', 'Kis Admin']
                             },
                             {
                                 label: 'Foglalók',
                                 icon: 'pi pi-fw pi-dollar',
-                                routerLink: ['/auth/access']
+                                routerLink: ['/auth/access'],
+                                requiredRoles: ['Super Admin', 'Nagy Admin', 'Kis Admin']
                             },
                             {
                                 label: 'Végszámlák',
                                 icon: 'pi pi-fw pi-money-bill',
-                                routerLink: ['/auth/access']
+                                routerLink: ['/auth/access'],
+                                requiredRoles: ['Super Admin', 'Nagy Admin', 'Kis Admin']
                             }
-                        ]
+                        ])
                     },
                     // Additional developer menu items...
                 ]

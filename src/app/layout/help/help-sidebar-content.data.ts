@@ -41,7 +41,7 @@ export const HELP_SIDEBAR_CONTENT = {
     ),
     dashboard: help(
         'Vezérlőpult',
-        'Konferencia választó és információs dobozok',
+        'Konferencia választó, információs dobozok és szervezői emlékeztetők',
         [
             section('Konferencia választó', [
                 'Itt tudod kiválasztani a hozzád rendelt konferenciák közül az aktuálisat.',
@@ -64,11 +64,15 @@ export const HELP_SIDEBAR_CONTENT = {
             section('Módosítási határidő:', [
                 'Eddig az időpontig tudod módosítani a meglévő vendégadatokat a Vendég menüpontban, illetve új vendéget regisztrálni az űrlap kitöltésével.',
             ]),
-            section('Előleget fizetett / összes vendég (jelenleg nem aktív):', [
-                'Azoknak a számát fogja megjeleníteni, akiknél jelölve van, hogy előleget fizetett.',
+            section('Előleget fizetett / összes vendég:', [
+                'Azoknak a számát mutatja, akiknél az előleg fizetése vissza van igazolva.',
+                'Ha az arány alacsony, érdemes a Vendég oldalon külön ellenőrző vagy emlékeztető kört indítani.'
             ]),
-            section('Teendők (jelenleg nem aktív):', [
-                'A rendszer ide fogja gyűjteni a szükséges feladatokat és figyelmeztetéseket.'
+            section('Teendők és emlékeztetők:', [
+                'A blokk nem egyszerű lista: a kiválasztott konferenciához tartozó legfontosabb, leginkább figyelmet igénylő pontot kiemelten mutatja, mellette pedig rövidebb emlékeztetők jelennek meg.',
+                'Tipikusan olyan témák kerülnek ide, amelyekről külön emlékeztető e-mail is menne: közelgő határidő, hiányzó szobabeosztás, elmaradt előleg, hiányos elérhetőség.',
+                'A régen lejárt határidők nem maradnak itt örökké teendőként: a blokk elsősorban a közelgő vagy legfeljebb néhány napja lejárt pontokat tartja fókuszban.',
+                'A kártyák végén látható műveletgomb mindig a megfelelő modulba visz tovább, így az emlékeztetőből azonnal át tudsz lépni a javításhoz.'
             ])
         ]
     ),

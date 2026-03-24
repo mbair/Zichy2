@@ -5,6 +5,7 @@ import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { User } from '../api/user';
 import { OrganizerContractingParty, OrganizerContractingPartyOverview } from '../api/contracting-party';
+import { AuthStorageService } from './auth-storage.service';
 
 @Injectable({
     providedIn: 'root',
@@ -18,8 +19,9 @@ export class UserService {
     private userRole$: BehaviorSubject<string>
     private userCache: { [id: number]: User } = {}
 
-    constructor(private apiService: ApiService) {
-        const role = localStorage.getItem('userrole') || 'No Role'
+    constructor(private apiService: ApiService,
+                private authStorage: AuthStorageService) {
+        const role = this.authStorage.getProfileField('userrole') || 'No Role'
         this.apiURL = apiService.apiURL
         this.data$ = new BehaviorSubject<any>(null)
         this.message$ = new BehaviorSubject<any>(null)
@@ -219,7 +221,7 @@ export class UserService {
     }
 
     public refreshSession$(): Observable<any> {
-        return this.apiService.post(`users/refresh-session`, {})
+        return this.apiService.post(`users/refresh-session`, {}, { withCredentials: true })
     }
 
     /**
@@ -231,21 +233,21 @@ export class UserService {
     }
 
     /**
-     * Updates the user's role in local storage and broadcasts the new role
+     * Updates the user's role in session storage and broadcasts the new role
      * to all subscribers of the userRole$ observable.
      * @param role The new user role.
      */
     public updateUserRole(role: string): void {
-        localStorage.setItem('userrole', role)
+        this.authStorage.setProfileField('userrole', role)
         this.userRole$.next(role)
     }
 
     /**
-     * Returns the current user's ID from local storage.
+     * Returns the current user's ID from session storage.
      * @returns The user ID as a number.
      */
     getLoggedInUserId(): number {
-        return Number(localStorage.getItem('userid'))
+        return Number(this.authStorage.getProfileField('userid'))
     }
     
     /**

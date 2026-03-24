@@ -1,10 +1,11 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { tap, shareReplay, catchError, finalize } from "rxjs/operators";
+import { tap, shareReplay, catchError, finalize, map } from "rxjs/operators";
 import { ApiService } from "./api.service";
 import { UserService } from "./user.service";
-import { EMPTY, throwError } from "rxjs";
+import { EMPTY, Observable, of, throwError } from "rxjs";
 import { SessionService } from "./session.service";
+import { AuthStorageService } from "./auth-storage.service";
 
 @Injectable({
     providedIn: 'root'
@@ -12,18 +13,20 @@ import { SessionService } from "./session.service";
 export class AuthService {
 
     public apiURL: string;
+    private restoreSessionInFlight$?: Observable<boolean>;
 
     constructor(private http: HttpClient, 
                 private apiService: ApiService, 
                 private userService: UserService,
-                private sessionService: SessionService) {
+                private sessionService: SessionService,
+                private authStorage: AuthStorageService) {
 
         // Set API URL
         this.apiURL = this.apiService.apiURL
     }
 
     public login(email: string, password: string) {
-        return this.http.post<any>(`${this.apiURL}/users/login`, { email, password }, { observe: 'response' })
+        return this.http.post<any>(`${this.apiURL}/users/login`, { email, password }, { observe: 'response', withCredentials: true })
             .pipe(
                 tap(response => this.setSession(response)),
                 shareReplay(),
@@ -32,17 +35,16 @@ export class AuthService {
     }
 
     public logout() {
-        const token = localStorage.getItem('token')
-        if (!token) {
-            this.sessionService.logout()
-            return
-        }
-
-        this.http.post(`${this.apiURL}/users/logout`, {}, { observe: 'response' })
+        this.logoutServerSession$()
             .pipe(
                 finalize(() => this.sessionService.logout()),
-                catchError(() => EMPTY)
             )
+            .subscribe()
+    }
+
+    public revokeServerSessionSilently(): void {
+        this.logoutServerSession$()
+            .pipe(catchError(() => EMPTY))
             .subscribe()
     }
 
@@ -65,14 +67,40 @@ export class AuthService {
             )
     }
 
+    public restoreSessionFromCookie$(): Observable<boolean> {
+        if (this.restoreSessionInFlight$) {
+            return this.restoreSessionInFlight$
+        }
+
+        this.restoreSessionInFlight$ = this.http.get<any>(`${this.apiURL}/users/getowndata`, { observe: 'response', withCredentials: true })
+            .pipe(
+                tap(response => this.setSession(response)),
+                map(() => true),
+                catchError(() => of(false)),
+                tap((result) => {
+                    if (result === false) {
+                        this.authStorage.clearAuthSession()
+                    }
+                }),
+                finalize(() => {
+                    this.restoreSessionInFlight$ = undefined
+                }),
+                shareReplay(1)
+            )
+
+        return this.restoreSessionInFlight$
+    }
+
     private setSession(authResult: any) {
         this.sessionService.updateSessionFromResponse(authResult)
-        localStorage.setItem("userid", authResult.body.id)
-        localStorage.setItem("fullname", authResult.body.fullname)
-        localStorage.setItem("email", authResult.body.email)
-        localStorage.setItem("phone", authResult.body.phone)
-        localStorage.setItem("userrole", authResult.body.role)
-        localStorage.setItem("user_rolesid", authResult.body.user_rolesid)
+        this.authStorage.setProfileFields({
+            userid: authResult.body.id,
+            fullname: authResult.body.fullname,
+            email: authResult.body.email,
+            phone: authResult.body.phone,
+            userrole: authResult.body.role,
+            user_rolesid: authResult.body.user_rolesid,
+        })
 
         // Update user role
         this.userService.updateUserRole(authResult.body.role)
@@ -80,5 +108,10 @@ export class AuthService {
 
     private handleError(error: string) {
         return throwError(JSON.parse(JSON.stringify(error)))
+    }
+
+    private logoutServerSession$() {
+        return this.http.post(`${this.apiURL}/users/logout`, {}, { observe: 'response', withCredentials: true })
+            .pipe(catchError(() => EMPTY))
     }
 }

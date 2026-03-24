@@ -4,6 +4,7 @@ import { RoleService } from '../demo/service/role.service';
 import { LayoutService } from './service/app.layout.service';
 import { LogService } from '../demo/service/log.service';
 import { AuthService } from '../demo/service/auth.service';
+import { AuthStorageService } from '../demo/service/auth-storage.service';
 
 @Component({
     selector: 'app-profilemenu',
@@ -11,17 +12,19 @@ import { AuthService } from '../demo/service/auth.service';
 })
 export class AppProfileSidebarComponent {
 
-    fullname: string;
-    userrole: string;
-
     constructor(public router: Router,
                 public layoutService: LayoutService,
                 public roleService: RoleService,
                 private logService: LogService,
-                private authService: AuthService) {
+                private authService: AuthService,
+                private authStorage: AuthStorageService) {}
 
-        this.fullname = localStorage.getItem('fullname') || ''
-        this.userrole = localStorage.getItem('userrole') || ''
+    get fullname(): string {
+        return this.authStorage.getProfileField('fullname') || ''
+    }
+
+    get userrole(): string {
+        return this.authStorage.getProfileField('userrole') || ''
     }
 
     get visible(): boolean {
@@ -37,7 +40,7 @@ export class AppProfileSidebarComponent {
         this.logService.create({
             action_type: "logout",
             table_name: "users",
-            original_data: `${localStorage.getItem('email')} logged out`,
+            original_data: `${this.authStorage.getProfileField('email')} logged out`,
         })
 
         this.authService.logout()

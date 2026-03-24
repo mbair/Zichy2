@@ -32,7 +32,7 @@ export class ApiService {
         }
     }
 
-    get<T>(endpoint: string, options?: { params?: any; headers?: HttpHeaders }): Observable<T> {
+    get<T>(endpoint: string, options?: { params?: any; headers?: HttpHeaders; withCredentials?: boolean }): Observable<T> {
         const url = `${this.apiURL}/${endpoint}`;
 
         // Erős típus: observe response, params opcionális
@@ -40,8 +40,10 @@ export class ApiService {
             observe: 'response';
             params?: any;
             headers?: HttpHeaders;
+            withCredentials?: boolean;
         } = {
-            observe: 'response'
+            observe: 'response',
+            withCredentials: true
         };
 
         if (options?.params) {
@@ -50,6 +52,10 @@ export class ApiService {
 
         if (options?.headers) {
             httpOptions.headers = options.headers;
+        }
+
+        if (options?.withCredentials !== undefined) {
+            httpOptions.withCredentials = options.withCredentials;
         }
 
         // A get<T>(…, httpOptions) most Observable<HttpResponse<T>>-t ad vissza
@@ -65,39 +71,51 @@ export class ApiService {
             );
     }
 
-    post<T>(endpoint: string, body: any): Observable<T> {
+    post<T>(endpoint: string, body: any, options?: { withCredentials?: boolean }): Observable<T> {
         const isFormData = body instanceof FormData;
-        const options: {
+        const requestOptions: {
             headers?: HttpHeaders;
             observe: 'response';
             responseType: 'json'
+            withCredentials?: boolean;
         } = {
             observe: 'response',
-            responseType: 'json'
+            responseType: 'json',
+            withCredentials: true
         }
 
         // Csak akkor állítsuk be a 'Content-Type' fejlécet, ha nem FormData típust küldünk
         if (!isFormData) {
-            options.headers = new HttpHeaders({ 'Content-Type': 'application/json' })
+            requestOptions.headers = new HttpHeaders({ 'Content-Type': 'application/json' })
         }
 
-        return this.http.post<T>(`${this.apiURL}/${endpoint}`, body, options)
+        if (options?.withCredentials !== undefined) {
+            requestOptions.withCredentials = options.withCredentials
+        }
+
+        return this.http.post<T>(`${this.apiURL}/${endpoint}`, body, requestOptions)
             .pipe(
                 tap(response => this.refreshToken(response)),
                 map(response => response.body as T),
                 catchError(this.handleError))
     }
 
-    put<T>(endpoint: string, body: any): Observable<T> {
-        return this.http.put<T>(`${this.apiURL}/${endpoint}`, body, { observe: 'response' })
+    put<T>(endpoint: string, body: any, options?: { withCredentials?: boolean }): Observable<T> {
+        return this.http.put<T>(`${this.apiURL}/${endpoint}`, body, {
+            observe: 'response',
+            withCredentials: options?.withCredentials ?? true
+        })
             .pipe(
                 tap(response => this.refreshToken(response)),
                 map(response => response.body as T),
                 catchError(this.handleError))
     }
 
-    delete<T>(endpoint: string): Observable<T> {
-        return this.http.delete<T>(`${this.apiURL}/${endpoint}`, { observe: 'response' })
+    delete<T>(endpoint: string, options?: { withCredentials?: boolean }): Observable<T> {
+        return this.http.delete<T>(`${this.apiURL}/${endpoint}`, {
+            observe: 'response',
+            withCredentials: options?.withCredentials ?? true
+        })
             .pipe(
                 tap(response => this.refreshToken(response)),
                 map(response => response.body as T),

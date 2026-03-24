@@ -12,10 +12,36 @@ import { UserService } from 'src/app/demo/service/user.service';
 import { Table } from 'primeng/table';
 import { Conference } from 'src/app/demo/api/conference';
 import { Guest } from 'src/app/demo/api/guest';
-import { formatDateDots } from 'src/app/demo/utils/date.utils';
+import { formatDateDots, getWeekdayName, parseDateOnly } from 'src/app/demo/utils/date.utils';
+
+type OrganizerReminderTone = 'critical' | 'warning' | 'info' | 'success';
+
+interface OrganizerReminder {
+    id: string;
+    title: string;
+    summary: string;
+    detail: string;
+    actionLabel: string;
+    route: string;
+    icon: string;
+    badge: string;
+    tone: OrganizerReminderTone;
+    meta: string[];
+    priority: number;
+}
+
+interface OrganizerReminderSummary {
+    openCount: number;
+    urgentCount: number;
+    nextDeadline: string;
+}
+
+const RECENTLY_EXPIRED_REMINDER_DAYS = 7;
+const APPROACHING_REMINDER_DAYS = 2;
 
 @Component({
     templateUrl: './ecommerce.dashboard.component.html',
+    styleUrls: ['./ecommerce.dashboard.component.scss'],
     providers: [MessageService]
 })
 
@@ -44,7 +70,13 @@ export class EcommerceDashboardComponent implements OnInit {
     selectedConferences: Conference[] = [];
     conferenceData: any;
     conferenceGuests: Guest[] = [];
-    taskList: any[] = [];
+    organizerPrimaryReminder: OrganizerReminder | null = null;
+    organizerSecondaryReminders: OrganizerReminder[] = [];
+    organizerReminderSummary: OrganizerReminderSummary = {
+        openCount: 0,
+        urgentCount: 0,
+        nextDeadline: 'Nincs közelgő határidő'
+    };
 
     conferences: any = { active: 0, inactive: 0 };
     guests: any = { active: 0, inactive: 0 };
@@ -118,25 +150,6 @@ export class EcommerceDashboardComponent implements OnInit {
             }
         })
 
-        // Tasks
-        this.taskList = [
-            {
-                name: 'Regisztrációk jóváhagyása',
-                startDate: '2025.01.01',
-                completed: false,
-            },
-            {
-                name: 'Vendégek szobához adása',
-                startDate: '2025.01.01',
-                completed: false,
-            },
-            {
-                name: 'Előlegek ellenőrzése',
-                startDate: '2025.01.01',
-                completed: false,
-            },
-        ]
-
         this.activities = this.activityService.getActivities();
 
         this.weeks = [{
@@ -160,6 +173,8 @@ export class EcommerceDashboardComponent implements OnInit {
             {header: 'Ár', field: 'price'},
             {header: 'Státusz', field: 'inventoryStatus'}
         ]
+
+        this.refreshOrganizerBriefing()
     }
 
     initCharts() {
@@ -302,7 +317,96 @@ export class EcommerceDashboardComponent implements OnInit {
     }
 
     get prepaid(): number {
-        return this.conferenceGuests?.filter((guest: Guest) => guest.prepaid === null).length || 0
+        return this.conferenceGuests?.filter((guest: Guest) => guest.prepaid === true).length || 0
+    }
+
+    get unpaidGuests(): number {
+        return Math.max(this.registrations - this.prepaid, 0)
+    }
+
+    get organizerVisibleReminders(): OrganizerReminder[] {
+        return this.organizerPrimaryReminder
+            ? [this.organizerPrimaryReminder, ...this.organizerSecondaryReminders]
+            : []
+    }
+
+    get organizerConferencePanelLabel(): string {
+        return 'Konferencia - szervezői vezérlőpult'
+    }
+
+    get selectedConferenceDisplayName(): string {
+        const name = this.selectedConference?.name?.trim() ?? ''
+        const cleaned = name.replace(/^\d{8}-\d{8}\s*/u, '')
+        return cleaned || 'Válassz konferenciát'
+    }
+
+    get selectedConferenceLabel(): string {
+        return this.selectedConference?.name?.trim() || 'Válassz konferenciát'
+    }
+
+    get selectedConferenceDateRange(): string {
+        const begin = formatDateDots(this.selectedConference?.beginDate)
+        const end = formatDateDots(this.selectedConference?.endDate)
+
+        if (begin && end) {
+            return `${begin} - ${end}`
+        }
+
+        return begin || end || 'Időszak nincs megadva'
+    }
+
+    get registrationDeadlineStatusText(): string {
+        const daysUntil = this.getDaysUntil(this.selectedConference?.registrationEndDate)
+
+        if (daysUntil === null) {
+            return 'Nincs'
+        }
+
+        return daysUntil < 0 ? 'Lezárult' : 'Nyitva'
+    }
+
+    get registrationDeadlineStatusClosed(): boolean {
+        const daysUntil = this.getDaysUntil(this.selectedConference?.registrationEndDate)
+        return daysUntil !== null && daysUntil < 0
+    }
+
+    get registrationDeadlineStatusMissing(): boolean {
+        return this.getDaysUntil(this.selectedConference?.registrationEndDate) === null
+    }
+
+    get guestEditDeadlineStatusText(): string {
+        const daysUntil = this.getDaysUntil(this.selectedConference?.guestEditEndDate)
+
+        if (daysUntil === null) {
+            return 'Nincs'
+        }
+
+        return daysUntil < 0 ? 'Lezárult' : 'Nyitva'
+    }
+
+    get guestEditDeadlineStatusClosed(): boolean {
+        const daysUntil = this.getDaysUntil(this.selectedConference?.guestEditEndDate)
+        return daysUntil !== null && daysUntil < 0
+    }
+
+    get guestEditDeadlineStatusMissing(): boolean {
+        return this.getDaysUntil(this.selectedConference?.guestEditEndDate) === null
+    }
+
+    get registrationDeadlineHint(): string {
+        if (!this.selectedConference?.registrationEndDate) {
+            return 'Állíts be regisztrációs határidőt'
+        }
+
+        return 'Vendégek számára eddig a napig kitölthető az űrlap.'
+    }
+
+    get guestEditDeadlineHint(): string {
+        if (!this.selectedConference?.guestEditEndDate) {
+            return 'Állíts be módosítási határidőt'
+        }
+
+        return 'Szervezőként eddig a napig kitölthető és módosítható az űrlap.'
     }
 
     onWeekChange() {
@@ -334,11 +438,13 @@ export class EcommerceDashboardComponent implements OnInit {
             this.conferenceGuests = []
             this.prepaidPercentage = 0
             this.conferenceStatsLoading = false
+            this.refreshOrganizerBriefing()
             return
         }
 
         this.selectedConference = selectedConference
         this.conferenceStatsLoading = true
+        this.refreshOrganizerBriefing()
         if (conferenceId) {
             this.guestService.searchGuestsForSelector$({
                 conferenceId,
@@ -372,13 +478,372 @@ export class EcommerceDashboardComponent implements OnInit {
             ? Math.round((this.prepaid / registrations) * 100)
             : 0
         this.conferenceStatsLoading = false
+        this.refreshOrganizerBriefing()
     }
 
     private clearConferenceGuests(): void {
         this.conferenceGuests = []
         this.prepaidPercentage = 0
         this.conferenceStatsLoading = false
+        this.refreshOrganizerBriefing()
     }
+
+    private refreshOrganizerBriefing(): void {
+        const reminders = this.buildOrganizerReminders()
+            .sort((left, right) => right.priority - left.priority)
+
+        this.organizerPrimaryReminder = reminders[0] ?? null
+        this.organizerSecondaryReminders = reminders.slice(1, 4)
+        this.organizerReminderSummary = {
+            openCount: reminders.length,
+            urgentCount: reminders.filter(reminder => reminder.tone === 'critical').length,
+            nextDeadline: this.getNextDeadlineSummary()
+        }
+    }
+
+    private buildOrganizerReminders(): OrganizerReminder[] {
+        if (!this.selectedConference) {
+            return []
+        }
+
+        const reminders: OrganizerReminder[] = []
+        const registrations = this.registrations
+        const guestsWithoutRoom = this.guestsWithoutRoom
+        const guestsMissingContact = this.guestsMissingContact
+        const paidGuests = this.prepaid
+        const unpaidGuests = Math.max(registrations - paidGuests, 0)
+
+        const registrationDeadlineReminder = this.buildRegistrationDeadlineReminder()
+        const guestEditDeadlineReminder = this.buildGuestEditDeadlineReminder()
+
+        if (registrationDeadlineReminder) {
+            reminders.push(registrationDeadlineReminder)
+        }
+
+        if (guestEditDeadlineReminder) {
+            reminders.push(guestEditDeadlineReminder)
+        }
+
+        if (registrations > 0 && guestsWithoutRoom > 0) {
+            const ratio = guestsWithoutRoom / registrations
+            const critical = guestsWithoutRoom >= 10 || ratio >= 0.2
+            reminders.push({
+                id: 'room-assignment',
+                title: `${guestsWithoutRoom} vendég még szobára vár`,
+                summary: critical
+                    ? 'A szobabeosztás még látványosan hiányos, ezt érdemes a következő körben lezárni.'
+                    : 'Már csak néhány elhelyezés hiányzik, de ezt érdemes a határidők előtt végigvinni.',
+                detail: 'A Foglalás oldalon gyorsan végignézhető, kik maradtak szoba nélkül és hol van még szabad kapacitás.',
+                actionLabel: 'Foglalás megnyitása',
+                route: '/reservation',
+                icon: 'pi pi-building',
+                badge: critical ? 'Sürgős' : 'Figyelendő',
+                tone: critical ? 'critical' : 'warning',
+                meta: [
+                    `${guestsWithoutRoom} fő szoba nélkül`,
+                    `${registrations} regisztráció`
+                ],
+                priority: critical ? 93 : 79
+            })
+        }
+
+        if (registrations > 0 && unpaidGuests > 0) {
+            const paidRatio = paidGuests / registrations
+            const tone: OrganizerReminderTone = paidRatio < 0.4 ? 'critical' : paidRatio < 0.75 ? 'warning' : 'info'
+            reminders.push({
+                id: 'prepaid-follow-up',
+                title: paidGuests === 0 ? 'Még nincs visszaigazolt előleg' : `${unpaidGuests} vendégnél hiányzik az előleg`,
+                summary: 'Az előleg státusz tipikusan olyan pont, amire külön emlékeztető e-mail is megy, ezért érdemes innen is szem előtt tartani.',
+                detail: 'A Vendég oldalon gyorsan átszűrhető, kiknél nincs még fizetett állapot, és ez alapján indítható a következő körös egyeztetés.',
+                actionLabel: 'Vendéglista megnyitása',
+                route: '/guest',
+                icon: 'pi pi-wallet',
+                badge: tone === 'critical' ? 'Sürgős' : tone === 'warning' ? 'Követés kell' : 'Folyamatban',
+                tone,
+                meta: [
+                    `${paidGuests}/${registrations} fizetett`,
+                    `${Math.round((paidGuests / registrations) * 100)}% készültség`
+                ],
+                priority: tone === 'critical' ? 76 : tone === 'warning' ? 66 : 54
+            })
+        }
+
+        if (guestsMissingContact > 0) {
+            reminders.push({
+                id: 'missing-contact',
+                title: `${guestsMissingContact} vendégnél hiányzik elérhetőség`,
+                summary: 'Telefon vagy e-mail nélkül az emlékeztetők és gyors egyeztetések nehezebben mennek végig.',
+                detail: 'Érdemes még a záró körök előtt végignézni a hiányos rekordokat, hogy minden változás és határidő eljusson az érintettekhez.',
+                actionLabel: 'Vendéglista megnyitása',
+                route: '/guest',
+                icon: 'pi pi-envelope',
+                badge: guestsMissingContact >= 5 ? 'Pótlás kell' : 'Hiányos adat',
+                tone: guestsMissingContact >= 5 ? 'warning' : 'info',
+                meta: [
+                    `${guestsMissingContact} hiányos rekord`,
+                    'Telefon vagy e-mail nélkül'
+                ],
+                priority: guestsMissingContact >= 5 ? 72 : 55
+            })
+        }
+
+        if (!this.hasConferenceContactDetails()) {
+            reminders.push({
+                id: 'conference-contact',
+                title: 'Hiányos konferencia kapcsolattartó',
+                summary: 'Legalább egy működő elérhetőség sokat segít, ha a szolgáltató vagy a vendégoldal felől gyors egyeztetésre van szükség.',
+                detail: 'A Konferencia oldalon érdemes ellenőrizni, hogy a kapcsolattartó neve, e-mail címe és telefonszáma tényleg aktuális-e.',
+                actionLabel: 'Konferencia megnyitása',
+                route: '/conference',
+                icon: 'pi pi-user-edit',
+                badge: 'Ellenőrizendő',
+                tone: 'info',
+                meta: [
+                    'Kapcsolattartói adat hiányzik'
+                ],
+                priority: 52
+            })
+        }
+
+        if (reminders.length === 0 && registrations === 0) {
+            reminders.push({
+                id: 'waiting-for-registrations',
+                title: 'A konferencia készen áll az első regisztrációkra',
+                summary: 'Jelenleg még nincs vendég a kiválasztott konferenciához, ezért most a határidők és a törzsadatok a legfontosabb ellenőrzési pontok.',
+                detail: 'Amint érkeznek regisztrációk, ez a blokk automatikusan átvált a tényleges szervezői feladatokra.',
+                actionLabel: 'Konferencia megnyitása',
+                route: '/conference',
+                icon: 'pi pi-flag',
+                badge: 'Indulás előtt',
+                tone: 'info',
+                meta: [
+                    'Még nincs regisztráció'
+                ],
+                priority: 44
+            })
+        }
+
+        if (reminders.length === 0) {
+            reminders.push({
+                id: 'no-pending-reminders',
+                title: 'Jelenleg nincs kiemelt szervezői teendő',
+                summary: 'A kiválasztott konferencián most nem látszik olyan nyitott pont, ami azonnali vagy külön emlékeztető jellegű figyelmet kérne.',
+                detail: 'A régebben lejárt mérföldköveket már nem tartjuk itt fókuszban; ez a blokk inkább a közelgő és valóban aktuális teendőkre koncentrál.',
+                actionLabel: 'Konferencia megnyitása',
+                route: '/conference',
+                icon: 'pi pi-check-circle',
+                badge: 'Naprakész',
+                tone: 'success',
+                meta: [
+                    this.selectedConference.name?.trim() || 'Kiválasztott konferencia'
+                ],
+                priority: 12
+            })
+        }
+
+        return reminders
+    }
+
+    private buildRegistrationDeadlineReminder(): OrganizerReminder | null {
+        const rawDate = this.selectedConference?.registrationEndDate
+        const daysUntil = this.getDaysUntil(rawDate)
+
+        if (daysUntil === null || daysUntil > APPROACHING_REMINDER_DAYS || daysUntil < -RECENTLY_EXPIRED_REMINDER_DAYS) {
+            return null
+        }
+
+        const deadlineLabel = this.formatDeadlineMeta(rawDate)
+        const hasUnassignedGuests = this.guestsWithoutRoom > 0
+
+        if (daysUntil >= 0) {
+            return {
+                id: 'registration-deadline-approaching',
+                title: daysUntil === 0 ? 'Ma zár a regisztráció' : `${daysUntil} napon belül zár a regisztráció`,
+                summary: 'A határidő után a jelentkezési űrlap külső személyek számára már nem lesz elérhető.',
+                detail: hasUnassignedGuests
+                    ? 'Addig minden regisztrált vendégnél érdemes lezárni a szobabeosztást is. Ha a vendéglista nem teljes a határidőre, a szerződés szerint 10 000 Ft/nap késedelmes lezárási kötbér merülhet fel.'
+                    : 'Most még érdemes egy utolsó körben ellenőrizni, hogy a vendéglista teljes-e. Ha a vendéglista nem teljes a határidőre, a szerződés szerint 10 000 Ft/nap késedelmes lezárási kötbér merülhet fel.',
+                actionLabel: hasUnassignedGuests ? 'Foglalás megnyitása' : 'Konferencia megnyitása',
+                route: hasUnassignedGuests ? '/reservation' : '/conference',
+                icon: 'pi pi-calendar',
+                badge: daysUntil === 0 ? 'Ma lejár' : 'Közeleg',
+                tone: daysUntil === 0 ? 'critical' : 'warning',
+                meta: [
+                    deadlineLabel,
+                    '10 000 Ft/nap kötbérkockázat'
+                ],
+                priority: daysUntil === 0 ? 98 : 92
+            }
+        }
+
+        return {
+            id: 'registration-deadline-passed',
+            title: `Lejárt a regisztrációs határidő`,
+            summary: 'A publikus űrlap már zárva van, új résztvevő rögzítése csak előzetes szolgáltatói jóváhagyással lehetséges.',
+            detail: `A módosítási határidőig még díjmentesen módosíthatod a vendégadatokat, de minden változást jelezni kell az info@zichy-vajta.com címre.`,
+            actionLabel: 'Vendéglista megnyitása',
+            route: '/guest',
+            icon: 'pi pi-lock',
+            badge: 'Lejárt',
+            tone: 'critical',
+            meta: [
+                deadlineLabel,
+                `${Math.abs(daysUntil)} napja lejárt`
+            ],
+            priority: 96
+        }
+    }
+
+    private buildGuestEditDeadlineReminder(): OrganizerReminder | null {
+        const rawDate = this.selectedConference?.guestEditEndDate
+        const daysUntil = this.getDaysUntil(rawDate)
+
+        if (daysUntil === null || daysUntil > APPROACHING_REMINDER_DAYS || daysUntil < -RECENTLY_EXPIRED_REMINDER_DAYS) {
+            return null
+        }
+
+        const deadlineLabel = this.formatDeadlineMeta(rawDate)
+
+        if (daysUntil >= 0) {
+            return {
+                id: 'guest-edit-deadline-approaching',
+                title: daysUntil === 0 ? 'Ma zár a díjmentes módosítás' : `${daysUntil} napon belül zár a díjmentes módosítás`,
+                summary: 'A határidő után a vendéglista módosítása már 2 500 Ft / darab adatmódosítási díjjal jár.',
+                detail: 'Eddig még új vendéget is rögzíthetsz és díjmentesen módosíthatod a vendégadatokat. Most érdemes lezárni a szobaszámot, étrendet, fizetési módot és a személyes adatokat.',
+                actionLabel: 'Vendéglista megnyitása',
+                route: '/guest',
+                icon: 'pi pi-file-edit',
+                badge: daysUntil === 0 ? 'Ma lejár' : 'Közeleg',
+                tone: daysUntil === 0 ? 'critical' : 'warning',
+                meta: [
+                    deadlineLabel,
+                    '2 500 Ft / darab díj'
+                ],
+                priority: daysUntil === 0 ? 95 : 88
+            }
+        }
+
+        return {
+            id: 'guest-edit-deadline-passed',
+            title: 'Lejárt a módosítási határidő',
+            summary: 'Mai naptól a vendégadatok, szobaszám, étrend, fizetési mód vagy új vendég rögzítése már díjköteles.',
+            detail: 'A késedelmes adatmódosítási díj 2 500 Ft / darab. További ételadag igénylésére már nincs lehetőség, lemondásnál pedig a szerződés szerinti díjak érvényesek.',
+            actionLabel: 'Vendéglista megnyitása',
+            route: '/guest',
+            icon: 'pi pi-exclamation-triangle',
+            badge: 'Lejárt',
+            tone: 'critical',
+            meta: [
+                deadlineLabel,
+                `${Math.abs(daysUntil)} napja lejárt`
+            ],
+            priority: 94
+        }
+    }
+
+    private getDaysUntil(value: string | null | undefined): number | null {
+        const targetDate = parseDateOnly(value)
+        const today = parseDateOnly(new Date())
+
+        if (!targetDate || !today) {
+            return null
+        }
+
+        return Math.round((targetDate.getTime() - today.getTime()) / 86400000)
+    }
+
+    private formatDeadlineMeta(value: string | null | undefined): string {
+        const dateLabel = formatDateDots(value)
+        const weekdayLabel = getWeekdayName(value)
+        return [dateLabel, weekdayLabel].filter(Boolean).join(' • ')
+    }
+
+    private get guestsMissingContact(): number {
+        return this.conferenceGuests.filter((guest: Guest) => !this.hasGuestContactDetails(guest)).length
+    }
+
+    private hasGuestContactDetails(guest: Guest): boolean {
+        return Boolean(guest?.email?.trim() || guest?.telephone?.trim())
+    }
+
+    private hasConferenceContactDetails(): boolean {
+        return Boolean(
+            this.selectedConference?.contactName?.trim() &&
+            (this.selectedConference?.contactEmail?.trim() || this.selectedConference?.contactPhone?.trim())
+        )
+    }
+
+    private getNextDeadlineSummary(): string {
+        if (!this.selectedConference) {
+            return 'Válassz konferenciát'
+        }
+
+        const candidates = [
+            {
+                label: 'Regisztráció',
+                rawDate: this.selectedConference.registrationEndDate,
+                daysUntil: this.getDaysUntil(this.selectedConference.registrationEndDate)
+            },
+            {
+                label: 'Módosítás',
+                rawDate: this.selectedConference.guestEditEndDate,
+                daysUntil: this.getDaysUntil(this.selectedConference.guestEditEndDate)
+            }
+        ].filter(candidate => candidate.daysUntil !== null) as Array<{ label: string; rawDate: string | null | undefined; daysUntil: number }>
+
+        if (!candidates.length) {
+            return 'Nincs beállítva'
+        }
+
+        const upcomingCandidate = [...candidates]
+            .filter(candidate => candidate.daysUntil >= 0)
+            .sort((left, right) => left.daysUntil - right.daysUntil)[0]
+
+        if (upcomingCandidate) {
+            if (upcomingCandidate.daysUntil === 0) {
+                return `${upcomingCandidate.label}: ma`
+            }
+
+            return `${upcomingCandidate.label}: ${upcomingCandidate.daysUntil} nap`
+        }
+
+        const recentExpiredCandidate = [...candidates]
+            .filter(candidate => candidate.daysUntil >= -RECENTLY_EXPIRED_REMINDER_DAYS)
+            .sort((left, right) => right.daysUntil - left.daysUntil)[0]
+
+        if (recentExpiredCandidate) {
+            return `${recentExpiredCandidate.label}: ${Math.abs(recentExpiredCandidate.daysUntil)} napja lejárt`
+        }
+
+        return 'Nincs közelgő határidő'
+    }
+
+    private getDeadlineHint(
+        value: string | null | undefined,
+        labels: {
+            missing: string;
+            passed: string;
+            today: string;
+            futurePrefix: string;
+        }
+    ): string {
+        const daysUntil = this.getDaysUntil(value)
+
+        if (daysUntil === null) {
+            return labels.missing
+        }
+
+        if (daysUntil < 0) {
+            return labels.passed
+        }
+
+        if (daysUntil === 0) {
+            return labels.today
+        }
+
+        return `${labels.futurePrefix} ${daysUntil} nap maradt`
+    }
+
 
     /**
      * Replaces the theme link with a new one.

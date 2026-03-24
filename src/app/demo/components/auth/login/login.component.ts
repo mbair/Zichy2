@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from 'src/app/demo/service/auth.service';
@@ -15,6 +15,7 @@ export class LoginComponent {
 
     loading: boolean = false;
     loginForm: FormGroup;
+    private skipAutomaticSessionRestore = false;
 
     constructor(
         private fb: FormBuilder,
@@ -34,6 +35,10 @@ export class LoginComponent {
         // Set default theme
         this.changeTheme('indigo')
         this.showSessionMessage()
+    }
+
+    ngOnInit(): void {
+        this.redirectIfSessionCanBeRestored()
     }
 
     login() {
@@ -94,6 +99,9 @@ export class LoginComponent {
     private showSessionMessage() {
         const reason = this.route.snapshot.queryParamMap.get('reason')
         const hasPendingRedirect = !!this.sessionService.peekPostLoginRedirectUrl()
+        this.skipAutomaticSessionRestore = reason === 'session-expired'
+            || reason === 'session-idle'
+            || reason === 'session-invalid'
 
         if (reason === 'session-expired') {
             this.messageService.add({
@@ -134,6 +142,33 @@ export class LoginComponent {
         }
 
         return `${detail} Sikeres bejelentkezés után visszairányítjuk az előző oldalra.`
+    }
+
+    private redirectIfSessionCanBeRestored(): void {
+        if (this.skipAutomaticSessionRestore) {
+            return
+        }
+
+        if (this.sessionService.isSessionActive()) {
+            this.navigateAfterAuthentication()
+            return
+        }
+
+        this.authService.restoreSessionFromCookie$().subscribe((restored) => {
+            if (restored) {
+                this.navigateAfterAuthentication()
+            }
+        })
+    }
+
+    private navigateAfterAuthentication(): void {
+        const redirectUrl = this.sessionService.consumePostLoginRedirectUrl()
+        if (redirectUrl) {
+            this.router.navigateByUrl(redirectUrl)
+            return
+        }
+
+        this.router.navigate([''])
     }
 
     /**

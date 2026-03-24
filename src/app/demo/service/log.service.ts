@@ -3,6 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { Log } from '../api/log';
+import { AuthStorageService } from './auth-storage.service';
 
 @Injectable({
     providedIn: 'root',
@@ -14,7 +15,8 @@ export class LogService {
     private data$: BehaviorSubject<any>
     private message$: BehaviorSubject<any>
 
-    constructor(private apiService: ApiService) {
+    constructor(private apiService: ApiService,
+                private authStorage: AuthStorageService) {
         this.apiURL = apiService.apiURL
         this.data$ = new BehaviorSubject<any>(null)
         this.message$ = new BehaviorSubject<any>(null)
@@ -209,9 +211,9 @@ export class LogService {
     public create(log: Log): void {
 
         // System logs can made by user or by SYSTEM
-        log.userid = Number(localStorage.getItem('userid')) || 1
-        log.user_fullname = localStorage.getItem('fullname') || 'SYSTEM'
-        log.user_email = localStorage.getItem('email') || 'info@nfcreserve.com'
+        log.userid = Number(this.authStorage.getProfileField('userid')) || 1
+        log.user_fullname = this.authStorage.getProfileField('fullname') || 'SYSTEM'
+        log.user_email = this.authStorage.getProfileField('email') || 'info@nfcreserve.com'
 
         this.apiService.post(`logs/create/`, log)
             .subscribe({

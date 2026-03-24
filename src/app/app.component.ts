@@ -5,6 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { LanguageService } from './demo/service/language.service';
 import { SessionService } from './demo/service/session.service';
+import { AuthService } from './demo/service/auth.service';
 import { APP_VERSION, APP_BUILD_TIME } from './app-version';
 import { Subscription } from 'rxjs';
 
@@ -166,6 +167,7 @@ export class AppComponent implements OnInit, OnDestroy {
         private translateService: TranslateService,
         private languageService: LanguageService,
         private sessionService: SessionService,
+        private authService: AuthService,
         private http: HttpClient) {
         this.languageService.initializeSystemLanguage();
     }
@@ -178,6 +180,7 @@ export class AppComponent implements OnInit, OnDestroy {
         }
 
         this.sessionService.initializeMonitoring();
+        this.restoreSessionFromCookieIfNeeded();
         this.startVersionMonitoring();
 
         this.primengConfig.ripple = true;
@@ -191,6 +194,17 @@ export class AppComponent implements OnInit, OnDestroy {
 
     translate(lang: string) {
         this.languageService.setActiveLanguage(lang);
+    }
+
+    private restoreSessionFromCookieIfNeeded(): void {
+        const currentPath = window.location.pathname;
+        const isAuthPage = currentPath.includes('/auth/');
+
+        if (this.sessionService.hasActiveSessionSnapshot() || isAuthPage) {
+            return;
+        }
+
+        this.authService.restoreSessionFromCookie$().subscribe();
     }
 
     reloadToLatestVersion() {

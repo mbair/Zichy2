@@ -1,21 +1,25 @@
 import { of } from 'rxjs';
+import { AuthService } from './auth.service';
 import { SessionService, SessionWarningState } from './session.service';
 import { UserService } from './user.service';
+import { AuthStorageService } from './auth-storage.service';
 
 describe('SessionService', () => {
     let service: SessionService;
     let routerSpy: jasmine.SpyObj<any> & { url: string };
     let userServiceSpy: jasmine.SpyObj<UserService>;
+    let authServiceSpy: jasmine.SpyObj<AuthService>;
     let injectorStub: { get: jasmine.Spy };
+    let authStorage: AuthStorageService;
     let clockInstalled = false;
 
     function setActiveSession(expiresInMs: number): void {
-        localStorage.setItem('token', 'test-token');
-        localStorage.setItem('session_expires_at', String(Date.now() + expiresInMs));
+        sessionStorage.setItem('session_expires_at', String(Date.now() + expiresInMs));
     }
 
     beforeEach(() => {
         localStorage.clear();
+        sessionStorage.clear();
 
         routerSpy = jasmine.createSpyObj('Router', ['navigate', 'parseUrl']) as jasmine.SpyObj<any> & { url: string };
         routerSpy.url = '/conference';
@@ -24,12 +28,24 @@ describe('SessionService', () => {
 
         userServiceSpy = jasmine.createSpyObj<UserService>('UserService', ['refreshSession$', 'updateUserRole']);
         userServiceSpy.refreshSession$.and.returnValue(of({}));
+        authServiceSpy = jasmine.createSpyObj<AuthService>('AuthService', ['revokeServerSessionSilently']);
 
         injectorStub = {
-            get: jasmine.createSpy('get').and.returnValue(userServiceSpy)
+            get: jasmine.createSpy('get').and.callFake((token: unknown) => {
+                if (token === UserService) {
+                    return userServiceSpy;
+                }
+
+                if (token === AuthService) {
+                    return authServiceSpy;
+                }
+
+                return undefined;
+            })
         };
 
-        service = new SessionService(document, routerSpy as any, injectorStub as any);
+        authStorage = new AuthStorageService();
+        service = new SessionService(document, routerSpy as any, injectorStub as any, authStorage);
     });
 
     afterEach(() => {
@@ -38,6 +54,7 @@ describe('SessionService', () => {
             clockInstalled = false;
         }
         localStorage.clear();
+        sessionStorage.clear();
     });
 
     it('treats input-oriented DOM events as user activity', () => {
@@ -48,6 +65,20 @@ describe('SessionService', () => {
         expect(activityEvents).toContain('focusin');
         expect(activityEvents).toContain('mousedown');
         expect(activityEvents).toContain('touchstart');
+    });
+
+    it('stores the updated session expiry from response headers', () => {
+        const nextExpiry = Date.now() + 60_000;
+
+        service.updateSessionFromResponse({
+            headers: {
+                get: (name: string) => name === 'X-Session-Expires-At'
+                    ? String(nextExpiry)
+                    : null
+            }
+        });
+
+        expect(sessionStorage.getItem('session_expires_at')).toBe(String(nextExpiry));
     });
 
     it('refreshes the session on activity when expiry is near', () => {
@@ -107,6 +138,7 @@ describe('SessionService', () => {
 
         (service as any).ensureSessionValidity();
 
+        expect(authServiceSpy.revokeServerSessionSilently).toHaveBeenCalled();
         expect(service.peekPostLoginRedirectUrl()).toBe('/conference');
         expect(routerSpy.navigate).toHaveBeenCalledWith(
             ['/auth/login'],
