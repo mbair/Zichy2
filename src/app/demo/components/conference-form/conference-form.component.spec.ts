@@ -1,3 +1,4 @@
+import { fakeAsync, tick } from '@angular/core/testing';
 import { FormBuilder } from '@angular/forms';
 import { of, Subject } from 'rxjs';
 import { ConferenceFormComponent } from './conference-form.component';
@@ -330,5 +331,90 @@ describe('ConferenceFormComponent', () => {
                 severity: 'error',
             }),
         );
+    });
+
+    it('focuses the first invalid field after an invalid submit', fakeAsync(() => {
+        const { component, guestCreateSpy, messageServiceAddSpy } =
+            createHarness();
+        const focusSpy = jasmine.createSpy('focus');
+        const scrollIntoViewSpy = jasmine.createSpy('scrollIntoView');
+
+        (component as any).conferenceFormElement = {
+            nativeElement: {
+                querySelector: (selector: string) => {
+                    if (selector === '#lastName') {
+                        return {
+                            focus: focusSpy,
+                            scrollIntoView: scrollIntoViewSpy,
+                            tabIndex: 0,
+                            querySelector: () => null,
+                        };
+                    }
+
+                    return null;
+                },
+            },
+        };
+
+        component.conferenceForm.patchValue({
+            lastName: '',
+            firstName: 'Elek',
+            gender: 'male',
+            birthDate: '2015-05-10',
+            nationality: 'Magyar',
+            country: 'Hungary',
+            zipCode: '1234',
+            email: 'teszt@example.com',
+            telephone: '+36123456789',
+            dateOfArrival: '2026-06-10',
+            firstMeal: 'ebed',
+            diet: 'normal',
+            dateOfDeparture: '2026-06-12',
+            lastMeal: 'ebed',
+            roomType: 'Kastely szallas 4 agyas szoba',
+            payment: 1,
+            privacy: true,
+        });
+
+        component.onSubmit();
+        tick();
+
+        expect(guestCreateSpy).not.toHaveBeenCalled();
+        expect(messageServiceAddSpy).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                severity: 'error',
+            }),
+        );
+        expect(scrollIntoViewSpy).toHaveBeenCalled();
+        expect(focusSpy).toHaveBeenCalled();
+    }));
+
+    it('ignores duplicate submit attempts while a submission is already loading', () => {
+        const { component, guestCreateSpy } = createHarness();
+
+        component.loading = true;
+        component.conferenceForm.patchValue({
+            lastName: 'Teszt',
+            firstName: 'Elek',
+            gender: 'male',
+            birthDate: '2015-05-10',
+            nationality: 'Magyar',
+            country: 'Hungary',
+            zipCode: '1234',
+            email: 'teszt@example.com',
+            telephone: '+36123456789',
+            dateOfArrival: '2026-06-10',
+            firstMeal: 'ebed',
+            diet: 'normal',
+            dateOfDeparture: '2026-06-12',
+            lastMeal: 'ebed',
+            roomType: 'Kastely szallas 4 agyas szoba',
+            payment: 1,
+            privacy: true,
+        });
+
+        component.onSubmit();
+
+        expect(guestCreateSpy).not.toHaveBeenCalled();
     });
 });

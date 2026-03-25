@@ -64,6 +64,8 @@ declare let gtag: Function;
 // BUT!!! Don't delete ngOnDestroy, it has to stay here!
 @AutoUnsubscribe()
 export class ConferenceFormComponent implements OnInit {
+    @ViewChild('conferenceFormElement')
+    private conferenceFormElement?: ElementRef<HTMLFormElement>;
     @ViewChild('roomMateChips') private roomMateChips?: Chips;
     loading: boolean = false; // Loading overlay trigger value
     currentLang: string; // Current language
@@ -1050,6 +1052,10 @@ export class ConferenceFormComponent implements OnInit {
      * If the form is invalid, shows an error message.
      */
     onSubmit(): void {
+        if (this.loading) {
+            return;
+        }
+
         this.messageService.clear();
         this.resetSubmissionState();
         this.commitPendingRoomMateDraft();
@@ -1125,6 +1131,8 @@ export class ConferenceFormComponent implements OnInit {
             this.guestService.create(guestData, files);
         } else {
             const invalidFields = this.getInvalidFieldLabels();
+            this.emitInvalidSubmitTelemetry(invalidFields);
+            setTimeout(() => this.focusFirstInvalidField());
 
             this.messageService.add({
                 severity: 'error',
@@ -1451,6 +1459,155 @@ export class ConferenceFormComponent implements OnInit {
 
     private normalizeStringValue(value: string): string {
         return value.replace(/\u00A0/g, ' ').trim();
+    }
+
+    private emitInvalidSubmitTelemetry(invalidFields: string[]): void {
+        const conferenceName = this.conference?.name || 'ismeretlen_konferencia';
+        const telemetryPayload = {
+            conference: conferenceName,
+            invalidFieldCount: invalidFields.length,
+            invalidFields,
+            formErrors: this.conferenceForm.errors || null,
+        };
+
+        console.warn('[conference-form] invalid submit', telemetryPayload);
+
+        if (typeof gtag === 'function') {
+            gtag('event', 'registration_invalid_submit', {
+                event_category: 'form',
+                event_label: conferenceName,
+                invalid_field_count: invalidFields.length,
+                invalid_fields: invalidFields.slice(0, 10).join(' | '),
+            });
+        }
+    }
+
+    private focusFirstInvalidField(): void {
+        const fieldKey = this.getFirstInvalidFieldKey();
+        if (!fieldKey) {
+            return;
+        }
+
+        const formElement = this.conferenceFormElement?.nativeElement;
+        const target = this.findFocusableElementForField(fieldKey, formElement);
+        if (!target) {
+            return;
+        }
+
+        target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest',
+        });
+
+        target.focus?.();
+    }
+
+    private getFirstInvalidFieldKey(): string | null {
+        for (const key of Object.keys(this.conferenceForm.controls)) {
+            const control = this.conferenceForm.get(key);
+
+            if (control instanceof FormArray && key === 'answers') {
+                const invalidAnswerIndex = control.controls.findIndex(
+                    (answerControl) => answerControl.invalid,
+                );
+                if (invalidAnswerIndex !== -1) {
+                    return `answers:${invalidAnswerIndex}`;
+                }
+                continue;
+            }
+
+            if (control?.invalid) {
+                return key;
+            }
+        }
+
+        if (this.conferenceForm.errors?.['dateRangeInvalid']) {
+            return 'dateOfArrival';
+        }
+
+        if (this.conferenceForm.errors?.['mealOrderInvalid']) {
+            return 'firstMeal';
+        }
+
+        return null;
+    }
+
+    private findFocusableElementForField(
+        fieldKey: string,
+        formElement?: HTMLElement,
+    ): HTMLElement | null {
+        if (!formElement) {
+            return null;
+        }
+
+        const fieldSelectorMap: Record<string, string> = {
+            lastName: '#lastName',
+            firstName: '#firstName',
+            gender: '#gender1',
+            birthDate: '#birthDate, app-localized-date-picker[inputid="birthDate"]',
+            nationality: 'app-nationality-selector[controlname="nationality"]',
+            country: 'app-country-selector[controlname="country"]',
+            zipCode: '#zipCode',
+            email: '#email',
+            telephone: '#telephone',
+            dateOfArrival:
+                '#dateOfArrival, app-localized-date-picker[inputid="dateOfArrival"]',
+            firstMeal: 'app-meal-selector[controlname="firstMeal"]',
+            diet: 'app-diet-selector[controlname="diet"]',
+            dateOfDeparture:
+                '#dateOfDeparture, app-localized-date-picker[inputid="dateOfDeparture"]',
+            lastMeal: 'app-meal-selector[controlname="lastMeal"]',
+            roomType: 'app-roomtype-selector[controlname="roomType"]',
+            payment: 'app-payment-selector[controlname="payment"]',
+            babyBed: '#baby-bed-yes',
+            idCard: 'app-reactive-file-upload[formcontrolname="idCard"]',
+            privacy: '#privacy',
+        };
+
+        if (fieldKey.startsWith('answers:')) {
+            const answerIndex = fieldKey.split(':')[1] || '0';
+            return (
+                formElement.querySelector<HTMLElement>(
+                    `input[formcontrolname="${answerIndex}"]`,
+                ) ?? null
+            );
+        }
+
+        const selector = fieldSelectorMap[fieldKey];
+        if (!selector) {
+            return null;
+        }
+
+        const hostElement = formElement.querySelector<HTMLElement>(selector);
+        return this.resolveFocusableElement(hostElement);
+    }
+
+    private resolveFocusableElement(
+        hostElement: HTMLElement | null,
+    ): HTMLElement | null {
+        if (!hostElement) {
+            return null;
+        }
+
+        if (typeof hostElement.focus === 'function' && hostElement.tabIndex >= 0) {
+            return hostElement;
+        }
+
+        return (
+            hostElement.querySelector<HTMLElement>(
+                [
+                    'input:not([type="hidden"]):not([disabled])',
+                    'textarea:not([disabled])',
+                    'button:not([disabled])',
+                    '.p-dropdown',
+                    '.p-multiselect',
+                    '.p-checkbox-box',
+                    '.p-radiobutton-box',
+                    '.p-fileupload-choose',
+                ].join(','),
+            ) ?? hostElement
+        );
     }
 
     private getRoomMateInputElement(): HTMLInputElement | null {

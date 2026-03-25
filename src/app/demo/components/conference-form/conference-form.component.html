@@ -79,7 +79,7 @@
                                 <div *ngIf="showForm && (!registrationEnded || (registrationEnded && canFillAfterRegistrationDeadline))">
 
                                     <!-- Registration form -->
-                                    <form [formGroup]="conferenceForm" (ngSubmit)="onSubmit()" novalidate class="grid formgrid p-fluid">
+                                    <form #conferenceFormElement [formGroup]="conferenceForm" (ngSubmit)="onSubmit()" novalidate class="grid formgrid p-fluid">
 
                                         <!-- Vezetéknév -->
                                         <div class="field mb-4 col-12 lg:col-4 md:col-12">
@@ -673,7 +673,7 @@
 
                                         <!-- SUBMIT -->
                                         <div class="field col-12 mb-2" *ngIf="conferenceForm.invalid && hasInteractedWithForm && incompleteFieldSummary">
-                                            <small class="p-error block">
+                                            <small class="p-error block" role="alert">
                                                 {{ 'conferenceForm.validation.completeRequiredFields' | translate }}
                                                 {{ incompleteFieldSummary }}
                                             </small>
@@ -683,7 +683,7 @@
                                                   icon="pi pi-check"
                                                   label="{{ 'conferenceForm.actions.submit' | translate }}"
                                                   [loading]="loading"
-                                                  [disabled]="loading || conferenceForm.invalid">
+                                                  [disabled]="loading">
                                         </p-button>
                                     </form>
                                 </div>
