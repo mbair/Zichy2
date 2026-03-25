@@ -10,6 +10,7 @@ describe('ConferenceFormComponent', () => {
         answerMessages$: Subject<any>;
         createdGuest$: Subject<any>;
         guestMessages$: Subject<any>;
+        guestCreateSpy: jasmine.Spy;
         messageServiceAddSpy: jasmine.Spy;
         answerCreateSpy: jasmine.Spy;
     };
@@ -42,6 +43,7 @@ describe('ConferenceFormComponent', () => {
         const answerMessages$ = new Subject<any>();
         const messageServiceAddSpy = jasmine.createSpy('add');
         const answerCreateSpy = jasmine.createSpy('create');
+        const guestCreateSpy = jasmine.createSpy('create');
 
         const translations: Record<string, string> = {
             'conferenceForm.messages.savePartialSummary':
@@ -80,6 +82,7 @@ describe('ConferenceFormComponent', () => {
             {
                 createdGuestObs: createdGuest$,
                 messageObs: guestMessages$,
+                create: guestCreateSpy,
             } as any,
             {
                 hasActiveSessionSnapshot: () => false,
@@ -109,6 +112,7 @@ describe('ConferenceFormComponent', () => {
             answerMessages$,
             createdGuest$,
             guestMessages$,
+            guestCreateSpy,
             messageServiceAddSpy,
             answerCreateSpy,
         };
@@ -190,5 +194,56 @@ describe('ConferenceFormComponent', () => {
         expect(component.needsRoom).toBeFalse();
         expect(component.showIdCardField).toBeFalse();
         expect(component.idCard?.disabled).toBeTrue();
+    });
+
+    it('normalizes room mate entries from the reactive form control', () => {
+        const { component } = createHarness();
+
+        component.roomMate?.setValue(['  Alice  ', 'Bob', 'alice', '', ' Bob ']);
+
+        expect(component.roomMate?.value).toEqual(['Alice', 'Bob']);
+    });
+
+    it('commits pending room mate draft text before submit', () => {
+        const { component, guestCreateSpy } = createHarness();
+
+        component.conferenceForm.patchValue({
+            lastName: 'Teszt',
+            firstName: 'Elek',
+            gender: 'male',
+            birthDate: '2015-05-10',
+            nationality: 'Magyar',
+            country: 'Hungary',
+            zipCode: '1234',
+            email: 'teszt@example.com',
+            telephone: '+36123456789',
+            dateOfArrival: '2026-06-10',
+            firstMeal: 'ebed',
+            diet: 'normal',
+            dateOfDeparture: '2026-06-12',
+            lastMeal: 'ebed',
+            roomType: 'Kastely szallas 4 agyas szoba',
+            roomMate: ['Alice'],
+            payment: 1,
+            privacy: true,
+        });
+
+        (component as any).roomMateChips = {
+            inputViewChild: {
+                nativeElement: {
+                    value: ' Bob ;  Carol, alice ',
+                },
+            },
+        };
+
+        component.onSubmit();
+
+        expect(component.roomMate?.value).toEqual(['Alice', 'Bob', 'Carol']);
+        expect(guestCreateSpy).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                roomMate: 'Alice, Bob, Carol',
+            }),
+            [],
+        );
     });
 });

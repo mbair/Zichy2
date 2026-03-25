@@ -536,9 +536,11 @@
                                                     tooltipPosition="top"
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
-                                            <p-chips formControlName="roomMate"
+                                            <p-chips #roomMateChips
+                                                    formControlName="roomMate"
                                                     separator=","
                                                     [showClear]="true"
+                                                    [allowDuplicate]="false"
                                                     [addOnBlur]="true">
                                                 <ng-template let-item pTemplate="item">
                                                     <i class="pi pi-user mr-2"></i> {{ item }}

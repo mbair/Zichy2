@@ -1,4 +1,10 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import {
+    ChangeDetectorRef,
+    Component,
+    ElementRef,
+    OnInit,
+    ViewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import {
     FormBuilder,
@@ -19,6 +25,7 @@ import { sameDayMealOrderValidator } from '../../utils/same-day-meal-order-valid
 import { zipCodeValidator } from '../../utils/zipcode-validator';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { Message, MessageService } from 'primeng/api';
+import { Chips } from 'primeng/chips';
 import { ConferenceService } from '../../service/conference.service';
 import { LanguageService } from '../../service/language.service';
 import { AnswerService } from '../../service/answer.service';
@@ -57,6 +64,7 @@ declare let gtag: Function;
 // BUT!!! Don't delete ngOnDestroy, it has to stay here!
 @AutoUnsubscribe()
 export class ConferenceFormComponent implements OnInit {
+    @ViewChild('roomMateChips') private roomMateChips?: Chips;
     loading: boolean = false; // Loading overlay trigger value
     currentLang: string; // Current language
     conference: Conference; // Conference for this form
@@ -294,6 +302,15 @@ export class ConferenceFormComponent implements OnInit {
 
                     this.updateIdCardVisibility();
                     this.updateBabyBedVisibility();
+                }),
+            );
+        }
+
+        const roomMateCtrl = this.roomMate;
+        if (roomMateCtrl) {
+            this.subs.add(
+                roomMateCtrl.valueChanges.subscribe((value) => {
+                    this.normalizeRoomMateControlValue(value);
                 }),
             );
         }
@@ -1035,6 +1052,8 @@ export class ConferenceFormComponent implements OnInit {
     onSubmit(): void {
         this.messageService.clear();
         this.resetSubmissionState();
+        this.commitPendingRoomMateDraft();
+        this.normalizeRoomMateControlValue();
 
         // Mark all form elements as dirty and touched
         Object.keys(this.conferenceForm.controls).forEach((key) => {
@@ -1094,7 +1113,9 @@ export class ConferenceFormComponent implements OnInit {
 
             // Convert the 'roomMate' FormArray to a comma-separated string
             if (Array.isArray(guestData.roomMate)) {
-                guestData.roomMate = guestData.roomMate.join(', ');
+                guestData.roomMate = this.normalizeRoomMateEntries(
+                    guestData.roomMate,
+                ).join(', ');
             }
 
             // Delete unnecessary fields
@@ -1286,6 +1307,117 @@ export class ConferenceFormComponent implements OnInit {
         }
 
         return null;
+    }
+
+    private commitPendingRoomMateDraft(): void {
+        const roomMateControl = this.roomMate;
+        if (!roomMateControl || roomMateControl.disabled) {
+            return;
+        }
+
+        const inputElement = this.getRoomMateInputElement();
+        const pendingEntries = this.normalizeRoomMateEntries(
+            inputElement?.value ?? '',
+        );
+
+        if (pendingEntries.length === 0) {
+            if (inputElement && inputElement.value) {
+                inputElement.value = '';
+            }
+            return;
+        }
+
+        const nextEntries = this.normalizeRoomMateEntries([
+            ...(roomMateControl.value ?? []),
+            ...pendingEntries,
+        ]);
+
+        roomMateControl.setValue(nextEntries.length > 0 ? nextEntries : null);
+        roomMateControl.markAsDirty();
+        roomMateControl.markAsTouched();
+
+        if (inputElement) {
+            inputElement.value = '';
+        }
+    }
+
+    private normalizeRoomMateControlValue(value = this.roomMate?.value): void {
+        const roomMateControl = this.roomMate;
+        if (!roomMateControl) {
+            return;
+        }
+
+        const normalizedEntries = this.normalizeRoomMateEntries(value);
+        const normalizedValue =
+            normalizedEntries.length > 0 ? normalizedEntries : null;
+
+        if (this.areSameRoomMateValues(roomMateControl.value, normalizedValue)) {
+            return;
+        }
+
+        roomMateControl.setValue(normalizedValue, { emitEvent: false });
+    }
+
+    private normalizeRoomMateEntries(value: unknown): string[] {
+        const rawEntries = Array.isArray(value) ? value : [value];
+        const normalizedEntries: string[] = [];
+        const seenEntries = new Set<string>();
+
+        rawEntries.forEach((entry) => {
+            this.splitRoomMateEntries(entry).forEach((item) => {
+                const dedupeKey = item.toLocaleLowerCase();
+                if (seenEntries.has(dedupeKey)) {
+                    return;
+                }
+
+                seenEntries.add(dedupeKey);
+                normalizedEntries.push(item);
+            });
+        });
+
+        return normalizedEntries;
+    }
+
+    private splitRoomMateEntries(value: unknown): string[] {
+        if (value == null) {
+            return [];
+        }
+
+        return String(value)
+            .split(/[,\n;]+/)
+            .map((entry) => entry.replace(/\s+/g, ' ').trim())
+            .filter((entry) => entry.length > 0);
+    }
+
+    private areSameRoomMateValues(
+        currentValue: unknown,
+        nextValue: string[] | null,
+    ): boolean {
+        const normalizedNext = nextValue ?? [];
+
+        if (currentValue == null) {
+            return normalizedNext.length === 0;
+        }
+
+        if (!Array.isArray(currentValue)) {
+            return false;
+        }
+
+        if (currentValue.length !== normalizedNext.length) {
+            return false;
+        }
+
+        return currentValue.every(
+            (entry, index) => entry === normalizedNext[index],
+        );
+    }
+
+    private getRoomMateInputElement(): HTMLInputElement | null {
+        const chipsInput = this.roomMateChips?.inputViewChild as
+            | ElementRef<HTMLInputElement>
+            | undefined;
+
+        return chipsInput?.nativeElement ?? null;
     }
 
     private getTranslatedFieldNames(): { [key: string]: string } {
