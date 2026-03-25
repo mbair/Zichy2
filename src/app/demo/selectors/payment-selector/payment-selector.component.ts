@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common'
-import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core'
+import { AfterViewChecked, ChangeDetectorRef, Component, EventEmitter, Input, Output, SimpleChanges, ViewChild, forwardRef, OnInit } from '@angular/core'
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms'
 import { TranslateModule, TranslateService } from '@ngx-translate/core'
-import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown'
-import { MultiSelectChangeEvent, MultiSelectModule } from 'primeng/multiselect'
+import { Dropdown, DropdownChangeEvent, DropdownModule } from 'primeng/dropdown'
+import { MultiSelect, MultiSelectChangeEvent, MultiSelectModule } from 'primeng/multiselect'
 
 export interface changeEvent {
     value: number | number[] | null
@@ -45,7 +45,9 @@ interface PaymentOption {
         }
     ]
 })
-export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
+export class PaymentSelectorComponent
+    implements OnInit, AfterViewChecked, ControlValueAccessor
+{
     @Input() parentForm!: FormGroup
     @Input() controlName!: string
     @Input() showClear = false
@@ -53,6 +55,8 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() optionSelectable = true // If false, options are not selectable (read-only display)
     @Input() allowedPaymentMethodIds: number[] | null | undefined = undefined
     @Output() change = new EventEmitter<changeEvent>()
+    @ViewChild(Dropdown) private dropdown?: Dropdown
+    @ViewChild(MultiSelect) private multiSelect?: MultiSelect
 
     payments: PaymentOption[] = []                    // Available payments
     selectedPayment: number | number[] | null = null  // Selected payment
@@ -74,6 +78,10 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
 
         // Ensure control value is numeric and respects allowedPaymentMethodIds
         this.syncControlValueWithModeAndAllowed()
+    }
+
+    ngAfterViewChecked(): void {
+        this.syncValueFromWidget()
     }
 
     /**
@@ -171,15 +179,13 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
                 filtered.some((v, i) => v !== ids[i])
 
             if (changed) {
-                control.setValue(filtered, { emitEvent: false })
-                this.selectedPayment = filtered
+                this.applySelection(filtered, false, false)
             }
         } else {
             const id = Number(current)
 
             if (Number.isFinite(id) && !allowedSet.has(id)) {
-                control.setValue(null, { emitEvent: false })
-                this.selectedPayment = null
+                this.applySelection(null, false, false)
             }
         }
     }
@@ -236,13 +242,7 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
         const source = this.lastWrittenValue ?? control.value
         const normalized = this.normalizeToNumberValue(source)
 
-        // Avoid infinite loops / extra emits
-        const same = JSON.stringify(control.value) === JSON.stringify(normalized)
-        if (!same) {
-            control.setValue(normalized, { emitEvent: false })
-        }
-
-        this.selectedPayment = normalized
+        this.applySelection(normalized, false, false)
     }
 
     /**
@@ -254,17 +254,7 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
         const raw = (event as any).value
         const normalized = this.normalizeToNumberValue(raw)
 
-        this.selectedPayment = normalized
-
-        // If used with parentForm+controlName (reactive), enforce normalized value
-        const control = this.getFormControl()
-        if (control) {
-            control.setValue(normalized, { emitEvent: false })
-        }
-
-        // CVA notify
-        this.onChange(normalized)
-        this.onTouched()
+        this.applySelection(normalized)
 
         // External notify
         this.change.emit({ value: normalized, field: this.controlName })
@@ -325,12 +315,7 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
         this.lastWrittenValue = value
 
         const normalized = this.normalizeToNumberValue(value)
-        this.selectedPayment = normalized
-
-        const control = this.getFormControl()
-        if (control) {
-            control.setValue(normalized, { emitEvent: false })
-        }
+        this.applySelection(normalized, false, false)
 
         this.cdRef.detectChanges()
     }
@@ -366,4 +351,58 @@ export class PaymentSelectorComponent implements OnInit, ControlValueAccessor {
      * Initially set as an empty function, but will be assigned dynamically.
      */
     onTouched = () => { }
+
+    private syncValueFromWidget(): void {
+        const widgetValue = this.readWidgetValue()
+        if (widgetValue === undefined) {
+            return
+        }
+
+        const normalizedWidgetValue = this.normalizeToNumberValue(widgetValue)
+        if (this.isSameSelection(normalizedWidgetValue, this.selectedPayment)) {
+            return
+        }
+
+        this.applySelection(normalizedWidgetValue, false)
+    }
+
+    private readWidgetValue(): number | number[] | null | undefined {
+        if (this.multiple) {
+            return this.multiSelect?.value
+        }
+
+        return this.dropdown?.value
+    }
+
+    private applySelection(
+        value: number | number[] | null,
+        emitTouch = true,
+        emitCva = true,
+    ): void {
+        const normalized = this.normalizeToNumberValue(value)
+        const control = this.getFormControl()
+        const currentControlValue = control?.value ?? null
+
+        if (!this.isSameSelection(this.selectedPayment, normalized)) {
+            this.selectedPayment = normalized
+        }
+
+        if (control && !this.isSameSelection(currentControlValue, normalized)) {
+            control.setValue(normalized, { emitEvent: false })
+        }
+
+        this.lastWrittenValue = normalized
+
+        if (emitCva) {
+            this.onChange(normalized)
+        }
+
+        if (emitTouch) {
+            this.onTouched()
+        }
+    }
+
+    private isSameSelection(a: any, b: any): boolean {
+        return JSON.stringify(a) === JSON.stringify(b)
+    }
 }
