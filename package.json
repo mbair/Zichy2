@@ -1,6 +1,6 @@
 {
     "name": "nfc-reserve",
-    "version": "1.16.35",
+    "version": "1.16.37",
     "scripts": {
         "preinstall": "node ./scripts/check-runtime.js ./package.json",
         "prestart": "node ./scripts/generate-version.js",
@@ -19,6 +19,7 @@
         "e2e:picker:headed": "playwright test playwright/localized-date-picker.spec.ts --project=chromium --headed",
         "e2e:picker:debug": "PWDEBUG=1 playwright test playwright/localized-date-picker.spec.ts --project=chromium",
         "e2e:conference-form": "playwright test playwright/conference-form-date-inputs.spec.ts --project=chromium",
+        "e2e:conference-form-flow": "playwright test playwright/conference-form-registration-flow.spec.ts --project=chromium",
         "e2e:conference-form:headed": "playwright test playwright/conference-form-date-inputs.spec.ts --project=chromium --headed",
         "e2e:install": "playwright install chromium",
         "lint": "ng lint",
