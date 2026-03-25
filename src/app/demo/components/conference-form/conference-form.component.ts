@@ -1054,6 +1054,7 @@ export class ConferenceFormComponent implements OnInit {
         this.resetSubmissionState();
         this.commitPendingRoomMateDraft();
         this.normalizeRoomMateControlValue();
+        this.normalizeSubmissionValues();
 
         // Mark all form elements as dirty and touched
         Object.keys(this.conferenceForm.controls).forEach((key) => {
@@ -1410,6 +1411,46 @@ export class ConferenceFormComponent implements OnInit {
         return currentValue.every(
             (entry, index) => entry === normalizedNext[index],
         );
+    }
+
+    private normalizeSubmissionValues(): void {
+        Object.keys(this.conferenceForm.controls).forEach((key) => {
+            const control = this.conferenceForm.get(key);
+            if (!control) {
+                return;
+            }
+
+            if (control instanceof FormArray) {
+                control.controls.forEach((answerControl) => {
+                    if (typeof answerControl.value !== 'string') {
+                        return;
+                    }
+
+                    const normalizedValue = this.normalizeStringValue(
+                        answerControl.value,
+                    );
+                    if (answerControl.value !== normalizedValue) {
+                        answerControl.setValue(normalizedValue, {
+                            emitEvent: false,
+                        });
+                    }
+                });
+                return;
+            }
+
+            if (typeof control.value !== 'string') {
+                return;
+            }
+
+            const normalizedValue = this.normalizeStringValue(control.value);
+            if (control.value !== normalizedValue) {
+                control.setValue(normalizedValue, { emitEvent: false });
+            }
+        });
+    }
+
+    private normalizeStringValue(value: string): string {
+        return value.replace(/\u00A0/g, ' ').trim();
     }
 
     private getRoomMateInputElement(): HTMLInputElement | null {

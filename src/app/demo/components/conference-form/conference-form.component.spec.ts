@@ -246,4 +246,89 @@ describe('ConferenceFormComponent', () => {
             [],
         );
     });
+
+    it('trims string field values before submit', () => {
+        const { component, guestCreateSpy } = createHarness();
+
+        component.answers.push(new FormBuilder().control('  Szabad valasz  '));
+
+        component.conferenceForm.patchValue({
+            lastName: '  Teszt  ',
+            firstName: '  Elek  ',
+            gender: 'male',
+            birthDate: '2015-05-10',
+            nationality: '  Magyar  ',
+            country: '  Hungary  ',
+            zipCode: ' 1234 ',
+            email: '  teszt@example.com  ',
+            telephone: '  +36123456789  ',
+            dateOfArrival: '2026-06-10',
+            firstMeal: ' ebéd ',
+            diet: ' normal ',
+            dateOfDeparture: '2026-06-12',
+            lastMeal: ' ebéd ',
+            roomType: ' Kastely szallas 4 agyas szoba ',
+            payment: 1,
+            privacy: true,
+        });
+
+        component.onSubmit();
+
+        expect(component.lastName?.value).toBe('Teszt');
+        expect(component.firstName?.value).toBe('Elek');
+        expect(component.email?.value).toBe('teszt@example.com');
+        expect(component.answers.at(0).value).toBe('Szabad valasz');
+        expect(guestCreateSpy).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                lastName: 'Teszt',
+                firstName: 'Elek',
+                nationality: 'Magyar',
+                country: 'Hungary',
+                zipCode: '1234',
+                email: 'teszt@example.com',
+                telephone: '+36123456789',
+                firstMeal: 'ebéd',
+                diet: 'normal',
+                lastMeal: 'ebéd',
+                roomType: 'Kastely szallas 4 agyas szoba',
+            }),
+            [],
+        );
+    });
+
+    it('treats whitespace-only required text fields as invalid before submit', () => {
+        const { component, guestCreateSpy, messageServiceAddSpy } =
+            createHarness();
+
+        component.conferenceForm.patchValue({
+            lastName: '   ',
+            firstName: 'Elek',
+            gender: 'male',
+            birthDate: '2015-05-10',
+            nationality: 'Magyar',
+            country: 'Hungary',
+            zipCode: '1234',
+            email: 'teszt@example.com',
+            telephone: '+36123456789',
+            dateOfArrival: '2026-06-10',
+            firstMeal: 'ebed',
+            diet: 'normal',
+            dateOfDeparture: '2026-06-12',
+            lastMeal: 'ebed',
+            roomType: 'Kastely szallas 4 agyas szoba',
+            payment: 1,
+            privacy: true,
+        });
+
+        component.onSubmit();
+
+        expect(component.lastName?.value).toBe('');
+        expect(component.lastName?.invalid).toBeTrue();
+        expect(guestCreateSpy).not.toHaveBeenCalled();
+        expect(messageServiceAddSpy).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                severity: 'error',
+            }),
+        );
+    });
 });
