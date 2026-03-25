@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, OnInit, Input, Output, ChangeDetectorRef, forwardRef  } from '@angular/core';
+import { AfterViewChecked, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild, forwardRef  } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { LangChangeEvent, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CountryService } from '../../service/country.service';
-import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
+import { Dropdown, DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
 
 export interface changeEvent {
     value: string;
@@ -23,11 +23,14 @@ export interface changeEvent {
         }
     ]
 })
-export class NationalitySelectorComponent implements OnInit, ControlValueAccessor {
+export class NationalitySelectorComponent
+    implements OnInit, AfterViewChecked, ControlValueAccessor
+{
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
     @Output() change = new EventEmitter<changeEvent>()
+    @ViewChild(Dropdown) private dropdown?: Dropdown
     
     countries: any[] = []                   // Countries
     selectedNationality: string = ''        // Selected nationality
@@ -65,10 +68,7 @@ export class NationalitySelectorComponent implements OnInit, ControlValueAccesso
                 this.controlName &&
                 !this.parentForm.get(this.controlName)?.value
             ) {
-                this.writeValue(hungary.code)
-                if (this.parentForm.get(this.controlName)) {
-                    this.parentForm.get(this.controlName)?.setValue(hungary.code)
-                }
+                this.applySelection(hungary.code, false, false)
                 this.cdRef.detectChanges() // Notify Angular about the change
             }
         })
@@ -77,6 +77,10 @@ export class NationalitySelectorComponent implements OnInit, ControlValueAccesso
         this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
             this.setLanguageFields(event.lang)
         })
+    }
+
+    ngAfterViewChecked(): void {
+        this.syncValueFromWidget()
     }
 
     /**
@@ -96,9 +100,7 @@ export class NationalitySelectorComponent implements OnInit, ControlValueAccesso
      * @param event the change event of the meal selector
      */
     handleOnChange(event: DropdownChangeEvent) {
-        this.selectedNationality = event.value
-        this.onChange(event.value)
-        this.onTouched()
+        this.applySelection(event.value)
         this.change.emit({ value: event.value, field: this.controlName })
     }
 
@@ -124,7 +126,7 @@ export class NationalitySelectorComponent implements OnInit, ControlValueAccesso
      * @param value - The selected conferences coming from the form.
      */
     writeValue(value: any): void {
-        this.selectedNationality = value
+        this.applySelection(value ?? '', false, false)
         this.cdRef.detectChanges()
     }
 
@@ -159,4 +161,43 @@ export class NationalitySelectorComponent implements OnInit, ControlValueAccesso
      * Initially set as an empty function, but will be assigned dynamically.
      */
     onTouched = () => { }
+
+    private syncValueFromWidget(): void {
+        const widgetValue = this.dropdown?.value
+        if (widgetValue === undefined || widgetValue === null) {
+            return
+        }
+
+        if (widgetValue === this.selectedNationality) {
+            return
+        }
+
+        this.applySelection(widgetValue, false)
+    }
+
+    private applySelection(
+        value: string,
+        emitTouch = true,
+        emitCva = true,
+    ): void {
+        const normalized = value ?? ''
+        const control = this.getFormControl()
+        const currentControlValue = control?.value ?? ''
+
+        if (this.selectedNationality !== normalized) {
+            this.selectedNationality = normalized
+        }
+
+        if (control && currentControlValue !== normalized) {
+            control.setValue(normalized, { emitEvent: false })
+        }
+
+        if (emitCva) {
+            this.onChange(normalized)
+        }
+
+        if (emitTouch) {
+            this.onTouched()
+        }
+    }
 }

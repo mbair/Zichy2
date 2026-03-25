@@ -55,4 +55,26 @@ describe('RoomTypeSelectorComponent', () => {
 
         expect(normalized).toEqual([12, 27]);
     });
+
+    it('reconciles the dropdown widget value back into the reactive form control', () => {
+        const component = createComponent();
+        component.parentForm = new FormGroup({
+            roomType: new FormControl(null),
+        });
+        component.controlName = 'roomType';
+
+        component.ngOnInit();
+        (component as any).dropdown = {
+            value: 'Családi szoba (közös konyhával, fürdővel és nappalival)',
+        };
+
+        component.ngAfterViewChecked();
+
+        expect(component.selectedRoomType).toBe(
+            'Családi szoba (közös konyhával, fürdővel és nappalival)',
+        );
+        expect(component.getFormControl()?.value).toBe(
+            'Családi szoba (közös konyhával, fürdővel és nappalival)',
+        );
+    });
 });

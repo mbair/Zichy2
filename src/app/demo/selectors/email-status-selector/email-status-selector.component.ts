@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter, Input, Output, forwardRef } from '@angular/core';
+import { AfterViewChecked, ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild, forwardRef } from '@angular/core';
 import { ControlValueAccessor, FormControl, FormGroup, FormsModule, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
-import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
+import { Dropdown, DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
 
 export interface EmailStatusSelectorChangeEvent {
     value: string;
@@ -50,12 +50,13 @@ interface EmailStatusOption {
         }
     ]
 })
-export class EmailStatusSelectorComponent implements ControlValueAccessor {
+export class EmailStatusSelectorComponent implements AfterViewChecked, ControlValueAccessor {
     @Input() parentForm!: FormGroup
     @Input() controlName!: string
     @Input() showClear = true
     @Input() placeholder = 'Válasszon...'
     @Output() change = new EventEmitter<EmailStatusSelectorChangeEvent>()
+    @ViewChild(Dropdown) private dropdown?: Dropdown
 
     selectedValue = ''
     disabled = false
@@ -71,6 +72,10 @@ export class EmailStatusSelectorComponent implements ControlValueAccessor {
 
     constructor(private cdRef: ChangeDetectorRef) { }
 
+    ngAfterViewChecked(): void {
+        this.syncValueFromWidget()
+    }
+
     getFormControl(): FormControl | null {
         if (!this.parentForm || !this.controlName) {
             return null
@@ -79,14 +84,12 @@ export class EmailStatusSelectorComponent implements ControlValueAccessor {
     }
 
     handleOnChange(event: DropdownChangeEvent): void {
-        this.selectedValue = event.value || ''
-        this.onChange(event.value)
-        this.onTouched()
+        this.applySelection(event.value || '')
         this.change.emit({ value: event.value, field: this.controlName })
     }
 
     writeValue(value: any): void {
-        this.selectedValue = value || ''
+        this.applySelection(value || '', false, false)
         this.cdRef.detectChanges()
     }
 
@@ -105,4 +108,35 @@ export class EmailStatusSelectorComponent implements ControlValueAccessor {
 
     onChange = (_: any) => { }
     onTouched = () => { }
+
+    private syncValueFromWidget(): void {
+        const widgetValue = this.dropdown?.value
+        if (widgetValue === undefined || widgetValue === null || widgetValue === this.selectedValue) {
+            return
+        }
+
+        this.applySelection(widgetValue, false)
+    }
+
+    private applySelection(value: string, emitTouch = true, emitCva = true): void {
+        const normalized = value ?? ''
+        const control = this.getFormControl()
+        const currentControlValue = control?.value ?? ''
+
+        if (this.selectedValue !== normalized) {
+            this.selectedValue = normalized
+        }
+
+        if (control && currentControlValue !== normalized) {
+            control.setValue(normalized, { emitEvent: false })
+        }
+
+        if (emitCva) {
+            this.onChange(normalized)
+        }
+
+        if (emitTouch) {
+            this.onTouched()
+        }
+    }
 }

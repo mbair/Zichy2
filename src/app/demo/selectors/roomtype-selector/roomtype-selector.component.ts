@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
 import {
+    AfterViewChecked,
     Component,
     EventEmitter,
     Input,
     Output,
     SimpleChanges,
     ChangeDetectorRef,
+    ViewChild,
     forwardRef,
     OnInit,
 } from '@angular/core';
@@ -18,8 +20,8 @@ import {
     ReactiveFormsModule,
 } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
-import { MultiSelectChangeEvent, MultiSelectModule } from 'primeng/multiselect';
+import { Dropdown, DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
+import { MultiSelect, MultiSelectChangeEvent, MultiSelectModule } from 'primeng/multiselect';
 import {
     BackendRoomType,
     getRoomTypeOptions,
@@ -54,7 +56,9 @@ export interface changeEvent {
         },
     ],
 })
-export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
+export class RoomTypeSelectorComponent
+    implements OnInit, AfterViewChecked, ControlValueAccessor
+{
     @Input() parentForm: FormGroup;
     @Input() controlName: string;
     @Input() showClear: boolean;
@@ -63,6 +67,8 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() includeNoAccommodation: boolean = true;
     @Input() allowedRoomTypeIds: number[] | null | undefined = undefined;
     @Output() change = new EventEmitter<changeEvent>();
+    @ViewChild(Dropdown) private dropdown?: Dropdown;
+    @ViewChild(MultiSelect) private multiSelect?: MultiSelect;
 
     roomTypes: RoomTypeOption[] = []; // Available room types
     selectedRoomType: any = null; // Selected room type
@@ -88,6 +94,10 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
         });
         this.setRoomTypes();
         this.syncControlValueWithModeAndAllowed();
+    }
+
+    ngAfterViewChecked(): void {
+        this.syncValueFromWidget();
     }
 
     /**
@@ -215,14 +225,7 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
 
         const source = this.lastWrittenValue ?? control.value;
         const normalized = this.normalizeToSelectorValue(source);
-        const same =
-            JSON.stringify(control.value) === JSON.stringify(normalized);
-
-        if (!same) {
-            control.setValue(normalized, { emitEvent: false });
-        }
-
-        this.selectedRoomType = normalized;
+        this.applySelection(normalized, false, false);
     }
 
     setRoomTypes() {
@@ -342,15 +345,7 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
      */
     handleOnChange(event: DropdownChangeEvent | MultiSelectChangeEvent) {
         const normalized = this.normalizeToSelectorValue((event as any).value);
-        this.selectedRoomType = normalized;
-
-        const control = this.getFormControl();
-        if (control) {
-            control.setValue(normalized, { emitEvent: false });
-        }
-
-        this.onChange(normalized);
-        this.onTouched();
+        this.applySelection(normalized);
         this.change.emit({ value: normalized, field: this.controlName });
     }
 
@@ -377,7 +372,7 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
      */
     writeValue(value: any): void {
         this.lastWrittenValue = value;
-        this.selectedRoomType = this.normalizeToSelectorValue(value);
+        this.applySelection(this.normalizeToSelectorValue(value), false, false);
         this.cdRef.detectChanges();
     }
 
@@ -412,6 +407,65 @@ export class RoomTypeSelectorComponent implements OnInit, ControlValueAccessor {
      * Initially set as an empty function, but will be assigned dynamically.
      */
     onTouched = () => {};
+
+    private syncValueFromWidget(): void {
+        const widgetValue = this.readWidgetValue();
+        if (widgetValue === undefined) {
+            return;
+        }
+
+        const normalizedWidgetValue = this.normalizeToSelectorValue(widgetValue);
+        if (this.isSameSelection(normalizedWidgetValue, this.selectedRoomType)) {
+            return;
+        }
+
+        this.applySelection(normalizedWidgetValue, false);
+    }
+
+    private readWidgetValue():
+        | number
+        | string
+        | Array<number | string>
+        | null
+        | undefined {
+        if (this.multiple) {
+            return this.multiSelect?.value;
+        }
+
+        return this.dropdown?.value;
+    }
+
+    private applySelection(
+        value: number | string | Array<number | string> | null,
+        emitTouch = true,
+        emitCva = true,
+    ): void {
+        const normalized = this.normalizeToSelectorValue(value);
+        const control = this.getFormControl();
+        const currentControlValue = control?.value ?? null;
+
+        if (!this.isSameSelection(this.selectedRoomType, normalized)) {
+            this.selectedRoomType = normalized;
+        }
+
+        if (control && !this.isSameSelection(currentControlValue, normalized)) {
+            control.setValue(normalized, { emitEvent: false });
+        }
+
+        this.lastWrittenValue = normalized;
+
+        if (emitCva) {
+            this.onChange(normalized);
+        }
+
+        if (emitTouch) {
+            this.onTouched();
+        }
+    }
+
+    private isSameSelection(a: any, b: any): boolean {
+        return JSON.stringify(a) === JSON.stringify(b);
+    }
 
     getSelectedOptions(
         values: Array<number | string> | null | undefined,
