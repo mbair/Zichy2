@@ -16,6 +16,8 @@ export interface BackendRoomType {
 }
 
 type TranslateInstant = Pick<TranslateService, 'instant'>;
+export const NO_ACCOMMODATION_ROOM_TYPE_ID = 0;
+export const NO_ACCOMMODATION_ROOM_TYPE_VALUE = 'Nem kérek szállást';
 type LegacyRoomTypeVariant =
     | { kind: 'code'; code: string }
     | { kind: 'castle'; beds: number };
@@ -132,9 +134,9 @@ function getLegacyRoomTypePresentation(
 export function getRoomTypeOptions(translate: TranslateInstant): RoomTypeOption[] {
     return [
         {
-            id: 0,
+            id: NO_ACCOMMODATION_ROOM_TYPE_ID,
             label: translate.instant('ROOMTYPES.NOTHING'),
-            value: 'Nem kérek szállást',
+            value: NO_ACCOMMODATION_ROOM_TYPE_VALUE,
             color: 'gray'
         },
         {
@@ -187,6 +189,26 @@ export function getRoomTypeOptions(translate: TranslateInstant): RoomTypeOption[
             color: 'orange'
         }
     ];
+}
+
+export function isNoAccommodationRoomTypeValue(
+    value: unknown,
+    translate?: TranslateInstant | null,
+): boolean {
+    const normalizedValue = normalizeRoomTypeText(value);
+
+    if (!normalizedValue) {
+        return false;
+    }
+
+    const candidates = [
+        NO_ACCOMMODATION_ROOM_TYPE_VALUE,
+        translate?.instant?.('ROOMTYPES.NOTHING'),
+    ]
+        .map((candidate) => normalizeRoomTypeText(candidate))
+        .filter(Boolean);
+
+    return candidates.includes(normalizedValue);
 }
 
 export function mapBackendRoomTypeToOption(

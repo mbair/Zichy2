@@ -42,6 +42,7 @@ import {
     normalizeQuestionTranslations,
 } from '../../utils/question-set.utils';
 import { resolveConferenceFormAllowedRoomTypeIds } from '../../utils/conference-room-type.utils';
+import { isNoAccommodationRoomTypeValue } from '../../utils/room-type.utils';
 
 // Google Analytics
 declare let gtag: Function;
@@ -84,7 +85,6 @@ export class ConferenceFormComponent implements OnInit {
     private answerServiceMessageObs$: Observable<any>;
 
     private readonly subs = new Subscription();
-    private readonly ROOMTYPE_NO_ACCOMMODATION = 'Nem kérek szállást';
     private lastLoadedConferenceIdentity: string | null = null;
     readonly idCardMaxFileSizeBytes = 15 * 1024 * 1024;
     readonly idCardMaxFileSizeMb = 15;
@@ -285,7 +285,7 @@ export class ConferenceFormComponent implements OnInit {
                 roomTypeCtrl.valueChanges.subscribe((value) => {
                     const roomMateControl = this.conferenceForm.get('roomMate');
 
-                    if (value === this.ROOMTYPE_NO_ACCOMMODATION) {
+                    if (!this.isRoomSelectionRequiringAccommodation(value)) {
                         roomMateControl?.reset();
                         roomMateControl?.disable({ emitEvent: false });
                     } else {
@@ -779,7 +779,7 @@ export class ConferenceFormComponent implements OnInit {
         const roomType = this.conferenceForm.get('roomType')?.value as
             | string
             | null;
-        return !!roomType && roomType !== this.ROOMTYPE_NO_ACCOMMODATION;
+        return this.isRoomSelectionRequiringAccommodation(roomType);
     }
 
     // Gets the FormArray of questions
@@ -1068,7 +1068,8 @@ export class ConferenceFormComponent implements OnInit {
 
             const guestData = { ...this.conferenceForm.value };
             const rawIdCard = this.conferenceForm.get('idCard')?.value;
-            const files: File[] = rawIdCard instanceof File ? [rawIdCard] : [];
+            const idCardFile = this.extractIdCardFile(rawIdCard);
+            const files: File[] = idCardFile ? [idCardFile] : [];
             const lang = this.languageService.getCurrentContentLanguage();
 
             guestData.birthDate = formatDateYmd(guestData.birthDate);
@@ -1235,19 +1236,56 @@ export class ConferenceFormComponent implements OnInit {
     private idCardMaxFileSizeValidator(
         control: AbstractControl,
     ): ValidationErrors | null {
-        const value = control.value;
-        if (!value || !(value instanceof File)) {
+        const file = this.extractIdCardFile(control.value);
+        if (!file) {
             return null;
         }
 
-        return value.size <= this.idCardMaxFileSizeBytes
+        return file.size <= this.idCardMaxFileSizeBytes
             ? null
             : {
                   maxFileSize: {
                       max: this.idCardMaxFileSizeBytes,
-                      actual: value.size,
+                      actual: file.size,
                   },
               };
+    }
+
+    private isRoomSelectionRequiringAccommodation(value: unknown): boolean {
+        if (value === null || value === undefined || value === '') {
+            return false;
+        }
+
+        return !isNoAccommodationRoomTypeValue(value, this.translate);
+    }
+
+    private extractIdCardFile(value: unknown): File | null {
+        if (value instanceof File) {
+            return value;
+        }
+
+        if (Array.isArray(value)) {
+            for (const item of value) {
+                const file = this.extractIdCardFile(item);
+                if (file) {
+                    return file;
+                }
+            }
+        }
+
+        if (value && typeof value === 'object') {
+            const candidate = value as { file?: unknown; files?: unknown };
+
+            if (candidate.file instanceof File) {
+                return candidate.file;
+            }
+
+            if (Array.isArray(candidate.files)) {
+                return this.extractIdCardFile(candidate.files);
+            }
+        }
+
+        return null;
     }
 
     private getTranslatedFieldNames(): { [key: string]: string } {

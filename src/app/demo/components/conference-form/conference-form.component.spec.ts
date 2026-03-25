@@ -48,6 +48,7 @@ describe('ConferenceFormComponent', () => {
                 'conferenceForm.messages.savePartialSummary',
             'conferenceForm.messages.savePartialDetail':
                 'conferenceForm.messages.savePartialDetail',
+            'ROOMTYPES.NOTHING': 'Not asking for accommodation',
         };
 
         const component = new ConferenceFormComponent(
@@ -174,5 +175,20 @@ describe('ConferenceFormComponent', () => {
                 detail: 'Kulon valasz mentesi hiba',
             }),
         );
+    });
+
+    it('does not require id card when the translated room type means no accommodation', () => {
+        const { component } = createHarness();
+
+        component.conferenceForm.patchValue({
+            birthDate: '1990-05-10',
+            roomType: 'Not asking for accommodation',
+        });
+
+        component.updateIdCardVisibility();
+
+        expect(component.needsRoom).toBeFalse();
+        expect(component.showIdCardField).toBeFalse();
+        expect(component.idCard?.disabled).toBeTrue();
     });
 });
