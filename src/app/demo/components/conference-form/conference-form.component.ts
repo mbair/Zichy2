@@ -484,7 +484,6 @@ export class ConferenceFormComponent implements OnInit {
                     if (message.summary === 'Vendég rögzítés sikertelen') {
                         this.loading = false;
                         this.resetSubmissionState();
-                        this.saveFailed();
                     } else if (
                         message.summary === 'Vendég rögzítve' &&
                         !hasSeparateAnswerSave
@@ -786,6 +785,35 @@ export class ConferenceFormComponent implements OnInit {
         return !!rawEnd && isSameOrBeforeDay(new Date(), rawEnd);
     }
 
+    get hasConfiguredPaymentMethods(): boolean {
+        return (
+            Array.isArray(this.allowedPaymentMethodIds) &&
+            this.allowedPaymentMethodIds.length > 0
+        );
+    }
+
+    get isPaymentConfigurationMissing(): boolean {
+        return (
+            Array.isArray(this.allowedPaymentMethodIds) &&
+            this.allowedPaymentMethodIds.length === 0
+        );
+    }
+
+    get canAccessConferenceForm(): boolean {
+        return (
+            !this.registrationEnded ||
+            (this.registrationEnded && this.canFillAfterRegistrationDeadline)
+        );
+    }
+
+    get canDisplayRegistrationForm(): boolean {
+        return (
+            this.showForm &&
+            this.canAccessConferenceForm &&
+            !this.isPaymentConfigurationMissing
+        );
+    }
+
     private applyConferenceDateBoundsValidators(): void {
         const conferenceDateValidators = [
             Validators.required,
@@ -1058,6 +1086,20 @@ export class ConferenceFormComponent implements OnInit {
      */
     onSubmit(): void {
         if (this.loading) {
+            return;
+        }
+
+        if (this.isPaymentConfigurationMissing) {
+            this.messageService.clear();
+            this.messageService.add({
+                severity: 'warn',
+                summary: this.translate.instant(
+                    'conferenceForm.notices.paymentConfigurationMissingTitle',
+                ),
+                detail: this.translate.instant(
+                    'conferenceForm.notices.paymentConfigurationMissingDetail',
+                ),
+            });
             return;
         }
 

@@ -507,6 +507,7 @@ export class EcommerceDashboardComponent implements OnInit {
         }
 
         const reminders: OrganizerReminder[] = []
+        const configuredPaymentMethodCount = this.getSelectedConferencePaymentMethodCount()
         const registrations = this.registrations
         const guestsWithoutRoom = this.guestsWithoutRoom
         const guestsMissingContact = this.guestsMissingContact
@@ -522,6 +523,25 @@ export class EcommerceDashboardComponent implements OnInit {
 
         if (guestEditDeadlineReminder) {
             reminders.push(guestEditDeadlineReminder)
+        }
+
+        if (configuredPaymentMethodCount === 0) {
+            reminders.push({
+                id: 'missing-payment-methods',
+                title: 'Nincs beállított fizetési mód',
+                summary: 'A publikus regisztráció jelenleg nem küldhető el, mert a vendég nem tud kötelező fizetési módot választani.',
+                detail: 'A Konferencia oldalon állíts be legalább egy engedélyezett fizetési módot. Addig a vendégoldalon az űrlapot blokkoljuk, hogy ez ne csak a beküldés végén derüljön ki.',
+                actionLabel: 'Konferencia megnyitása',
+                route: '/conference',
+                icon: 'pi pi-wallet',
+                badge: 'Blokkoló hiba',
+                tone: 'critical',
+                meta: [
+                    'Publikus űrlap nem küldhető el',
+                    '0 választható fizetési mód'
+                ],
+                priority: 100
+            })
         }
 
         if (registrations > 0 && guestsWithoutRoom > 0) {
@@ -771,6 +791,22 @@ export class EcommerceDashboardComponent implements OnInit {
             this.selectedConference?.contactName?.trim() &&
             (this.selectedConference?.contactEmail?.trim() || this.selectedConference?.contactPhone?.trim())
         )
+    }
+
+    private getSelectedConferencePaymentMethodCount(): number {
+        if (!this.selectedConference) {
+            return 0
+        }
+
+        const paymentMethodIds = Array.isArray(this.selectedConference.paymentMethodIds)
+            ? this.selectedConference.paymentMethodIds
+            : []
+
+        const normalizedIds = paymentMethodIds
+            .map((value) => Number(value))
+            .filter((value) => Number.isFinite(value))
+
+        return Array.from(new Set(normalizedIds)).length
     }
 
     private getNextDeadlineSummary(): string {

@@ -84,8 +84,27 @@
                                 <!-- SYSTEM MESSAGE -->
                                 <p-messages></p-messages>
 
+                                <div
+                                    *ngIf="isPaymentConfigurationMissing"
+                                    class="conference-form-notice conference-form-notice--warning">
+                                    <div class="conference-form-notice__icon">
+                                        <i class="pi pi-lock"></i>
+                                    </div>
+                                    <div class="conference-form-notice__content">
+                                        <div class="conference-form-notice__title">
+                                            {{ 'conferenceForm.notices.paymentConfigurationMissingTitle' | translate }}
+                                        </div>
+                                        <p class="conference-form-notice__text">
+                                            {{ 'conferenceForm.notices.paymentConfigurationMissingDetail' | translate }}
+                                        </p>
+                                        <p class="conference-form-notice__hint">
+                                            {{ 'conferenceForm.notices.paymentConfigurationMissingHint' | translate }}
+                                        </p>
+                                    </div>
+                                </div>
+
                                 <!-- Show registration form if registration is not ended -->
-                                <div *ngIf="showForm && (!registrationEnded || (registrationEnded && canFillAfterRegistrationDeadline))">
+                                <div *ngIf="canDisplayRegistrationForm">
 
                                     <!-- Registration form -->
                                     <form #conferenceFormElement [formGroup]="conferenceForm" (ngSubmit)="onSubmit()" novalidate class="grid formgrid p-fluid">
@@ -698,7 +717,7 @@
                                 </div>
 
                                 <!-- New registration -->
-                                <div *ngIf="(!registrationEnded || (registrationEnded && canFillAfterRegistrationDeadline)) && !showForm"
+                                <div *ngIf="canAccessConferenceForm && !showForm && !isPaymentConfigurationMissing"
                                      class="flex col-12 align-items-center justify-content-center">
 
                                      <p-button class="white-space-nowrap mt-3"

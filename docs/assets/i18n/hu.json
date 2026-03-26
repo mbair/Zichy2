@@ -263,6 +263,11 @@
             "roomMateComma": "Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában",
             "noPaymentOptions": "A szervező még nem állított be fizetési módot ehhez a konferenciához."
         },
+        "notices": {
+            "paymentConfigurationMissingTitle": "A regisztráció jelenleg nem küldhető el",
+            "paymentConfigurationMissingDetail": "Ehhez a konferenciához még nincs választható fizetési mód beállítva, ezért most nem érdemes kitölteni az űrlapot.",
+            "paymentConfigurationMissingHint": "Kérjük, próbáld meg később, vagy jelezd ezt a szervezőnek."
+        },
         "actions": {
             "browse": "Tallózás",
             "cancel": "Mégsem",

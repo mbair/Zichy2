@@ -236,7 +236,7 @@ export class GuestService {
                     const errToast: ToastMsg = {
                         severity: 'error',
                         summary: 'Vendég rögzítés sikertelen',
-                        detail: error?.errorMessage || error?.message || 'Ismeretlen hiba történt.'
+                        detail: this.extractCreateErrorDetail(error)
                     }
                     this.message$.next(errToast)
                 }
@@ -384,5 +384,34 @@ export class GuestService {
     private registrationToast(guest: any): ToastMsg {
         const name = (guest?.lastName && guest?.firstName) ? `${guest.lastName} ${guest.firstName}` : 'Vendég';
         return { severity: 'success', summary: 'Vendég rögzítve', detail: `${name} sikeresen rögzítve.` };
+    }
+
+    private extractCreateErrorDetail(error: any): string {
+        const rawDetail = [
+            error?.error?.errorMessage,
+            error?.error?.message,
+            error?.errorMessage,
+            error?.message,
+        ].find(
+            (value) => typeof value === 'string' && value.trim().length > 0,
+        ) as string | undefined
+
+        if (!rawDetail) {
+            return 'Ismeretlen hiba történt.'
+        }
+
+        if (rawDetail.includes('A fizetési mód megadása kötelező.')) {
+            return 'A regisztráció jelenleg nem küldhető el, mert ehhez a konferenciához nincs választható fizetési mód beállítva. Kérjük, vedd fel a kapcsolatot a szervezővel.'
+        }
+
+        if (
+            rawDetail.includes(
+                'A kiválasztott fizetési mód ennél a konferenciánál nem engedélyezett.',
+            )
+        ) {
+            return 'A kiválasztott fizetési mód már nem érhető el ehhez a konferenciához. Kérjük, frissítsd az oldalt, és válassz újra.'
+        }
+
+        return rawDetail
     }
 }

@@ -263,6 +263,11 @@
             "roomMateComma": "You can specify the roommate by separating the names with a comma",
             "noPaymentOptions": "The organizer has not configured any payment methods for this conference yet."
         },
+        "notices": {
+            "paymentConfigurationMissingTitle": "Registration cannot be submitted right now",
+            "paymentConfigurationMissingDetail": "No selectable payment method has been configured for this conference yet, so it does not make sense to fill out the form now.",
+            "paymentConfigurationMissingHint": "Please try again later or contact the organizer."
+        },
         "actions": {
             "browse": "Browse",
             "cancel": "Cancel",

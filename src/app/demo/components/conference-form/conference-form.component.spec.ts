@@ -182,6 +182,36 @@ describe('ConferenceFormComponent', () => {
         );
     });
 
+    it('blocks the registration form when the conference has no configured payment methods', () => {
+        const { component } = createHarness();
+
+        component.allowedPaymentMethodIds = [];
+        component.showForm = true;
+        component.registrationEnded = false;
+
+        expect(component.isPaymentConfigurationMissing).toBeTrue();
+        expect(component.canDisplayRegistrationForm).toBeFalse();
+    });
+
+    it('shows only the service-provided guest save error toast without adding a second generic error', () => {
+        const { guestMessages$, messageServiceAddSpy } = createHarness();
+
+        guestMessages$.next({
+            severity: 'error',
+            summary: 'Vendég rögzítés sikertelen',
+            detail: 'A regisztráció jelenleg nem küldhető el.',
+        });
+
+        expect(messageServiceAddSpy.calls.count()).toBe(1);
+        expect(messageServiceAddSpy).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                severity: 'error',
+                summary: 'Vendég rögzítés sikertelen',
+                detail: 'A regisztráció jelenleg nem küldhető el.',
+            }),
+        );
+    });
+
     it('does not require id card when the translated room type means no accommodation', () => {
         const { component } = createHarness();
 
