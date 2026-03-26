@@ -24,6 +24,7 @@ import { dateRangeValidator } from '../../utils/date-range-validator';
 import { sameDayMealOrderValidator } from '../../utils/same-day-meal-order-validator';
 import { zipCodeValidator } from '../../utils/zipcode-validator';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
+import { HelpSidebarContent, HELP_SIDEBAR_CONTENT } from 'src/app/layout/help/help-sidebar-content.data';
 import { Message, MessageService } from 'primeng/api';
 import { Chips } from 'primeng/chips';
 import { ConferenceService } from '../../service/conference.service';
@@ -89,6 +90,8 @@ export class ConferenceFormComponent implements OnInit {
     formFieldInfosMap: { [key: string]: FormFieldInfo } = {};
     allowedPaymentMethodIds: number[] | null | undefined = undefined;
     allowedConferenceRoomTypeIds: number[] | null | undefined = undefined;
+    helpSidebarVisible = false;
+    helpSidebarContent: HelpSidebarContent = HELP_SIDEBAR_CONTENT.conferenceForm;
     private guestCreatedForCurrentSubmission: boolean = false;
 
     private guestServiceMessageObs$: Observable<any>;
@@ -1826,6 +1829,14 @@ export class ConferenceFormComponent implements OnInit {
         this.roomType?.reset('', { emitEvent: true });
         this.roomType?.markAsPristine();
         this.roomType?.markAsUntouched();
+    }
+
+    toggleHelpSidebar(): void {
+        this.helpSidebarVisible = !this.helpSidebarVisible;
+    }
+
+    closeHelpSidebar(): void {
+        this.helpSidebarVisible = false;
     }
 
     /**

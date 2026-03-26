@@ -3,7 +3,16 @@
     <div class="bg-circle hidden lg:flex" style="top: 50px; right:-800px; transform: rotate(60deg)"></div>
     <div class="landing-wrapper">
 
-        <div class="absolute top-0 right-0 flex align-items-center px-3 py-3">
+        <div class="absolute top-0 right-0 flex align-items-center px-3 py-3 gap-2">
+            <button
+                pButton
+                type="button"
+                icon="pi pi-question-circle"
+                class="p-button-text p-button-secondary p-button-rounded"
+                pTooltip="Oldalsúgó megnyitása"
+                tooltipPosition="bottom"
+                (click)="toggleHelpSidebar()">
+            </button>
             <app-language-selector></app-language-selector>
         </div>
 
@@ -758,6 +767,32 @@
         </div>
     </div>
 </div>
+
+<p-sidebar
+    [(visible)]="helpSidebarVisible"
+    position="right"
+    [baseZIndex]="1000"
+    styleClass="p-sidebar-md"
+    (onHide)="closeHelpSidebar()">
+    <ng-template pTemplate="header">
+        <div class="flex align-items-center gap-2">
+            <i class="pi pi-question-circle text-primary"></i>
+            <span class="font-semibold">{{ helpSidebarContent.title }}</span>
+        </div>
+    </ng-template>
+
+    <div class="line-height-3">
+        <p class="mt-0 mb-3">{{ helpSidebarContent.description }}</p>
+
+        <div class="mb-4" *ngFor="let section of helpSidebarContent.sections">
+            <h5 class="mt-0 mb-2">{{ section.title }}</h5>
+            <ul class="pl-3 m-0">
+                <li class="mb-2" *ngFor="let item of section.items">{{ item }}</li>
+            </ul>
+        </div>
+    </div>
+
+</p-sidebar>
 
 <!-- Notifications -->
 <p-toast></p-toast>

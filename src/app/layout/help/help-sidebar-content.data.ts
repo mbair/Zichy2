@@ -540,22 +540,40 @@ export const HELP_SIDEBAR_CONTENT = {
     ),
     conferenceForm: help(
         'Konferencia űrlap',
-        'Ez a publikus jelentkezési űrlap a vendégek pontos regisztrációjára szolgál. A kitöltés minősége közvetlenül hat a szobabeosztásra, az étkeztetésre és a kötelező adatszolgáltatásra.',
+        '',
         [
-            section('Kitöltési sorrend', [
-                'Először a személyes és kötelező adatokat töltsd ki, utána haladj a szállás-, étkezési és egyéb kiegészítő mezők felé.',
-                'Figyeld a dátumokat és a határidőket a fejlécben, mert a szervezői és vendégoldali időablak eltérhet.',
-                'A mezők melletti információs ikonok vagy segítő szövegek azért vannak, hogy pontosan ugyanazt add meg, amire a szervező számít.'
+            section('Látogatók regisztrációja', [
+                'A szállást nem kérőket is regisztráld.',
+                'Ha nem egymást követő napokon jönnek, minden időszakra külön űrlapot tölts ki.',
+                'Étkezéssel:',
+                'Teljes időszak + minden étkezés → 1 űrlap',
+                'Részleges igény → naponként külön űrlap'
             ]),
-            section('Mire figyelj különösen?', [
-                'Az érkezési és távozási dátum, valamint az első és utolsó étkezés együtt értelmezendő; ezekből számol a rendszer több háttérfolyamatot.',
-                'Ha kérdés vagy extra mező látszik, azt a konferencia szervezője állította be, ezért ne hagyd figyelmen kívül, ha rád vonatkozik.',
-                'Dokumentumfeltöltésnél ellenőrizd, hogy a megfelelő oldal és olvasható kép került-e be.'
+            section('Személyes adatok', [
+                'A születési dátumot kézzel vagy a dátumválasztóval is megadhatod.',
+                'A dátum megadása után további mezők jelennek meg: 14 év felett az okmányfeltöltés, 3 év alatt a babaágy kérdés.'
             ]),
-            section('Hibajelzés esetén', [
-                'A piros jelzések általában kötelező vagy hibás formátumú mezőre utalnak; ezek javítása nélkül a mentés nem lesz sikeres.',
-                'Ha nem vagy biztos egy mező jelentésében, inkább a szervezőt kérdezd, mert az űrlap egyes mezői konferenciánként eltérhetnek.',
-                'Beküldés után mindig várd meg a sikeres visszajelzést.'
+            section('Okmányfeltöltés', [
+                'A születési dátumot megadhatod kézzel vagy választóval.',
+                'Megadás után további mezők jelennek meg:',
+                'okmányfeltöltés (14+)',
+                'babaágy kérdés (3 év alatt)',
+                'Kivételek:',
+                '14 év alatt nem kell',
+                'Nem szállóvendégnél nem kell'
+            ]),
+            section('Étkezés beállítása', [
+                'Ha bármelyik mezőnél „nem kér étkezést”-et választasz:',
+                'első étkezés',
+                'utolsó étkezés',
+                'étrend'
+            ]),
+            section('Szobatípus', [
+                'Csak igény, nem foglalás',
+                'A beosztást a szervező végzi'
+            ]),
+            section('Visszaigazolás', [
+                'Sikeres mentés után automatikus e-mail érkezik minden megadott adattal.'
             ])
         ]
     ),
