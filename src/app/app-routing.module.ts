@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { AppLayoutComponent } from './layout/app.layout.component';
 import { AuthGuard } from './demo/utils/auth.guard';
+import { HELP_SIDEBAR_CONTENT } from './layout/help/help-sidebar-content.data';
 
 const routerOptions: ExtraOptions = {
     anchorScrolling: 'enabled',
@@ -14,19 +15,23 @@ const routes: Routes = [
         children: [
             {
                 path: 'dev/localized-date-picker',
+                data: {
+                    helpSidebar: HELP_SIDEBAR_CONTENT.localizedDatePicker
+                },
                 loadComponent: () => import('./devtools/localized-date-picker-debug.component').then(m => m.LocalizedDatePickerDebugComponent)
             },
             // Need Authentication
             { 
                 path: '', 
-                loadChildren: () => import('./demo/components/dashboards/dashboards.module').then(m => m.DashboardsModule), 
+                loadChildren: () => import('./demo/components/dashboards/dashboards.module').then(m => m.DashboardsModule),
                 canActivate: [AuthGuard] 
             },
             { 
                 path: 'nfc-tag', 
                 data: { 
                     breadcrumb: 'NFC címke',
-                    requiredRoles: ['Super Admin', 'Nagy Admin']
+                    requiredRoles: ['Super Admin', 'Nagy Admin'],
+                    helpSidebar: HELP_SIDEBAR_CONTENT.nfcTag
                 }, 
                 loadChildren: () => import('./demo/components/nfc-tag/nfc-tag.module').then(m => m.NFCTagModule), 
                 canActivate: [AuthGuard] 
@@ -35,7 +40,8 @@ const routes: Routes = [
                 path: 'user', 
                 data: { 
                     breadcrumb: 'Felhasználó',
-                    requiredRoles: ['Super Admin', 'Nagy Admin']
+                    requiredRoles: ['Super Admin', 'Nagy Admin'],
+                    helpSidebar: HELP_SIDEBAR_CONTENT.user
                 }, 
                 loadChildren: () => import('./demo/components/user/user.module').then(m => m.UserModule), 
                 canActivate: [AuthGuard] 
@@ -43,7 +49,8 @@ const routes: Routes = [
             { 
                 path: 'pages', 
                 data: { 
-                    breadcrumb: 'Pages' 
+                    breadcrumb: 'Pages',
+                    helpSidebar: HELP_SIDEBAR_CONTENT.default
                 }, 
                 loadChildren: () => import('./demo/components/pages/pages.module').then(m => m.PagesModule), 
                 canActivate: [AuthGuard] 
@@ -53,6 +60,7 @@ const routes: Routes = [
                 data: { 
                     breadcrumb: 'Foglalás',
                     // requiredRoles: ['Super Admin', 'Nagy Admin']
+                    helpSidebar: HELP_SIDEBAR_CONTENT.reservation
                 }, 
                 loadChildren: () => import('./demo/components/reservation/reservation.module').then(m => m.ReservationModule), 
                 canActivate: [AuthGuard] 
@@ -60,7 +68,8 @@ const routes: Routes = [
             { 
                 path: 'conference', 
                 data: { 
-                    breadcrumb: 'Konferencia'
+                    breadcrumb: 'Konferencia',
+                    helpSidebar: HELP_SIDEBAR_CONTENT.conference
                 }, 
                 loadChildren: () => import('./demo/components/conference/conference.module').then(m => m.ConferenceModule), 
                 canActivate: [AuthGuard] 
@@ -69,7 +78,8 @@ const routes: Routes = [
                 path: 'contracting-parties',
                 data: {
                     breadcrumb: 'Szerződők',
-                    requiredRoles: ['Super Admin', 'Nagy Admin']
+                    requiredRoles: ['Super Admin', 'Nagy Admin'],
+                    helpSidebar: HELP_SIDEBAR_CONTENT.contractingParties
                 },
                 loadChildren: () => import('./demo/components/contracting-party-admin/contracting-party-admin.module').then(m => m.ContractingPartyAdminModule),
                 canActivate: [AuthGuard]
@@ -77,7 +87,8 @@ const routes: Routes = [
             { 
                 path: 'profile', 
                 data: { 
-                    breadcrumb: 'Profil'
+                    breadcrumb: 'Profil',
+                    helpSidebar: HELP_SIDEBAR_CONTENT.profile
                 }, 
                 loadChildren: () => import('./demo/components/profile/profile.module').then(m => m.ProfileModule), 
                 canActivate: [AuthGuard] 
@@ -85,7 +96,8 @@ const routes: Routes = [
             { 
                 path: 'documentation', 
                 data: { 
-                    breadcrumb: 'Documentation'
+                    breadcrumb: 'Documentation',
+                    helpSidebar: HELP_SIDEBAR_CONTENT.documentation
                 }, 
                 loadChildren: () => import('./demo/components/documentation/documentation.module').then(m => m.DocumentationModule), 
                 canActivate: [AuthGuard] 
@@ -94,7 +106,8 @@ const routes: Routes = [
                 path: 'logs', 
                 data: { 
                     breadcrumb: 'Napló',
-                    requiredRoles: ['Super Admin', 'Nagy Admin']
+                    requiredRoles: ['Super Admin', 'Nagy Admin'],
+                    helpSidebar: HELP_SIDEBAR_CONTENT.logs
                 }, 
                 loadChildren: () => import('./demo/components/logs/logs.module').then(m => m.LogsModule), 
                 canActivate: [AuthGuard] 
@@ -102,7 +115,8 @@ const routes: Routes = [
             { 
                 path: 'guest', 
                 data: { 
-                    breadcrumb: 'Vendég' 
+                    breadcrumb: 'Vendég',
+                    helpSidebar: HELP_SIDEBAR_CONTENT.guest
                 }, 
                 loadChildren: () => import('./demo/components/guest/guest.module').then(m => m.GuestModule), 
                 canActivate: [AuthGuard] 
@@ -111,7 +125,8 @@ const routes: Routes = [
                 path: 'room', 
                 data: { 
                     breadcrumb: 'Szoba',
-                    requiredRoles: []
+                    requiredRoles: [],
+                    helpSidebar: HELP_SIDEBAR_CONTENT.room
                 }, 
                 loadChildren: () => import('./demo/components/room/room.module').then(m => m.RoomModule), 
                 canActivate: [AuthGuard] 
@@ -120,7 +135,8 @@ const routes: Routes = [
                 path: 'diet', 
                 data: { 
                     breadcrumb: 'Étrend',
-                    requiredRoles: ['Super Admin', 'Nagy Admin']
+                    requiredRoles: ['Super Admin', 'Nagy Admin'],
+                    helpSidebar: HELP_SIDEBAR_CONTENT.diet
                 }, 
                 loadChildren: () => import('./demo/components/diet/diet.module').then(m => m.DietModule), 
                 canActivate: [AuthGuard] 

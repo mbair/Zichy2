@@ -1,10 +1,17 @@
-import { Room } from "./room";
-import { ContractingParty } from "./contracting-party";
+import { Room } from './room';
+import { ContractingParty } from './contracting-party';
 
 export interface FormFieldInfo {
     field: string;
     info: { [lang: string]: string };
     position?: 'text' | 'bubble';
+}
+
+export interface ConferenceRoomType {
+    id?: number;
+    code?: string;
+    name?: string;
+    withBathroom?: boolean;
 }
 
 export interface Conference {
@@ -17,6 +24,7 @@ export interface Conference {
     updatedAt?: string;
     userid?: string | null;
     rooms?: Room[];
+    roomTypes?: ConferenceRoomType[];
 
     // New fields
     firstMeal?: string;

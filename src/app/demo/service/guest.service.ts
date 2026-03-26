@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
-import { Guest, GuestFilter } from '../api/guest';
+import { EmailStatusSummary, Guest, GuestFilter } from '../api/guest';
 
 type ToastMsg = {
     severity: 'success' | 'info' | 'warn' | 'error';
@@ -12,16 +12,29 @@ type ToastMsg = {
 }
 
 type EmailStatus = {
-    status: 'sent' | 'failed' | 'timeout' | 'unknown';
+    status: 'queued' | 'processing' | 'sent' | 'failed' | 'skipped' | 'unknown';
+    id?: number;
+    type?: string;
+    attemptCount?: number;
+    maxAttempts?: number;
     message?: string;
-    code?: string | number;
-    providerResponse?: any;
+    lastError?: string | null;
+    lastAttemptAt?: string | null;
+    nextAttemptAt?: string | null;
+    sentAt?: string | null;
 }
 
 type CreateGuestResponse = {
     guest: Guest;
     email?: EmailStatus;
 }
+
+type RetryEmailResponse = {
+    guest: Guest;
+    email?: EmailStatusSummary;
+}
+
+type UpdateGuestResponse = Guest
 
 @Injectable({
     providedIn: 'root',
@@ -58,7 +71,7 @@ export class GuestService {
      * @param rowsPerPage
      * @param sort
      */
-    public get(page: number, rowsPerPage: number, sort: any, queryParams: string): void {
+    private buildGetUrl(page: number, rowsPerPage: number, sort: any, queryParams: string): string {
         let pageSort: string = '';
         if (sort !== '') {
             const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC';
@@ -69,9 +82,16 @@ export class GuestService {
             pageSort !== '' && queryParams === '' ? pageSort :
                 pageSort === '' && queryParams !== '' ? queryParams : '';
 
-        const url = `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
+        return `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`;
+    }
 
-        this.apiService.get<ApiResponse>(`guest/get/${url}`)
+    public get$(page: number, rowsPerPage: number, sort: any, queryParams: string): Observable<ApiResponse> {
+        const url = this.buildGetUrl(page, rowsPerPage, sort, queryParams);
+        return this.apiService.get<ApiResponse>(`guest/get/${url}`)
+    }
+
+    public get(page: number, rowsPerPage: number, sort: any, queryParams: string): void {
+        this.get$(page, rowsPerPage, sort, queryParams)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)
@@ -88,7 +108,7 @@ export class GuestService {
      * @param sort 
      * @param conferenceIds 
      */
-    public getBySearch(globalFilter: string, sort: any, conferenceIds: number[]): void {
+    public getBySearch$(globalFilter: string, sort: any, conferenceIds: number[], extraParams: Record<string, string> = {}): Observable<ApiResponse> {
         let params: any = {}
         if (sort && sort.sortField) {
             params['sort'] = sort.sortField
@@ -97,7 +117,12 @@ export class GuestService {
         if (conferenceIds && conferenceIds.length > 0) {
             params['conferenceIds'] = conferenceIds.join(',')
         }
-        this.apiService.get<ApiResponse>(`guest/search/${encodeURIComponent(globalFilter)}`, { params })
+        Object.assign(params, extraParams)
+        return this.apiService.get<ApiResponse>(`guest/search/${encodeURIComponent(globalFilter)}`, { params })
+    }
+
+    public getBySearch(globalFilter: string, sort: any, conferenceIds: number[], extraParams: Record<string, string> = {}): void {
+        this.getBySearch$(globalFilter, sort, conferenceIds, extraParams)
             .subscribe({
                 next: (response: ApiResponse) => { this.data$.next(response) },
                 error: (error: any) => { this.message$.next(error) }
@@ -170,6 +195,10 @@ export class GuestService {
         return this.apiService.post(`guest/${guestId}/roomkey/return`, {})
     }
 
+    public retryEmail(guestId: number): Observable<RetryEmailResponse> {
+        return this.apiService.post<RetryEmailResponse>(`guest/${guestId}/email/retry`, {})
+    }
+
     /**
      * Guest create
      * @param guest
@@ -218,7 +247,7 @@ export class GuestService {
      * Guest update
      * @param guest
      */
-    public update(guest: Guest, files: File[] = []): void {
+    public update$(guest: Guest, files: File[] = []): Observable<UpdateGuestResponse> {
         // Remove idcard field from FormData
         const cleanedGuest = { ...guest }
         delete cleanedGuest.idcard
@@ -230,28 +259,24 @@ export class GuestService {
             for (const file of files) {
                 if (file) formData.append('idcard', file, file.name)
             }
-            this.apiService.put(`guest/update/${guest.id}`, formData)
-                .subscribe({
-                    next: () => {
-                        this.message$.next('success')
-                    },
-                    error: (error: any) => {
-                        this.message$.next(error)
-                    }
-                })
+            return this.apiService.put<UpdateGuestResponse>(`guest/update/${guest.id}`, formData)
         } else {
             // Nincs file, maradhat sima JSON
             cleanedGuest.idCardUploaded = 0 // Szerver elvárja, hogy jelezzük, ha nincs új fájl
-            this.apiService.put(`guest/update/${guest.id}`, cleanedGuest)
-                .subscribe({
-                    next: () => {
-                        this.message$.next('success')
-                    },
-                    error: (error: any) => {
-                        this.message$.next(error)
-                    }
-                })
+            return this.apiService.put<UpdateGuestResponse>(`guest/update/${guest.id}`, cleanedGuest)
         }
+    }
+
+    public update(guest: Guest, files: File[] = []): void {
+        this.update$(guest, files)
+            .subscribe({
+                next: () => {
+                    this.message$.next('success')
+                },
+                error: (error: any) => {
+                    this.message$.next(error)
+                }
+            })
     }
 
     public updateGuest2(modifiedGuest: any): Observable<any> {
@@ -344,13 +369,15 @@ export class GuestService {
 
     private emailStatusToast(email?: EmailStatus): ToastMsg {
         if (!email) {
-            return { severity: 'warn', summary: 'E-mail', detail: 'E-mail státusz ismeretlen.' };
+            return { severity: 'warn', summary: 'E-mail', detail: 'A visszaigazoló e-mail státusza ismeretlen.' };
         }
         switch (email.status) {
-            case 'sent': return { severity: 'success', summary: 'E-mail', detail: 'Visszaigazoló e-mail elküldve.' };
-            case 'timeout': return { severity: 'warn', summary: 'E-mail', detail: 'Az e-mail küldés időkorlátot ért el.' };
-            case 'failed': return { severity: 'error', summary: 'E-mail hiba', detail: email.message || 'Az e-mail küldés nem sikerült.' };
-            default: return { severity: 'info', summary: 'E-mail', detail: 'E-mail státusz: ismeretlen.' };
+            case 'queued': return { severity: 'info', summary: 'E-mail', detail: 'A visszaigazoló e-mail küldésre vár.' };
+            case 'processing': return { severity: 'info', summary: 'E-mail', detail: 'A visszaigazoló e-mail küldése folyamatban van.' };
+            case 'sent': return { severity: 'success', summary: 'E-mail', detail: 'A visszaigazoló e-mail sikeresen elküldve.' };
+            case 'failed': return { severity: 'error', summary: 'E-mail hiba', detail: email.lastError || email.message || 'A visszaigazoló e-mail küldése sikertelen volt.' };
+            case 'skipped': return { severity: 'warn', summary: 'E-mail', detail: email.lastError || email.message || 'A visszaigazoló e-mail nem került elküldésre.' };
+            default: return { severity: 'info', summary: 'E-mail', detail: 'A visszaigazoló e-mail státusza ismeretlen.' };
         }
     }
 

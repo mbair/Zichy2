@@ -50,6 +50,10 @@
     min-width: 7rem;
 }
 
+.binder-summary-inline--wide {
+    min-width: 13rem;
+}
+
 .binder-summary-separator {
     color: #64748b;
     font-size: 1.1rem;
@@ -80,6 +84,45 @@
 }
 
 .binder-waiting-value.is-clear {
+    color: #166534;
+}
+
+.binder-summary-card {
+    border: 1px solid #cbd5e1;
+}
+
+.binder-summary-icon {
+    color: #334155;
+}
+
+.binder-summary-caption {
+    color: #475569;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.binder-inline-value--selection {
+    color: #0f766e;
+}
+
+.binder-summary-note {
+    color: #166534;
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.binder-summary-note.is-overbooked {
+    color: #b91c1c;
+}
+
+.binder-summary-note--waiting {
+    color: #92400e;
+}
+
+.binder-summary-note--waiting.is-clear {
     color: #166534;
 }
 
@@ -181,6 +224,11 @@
     min-width: 22rem;
     max-width: 22rem;
     white-space: pre-line;
+}
+
+:host ::ng-deep .binder-summary-tooltip--assignable .p-tooltip-text {
+    min-width: calc(22rem + 50px);
+    max-width: calc(22rem + 50px);
 }
 
 :host ::ng-deep .binder-conference-chip--removable {

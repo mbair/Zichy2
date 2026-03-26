@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, OnInit, Input, Output, ChangeDetectorRef, forwardRef  } from '@angular/core';
+import { AfterViewChecked, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild, forwardRef  } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { LangChangeEvent, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CountryService } from '../../service/country.service';
-import { DropdownChangeEvent } from 'primeng/dropdown';
+import { Dropdown, DropdownChangeEvent } from 'primeng/dropdown';
 import { DropdownModule } from 'primeng/dropdown';
 
 export interface changeEvent {
@@ -24,11 +24,14 @@ export interface changeEvent {
         }
     ]
 })
-export class CountrySelectorComponent implements OnInit, ControlValueAccessor {
+export class CountrySelectorComponent
+    implements OnInit, AfterViewChecked, ControlValueAccessor
+{
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
     @Output() change = new EventEmitter<changeEvent>()
+    @ViewChild(Dropdown) private dropdown?: Dropdown
     
     countries: any[] = []              // Countries
     selectedCountry: string = ''       // Selected country
@@ -40,12 +43,20 @@ export class CountrySelectorComponent implements OnInit, ControlValueAccessor {
                 private countryService: CountryService,
                 private cdRef: ChangeDetectorRef) {}
 
+    private setLanguageFields(lang: string | undefined): void {
+        const isHungarian = lang === 'hu'
+        this.optionLabel = isHungarian ? 'huname' : 'name'
+        this.filterBy = isHungarian ? 'huname' : 'name'
+    }
+
     /**
      * Lifecycle hook: called when the component is initialized.
      * Subscribes to language change events and sets the countrys
      * for the selector when the language changes.
      */
     ngOnInit() {
+        this.setLanguageFields(this.translate.currentLang || this.translate.defaultLang)
+
         // Fetch countries
         this.countryService.getCountries().subscribe(countries => {
             this.countries = countries
@@ -58,19 +69,19 @@ export class CountrySelectorComponent implements OnInit, ControlValueAccessor {
                 this.controlName &&
                 !this.parentForm.get(this.controlName)?.value
             ) {
-                this.writeValue(hungary.name)
-                if (this.parentForm.get(this.controlName)) {
-                    this.parentForm.get(this.controlName)?.setValue(hungary.name)
-                }
+                this.applySelection(hungary.name, false, false)
                 this.cdRef.detectChanges() // Notify Angular about the change
             }
         })
         
         // Set the country options when the language changes
         this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
-            this.optionLabel = event.lang === 'hu' ? 'huname' : 'name'
-            this.filterBy    = event.lang === 'hu' ? 'huname' : 'name'
+            this.setLanguageFields(event.lang)
         })
+    }
+
+    ngAfterViewChecked(): void {
+        this.syncValueFromWidget()
     }
 
     /**
@@ -90,9 +101,7 @@ export class CountrySelectorComponent implements OnInit, ControlValueAccessor {
      * @param event the change event of the country selector
      */
     handleOnChange(event: DropdownChangeEvent) {
-        this.selectedCountry = event.value
-        this.onChange(event.value)
-        this.onTouched()
+        this.applySelection(event.value)
         this.change.emit({ value: event.value, field: this.controlName })
     }
 
@@ -118,7 +127,7 @@ export class CountrySelectorComponent implements OnInit, ControlValueAccessor {
      * @param value - The selected conferences coming from the form.
      */
     writeValue(value: any): void {
-        this.selectedCountry = value
+        this.applySelection(value ?? '', false, false)
         this.cdRef.detectChanges()
     }
 
@@ -153,4 +162,43 @@ export class CountrySelectorComponent implements OnInit, ControlValueAccessor {
      * Initially set as an empty function, but will be assigned dynamically.
      */
     onTouched = () => { }
+
+    private syncValueFromWidget(): void {
+        const widgetValue = this.dropdown?.value
+        if (widgetValue === undefined || widgetValue === null) {
+            return
+        }
+
+        if (widgetValue === this.selectedCountry) {
+            return
+        }
+
+        this.applySelection(widgetValue, false)
+    }
+
+    private applySelection(
+        value: string,
+        emitTouch = true,
+        emitCva = true,
+    ): void {
+        const normalized = value ?? ''
+        const control = this.getFormControl()
+        const currentControlValue = control?.value ?? ''
+
+        if (this.selectedCountry !== normalized) {
+            this.selectedCountry = normalized
+        }
+
+        if (control && currentControlValue !== normalized) {
+            control.setValue(normalized, { emitEvent: false })
+        }
+
+        if (emitCva) {
+            this.onChange(normalized)
+        }
+
+        if (emitTouch) {
+            this.onTouched()
+        }
+    }
 }

@@ -4,6 +4,7 @@ import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { Conference } from '../api/conference';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { AuthStorageService } from './auth-storage.service';
 
 @Injectable({
     providedIn: 'root',
@@ -18,7 +19,9 @@ export class ConferenceService {
     // In-memory cache for the selector list
     private selectorCache$?: Observable<any[]>;
 
-    constructor(private apiService: ApiService, private http: HttpClient) {
+    constructor(private apiService: ApiService,
+                private http: HttpClient,
+                private authStorage: AuthStorageService) {
         this.apiURL = apiService.apiURL
         this.data$ = new BehaviorSubject<any>(null)
         this.message$ = new BehaviorSubject<any>(null)
@@ -42,8 +45,8 @@ export class ConferenceService {
     public get(page: number, rowsPerPage: number, sort: any, queryParams: string): void {
 
         // Get user role & id
-        const userrole = localStorage.getItem('userrole')
-        const userid = localStorage.getItem('userid')
+        const userrole = this.authStorage.getProfileField('userrole')
+        const userid = this.authStorage.getProfileField('userid')
 
         // Organizers can only see their own conferences
         if (userrole === 'Szervezo' && userid) {
@@ -161,7 +164,7 @@ export class ConferenceService {
      * @param conference
      */
     public update(modifiedConference: Conference): void {
-        this.apiService.put(`conference/update/${modifiedConference.id}`, modifiedConference)
+        this.update$(modifiedConference)
             .subscribe({
                 next: () => {
                     this.message$.next({
@@ -174,6 +177,10 @@ export class ConferenceService {
                     this.message$.next(error)
                 }
             })
+    }
+
+    public update$(modifiedConference: Conference): Observable<Conference> {
+        return this.apiService.put<Conference>(`conference/update/${modifiedConference.id}`, modifiedConference)
     }
 
     /**

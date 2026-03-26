@@ -121,7 +121,7 @@ export class RoomService {
      * @param room
      */
     public update(modifiedRoom: Room): void {
-        this.apiService.put(`room/update/${modifiedRoom.id}`, modifiedRoom)
+        this.update$(modifiedRoom)
             .subscribe({
                 next: () => {
                     this.message$.next({
@@ -134,6 +134,10 @@ export class RoomService {
                     this.message$.next(error)
                 }
             })
+    }
+
+    public update$(modifiedRoom: Room): Observable<Room> {
+        return this.apiService.put<Room>(`room/update/${modifiedRoom.id}`, modifiedRoom)
     }
 
     /**

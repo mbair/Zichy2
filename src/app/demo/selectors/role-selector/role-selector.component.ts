@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit, OnDestroy } from '@angular/core';
+import { AfterViewChecked, ChangeDetectorRef, Component, EventEmitter, Input, Output, SimpleChanges, ViewChild, forwardRef, OnInit, OnDestroy } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
+import { Dropdown, DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
 import { RoleService } from '../../service/role.service';
 import { Role } from '../../api/role';
 import { Subscription } from 'rxjs';
@@ -20,15 +20,16 @@ import { Subscription } from 'rxjs';
         }
     ]
 })
-export class RoleSelectorComponent implements OnInit, ControlValueAccessor {
+export class RoleSelectorComponent implements OnInit, AfterViewChecked, ControlValueAccessor {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() placeholder: string
     @Input() showClear: boolean
     @Output() change = new EventEmitter<any>()
+    @ViewChild(Dropdown) private dropdown?: Dropdown
 
     roles: Role[] = []              // Available roles
-    selectedRole: string = ''       // Selected role
+    selectedRole: string | number | null = ''       // Selected role
     disabled = false
 
     private subs: Subscription
@@ -52,14 +53,17 @@ export class RoleSelectorComponent implements OnInit, ControlValueAccessor {
                     this.roles = data
                     
                     // Invalidate selectedRole if not in new list
-                    if (this.selectedRole && !this.roles.some(r => r.id === this.selectedRole)) {
-                        this.selectedRole = ''
-                        this.onChange('')
+                    if (this.selectedRole && !this.roles.some(r => Number(r.id) === Number(this.selectedRole))) {
+                        this.applySelection('', false)
                     }
                     this.cdRef.detectChanges()
                 }
             }
         })
+    }
+
+    ngAfterViewChecked(): void {
+        this.syncValueFromWidget()
     }
 
     /**
@@ -90,6 +94,7 @@ export class RoleSelectorComponent implements OnInit, ControlValueAccessor {
      * @param event the change event of the role selector
      */
     handleOnChange(event: DropdownChangeEvent) {
+        this.applySelection(event.value)
         this.change.emit({ value: event.value, field: this.controlName })
     }
 
@@ -128,7 +133,7 @@ export class RoleSelectorComponent implements OnInit, ControlValueAccessor {
      * @param value - The selected conferences coming from the form.
      */
     writeValue(value: any): void {
-        this.selectedRole = value
+        this.applySelection(value ?? '', false, false)
         this.cdRef.detectChanges()
     }
 
@@ -163,4 +168,43 @@ export class RoleSelectorComponent implements OnInit, ControlValueAccessor {
      * Initially set as an empty function, but will be assigned dynamically.
      */
     onTouched = () => { }
+
+    private syncValueFromWidget(): void {
+        const widgetValue = this.dropdown?.value
+        if (
+            widgetValue === undefined ||
+            widgetValue === null ||
+            this.isSameSelection(widgetValue, this.selectedRole)
+        ) {
+            return
+        }
+
+        this.applySelection(widgetValue, false)
+    }
+
+    private applySelection(value: string | number | null, emitTouch = true, emitCva = true): void {
+        const normalized = value ?? ''
+        const control = this.getFormControl()
+        const currentControlValue = control?.value ?? ''
+
+        if (!this.isSameSelection(this.selectedRole, normalized)) {
+            this.selectedRole = normalized
+        }
+
+        if (control && !this.isSameSelection(currentControlValue, normalized)) {
+            control.setValue(normalized, { emitEvent: false })
+        }
+
+        if (emitCva) {
+            this.onChange(normalized)
+        }
+
+        if (emitTouch) {
+            this.onTouched()
+        }
+    }
+
+    private isSameSelection(a: unknown, b: unknown): boolean {
+        return String(a ?? '') === String(b ?? '')
+    }
 }

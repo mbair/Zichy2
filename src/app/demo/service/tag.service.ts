@@ -144,7 +144,7 @@ export class TagService {
      * @param tag
      */
     public update(modifiedTag: Tag): void {
-        this.apiService.put(`rfid/update/${modifiedTag.id}`, modifiedTag)
+        this.update$(modifiedTag)
             .subscribe({
                 next: () => {
                     this.message$.next({
@@ -157,6 +157,10 @@ export class TagService {
                     this.message$.next(error)
                 }
             })
+    }
+
+    public update$(modifiedTag: Tag): Observable<Tag> {
+        return this.apiService.put<Tag>(`rfid/update/${modifiedTag.id}`, modifiedTag)
     }
 
     /**

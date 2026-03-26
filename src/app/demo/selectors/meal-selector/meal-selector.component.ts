@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit } from '@angular/core';
+import { AfterViewChecked, ChangeDetectorRef, Component, EventEmitter, Input, Output, SimpleChanges, ViewChild, forwardRef, OnInit } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
+import { Dropdown, DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
 
 export interface changeEvent {
     value: string;
@@ -22,7 +22,9 @@ export interface changeEvent {
         }
     ]
 })
-export class MealSelectorComponent implements OnInit, ControlValueAccessor {
+export class MealSelectorComponent
+    implements OnInit, AfterViewChecked, ControlValueAccessor
+{
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() showClear: boolean
@@ -32,6 +34,7 @@ export class MealSelectorComponent implements OnInit, ControlValueAccessor {
     @Input() inputStyle: { [klass: string]: any } | undefined
     @Input() inputStyleClass: string | undefined
     @Output() change = new EventEmitter<changeEvent>()
+    @ViewChild(Dropdown) private dropdown?: Dropdown
 
     meals: any[] = []           // Available meals
     selectedMeal: string = ''   // Selected meal
@@ -50,6 +53,10 @@ export class MealSelectorComponent implements OnInit, ControlValueAccessor {
             this.setMeals()
         })
         this.setMeals()
+    }
+
+    ngAfterViewChecked(): void {
+        this.syncValueFromWidget()
     }
 
     /**
@@ -130,9 +137,7 @@ export class MealSelectorComponent implements OnInit, ControlValueAccessor {
      * @param event the change event of the meal selector
      */
     handleOnChange(event: DropdownChangeEvent) {
-        this.selectedMeal = event.value
-        this.onChange(event.value)
-        this.onTouched()
+        this.applySelection(event.value)
         this.change.emit({ value: event.value, field: this.controlName })
     }
 
@@ -158,7 +163,7 @@ export class MealSelectorComponent implements OnInit, ControlValueAccessor {
      * @param value - The selected conferences coming from the form.
      */
     writeValue(value: any): void {
-        this.selectedMeal = value
+        this.applySelection(value ?? '', false, false)
         this.cdRef.detectChanges()
     }
 
@@ -193,4 +198,43 @@ export class MealSelectorComponent implements OnInit, ControlValueAccessor {
      * Initially set as an empty function, but will be assigned dynamically.
      */
     onTouched = () => { }
+
+    private syncValueFromWidget(): void {
+        const widgetValue = this.dropdown?.value
+        if (widgetValue === undefined || widgetValue === null) {
+            return
+        }
+
+        if (widgetValue === this.selectedMeal) {
+            return
+        }
+
+        this.applySelection(widgetValue, false)
+    }
+
+    private applySelection(
+        value: string,
+        emitTouch = true,
+        emitCva = true,
+    ): void {
+        const normalized = value ?? ''
+        const control = this.getFormControl()
+        const currentControlValue = control?.value ?? ''
+
+        if (this.selectedMeal !== normalized) {
+            this.selectedMeal = normalized
+        }
+
+        if (control && currentControlValue !== normalized) {
+            control.setValue(normalized, { emitEvent: false })
+        }
+
+        if (emitCva) {
+            this.onChange(normalized)
+        }
+
+        if (emitTouch) {
+            this.onTouched()
+        }
+    }
 }

@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter, Input, Output, SimpleChanges, forwardRef } from '@angular/core';
+import { AfterViewChecked, ChangeDetectorRef, Component, EventEmitter, Input, Output, SimpleChanges, ViewChild, forwardRef } from '@angular/core';
 import { ControlValueAccessor, FormControl, FormGroup, FormsModule, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
+import { Dropdown, DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
 import { OrganizerContractingParty } from '../../api/contracting-party';
 
 @Component({
@@ -18,7 +18,7 @@ import { OrganizerContractingParty } from '../../api/contracting-party';
         }
     ]
 })
-export class ContractingPartySelectorComponent implements ControlValueAccessor {
+export class ContractingPartySelectorComponent implements AfterViewChecked, ControlValueAccessor {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() options: OrganizerContractingParty[] = []
@@ -26,18 +26,22 @@ export class ContractingPartySelectorComponent implements ControlValueAccessor {
     @Input() placeholder: string = 'Válassz szerződőt...'
     @Input() inputId: string = 'contractingPartySelector'
     @Output() change = new EventEmitter<any>()
+    @ViewChild(Dropdown) private dropdown?: Dropdown
 
     disabled = false
     selectedContractingParty: string | number | null = null
 
     constructor(private cdRef: ChangeDetectorRef) {}
 
+    ngAfterViewChecked(): void {
+        this.syncValueFromWidget()
+    }
+
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['options'] && !changes['options'].firstChange) {
             const currentValue = this.selectedContractingParty
             if (currentValue != null && !this.options.some(option => Number(option.contractingPartyId) === Number(currentValue))) {
-                this.selectedContractingParty = null
-                this.onChange(null)
+                this.applySelection(null, false)
             }
             this.cdRef.detectChanges()
         }
@@ -48,9 +52,7 @@ export class ContractingPartySelectorComponent implements ControlValueAccessor {
     }
 
     handleOnChange(event: DropdownChangeEvent): void {
-        this.selectedContractingParty = event.value
-        this.onChange(event.value)
-        this.onTouched()
+        this.applySelection(event.value)
         this.change.emit({ value: event.value, field: this.controlName })
     }
 
@@ -60,7 +62,7 @@ export class ContractingPartySelectorComponent implements ControlValueAccessor {
     }
 
     writeValue(value: any): void {
-        this.selectedContractingParty = value
+        this.applySelection(value ?? null, false, false)
         this.cdRef.detectChanges()
     }
 
@@ -85,4 +87,42 @@ export class ContractingPartySelectorComponent implements ControlValueAccessor {
 
     onChange = (_: any) => {}
     onTouched = () => {}
+
+    private syncValueFromWidget(): void {
+        const widgetValue = this.dropdown?.value
+        if (
+            widgetValue === undefined ||
+            this.isSameSelection(widgetValue, this.selectedContractingParty)
+        ) {
+            return
+        }
+
+        this.applySelection(widgetValue, false)
+    }
+
+    private applySelection(value: string | number | null, emitTouch = true, emitCva = true): void {
+        const normalized = value ?? null
+        const control = this.getFormControl()
+        const currentControlValue = control?.value ?? null
+
+        if (!this.isSameSelection(this.selectedContractingParty, normalized)) {
+            this.selectedContractingParty = normalized
+        }
+
+        if (control && !this.isSameSelection(currentControlValue, normalized)) {
+            control.setValue(normalized, { emitEvent: false })
+        }
+
+        if (emitCva) {
+            this.onChange(normalized)
+        }
+
+        if (emitTouch) {
+            this.onTouched()
+        }
+    }
+
+    private isSameSelection(a: unknown, b: unknown): boolean {
+        return String(a ?? '') === String(b ?? '')
+    }
 }

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit, OnDestroy } from '@angular/core';
+import { AfterViewChecked, ChangeDetectorRef, Component, EventEmitter, Input, Output, SimpleChanges, ViewChild, forwardRef, OnInit, OnDestroy } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
+import { Dropdown, DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DietService } from '../../service/diet.service';
 import { Subscription } from 'rxjs';
@@ -24,12 +24,15 @@ export interface changeEvent {
         }
     ]
 })
-export class DietSelectorComponent implements OnInit, OnDestroy, ControlValueAccessor {
+export class DietSelectorComponent
+    implements OnInit, AfterViewChecked, OnDestroy, ControlValueAccessor
+{
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() placeholder: string
     @Input() showClear: boolean
     @Output() change = new EventEmitter<changeEvent>()
+    @ViewChild(Dropdown) private dropdown?: Dropdown
 
     diets: any[] = []               // Available diets
     selectedDiet: string = ''       // Selected diet
@@ -58,6 +61,10 @@ export class DietSelectorComponent implements OnInit, OnDestroy, ControlValueAcc
             })
         )
         this.setDiets()
+    }
+
+    ngAfterViewChecked(): void {
+        this.syncValueFromWidget()
     }
 
     /**
@@ -97,8 +104,7 @@ export class DietSelectorComponent implements OnInit, OnDestroy, ControlValueAcc
             this.dietService.getDietsForSelector().subscribe((diets: any) => {
                 this.diets = diets
                 if (this.selectedDiet && !this.diets.some(d => d.value === this.selectedDiet)) {
-                    this.selectedDiet = ''
-                    this.onChange('')
+                    this.applySelection('', false)
                 }
                 this.cdRef.detectChanges()
             })
@@ -111,9 +117,7 @@ export class DietSelectorComponent implements OnInit, OnDestroy, ControlValueAcc
      * @param event the change event of the diet selector
      */
     handleOnChange(event: DropdownChangeEvent) {
-        this.selectedDiet = event.value
-        this.onChange(event.value)
-        this.onTouched()
+        this.applySelection(event.value)
         this.change.emit({ value: event.value, field: this.controlName })
     }
 
@@ -139,7 +143,7 @@ export class DietSelectorComponent implements OnInit, OnDestroy, ControlValueAcc
      * @param value - The selected conferences coming from the form.
      */
     writeValue(value: any): void {
-        this.selectedDiet = value
+        this.applySelection(value ?? '', false, false)
         this.cdRef.detectChanges()
     }
 
@@ -174,4 +178,43 @@ export class DietSelectorComponent implements OnInit, OnDestroy, ControlValueAcc
      * Initially set as an empty function, but will be assigned dynamically.
      */
     onTouched = () => { }
+
+    private syncValueFromWidget(): void {
+        const widgetValue = this.dropdown?.value
+        if (widgetValue === undefined || widgetValue === null) {
+            return
+        }
+
+        if (widgetValue === this.selectedDiet) {
+            return
+        }
+
+        this.applySelection(widgetValue, false)
+    }
+
+    private applySelection(
+        value: string,
+        emitTouch = true,
+        emitCva = true,
+    ): void {
+        const normalized = value ?? ''
+        const control = this.getFormControl()
+        const currentControlValue = control?.value ?? ''
+
+        if (this.selectedDiet !== normalized) {
+            this.selectedDiet = normalized
+        }
+
+        if (control && currentControlValue !== normalized) {
+            control.setValue(normalized, { emitEvent: false })
+        }
+
+        if (emitCva) {
+            this.onChange(normalized)
+        }
+
+        if (emitTouch) {
+            this.onTouched()
+        }
+    }
 }

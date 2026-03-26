@@ -3,7 +3,9 @@ import { Inject, Injectable, Injector } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { getRemainingSessionMs, parseSessionExpiry } from '../utils/session-time.utils';
+import { AuthService } from './auth.service';
 import { UserService } from './user.service';
+import { AuthStorageService } from './auth-storage.service';
 
 type SessionEndReason = 'manual' | 'expired' | 'unauthorized';
 type SessionRefreshMode = 'auto' | 'manual';
@@ -22,18 +24,24 @@ const INITIAL_SESSION_WARNING_STATE: SessionWarningState = {
     error: null,
 };
 
+const SESSION_REFRESH_UNCHANGED_ERROR =
+    'A munkamenet nem hosszabbodott meg. Kérjük, ellenőrizze a kapcsolatot, majd jelentkezzen be újra.';
+const SESSION_REFRESH_FAILED_ERROR =
+    'Nem sikerült kapcsolódni a szerverhez, ezért a munkamenet sem hosszabbítható meg. Ellenőrizze a kapcsolatot, majd próbálja újra.';
+
 @Injectable({
     providedIn: 'root'
 })
 export class SessionService {
 
-    private readonly tokenStorageKey = 'token';
     private readonly sessionExpiryStorageKey = 'session_expires_at';
     private readonly sessionExpiryHeader = 'X-Session-Expires-At';
+    private readonly postLoginRedirectStorageKey = 'post_login_redirect_url';
     private readonly idleTimeoutMs = 30 * 60 * 1000;
     private readonly keepAliveBeforeExpiryMs = 5 * 60 * 1000;
-    private readonly warningBeforeExpiryMs = 2 * 60 * 1000;
-    private readonly activityEvents: Array<keyof DocumentEventMap> = ['click', 'keydown', 'mousedown', 'scroll', 'touchstart'];
+    private readonly warningBeforeExpiryMs = 5 * 60 * 1000;
+    private readonly activityRefreshDebounceMs = 30 * 1000;
+    private readonly activityEvents: Array<keyof DocumentEventMap> = ['change', 'click', 'focusin', 'input', 'keydown', 'mousedown', 'touchstart'];
     private expirationTimer: ReturnType<typeof setTimeout> | null = null;
     private keepAliveTimer: ReturnType<typeof setTimeout> | null = null;
     private warningTimer: ReturnType<typeof setTimeout> | null = null;
@@ -43,14 +51,15 @@ export class SessionService {
     private logoutInProgress = false;
     private keepAliveInFlight = false;
     private activeWarningExpiry: number | null = null;
+    private lastActivityRefreshAt = 0;
     private readonly sessionWarningStateSubject = new BehaviorSubject<SessionWarningState>(INITIAL_SESSION_WARNING_STATE);
 
     private readonly storageListener = (event: StorageEvent) => {
-        if (!event.key || ![this.tokenStorageKey, this.sessionExpiryStorageKey].includes(event.key)) {
+        if (!event.key || event.key !== this.sessionExpiryStorageKey) {
             return;
         }
 
-        if (!this.getToken()) {
+        if (this.getStoredExpiry() === null) {
             this.cancelExpirationTimer();
             this.cancelKeepAliveTimer();
             this.cancelWarningTimer();
@@ -66,22 +75,26 @@ export class SessionService {
 
     private readonly focusListener = () => {
         this.ensureSessionValidity();
+        this.refreshSessionOnActivityIfNeeded();
     };
 
     private readonly activityListener = () => {
         this.resetIdleTimer();
+        this.refreshSessionOnActivityIfNeeded();
     };
 
     private readonly visibilityListener = () => {
         if (this.document.visibilityState === 'visible') {
             this.ensureSessionValidity();
+            this.refreshSessionOnActivityIfNeeded();
         }
     };
 
     constructor(
         @Inject(DOCUMENT) private document: Document,
         private router: Router,
-        private injector: Injector
+        private injector: Injector,
+        private authStorage: AuthStorageService
     ) { }
 
     get sessionWarning$(): Observable<SessionWarningState> {
@@ -105,33 +118,22 @@ export class SessionService {
     }
 
     updateSessionFromResponse(response: { headers: { get(name: string): string | null } }): void {
-        const token = response.headers.get('Authorization');
         const expiresAt = this.parseExpiry(response.headers.get(this.sessionExpiryHeader));
 
-        if (token) {
-            localStorage.setItem(this.tokenStorageKey, token);
-        }
-
         if (expiresAt !== null) {
-            localStorage.setItem(this.sessionExpiryStorageKey, String(expiresAt));
+            this.authStorage.setSessionExpiry(expiresAt);
         }
 
         this.ensureSessionValidity();
     }
 
     isSessionActive(): boolean {
-        const token = this.getToken();
-        if (!token) {
-            return false;
-        }
-
         const expiresAt = this.getStoredExpiry();
         if (expiresAt === null) {
-            this.endSession('unauthorized');
             return false;
         }
 
-        if (expiresAt !== null && Date.now() >= expiresAt) {
+        if (Date.now() >= expiresAt) {
             this.endSession('expired');
             return false;
         }
@@ -140,11 +142,6 @@ export class SessionService {
     }
 
     hasActiveSessionSnapshot(): boolean {
-        const token = this.getToken();
-        if (!token) {
-            return false;
-        }
-
         const expiresAt = this.getStoredExpiry();
         if (expiresAt === null) {
             return false;
@@ -162,19 +159,13 @@ export class SessionService {
     }
 
     private ensureSessionValidity(): void {
-        const token = this.getToken();
-        if (!token) {
+        const expiresAt = this.getStoredExpiry();
+        if (expiresAt === null) {
             this.cancelExpirationTimer();
             this.cancelKeepAliveTimer();
             this.cancelWarningTimer();
             this.closeSessionWarning();
             this.cancelIdleTimer();
-            return;
-        }
-
-        const expiresAt = this.getStoredExpiry();
-        if (expiresAt === null) {
-            this.endSession('unauthorized');
             return;
         }
 
@@ -247,7 +238,7 @@ export class SessionService {
     }
 
     private resetIdleTimer(): void {
-        if (!this.getToken() || this.getStoredExpiry() === null) {
+        if (this.getStoredExpiry() === null) {
             this.cancelIdleTimer();
             return;
         }
@@ -271,6 +262,10 @@ export class SessionService {
         }
 
         this.logoutInProgress = true;
+        if (reason !== 'manual') {
+            this.getAuthService().revokeServerSessionSilently();
+        }
+        this.lastActivityRefreshAt = 0;
         this.cancelExpirationTimer();
         this.cancelKeepAliveTimer();
         this.cancelWarningTimer();
@@ -278,17 +273,13 @@ export class SessionService {
         this.cancelIdleTimer();
         this.keepAliveInFlight = false;
 
-        localStorage.removeItem('email');
-        localStorage.removeItem('fullname');
-        localStorage.removeItem('phone');
-        localStorage.removeItem(this.tokenStorageKey);
-        localStorage.removeItem(this.sessionExpiryStorageKey);
-        localStorage.removeItem('user_rolesid');
-        localStorage.removeItem('userid');
-        localStorage.removeItem('userrole');
+        this.authStorage.clearAuthSession();
 
+        const resolvedRedirectReason = redirectReason ?? this.getRedirectReason(reason);
+
+        this.rememberPostLoginRedirect(resolvedRedirectReason);
         this.getUserService().updateUserRole('No Role');
-        this.redirectToLogin(redirectReason ?? this.getRedirectReason(reason));
+        this.redirectToLogin(resolvedRedirectReason);
 
         queueMicrotask(() => {
             this.logoutInProgress = false;
@@ -317,12 +308,8 @@ export class SessionService {
         return reason === 'expired' ? 'session-expired' : 'session-invalid';
     }
 
-    private getToken(): string | null {
-        return localStorage.getItem(this.tokenStorageKey);
-    }
-
     private getStoredExpiry(): number | null {
-        return this.parseExpiry(localStorage.getItem(this.sessionExpiryStorageKey));
+        return this.parseExpiry(this.authStorage.getSessionExpiry());
     }
 
     private parseExpiry(value: string | null): number | null {
@@ -331,6 +318,20 @@ export class SessionService {
 
     private getUserService(): UserService {
         return this.injector.get(UserService);
+    }
+
+    private getAuthService(): AuthService {
+        return this.injector.get(AuthService);
+    }
+
+    peekPostLoginRedirectUrl(): string | null {
+        return this.getStoredPostLoginRedirectUrl();
+    }
+
+    consumePostLoginRedirectUrl(): string | null {
+        const redirectUrl = this.getStoredPostLoginRedirectUrl();
+        this.authStorage.removePostLoginRedirectUrl();
+        return redirectUrl;
     }
 
     extendSession(): void {
@@ -346,7 +347,7 @@ export class SessionService {
             return;
         }
 
-        if (!this.getToken() || !this.hasActiveSessionSnapshot()) {
+        if (!this.hasActiveSessionSnapshot()) {
             return;
         }
 
@@ -362,7 +363,7 @@ export class SessionService {
             return;
         }
 
-        if (!this.getToken() || !this.hasActiveSessionSnapshot()) {
+        if (!this.hasActiveSessionSnapshot()) {
             return;
         }
 
@@ -388,6 +389,29 @@ export class SessionService {
         });
     }
 
+    private refreshSessionOnActivityIfNeeded(): void {
+        if (this.keepAliveInFlight || this.logoutInProgress) {
+            return;
+        }
+
+        const expiresAt = this.getStoredExpiry();
+        if (expiresAt === null || !this.hasActiveSessionSnapshot()) {
+            return;
+        }
+
+        const now = Date.now();
+        if (expiresAt - now > this.keepAliveBeforeExpiryMs) {
+            return;
+        }
+
+        if (now - this.lastActivityRefreshAt < this.activityRefreshDebounceMs) {
+            return;
+        }
+
+        this.lastActivityRefreshAt = now;
+        this.requestSessionRefresh('auto');
+    }
+
     private handleSessionRefreshSuccess(mode: SessionRefreshMode, previousExpiry: number | null): void {
         if (mode !== 'manual') {
             return;
@@ -411,7 +435,7 @@ export class SessionService {
 
         this.patchSessionWarningState({
             refreshing: false,
-            error: 'A munkamenet nem hosszabbodott meg. Mentse a módosításokat, majd jelentkezzen be újra.',
+            error: SESSION_REFRESH_UNCHANGED_ERROR,
         });
         this.updateSessionWarningState();
     }
@@ -423,7 +447,7 @@ export class SessionService {
 
         this.patchSessionWarningState({
             refreshing: false,
-            error: 'Nem sikerült meghosszabbítani a munkamenetet. Mentse a módosításokat, majd próbálja újra.',
+            error: SESSION_REFRESH_FAILED_ERROR,
         });
         this.updateSessionWarningState();
     }
@@ -491,5 +515,29 @@ export class SessionService {
             ...this.sessionWarningStateSubject.getValue(),
             ...patch,
         });
+    }
+
+    private rememberPostLoginRedirect(redirectReason?: string): void {
+        if (!redirectReason) {
+            this.authStorage.removePostLoginRedirectUrl();
+            return;
+        }
+
+        const currentUrl = this.router.url;
+        if (!currentUrl || currentUrl.startsWith('/auth/')) {
+            this.authStorage.removePostLoginRedirectUrl();
+            return;
+        }
+
+        this.authStorage.setPostLoginRedirectUrl(currentUrl);
+    }
+
+    private getStoredPostLoginRedirectUrl(): string | null {
+        const redirectUrl = this.authStorage.getPostLoginRedirectUrl();
+        if (!redirectUrl || redirectUrl.startsWith('/auth/')) {
+            return null;
+        }
+
+        return redirectUrl;
     }
 }

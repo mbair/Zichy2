@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
 import { DropdownModule } from 'primeng/dropdown';
 import { Language } from '../../api/language';
+import { LanguageService } from '../../service/language.service';
 
 @Component({
     selector: 'app-language-selector',
@@ -12,57 +12,32 @@ import { Language } from '../../api/language';
     imports: [CommonModule, FormsModule, DropdownModule]
 })
 export class LanguageSelectorComponent {
-    
-    languages: Language[] = []       // List of system languages
-    currentLanguage: string          // Current system language 
-    selectedLanguage: any            // Selected system language
+    languages: Language[] = [];
+    currentLanguage: string;
+    selectedLanguage?: Language;
 
-    constructor(private translate: TranslateService) {
-
-        // Set language options for the language selector component
-        this.languages = [
-            {
-                name: "Hungary",
-                huname: "Magyarország",
-                nationality: "Hungarian",
-                hunationality: "magyar",
-                code: "HU"
-            },
-            {
-                name: "United Kingdom",
-                huname: "Egyesült Királyság",
-                nationality: "brit",
-                hunationality: "angol",
-                code: "GB"
-            }
-        ]
-
-        // Add the country codes to the translate service
-        const countryCodes = this.languages.map(language => language.code.toLowerCase())
-        this.translate.addLangs(countryCodes)
-        
-        // Set browser language as default language
-        const browserLang = this.translate.getBrowserLang()
-        let defaultLang = browserLang && browserLang.startsWith('hu') ? 'hu' : 'gb'
-        this.translate.setDefaultLang(defaultLang)
-        this.translate.use(defaultLang)
-        this.currentLanguage = this.translate.currentLang
-
-        // Set selected language
-        if (browserLang) {
-            this.selectedLanguage = this.languages.find(language =>
-                language.code.toLowerCase() == defaultLang.toLowerCase()
-            )
-        }
+    constructor(private languageService: LanguageService) {
+        this.languages = this.languageService.languages;
+        this.currentLanguage = this.languageService.getCurrentLanguage();
+        this.selectedLanguage = this.languageService.findLanguageByCode(
+            this.currentLanguage,
+        );
     }
 
     /**
      * Handles the event of the user selecting a language from the language selector.
      * @param lang the selected language
      */
-    onLanguageChange(lang: any) {
-        const langCode = lang.code.toLowerCase()
-        this.translate.use(langCode)
-        this.currentLanguage = langCode
+    onLanguageChange(lang?: Language) {
+        if (!lang) {
+            return;
+        }
+
+        this.currentLanguage = this.languageService.setActiveLanguage(
+            lang.code,
+        );
+        this.selectedLanguage = this.languageService.findLanguageByCode(
+            this.currentLanguage,
+        );
     }
 }

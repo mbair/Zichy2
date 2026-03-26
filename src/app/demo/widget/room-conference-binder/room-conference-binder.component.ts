@@ -37,6 +37,7 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
     numberOfBeds: number = 0                     // Number of beds
     numberOfGuests: number = 0                   // Number of guests
     numberOfGuestsWaitingForRoom: number = 0     // Guests without assigned room
+    numberOfAssignableBeds: number = 0           // Beds in the full currently assignable result set
     numberOfFilteredBeds: number = 0             // Number of filtered beds
     numberOfFilteredGuests: number = 0           // Number of filtered guests
     showOnlyFreeRooms: boolean = false           // Toggle: show only rooms which are free (no overlap with selected conferences)
@@ -45,8 +46,10 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
     private readonly queryTrigger$ = new Subject<{ force: boolean }>()
     private readonly subs = new Subscription()
     private lastQueryKey = ''
+    private assignableBedsRequestId = 0
     private selectedStatsRequestId = 0
     private filteredStatsRequestId = 0
+    private assignableBedsLastSuccessKey = ''
     private selectedStatsLastSuccessKey = ''
     private filteredStatsLastSuccessKey = ''
     private pendingSummaryRefreshAfterTableReload = false
@@ -79,6 +82,10 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
         return `Szobához rendelt konferenciák ágyai: ${this.numberOfFilteredBeds}`
     }
 
+    get assignableBedSelectionTooltip(): string {
+        return `Hozzárendelhető ágyak: ${this.numberOfAssignableBeds}\nKijelölt szobák ágya: ${this.numberOfSelectedRoomBeds}\nMég hozzáadható: ${this.numberOfRemainingAssignableBeds}`
+    }
+
     get numberOfFreeBeds(): number {
         return Math.max(this.numberOfBeds - this.numberOfGuests, 0)
     }
@@ -89,6 +96,14 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
 
     get numberOfFilteredFreeBeds(): number {
         return Math.max(this.numberOfFilteredBeds - this.numberOfFilteredGuests, 0)
+    }
+
+    get numberOfSelectedRoomBeds(): number {
+        return this.sumRoomBeds(this.selectedRooms)
+    }
+
+    get numberOfRemainingAssignableBeds(): number {
+        return Math.max(this.numberOfAssignableBeds - this.numberOfSelectedRoomBeds, 0)
     }
 
     get bedAvailabilityLabel(): string {
@@ -246,17 +261,12 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
      * @returns
      */
     doQuery(force = false) {
+        this.loadAssignableBedStats(force)
         this.queryTrigger$.next({ force })
     }
 
     private buildQueryRequest(): { key: string, request$: Observable<ApiResponse> } {
-        if (this.selectedConferences) {
-            this.filterValues['notAssignedConferences'] = this.selectedConferences.map((item: any) => item.id).join(',')
-        }
-
-        const filters = Object.keys(this.filterValues)
-            .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
-        const queryParams = filters.filter(x => x.length > 0).join('&')
+        const queryParams = this.buildRoomQueryParams()
 
         if (this.globalFilter !== '') {
             const key = JSON.stringify({
@@ -290,6 +300,52 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
         return {
             key,
             request$: this.roomService.get$(fetchPage, fetchRows, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
+        }
+    }
+
+    private buildRoomQueryParams(): string {
+        this.filterValues['notAssignedConferences'] = this.selectedConferences?.map((item: any) => item.id).join(',') ?? ''
+
+        const filters = Object.keys(this.filterValues)
+            .map(key => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
+
+        return filters.filter(x => x.length > 0).join('&')
+    }
+
+    private buildAssignableBedStatsRequest(): { key: string, request$: Observable<ApiResponse> } | null {
+        const conferenceIds = this.selectedConferences?.map((conference: any) => Number(conference?.id)).filter(id => Number.isFinite(id)) ?? []
+
+        if (!conferenceIds.length) {
+            return null
+        }
+
+        const queryParams = this.buildRoomQueryParams()
+
+        if (this.globalFilter !== '') {
+            const key = JSON.stringify({
+                mode: 'assignable-search',
+                globalFilter: this.globalFilter,
+                sortField: this.sortField,
+                sortOrder: this.sortOrder,
+                queryParams
+            })
+
+            return {
+                key,
+                request$: this.roomService.getBySearch$(this.globalFilter, { sortField: this.sortField, sortOrder: this.sortOrder })
+            }
+        }
+
+        const key = JSON.stringify({
+            mode: 'assignable-list',
+            sortField: this.sortField,
+            sortOrder: this.sortOrder,
+            queryParams
+        })
+
+        return {
+            key,
+            request$: this.roomService.get$(0, this.FULL_FETCH_ROWS, { sortField: this.sortField, sortOrder: this.sortOrder }, queryParams)
         }
     }
 
@@ -536,8 +592,43 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
     }
 
     private refreshConferenceSummaries(forceRefresh = false): void {
+        this.loadAssignableBedStats(forceRefresh)
         this.loadConferenceStats(this.selectedConferences, 'selected')
         this.loadConferenceStats(this.selectedFilterConferences, 'filter', forceRefresh)
+    }
+
+    private loadAssignableBedStats(forceRefresh = false): void {
+        const request = this.buildAssignableBedStatsRequest()
+        const requestId = ++this.assignableBedsRequestId
+
+        if (!request) {
+            this.assignableBedsLastSuccessKey = ''
+            this.numberOfAssignableBeds = 0
+            return
+        }
+
+        if (!forceRefresh && request.key === this.assignableBedsLastSuccessKey) {
+            return
+        }
+
+        request.request$.subscribe({
+            next: (data) => {
+                if (requestId !== this.assignableBedsRequestId) return
+
+                const rooms = data?.rows ?? []
+                const freeRooms = rooms.filter(room => !this.roomHasOverlapWithSelected(room))
+
+                this.numberOfAssignableBeds = this.sumRoomBeds(freeRooms)
+                this.assignableBedsLastSuccessKey = request.key
+            },
+            error: () => {
+                if (requestId !== this.assignableBedsRequestId) return
+
+                if (this.assignableBedsLastSuccessKey !== request.key) {
+                    this.numberOfAssignableBeds = 0
+                }
+            }
+        })
     }
 
     private loadSelectedConferenceSummary(confs: Conference[] | null | undefined): void {
@@ -679,6 +770,10 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
         this.selectedRooms = this.selectedRooms
             .map(room => byId.get(String(room?.id)))
             .filter((room): room is Room => !!room)
+    }
+
+    private sumRoomBeds(rooms: Room[] | null | undefined): number {
+        return (rooms ?? []).reduce((total, room) => total + Math.max(Number(room?.beds) || 0, 0), 0)
     }
 
     /**

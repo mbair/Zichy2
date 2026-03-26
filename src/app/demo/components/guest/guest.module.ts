@@ -25,6 +25,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
 import { CountrySelectorComponent } from '../../selectors/country-selector/country-selector.component';
 import { DietSelectorComponent } from '../../selectors/diet-selector/diet-selector.component';
+import { EmailStatusSelectorComponent } from '../../selectors/email-status-selector/email-status-selector.component';
 import { MealSelectorComponent } from '../../selectors/meal-selector/meal-selector.component';
 import { NationalitySelectorComponent } from '../../selectors/nationality-selector/nationality-selector.component';
 import { PaymentSelectorComponent } from '../../selectors/payment-selector/payment-selector.component';
@@ -61,6 +62,7 @@ import { LocalizedDatePickerComponent } from '../../widget/localized-date-picker
         ConferenceSelectorComponent,
         CountrySelectorComponent,
         DietSelectorComponent,
+        EmailStatusSelectorComponent,
         MealSelectorComponent,
         NationalitySelectorComponent,
         PaymentSelectorComponent,

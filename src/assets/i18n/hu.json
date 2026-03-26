@@ -178,5 +178,112 @@
     "A banki átutalás választása technikai okok nem lehetséges, kérjük ezt NE jelöld meg": "A banki átutalás választása technikai okok nem lehetséges, kérjük ezt NE jelöld meg",
     "Ha végig maradsz a táborban (augusztus 1), a távozás megadásánál, az augusztus hónaphoz kell ugrani": "Ha végig maradsz a táborban (augusztus 1), a távozás megadásánál, az augusztus hónaphoz kell ugrani",
     "registrationEndMessage": "A regisztrációs időszak lejárt",
-    "Room already reserved in this period": "A szoba már foglalt ebben az időszakban"
+    "Room already reserved in this period": "A szoba már foglalt ebben az időszakban",
+    "conferenceForm": {
+        "panelLabel": "Konferencia - Vendég Regisztrációs Űrlap",
+        "intro": {
+            "subtitle": "A regisztrációval",
+            "organizerHelp": "nagyban segíted a rendezvényszerveződ munkáját",
+            "legalHelp": "és törvényi kötelezettségednek is eleget teszel",
+            "contactOrganizer": "Kérdés esetén kérjük fordulj a rendezvény szerveződhöz",
+            "thanks": "Köszönjük a figyelmes kitöltést"
+        },
+        "fields": {
+            "lastName": "Vezetéknév",
+            "firstName": "Keresztnév",
+            "gender": "Neme",
+            "male": "Férfi",
+            "female": "Nő",
+            "birthDate": "Születési dátum",
+            "nationality": "Állampolgárság",
+            "residenceCountry": "Lakóhely - ország",
+            "country": "Ország",
+            "residencePostalCode": "Lakóhely - irányítószám",
+            "postalCode": "Irányítószám",
+            "email": "Email",
+            "phone": "Telefon",
+            "arrivalDate": "Érkezés dátuma",
+            "firstMeal": "Első étkezés",
+            "diet": "Étrend",
+            "departureDate": "Távozás dátuma",
+            "lastMeal": "Utolsó étkezés",
+            "roomType": "Szobatípus",
+            "babyBed": "Babaágyat kérsz",
+            "yes": "Igen",
+            "no": "Nem",
+            "roomMate": "Kivel laknál egy szobában",
+            "paymentMethod": "Fizetési mód",
+            "idCardBack": "Személyi igazolvány hátoldala",
+            "privacy": "Adatvédelem"
+        },
+        "dateComingSoon": "Dátum hamarosan",
+        "notSet": "Nincs megadva",
+        "deadline": {
+            "guest": "Vendég határidő",
+            "organizer": "Szervezői határidő",
+            "registration": "Regisztrációs határidő",
+            "superAdminDescription": "{{role}} jogosultsággal a regisztrációs zárás után is kitölthető az űrlap.",
+            "organizerDescription": "Szervezőként eddig a napig kitölthető és módosítható az űrlap.",
+            "guestDescription": "Vendégek számára eddig a napig kitölthető az űrlap.",
+            "open": "Nyitott",
+            "closed": "Lezárult"
+        },
+        "validation": {
+            "completeRequiredFields": "Kérjük, töltse ki az alábbi kötelező mezőket:",
+            "more": "+ {{count}} további",
+            "questionFallback": "Kérdés {{index}}",
+            "arrivalDepartureDates": "Érkezés és távozás dátuma",
+            "requiredAnswer": "Kötelező kitölteni",
+            "requiredShort": "kötelező",
+            "invalidZipCode": "A magyar irányítószámnak 4 számjegyből kell állnia",
+            "invalidEmail": "Nem megfelelő email formátum",
+            "arrivalRequired": "Kérjük, adja meg az érkezés dátumát",
+            "arrivalOutOfRange": "Az érkezés dátumának a konferencia időtartamán belül kell lennie",
+            "arrivalBeforeDeparture": "Az érkezés dátumának korábbinak kell lennie, mint a távozási dátum",
+            "firstMealRequired": "Kérjük, válassza ki az első étkezését",
+            "dietRequired": "Kérjük, válassza ki az étrendjét",
+            "departureRequired": "Kérjük, adja meg a távozás dátumát",
+            "departureOutOfRange": "A távozás dátumának a konferencia időtartamán belül kell lennie",
+            "departureAfterArrival": "A távozás dátumának későbbinek kell lennie, mint az érkezési dátum",
+            "lastMealRequired": "Kérjük, válassza ki az utolsó étkezését",
+            "mealOrderInvalid": "Ha az érkezés és a távozás ugyanarra a napra esik, az első étkezés nem lehet későbbi, mint az utolsó étkezés",
+            "mealOrderLabel": "Étkezések sorrendje",
+            "roomTypeRequired": "Kérjük válassza ki a szobatípust",
+            "babyBedRequired": "Kérjük válassza ki, hogy kér-e babaágyat",
+            "paymentRequired": "Kérjük válassza ki a fizetési módot",
+            "idCardRequired": "Kérjük, töltse fel a személyi igazolványának hátoldalát",
+            "idCardTooLarge": "A feltöltött kép túl nagy. Maximum {{maxSize}} MB.",
+            "privacyRequired": "Az adatvédelmi nyilatkozat(ok) elfogadása kötelező",
+            "formIncomplete": "Az űrlap nem lett megfelelően kitöltve!",
+            "invalidFieldsPrefix": "A következő mezők nem megfelelőek"
+        },
+        "helper": {
+            "roomTypeSelection": "Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szobatípusra osztunk be",
+            "roomMateName": "Kérjük a regisztrációkor megadott nevet tüntesse itt fel",
+            "roomMateComma": "Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában",
+            "noPaymentOptions": "A szervező még nem állított be fizetési módot ehhez a konferenciához."
+        },
+        "actions": {
+            "browse": "Tallózás",
+            "cancel": "Mégsem",
+            "submit": "Elküldöm a regisztrációmat",
+            "newRegistration": "Új vendéget regisztrálok"
+        },
+        "privacy": {
+            "acceptPrefix": "Elfogadom az",
+            "dataPolicy": "ZVKK Adatvédelmi Nyilatkozatot",
+            "andAcceptance": "és az",
+            "acceptanceStatement": "Adatvédelmi/Hozzájárulási Nyilatkozatot",
+            "andHouseRules": "és a",
+            "houseRules": "ZVKK házirendet"
+        },
+        "messages": {
+            "saveSuccessSummary": "Sikeresen regisztrált!",
+            "saveSuccessDetail": "Sok szeretettel várjuk a konferenciára!",
+            "savePartialSummary": "A regisztráció sikerült, de maradt egy teendő",
+            "savePartialDetail": "A regisztrációdat elmentettük, de a kiegészítő válaszokat nem sikerült külön rögzíteni. Kérjük, jelezd ezt a szervezőnek.",
+            "saveFailedSummary": "Hiba történt!",
+            "saveFailedDetail": "Nem sikerült menteni az adatokat"
+        }
+    }
 }

@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from 'src/app/demo/service/auth.service';
 import { MessageService } from 'primeng/api';
 import { LogService } from 'src/app/demo/service/log.service';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
+import { SessionService } from 'src/app/demo/service/session.service';
 
 @Component({
     templateUrl: './login.component.html',
@@ -14,6 +15,7 @@ export class LoginComponent {
 
     loading: boolean = false;
     loginForm: FormGroup;
+    private skipAutomaticSessionRestore = false;
 
     constructor(
         private fb: FormBuilder,
@@ -21,6 +23,7 @@ export class LoginComponent {
         private messageService: MessageService,
         private layoutService: LayoutService,
         private logService: LogService,
+        private sessionService: SessionService,
         private route: ActivatedRoute,
         private router: Router) {
 
@@ -32,6 +35,10 @@ export class LoginComponent {
         // Set default theme
         this.changeTheme('indigo')
         this.showSessionMessage()
+    }
+
+    ngOnInit(): void {
+        this.redirectIfSessionCanBeRestored()
     }
 
     login() {
@@ -59,6 +66,12 @@ export class LoginComponent {
                             original_data: `${val.email} logged in`,
                         })
 
+                        const redirectUrl = this.sessionService.consumePostLoginRedirectUrl()
+                        if (redirectUrl) {
+                            this.router.navigateByUrl(redirectUrl)
+                            return
+                        }
+
                         this.router.navigate([''])
                     },
                     error: (err) => {
@@ -85,12 +98,16 @@ export class LoginComponent {
 
     private showSessionMessage() {
         const reason = this.route.snapshot.queryParamMap.get('reason')
+        const hasPendingRedirect = !!this.sessionService.peekPostLoginRedirectUrl()
+        this.skipAutomaticSessionRestore = reason === 'session-expired'
+            || reason === 'session-idle'
+            || reason === 'session-invalid'
 
         if (reason === 'session-expired') {
             this.messageService.add({
                 severity: 'warn',
                 summary: 'A munkamenet lejárt',
-                detail: 'Jelentkezzen be újra a folytatáshoz.',
+                detail: this.buildSessionMessageDetail('Jelentkezzen be újra a folytatáshoz.', hasPendingRedirect),
             })
         }
 
@@ -98,7 +115,7 @@ export class LoginComponent {
             this.messageService.add({
                 severity: 'warn',
                 summary: 'Kijelentkeztette a rendszer',
-                detail: '30 perc inaktivitás után újra be kell jelentkezni.',
+                detail: this.buildSessionMessageDetail('30 perc inaktivitás után újra be kell jelentkezni.', hasPendingRedirect),
             })
         }
 
@@ -106,7 +123,7 @@ export class LoginComponent {
             this.messageService.add({
                 severity: 'warn',
                 summary: 'Újra be kell jelentkezni',
-                detail: 'A bejelentkezés már nem érvényes.',
+                detail: this.buildSessionMessageDetail('A bejelentkezés már nem érvényes.', hasPendingRedirect),
             })
         }
 
@@ -117,6 +134,41 @@ export class LoginComponent {
                 replaceUrl: true,
             })
         }
+    }
+
+    private buildSessionMessageDetail(detail: string, hasPendingRedirect: boolean): string {
+        if (!hasPendingRedirect) {
+            return detail
+        }
+
+        return `${detail} Sikeres bejelentkezés után visszairányítjuk az előző oldalra.`
+    }
+
+    private redirectIfSessionCanBeRestored(): void {
+        if (this.skipAutomaticSessionRestore) {
+            return
+        }
+
+        if (this.sessionService.isSessionActive()) {
+            this.navigateAfterAuthentication()
+            return
+        }
+
+        this.authService.restoreSessionFromCookie$().subscribe((restored) => {
+            if (restored) {
+                this.navigateAfterAuthentication()
+            }
+        })
+    }
+
+    private navigateAfterAuthentication(): void {
+        const redirectUrl = this.sessionService.consumePostLoginRedirectUrl()
+        if (redirectUrl) {
+            this.router.navigateByUrl(redirectUrl)
+            return
+        }
+
+        this.router.navigate([''])
     }
 
     /**

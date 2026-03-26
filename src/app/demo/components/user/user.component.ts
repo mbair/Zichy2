@@ -12,6 +12,7 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { User } from '../../api/user';
 import { OrganizerContractingParty } from '../../api/contracting-party';
 import { formatDateDots } from '../../utils/date.utils';
+import { replaceTableRowById, shouldRequeryAfterTableRowUpdate } from '../../utils/table-row-update.utils';
 
 @Component({
     templateUrl: './user.component.html',
@@ -316,13 +317,34 @@ export class UserComponent implements OnInit {
             // Create
             if (!formValues.id) {
                 this.userService.create(formValues)
+                this.sidebar = false
 
             // Update
             } else {
-                this.userService.update(formValues)
+                this.userService.update$(formValues)
+                    .subscribe({
+                        next: (updatedUser) => {
+                            this.applyUpdatedUser(updatedUser)
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Sikeres felhasználó módosítás',
+                                detail: `${updatedUser.fullname} módosítva`,
+                            })
+                            this.tableItem = {}
+                            this.selected = []
+                            this.loading = false
+                            this.sidebar = false
+                        },
+                        error: (error: any) => {
+                            this.loading = false
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Hiba',
+                                detail: error?.error?.message || 'Hiba történt!'
+                            })
+                        }
+                    })
             }
-
-            this.sidebar = false
         }
     }
 
@@ -450,6 +472,30 @@ export class UserComponent implements OnInit {
             this.selected = []
 
             // Query for data changes
+            this.doQuery()
+        }
+    }
+
+    private applyUpdatedUser(updatedUser: User): void {
+        const { rows, previousRow, replaced } = replaceTableRowById({
+            rows: this.tableData,
+            nextRow: updatedUser,
+        })
+
+        if (!replaced) {
+            this.doQuery()
+            return
+        }
+
+        this.tableData = rows
+
+        if (shouldRequeryAfterTableRowUpdate({
+            globalFilter: this.globalFilter,
+            filterValues: this.filterValues,
+            sortField: this.sortField,
+            previousRow,
+            nextRow: updatedUser,
+        })) {
             this.doQuery()
         }
     }

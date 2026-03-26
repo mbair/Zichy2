@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, SimpleChanges, ChangeDetectorRef, forwardRef, OnInit, OnDestroy } from '@angular/core';
+import { AfterViewChecked, ChangeDetectorRef, Component, EventEmitter, Input, Output, SimpleChanges, ViewChild, forwardRef, OnInit, OnDestroy } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
+import { Dropdown, DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
 import { UserService } from '../../service/user.service';
 import { RoleService } from '../../service/role.service';
 import { Role } from '../../api/role';
@@ -21,16 +21,17 @@ import { Subscription } from 'rxjs';
         }
     ]
 })
-export class UserSelectorComponent implements OnInit, OnDestroy, ControlValueAccessor {
+export class UserSelectorComponent implements OnInit, AfterViewChecked, OnDestroy, ControlValueAccessor {
     @Input() parentForm: FormGroup
     @Input() controlName: string
     @Input() user_rolesid: number
     @Input() showClear: boolean
     @Output() change = new EventEmitter<any>()
+    @ViewChild(Dropdown) private dropdown?: Dropdown
     disabled = false
 
     users: any[] = []               // Available users
-    selectedUser: string = ''       // Selected user
+    selectedUser: string | number | null = ''       // Selected user
     roles: Role[] = []              // Fetched roles
 
     private subs = new Subscription()
@@ -55,15 +56,18 @@ export class UserSelectorComponent implements OnInit, OnDestroy, ControlValueAcc
                         this.fetchRolesForUsers()
                         
                         // Invalidate selection if not valid anymore
-                        if (this.selectedUser && !this.users.some(u => u.id === this.selectedUser)) {
-                            this.selectedUser = ''
-                            this.onChange('')
+                        if (this.selectedUser && !this.users.some(u => Number(u.id) === Number(this.selectedUser))) {
+                            this.applySelection('', false)
                         }
                         this.cdRef.detectChanges()
                     }
                 }
             })
         )
+    }
+
+    ngAfterViewChecked(): void {
+        this.syncValueFromWidget()
     }
 
     /**
@@ -86,9 +90,8 @@ export class UserSelectorComponent implements OnInit, OnDestroy, ControlValueAcc
                 next: (data) => {
                     this.users = this.user_rolesid ? data.filter(user => user.user_rolesid === this.user_rolesid) : data
                     // Invalidate selection if not valid anymore
-                    if (this.selectedUser && !this.users.some(u => u.id === this.selectedUser)) {
-                        this.selectedUser = ''
-                        this.onChange('')
+                    if (this.selectedUser && !this.users.some(u => Number(u.id) === Number(this.selectedUser))) {
+                        this.applySelection('', false)
                     }
                     this.cdRef.detectChanges()
                 }
@@ -123,9 +126,7 @@ export class UserSelectorComponent implements OnInit, OnDestroy, ControlValueAcc
      * @param event the change event of the user selector
      */
     handleOnChange(event: DropdownChangeEvent) {
-        this.selectedUser = event.value
-        this.onChange(event.value)
-        this.onTouched()
+        this.applySelection(event.value)
         this.change.emit({ value: event.value, field: this.controlName })
     }
 
@@ -165,7 +166,7 @@ export class UserSelectorComponent implements OnInit, OnDestroy, ControlValueAcc
      * @param value - The selected conferences coming from the form.
      */
     writeValue(value: any): void {
-        this.selectedUser = value
+        this.applySelection(value ?? '', false, false)
         this.cdRef.detectChanges()
     }
 
@@ -200,4 +201,43 @@ export class UserSelectorComponent implements OnInit, OnDestroy, ControlValueAcc
      * Initially set as an empty function, but will be assigned dynamically.
      */
     onTouched = () => { }
+
+    private syncValueFromWidget(): void {
+        const widgetValue = this.dropdown?.value
+        if (
+            widgetValue === undefined ||
+            widgetValue === null ||
+            this.isSameSelection(widgetValue, this.selectedUser)
+        ) {
+            return
+        }
+
+        this.applySelection(widgetValue, false)
+    }
+
+    private applySelection(value: string | number | null, emitTouch = true, emitCva = true): void {
+        const normalized = value ?? ''
+        const control = this.getFormControl()
+        const currentControlValue = control?.value ?? ''
+
+        if (!this.isSameSelection(this.selectedUser, normalized)) {
+            this.selectedUser = normalized
+        }
+
+        if (control && !this.isSameSelection(currentControlValue, normalized)) {
+            control.setValue(normalized, { emitEvent: false })
+        }
+
+        if (emitCva) {
+            this.onChange(normalized)
+        }
+
+        if (emitTouch) {
+            this.onTouched()
+        }
+    }
+
+    private isSameSelection(a: unknown, b: unknown): boolean {
+        return String(a ?? '') === String(b ?? '')
+    }
 }

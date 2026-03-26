@@ -1,12 +1,14 @@
 import { Component, OnDestroy, Renderer2, ViewChild } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { AuthService } from '../demo/service/auth.service';
+import { LanguageService } from '../demo/service/language.service';
 import { SessionService, SessionWarningState } from '../demo/service/session.service';
 import { formatRemainingSessionTime } from '../demo/utils/session-time.utils';
 import { MenuService } from './app.menu.service';
 import { AppSidebarComponent } from './app.sidebar.component';
 import { AppTopbarComponent } from './app.topbar.component';
+import { HelpSidebarContent, HELP_SIDEBAR_CONTENT } from './help/help-sidebar-content.data';
 import { LayoutService } from './service/app.layout.service';
 
 @Component({
@@ -16,6 +18,7 @@ import { LayoutService } from './service/app.layout.service';
 export class AppLayoutComponent implements OnDestroy {
 
     overlayMenuOpenSubscription: Subscription;
+    routerNavigationSubscription: Subscription;
     sessionWarningSubscription: Subscription;
 
     menuOutsideClickListener: any;
@@ -32,6 +35,9 @@ export class AppLayoutComponent implements OnDestroy {
         refreshing: false,
         error: null,
     };
+    dismissedSessionWarningError = false;
+
+    currentHelpContent: HelpSidebarContent = this.createDefaultHelpContent();
 
     constructor(
         private menuService: MenuService,
@@ -39,8 +45,11 @@ export class AppLayoutComponent implements OnDestroy {
         public renderer: Renderer2,
         public router: Router,
         private authService: AuthService,
-        private sessionService: SessionService
+        private sessionService: SessionService,
+        private languageService: LanguageService
     ) {
+        this.languageService.initializeSystemLanguage();
+
         this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
             if (!this.menuOutsideClickListener) {
                 this.menuOutsideClickListener = this.renderer.listen('document', 'click', event => {
@@ -65,14 +74,21 @@ export class AppLayoutComponent implements OnDestroy {
             }
         });
 
-        this.router.events.pipe(filter(event => event instanceof NavigationEnd))
+        this.routerNavigationSubscription = this.router.events.pipe(filter(event => event instanceof NavigationEnd))
             .subscribe(() => {
+                this.layoutService.hideHelpSidebar();
+                this.updateHelpContent();
                 this.hideMenu();
             });
 
         this.sessionWarningSubscription = this.sessionService.sessionWarning$.subscribe((state) => {
             this.sessionWarning = state;
+            if (!state.visible || !state.error) {
+                this.dismissedSessionWarningError = false;
+            }
         });
+
+        this.updateHelpContent();
     }
 
     blockBodyScroll(): void {
@@ -113,6 +129,10 @@ export class AppLayoutComponent implements OnDestroy {
         this.unblockBodyScroll();
     }
 
+    closeHelpSidebar(): void {
+        this.layoutService.hideHelpSidebar();
+    }
+
     get containerClass() {
         return {
             'layout-light': this.layoutService.config.colorScheme === 'light',
@@ -143,6 +163,7 @@ export class AppLayoutComponent implements OnDestroy {
     }
 
     staySignedIn(): void {
+        this.dismissedSessionWarningError = false;
         this.sessionService.extendSession();
     }
 
@@ -150,14 +171,88 @@ export class AppLayoutComponent implements OnDestroy {
         this.authService.logout();
     }
 
+    get shouldShowSessionWarning(): boolean {
+        return this.sessionWarning.visible
+            && !(this.hasSessionWarningError && this.dismissedSessionWarningError);
+    }
+
+    get hasSessionWarningError(): boolean {
+        return !!this.sessionWarning.error;
+    }
+
+    get sessionWarningDescription(): string {
+        return this.hasSessionWarningError
+            ? 'A szerver jelenleg nem érhető el, ezért a munkamenet meghosszabbítása sem sikerült.'
+            : 'Ha tovább dolgozik, hosszabbítsa meg most a bejelentkezést.';
+    }
+
+    get staySignedInLabel(): string {
+        return this.hasSessionWarningError
+            ? 'Újrapróbálom'
+            : 'Maradok bejelentkezve';
+    }
+
+    get staySignedInIcon(): string {
+        return this.hasSessionWarningError
+            ? 'pi pi-refresh'
+            : 'pi pi-refresh';
+    }
+
+    onSessionWarningHide(): void {
+        if (!this.hasSessionWarningError) {
+            return;
+        }
+
+        this.dismissedSessionWarningError = true;
+    }
+
+    private updateHelpContent(): void {
+        const helpFromRoute = this.resolveHelpContent();
+        this.currentHelpContent = helpFromRoute || HELP_SIDEBAR_CONTENT.default;
+    }
+
+    private resolveHelpContent(): HelpSidebarContent | null {
+        const routeChain = this.getRouteChain(this.router.routerState.snapshot.root);
+        for (let index = routeChain.length - 1; index >= 0; index--) {
+            const helpContent = routeChain[index]?.data?.['helpSidebar'] as HelpSidebarContent | undefined;
+            if (helpContent) {
+                return helpContent;
+            }
+        }
+
+        return null;
+    }
+
+    private createDefaultHelpContent(): HelpSidebarContent {
+        return HELP_SIDEBAR_CONTENT.default;
+    }
+
+    private getRouteChain(root: ActivatedRouteSnapshot): ActivatedRouteSnapshot[] {
+        const chain: ActivatedRouteSnapshot[] = [];
+        let currentRoute: ActivatedRouteSnapshot | null = root;
+
+        while (currentRoute) {
+            chain.push(currentRoute);
+            currentRoute = currentRoute.firstChild || null;
+        }
+
+        return chain;
+    }
+
     ngOnDestroy() {
         if (this.overlayMenuOpenSubscription) {
             this.overlayMenuOpenSubscription.unsubscribe();
         }
 
+        if (this.routerNavigationSubscription) {
+            this.routerNavigationSubscription.unsubscribe();
+        }
+
         if (this.sessionWarningSubscription) {
             this.sessionWarningSubscription.unsubscribe();
         }
+
+        this.layoutService.hideHelpSidebar();
 
         if (this.menuOutsideClickListener) {
             this.menuOutsideClickListener();

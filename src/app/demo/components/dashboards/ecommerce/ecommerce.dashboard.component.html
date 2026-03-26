@@ -181,119 +181,270 @@
 
 <div *ngIf="userRole === 'Szervezo'">
 
-    <div class="grid mb-3">
-        <div class="col-12 md:col-6 xl:col-6">
-            <app-conference-selector
-                [(ngModel)]="selectedConferences"
-                [showNoneOption]="false"
-                [selectionLimit]="1"
-                [selectFirstOption]="true"
-                [emitOnSelectFirstOption]="true"
-                placeholder="Válasszon konferenciát..."
-                [showClear]="true"
-                (ngModelChange)="onConferenceChange($event)"
-                [style]="{ width: '100%' }">
-            </app-conference-selector>
-        </div>
-    </div>
-    
-    <div class="grid">
-        <div class="col-12 md:col-6 xl:col-3">
-            <div class="card h-full">
-                <span class="font-semibold text-lg">Regisztrációk száma</span>
-                <div class="flex justify-content-between align-items-start mt-3">
-                    <div class="w-6">
-                        <ng-container *ngIf="!conferenceStatsLoading; else registrationsSkeleton">
-                            <span class="text-4xl font-bold text-900">{{ registrations }}</span>
-                        </ng-container>
-                        <ng-template #registrationsSkeleton>
-                            <p-skeleton width="6rem" height="2.5rem"></p-skeleton>
-                        </ng-template>
+    <section class="card organizer-overview">
+        <div class="organizer-overview__hero">
+            <div class="organizer-overview__conference-panel">
+                <div class="organizer-overview__conference-heading">
+                    <div class="organizer-overview__eyebrow">{{ organizerConferencePanelLabel }}</div>
+                    <h1 class="organizer-overview__title">{{ selectedConferenceDisplayName }}</h1>
+                    <div class="organizer-overview__period">
+                        <i class="pi pi-calendar"></i>
+                        <span>{{ selectedConferenceDateRange }}</span>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-12 md:col-6 xl:col-3">
-            <div class="card h-full">
-                <span class="font-semibold text-lg">Szobára várók</span>
-                <div class="flex justify-content-between align-items-start mt-3">
-                    <div class="w-6">
-                        <ng-container *ngIf="!conferenceStatsLoading; else guestsWithoutRoomSkeleton">
-                            <span class="text-4xl font-bold text-900">
-                                {{ guestsWithoutRoom }}
-                            </span>
-                        </ng-container>
-                        <ng-template #guestsWithoutRoomSkeleton>
-                            <p-skeleton width="6rem" height="2.5rem"></p-skeleton>
-                        </ng-template>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 md:col-6 xl:col-3">
-            <div class="card h-full">
-                <span class="font-semibold text-lg">Regisztráció határidő</span>
-                <div class="flex justify-content-between align-items-start mt-3">
-                    <div class="w-6">
-                        <span class="text-4xl font-bold text-900">
-                            {{ registrationEndDate }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 md:col-6 xl:col-3">
-            <div class="card h-full">
-                <span class="font-semibold text-lg">Módosítás határidő</span>
-                <div class="flex justify-content-between align-items-start mt-3">
-                    <div class="w-6">
-                        <span class="text-4xl font-bold text-900">
-                            {{ guestEditEndDate }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 md:col-6 xl:col-6">
-            <div class="card h-full">
-                <span class="font-semibold text-lg">Előleget fizetett / összes vendég</span>
-                <div class="flex justify-content-between align-items-start mt-3">
-                    <div class="w-6">
-                        <ng-container *ngIf="!conferenceStatsLoading; else prepaidSummarySkeleton">
-                            <span class="text-4xl font-bold text-900">
-                                {{ prepaid }} / {{ registrations }}
-                            </span>
-                        </ng-container>
-                        <ng-template #prepaidSummarySkeleton>
-                            <p-skeleton width="10rem" height="2.5rem"></p-skeleton>
-                        </ng-template>
-                    </div>
-                    <div class="w-6 text-right">
-                        <ng-container *ngIf="!conferenceStatsLoading; else prepaidKnobSkeleton">
-                            <p-knob [(ngModel)]="prepaidPercentage" valueTemplate="{value}%" [readonly]="true" [strokeWidth]="2" [size]="90" styleClass="-mt-5"></p-knob>
-                        </ng-container>
-                        <ng-template #prepaidKnobSkeleton>
-                            <p-skeleton width="5.75rem" height="5.75rem" styleClass="inline-block mt-1"></p-skeleton>
-                        </ng-template>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="card h-full mt-3">
-        <div class="text-900 font-semibold text-lg mb-3 border-bottom-1 surface-border pb-3">Teendők</div>
-        <ul class="list-none p-0 m-0">
-            <li *ngFor="let task of taskList" class="flex flex-column gap-3 md:flex-row md:align-items-center p-2 border-bottom-1 surface-border">
-                <div class="flex align-items-center flex-1">
-                    <label for="task.id" style="word-break: break-word;" class="font-medium ml-2" [ngClass]="{'line-through': task.completed}">{{task.name}}</label>
+            <div class="organizer-overview__selector-shell">
+                <span class="organizer-overview__selector-label">Konferencia kiválasztása</span>
+                <app-conference-selector
+                    [(ngModel)]="selectedConferences"
+                    [showNoneOption]="false"
+                    [selectionLimit]="1"
+                    [selectFirstOption]="true"
+                    [emitOnSelectFirstOption]="true"
+                    placeholder="Válasszon konferenciát..."
+                    [showClear]="true"
+                    (ngModelChange)="onConferenceChange($event)"
+                    [style]="{ width: '100%' }">
+                </app-conference-selector>
+                <div class="organizer-overview__selector-help">
+                    A vezérlőpult és az alsó figyelemkártyák mindig a kiválasztott konferenciára frissülnek.
                 </div>
-                <div class="flex flex-1 gap-3 flex-column sm:flex-row sm:justify-content-between">
-                    <div class="flex align-items-center">
-                        <span class="flex align-items-center font-semibold white-space-nowrap" *ngIf="task.startDate"><i class="pi pi-clock mr-2"></i>{{task.startDate}}</span>
+            </div>
+        </div>
+
+        <div class="organizer-overview__tips">
+            <div class="organizer-overview-tip">
+                <span class="organizer-overview-tip__step">1</span>
+                <div>
+                    <div class="organizer-overview-tip__title">Válassz konferenciát</div>
+                    <div class="organizer-overview-tip__text">A kártyák mindig a kiválasztott rendezvényre frissülnek.</div>
+                </div>
+            </div>
+            <div class="organizer-overview-tip">
+                <span class="organizer-overview-tip__step">2</span>
+                <div>
+                    <div class="organizer-overview-tip__title">Olvasd a kulcsszámokat</div>
+                    <div class="organizer-overview-tip__text">Regisztráció, szobabeosztás, előleg és határidők egy helyen.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="organizer-overview__stats">
+            <article class="organizer-stat-card">
+                <div class="organizer-stat-card__icon">
+                    <i class="pi pi-users"></i>
+                </div>
+                <div class="organizer-stat-card__content">
+                    <div class="organizer-stat-card__label">Regisztrációk száma</div>
+                    <ng-container *ngIf="!conferenceStatsLoading; else registrationsSkeleton">
+                        <div class="organizer-stat-card__value">{{ registrations }}</div>
+                    </ng-container>
+                    <ng-template #registrationsSkeleton>
+                        <p-skeleton width="6rem" height="2.5rem" styleClass="mt-3"></p-skeleton>
+                    </ng-template>
+                    <div class="organizer-stat-card__hint">Jelenleg ennyi vendég rekord tartozik a konferenciához.</div>
+                </div>
+            </article>
+
+            <article class="organizer-stat-card">
+                <div class="organizer-stat-card__icon organizer-stat-card__icon--warning">
+                    <i class="pi pi-building"></i>
+                </div>
+                <div class="organizer-stat-card__content">
+                    <div class="organizer-stat-card__label">Szobára várók</div>
+                    <ng-container *ngIf="!conferenceStatsLoading; else guestsWithoutRoomSkeleton">
+                        <div class="organizer-stat-card__value">{{ guestsWithoutRoom }}</div>
+                    </ng-container>
+                    <ng-template #guestsWithoutRoomSkeleton>
+                        <p-skeleton width="6rem" height="2.5rem" styleClass="mt-3"></p-skeleton>
+                    </ng-template>
+                    <div class="organizer-stat-card__hint">Ennyi vendégnél hiányzik még a szobabeosztás.</div>
+                </div>
+            </article>
+
+            <article class="organizer-stat-card">
+                <div class="organizer-stat-card__icon organizer-stat-card__icon--info">
+                    <i class="pi pi-calendar"></i>
+                </div>
+                <div class="organizer-stat-card__content">
+                    <div class="organizer-stat-card__header">
+                        <div class="organizer-stat-card__label">Regisztrációs határidő</div>
+                        <span
+                            class="organizer-status-badge"
+                            [class.organizer-status-badge--closed]="registrationDeadlineStatusClosed"
+                            [class.organizer-status-badge--muted]="registrationDeadlineStatusMissing">
+                            {{ registrationDeadlineStatusText }}
+                        </span>
+                    </div>
+                    <div class="organizer-stat-card__value organizer-stat-card__value--date">{{ registrationEndDate || '-' }}</div>
+                    <div class="organizer-stat-card__hint">{{ registrationDeadlineHint }}</div>
+                </div>
+            </article>
+
+            <article class="organizer-stat-card">
+                <div class="organizer-stat-card__icon organizer-stat-card__icon--accent">
+                    <i class="pi pi-file-edit"></i>
+                </div>
+                <div class="organizer-stat-card__content">
+                    <div class="organizer-stat-card__header">
+                        <div class="organizer-stat-card__label">Módosítási határidő</div>
+                        <span
+                            class="organizer-status-badge"
+                            [class.organizer-status-badge--closed]="guestEditDeadlineStatusClosed"
+                            [class.organizer-status-badge--muted]="guestEditDeadlineStatusMissing">
+                            {{ guestEditDeadlineStatusText }}
+                        </span>
+                    </div>
+                    <div class="organizer-stat-card__value organizer-stat-card__value--date">{{ guestEditEndDate || '-' }}</div>
+                    <div class="organizer-stat-card__hint">{{ guestEditDeadlineHint }}</div>
+                </div>
+            </article>
+
+            <article class="organizer-stat-card organizer-stat-card--prepaid">
+                <div class="organizer-stat-card__icon organizer-stat-card__icon--accent-soft">
+                    <i class="pi pi-wallet"></i>
+                </div>
+                <div class="organizer-stat-card__content">
+                    <div class="organizer-stat-card__label">Előleget fizetett / összes vendég</div>
+                    <ng-container *ngIf="!conferenceStatsLoading; else prepaidSummarySkeleton">
+                        <div class="organizer-stat-card__value">{{ prepaid }} / {{ registrations }}</div>
+                        <div class="organizer-stat-card__hint">{{ unpaidGuests }} vendégnél nincs még fizetett állapot visszaigazolva.</div>
+                    </ng-container>
+                    <ng-template #prepaidSummarySkeleton>
+                        <p-skeleton width="10rem" height="2.5rem" styleClass="mt-3"></p-skeleton>
+                        <p-skeleton width="80%" height="1rem" styleClass="mt-3"></p-skeleton>
+                    </ng-template>
+                </div>
+                <div class="organizer-stat-card__progress">
+                    <ng-container *ngIf="!conferenceStatsLoading; else prepaidKnobSkeleton">
+                        <p-knob [(ngModel)]="prepaidPercentage" valueTemplate="{value}%" [readonly]="true" [strokeWidth]="3" [size]="88"></p-knob>
+                    </ng-container>
+                    <ng-template #prepaidKnobSkeleton>
+                        <p-skeleton width="5.5rem" height="5.5rem" styleClass="inline-block"></p-skeleton>
+                    </ng-template>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <div class="card h-full organizer-briefing">
+        <div class="organizer-briefing__header">
+            <div>
+                <div class="organizer-briefing__eyebrow">Szervezői figyelemközpont</div>
+                <div class="organizer-briefing__title">Teendők és emlékeztetők</div>
+                <div class="organizer-briefing__description">
+                    A kiválasztott konferenciához tartozó pontokat emeli ki, amelyekről tipikusan külön emlékeztető e-mail is menne:
+                    közelgő határidők, hiányzó szobabeosztás, előleg és hiányos kapcsolattartási adatok.
+                </div>
+            </div>
+
+            <div class="organizer-briefing__summary">
+                <div class="organizer-summary-pill">
+                    <div class="organizer-summary-pill__metric">
+                        <span class="organizer-summary-pill__icon organizer-summary-pill__icon--info">
+                            <i class="pi pi-list" aria-hidden="true"></i>
+                        </span>
+                        <div class="organizer-summary-pill__metric-content">
+                            <span class="organizer-summary-pill__label">Nyitott pont</span>
+                            <strong class="organizer-summary-pill__value">{{ organizerReminderSummary.openCount }}</strong>
+                        </div>
                     </div>
                 </div>
-            </li>
-        </ul>
+                <div class="organizer-summary-pill">
+                    <div class="organizer-summary-pill__metric">
+                        <span class="organizer-summary-pill__icon organizer-summary-pill__icon--warning">
+                            <i class="pi pi-bolt" aria-hidden="true"></i>
+                        </span>
+                        <div class="organizer-summary-pill__metric-content">
+                            <span class="organizer-summary-pill__label">Sürgős</span>
+                            <strong class="organizer-summary-pill__value">{{ organizerReminderSummary.urgentCount }}</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="organizer-summary-pill organizer-summary-pill--milestone">
+                    <span class="organizer-summary-pill__label">Következő mérföldkő</span>
+                    <strong class="organizer-summary-pill__value organizer-summary-pill__value--milestone">{{ organizerReminderSummary.nextDeadline }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <ng-container *ngIf="selectedConference; else organizerReminderEmptyState">
+            <ng-container *ngIf="!conferenceStatsLoading; else organizerReminderSkeleton">
+                <div *ngIf="organizerVisibleReminders.length > 0" class="organizer-briefing__cards">
+                    <article
+                        *ngFor="let reminder of organizerVisibleReminders"
+                        class="organizer-reminder-card"
+                        [ngClass]="'tone-' + reminder.tone">
+                        <div class="organizer-reminder__topline">
+                            <span class="organizer-reminder__badge">{{ reminder.badge }}</span>
+                            <span class="organizer-reminder__context">{{ selectedConferenceDisplayName }}</span>
+                        </div>
+
+                        <div class="organizer-reminder-card__body">
+                            <div class="organizer-reminder__icon">
+                                <i [class]="reminder.icon"></i>
+                            </div>
+
+                            <div>
+                                <h3 class="organizer-reminder-card__title">{{ reminder.title }}</h3>
+                                <p class="organizer-reminder-card__summary">{{ reminder.summary }}</p>
+                                <p class="organizer-reminder-card__detail">{{ reminder.detail }}</p>
+                            </div>
+                        </div>
+
+                        <div class="organizer-reminder__meta">
+                            <span *ngFor="let meta of reminder.meta" class="organizer-reminder__meta-chip">{{ meta }}</span>
+                        </div>
+
+                        <div class="organizer-reminder-card__action-wrap">
+                            <button
+                                pButton
+                                pRipple
+                                type="button"
+                                class="p-button-outlined p-button-sm organizer-reminder-card__action"
+                                [routerLink]="reminder.route"
+                                [label]="reminder.actionLabel"
+                                icon="pi pi-arrow-right"
+                                iconPos="right">
+                            </button>
+                        </div>
+                    </article>
+                </div>
+            </ng-container>
+        </ng-container>
+
+        <ng-template #organizerReminderEmptyState>
+            <div class="organizer-briefing__empty">
+                <div class="organizer-briefing__empty-icon">
+                    <i class="pi pi-calendar"></i>
+                </div>
+                <div>
+                    <div class="organizer-briefing__empty-title">Válassz konferenciát az emlékeztetők megjelenítéséhez</div>
+                    <div class="organizer-briefing__empty-description">
+                        A blokk a kiválasztott konferencia vendégei és határidői alapján állítja össze a legfontosabb szervezői figyelmeztetéseket.
+                    </div>
+                </div>
+            </div>
+        </ng-template>
+
+        <ng-template #organizerReminderSkeleton>
+            <div class="organizer-briefing__skeleton-grid">
+                <div class="organizer-briefing__skeleton-card">
+                    <p-skeleton width="7rem" height="1.8rem"></p-skeleton>
+                    <p-skeleton width="75%" height="1.6rem" styleClass="mt-3"></p-skeleton>
+                    <p-skeleton width="100%" height="1rem" styleClass="mt-3"></p-skeleton>
+                    <p-skeleton width="88%" height="1rem" styleClass="mt-2"></p-skeleton>
+                    <p-skeleton width="45%" height="2.25rem" styleClass="mt-4"></p-skeleton>
+                </div>
+                <div class="organizer-briefing__skeleton-card">
+                    <p-skeleton width="6rem" height="1.8rem"></p-skeleton>
+                    <p-skeleton width="72%" height="1.6rem" styleClass="mt-3"></p-skeleton>
+                    <p-skeleton width="100%" height="1rem" styleClass="mt-3"></p-skeleton>
+                    <p-skeleton width="84%" height="1rem" styleClass="mt-2"></p-skeleton>
+                    <p-skeleton width="40%" height="2rem" styleClass="mt-4"></p-skeleton>
+                </div>
+            </div>
+        </ng-template>
     </div>
 </div>

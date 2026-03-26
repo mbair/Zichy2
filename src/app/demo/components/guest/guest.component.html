@@ -73,6 +73,21 @@
                                 severity="help" />
                         </span>
                     </div>
+                    <div *ngIf="hasPendingGuestViewUpdate"
+                         class="mt-3 flex flex-column md:flex-row md:align-items-center md:justify-content-between gap-3 p-3 border-1 border-blue-100 bg-blue-50 border-round">
+                        <div class="flex align-items-center text-700">
+                            <i class="pi pi-refresh mr-2 text-primary"></i>
+                            <span>{{ pendingGuestViewMessage }}</span>
+                        </div>
+                        <button pButton
+                                pRipple
+                                type="button"
+                                label="Lista frissítése"
+                                icon="pi pi-sync"
+                                class="p-button-sm p-button-outlined"
+                                (click)="refreshGuestView()">
+                        </button>
+                    </div>
                 </ng-template>
                 <ng-template pTemplate="header">
                     <tr>
@@ -133,6 +148,24 @@
                                 (onChange)="onFilter($event, 'prepaid')"
                                 [showClear]="true"
                                 placeholder="Válasszon...">
+                                <ng-template pTemplate="item" let-option>
+                                    <span [ngClass]="'color-badge prepaid-badge ' + (option?.value == '1' ? 'green' : 'red')">
+                                        <i class="pi mr-1"
+                                           [ngClass]="option?.value == '1' ? 'true-icon pi-check-circle text-green-500' : 'false-icon pi-times-circle text-red-500'"></i>
+                                        {{ option?.name }}
+                                    </span>
+                                </ng-template>
+                                <ng-template pTemplate="selectedItem" let-selectedItem>
+                                    <span *ngIf="selectedItem; else prepaidPlaceholder"
+                                          [ngClass]="'color-badge prepaid-badge ' + (selectedItem?.value == '1' ? 'green' : 'red')">
+                                        <i class="pi mr-1"
+                                           [ngClass]="selectedItem?.value == '1' ? 'true-icon pi-check-circle text-green-500' : 'false-icon pi-times-circle text-red-500'"></i>
+                                        {{ selectedItem?.name }}
+                                    </span>
+                                </ng-template>
+                                <ng-template #prepaidPlaceholder>
+                                    <span class="text-500">Válasszon...</span>
+                                </ng-template>
                             </p-dropdown>
                         </th>
                         <th>
@@ -259,7 +292,11 @@
                         </td>
                         <td *ngIf="isOrganizer">
                             <span class="p-column-title">Előleget fizetett</span>
-                            {{guest.prepaid ? 'Igen' : 'Nem'}}
+                            <span [ngClass]="'color-badge prepaid-badge ' + (guest.prepaid ? 'green' : 'red')">
+                                <i class="pi mr-1"
+                                   [ngClass]="guest.prepaid ? 'true-icon pi-check-circle text-green-500' : 'false-icon pi-times-circle text-red-500'"></i>
+                                {{ guest.prepaid ? 'Igen' : 'Nem' }}
+                            </span>
                         </td>
                         <td style="width:14%; min-width:10rem;">
                             <span class="p-column-title">Utolsó NFC használat</span>
@@ -324,7 +361,35 @@
                                                 </tr>
                                                 <tr>
                                                     <td class="font-medium">Email:</td>
-                                                    <td>{{guest.email}}</td>
+                                                    <td>{{guest.email || '-'}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-medium">E-mail státusz:</td>
+                                                    <td>
+                                                        <div class="guest-email-status-actions">
+                                                            <span [ngClass]="'color-badge email-status-badge ' + getEmailStatusColor(guest)">
+                                                                <i class="mr-2" [ngClass]="getEmailStatusIcon(guest)"></i>
+                                                                {{ getEmailStatusLabel(guest) }}
+                                                            </span>
+                                                            <button
+                                                                *ngIf="canRetryGuestEmail(guest)"
+                                                                pButton
+                                                                pRipple
+                                                                type="button"
+                                                                label="E-mail újraküldése"
+                                                                icon="pi pi-refresh"
+                                                                class="p-button-sm p-button-outlined"
+                                                                [loading]="isRetryingGuestEmail(guest)"
+                                                                (click)="retryGuestEmail(guest)">
+                                                            </button>
+                                                        </div>
+                                                        <div *ngIf="getEmailStatusMeta(guest) as emailMeta" class="text-500 mt-2">
+                                                            {{ emailMeta }}
+                                                        </div>
+                                                        <div *ngIf="getEmailStatusAttemptLabel(guest) as attemptLabel" class="text-500 mt-1">
+                                                            {{ attemptLabel }}
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <td class="font-medium">Irányítószám:</td>
@@ -1072,6 +1137,16 @@
                         [showClear]="true"
                         (change)="onFilter($event, 'roomKeyIssued')">
                     </app-roomkey-selector>
+                </div>
+
+                <div class="field mb-4 col-12 lg:col-4">
+                    <label for="emailStatus" class="font-medium text-900">E-mail státusz</label>
+                    <app-email-status-selector
+                        [parentForm]="dialogFiltersForm"
+                        controlName="emailStatus"
+                        [showClear]="true"
+                        (change)="onFilter($event, 'emailStatus')">
+                    </app-email-status-selector>
                 </div>
             </form>
 

@@ -18,6 +18,7 @@ import { MessagesModule } from 'primeng/messages';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { SidebarModule } from 'primeng/sidebar';
 import { TranslateModule } from '@ngx-translate/core';
 import { HttpClientModule } from '@angular/common/http';
 import { CountrySelectorComponent } from '../../selectors/country-selector/country-selector.component';
@@ -49,6 +50,7 @@ import { LocalizedDatePickerComponent } from '../../widget/localized-date-picker
         AppConfigModule,
         ToastModule,
         TooltipModule,
+        SidebarModule,
         HttpClientModule,
         TranslateModule,
         CountrySelectorComponent,
