@@ -26,7 +26,16 @@ import {DomHandler} from 'primeng/dom';
         [pTooltip]="item.label"
         [tooltipDisabled]="!(isSlim && root && !active)"
     >
-        <i [ngClass]="item.icon" class="layout-menuitem-icon"></i>
+        <ng-container *ngIf="item.iconSvg; else menuFontIcon">
+            <span
+                class="layout-menuitem-icon layout-menuitem-icon-svg"
+                [style.--menuitem-icon-svg]="'url(' + item.iconSvg + ')'"
+                aria-hidden="true"
+            ></span>
+        </ng-container>
+        <ng-template #menuFontIcon>
+            <i [ngClass]="item.icon" class="layout-menuitem-icon"></i>
+        </ng-template>
         <span class="layout-menuitem-text">{{ item.label }}</span>
         <i class="pi pi-fw pi-angle-down layout-submenu-toggler" *ngIf="item.items"></i>
     </a>
@@ -51,7 +60,16 @@ import {DomHandler} from 'primeng/dom';
         [pTooltip]="item.label"
         [tooltipDisabled]="!(isSlim && root)"
     >
-        <i [ngClass]="item.icon" class="layout-menuitem-icon"></i>
+        <ng-container *ngIf="item.iconSvg; else routedMenuFontIcon">
+            <span
+                class="layout-menuitem-icon layout-menuitem-icon-svg"
+                [style.--menuitem-icon-svg]="'url(' + item.iconSvg + ')'"
+                aria-hidden="true"
+            ></span>
+        </ng-container>
+        <ng-template #routedMenuFontIcon>
+            <i [ngClass]="item.icon" class="layout-menuitem-icon"></i>
+        </ng-template>
         <span class="layout-menuitem-text">{{ item.label }}</span>
         <i class="pi pi-fw pi-angle-down layout-submenu-toggler" *ngIf="item.items"></i>
     </a>
@@ -63,6 +81,24 @@ import {DomHandler} from 'primeng/dom';
 </ul>
 </ng-container>
     `,
+    styles: [`
+        .layout-menuitem-icon-svg {
+            display: inline-block;
+            width: 1.28571429em;
+            min-width: 1.28571429em;
+            height: 1em;
+            flex-shrink: 0;
+            background-color: currentColor;
+            -webkit-mask-image: var(--menuitem-icon-svg);
+            mask-image: var(--menuitem-icon-svg);
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-position: center;
+            mask-position: center;
+            -webkit-mask-size: contain;
+            mask-size: contain;
+        }
+    `],
     animations: [
         trigger('children', [
             state('collapsed', style({

@@ -70,7 +70,7 @@ export class AppMenuComponent implements OnInit {
                     items: this.getFilteredItems([
                         {
                             label: 'Étrend',
-                            icon: 'pi pi-fw pi-pencil',
+                            iconSvg: 'assets/demo/images/diet.svg',
                             routerLink: ['/diet'],
                             requiredRoles: ['Super Admin', 'Nagy Admin']
                         },
