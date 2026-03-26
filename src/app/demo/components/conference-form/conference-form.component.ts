@@ -101,6 +101,8 @@ export class ConferenceFormComponent implements OnInit {
     private lastLoadedConferenceIdentity: string | null = null;
     readonly idCardMaxFileSizeBytes = 15 * 1024 * 1024;
     readonly idCardMaxFileSizeMb = 15;
+    readonly idCardBackTooltipHtml =
+        '<img class="id-card-preview-image" src="/assets/demo/images/eszemelyi-back.jpg" alt="ID Card back" />';
 
     constructor(
         public router: Router,

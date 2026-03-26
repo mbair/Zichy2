@@ -17,3 +17,20 @@ $gutter: 1rem; //for primeflex grid system
 @import "assets/demo/styles/flags/flags.css";
 @import "assets/demo/styles/badges.scss";
 @import "assets/demo/styles/code.scss";
+
+.tooltip--id-card-preview {
+    max-width: none !important;
+}
+
+.tooltip--id-card-preview .p-tooltip-text {
+    padding: 0.5rem;
+    white-space: normal;
+}
+
+.tooltip--id-card-preview .id-card-preview-image {
+    display: block;
+    width: min(36rem, calc(100vw - 3rem));
+    max-width: none;
+    height: auto;
+    border-radius: 0.5rem;
+}

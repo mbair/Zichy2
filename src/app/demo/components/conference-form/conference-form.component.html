@@ -625,12 +625,12 @@
                                         <div *ngIf="showIdCardField" class="field mb-4 col-12 lg:col-12">
                                             <label for="idCard" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.idCardBack' | translate }}
-                                                <i pTooltip="<img src='/assets/demo/images/eszemelyi-back.jpg' alt='ID Card back' style='max-width: 30vw;'/>"
+                                                <i [pTooltip]="idCardBackTooltipHtml"
                                                     [escape]="false"
                                                     appendTo="body"
                                                     class="pi pi-info-circle"
                                                     tooltipPosition="top"
-                                                    tooltipStyleClass="tooltip"></i>
+                                                    tooltipStyleClass="tooltip tooltip--id-card-preview"></i>
                                             </label>
                                             <app-reactive-file-upload
                                                 name="idCard"
