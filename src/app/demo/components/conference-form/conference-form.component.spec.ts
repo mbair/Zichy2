@@ -16,6 +16,41 @@ describe('ConferenceFormComponent', () => {
         answerCreateSpy: jasmine.Spy;
     };
 
+    function birthDateYearsAgo(years: number): string {
+        const now = new Date();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(Math.min(now.getDate(), 28)).padStart(2, '0');
+
+        return `${now.getFullYear() - years}-${month}-${day}`;
+    }
+
+    function fillValidRegistrationForm(
+        component: ConferenceFormComponent,
+        overrides: Record<string, unknown> = {},
+    ): void {
+        component.conferenceForm.patchValue({
+            lastName: 'Teszt',
+            firstName: 'Elek',
+            gender: 'male',
+            birthDate: birthDateYearsAgo(20),
+            nationality: 'Magyar',
+            country: 'Hungary',
+            zipCode: '1234',
+            email: 'teszt@example.com',
+            telephone: '+36123456789',
+            dateOfArrival: '2026-06-10',
+            firstMeal: 'ebéd',
+            diet: 'normál',
+            dateOfDeparture: '2026-06-12',
+            lastMeal: 'vacsora',
+            roomType: 'Not asking for accommodation',
+            roomMate: null,
+            payment: 1,
+            privacy: true,
+            ...overrides,
+        });
+    }
+
     function ensureThemeLink(): void {
         if (document.getElementById('theme-link')) {
             return;
@@ -47,6 +82,8 @@ describe('ConferenceFormComponent', () => {
         const guestCreateSpy = jasmine.createSpy('create');
 
         const translations: Record<string, string> = {
+            'conferenceForm.messages.saveSuccessWithWarningSummary':
+                'conferenceForm.messages.saveSuccessWithWarningSummary',
             'conferenceForm.messages.savePartialSummary':
                 'conferenceForm.messages.savePartialSummary',
             'conferenceForm.messages.savePartialDetail':
@@ -319,11 +356,55 @@ describe('ConferenceFormComponent', () => {
         expect(component.showForm).toBeTrue();
     });
 
+    it('keeps post-save guest warnings in the submission feedback area and scrolls there', fakeAsync(() => {
+        const { component, guestMessages$, messageServiceAddSpy } =
+            createHarness();
+        (component as any).submissionFeedbackElement = {
+            nativeElement: {
+                getBoundingClientRect: () => ({
+                    top: 620,
+                    left: 0,
+                    width: 640,
+                    height: 120,
+                    bottom: 740,
+                    right: 640,
+                    x: 0,
+                    y: 620,
+                    toJSON: () => ({}),
+                }),
+            },
+        };
+
+        spyOn(window, 'scrollTo');
+
+        component.saveSuccess();
+        guestMessages$.next({
+            severity: 'warn',
+            summary: 'E-mail',
+            detail: 'A visszaigazoló e-mailt most nem sikerült elküldeni.',
+        });
+
+        tick();
+
+        expect(messageServiceAddSpy).not.toHaveBeenCalled();
+        expect(component.pageFeedback).toBeNull();
+        expect(component.submissionFeedback).toEqual(
+            jasmine.objectContaining({
+                severity: 'warn',
+                summary:
+                    'conferenceForm.messages.saveSuccessWithWarningSummary',
+                detail:
+                    'conferenceForm.messages.saveSuccessDetail\n\nE-mail: A visszaigazoló e-mailt most nem sikerült elküldeni.',
+            }),
+        );
+        expect(window.scrollTo).toHaveBeenCalled();
+    }));
+
     it('does not require id card when the translated room type means no accommodation', () => {
         const { component } = createHarness();
 
         component.conferenceForm.patchValue({
-            birthDate: '1990-05-10',
+            birthDate: birthDateYearsAgo(20),
             roomType: 'Not asking for accommodation',
         });
 
@@ -332,6 +413,277 @@ describe('ConferenceFormComponent', () => {
         expect(component.needsRoom).toBeFalse();
         expect(component.showIdCardField).toBeFalse();
         expect(component.idCard?.disabled).toBeTrue();
+    });
+
+    it('applies the accommodation dependency matrix to room mate, id card and baby bed controls', () => {
+        const { component } = createHarness();
+
+        const cases = [
+            {
+                name: 'no accommodation adult',
+                birthDate: birthDateYearsAgo(20),
+                roomType: 'Not asking for accommodation',
+                expects: {
+                    needsRoom: false,
+                    roomMateDisabled: true,
+                    showIdCardField: false,
+                    idCardDisabled: true,
+                    idCardRequired: false,
+                    showBabyBedField: false,
+                    babyBedDisabled: true,
+                    babyBedValue: null,
+                },
+            },
+            {
+                name: 'accommodation adult',
+                birthDate: birthDateYearsAgo(20),
+                roomType: 'Kastely szallas 4 agyas szoba',
+                expects: {
+                    needsRoom: true,
+                    roomMateDisabled: false,
+                    showIdCardField: true,
+                    idCardDisabled: false,
+                    idCardRequired: true,
+                    showBabyBedField: false,
+                    babyBedDisabled: true,
+                    babyBedValue: null,
+                },
+            },
+            {
+                name: 'accommodation child',
+                birthDate: birthDateYearsAgo(10),
+                roomType: 'Kastely szallas 4 agyas szoba',
+                expects: {
+                    needsRoom: true,
+                    roomMateDisabled: false,
+                    showIdCardField: false,
+                    idCardDisabled: true,
+                    idCardRequired: false,
+                    showBabyBedField: false,
+                    babyBedDisabled: true,
+                    babyBedValue: null,
+                },
+            },
+            {
+                name: 'accommodation toddler',
+                birthDate: birthDateYearsAgo(2),
+                roomType: 'Kastely szallas 4 agyas szoba',
+                expects: {
+                    needsRoom: true,
+                    roomMateDisabled: false,
+                    showIdCardField: false,
+                    idCardDisabled: true,
+                    idCardRequired: false,
+                    showBabyBedField: true,
+                    babyBedDisabled: false,
+                    babyBedValue: '0',
+                },
+            },
+        ];
+
+        cases.forEach((testCase) => {
+            component.conferenceForm.reset();
+            component.roomType?.setValue(testCase.roomType);
+            component.birthDate?.setValue(testCase.birthDate);
+
+            component.idCard?.setValue(null);
+            component.idCard?.updateValueAndValidity({ emitEvent: false });
+
+            expect(component.needsRoom).withContext(testCase.name).toBe(
+                testCase.expects.needsRoom,
+            );
+            expect(component.roomMate?.disabled).withContext(testCase.name).toBe(
+                testCase.expects.roomMateDisabled,
+            );
+            expect(component.showIdCardField)
+                .withContext(testCase.name)
+                .toBe(testCase.expects.showIdCardField);
+            expect(component.idCard?.disabled)
+                .withContext(testCase.name)
+                .toBe(testCase.expects.idCardDisabled);
+            expect(!!component.idCard?.errors?.['required'])
+                .withContext(testCase.name)
+                .toBe(testCase.expects.idCardRequired);
+            expect(component.showBabyBedField)
+                .withContext(testCase.name)
+                .toBe(testCase.expects.showBabyBedField);
+            expect(component.babyBed?.disabled)
+                .withContext(testCase.name)
+                .toBe(testCase.expects.babyBedDisabled);
+            expect(component.babyBed?.value)
+                .withContext(testCase.name)
+                .toBe(testCase.expects.babyBedValue);
+        });
+    });
+
+    it('clears accommodation-dependent values when switching to no accommodation', () => {
+        const { component } = createHarness();
+        const idCardFile = new File(['id'], 'idcard.pdf', {
+            type: 'application/pdf',
+        });
+
+        fillValidRegistrationForm(component, {
+            birthDate: birthDateYearsAgo(20),
+            roomType: 'Kastely szallas 4 agyas szoba',
+            roomMate: ['Alice', 'Bob'],
+        });
+        component.idCard?.setValue(idCardFile);
+
+        component.roomType?.setValue('Not asking for accommodation');
+
+        expect(component.needsRoom).toBeFalse();
+        expect(component.roomMate?.disabled).toBeTrue();
+        expect(component.roomMate?.value).toBeNull();
+        expect(component.showIdCardField).toBeFalse();
+        expect(component.idCard?.disabled).toBeTrue();
+        expect(component.idCard?.value).toBeNull();
+        expect(component.showBabyBedField).toBeFalse();
+        expect(component.babyBed?.disabled).toBeTrue();
+        expect(component.babyBed?.value).toBeNull();
+    });
+
+    it('validates Hungarian zip codes but relaxes the format check for foreign countries', () => {
+        const { component } = createHarness();
+
+        component.country?.setValue('Hungary');
+        component.zipCode?.setValue('12AB');
+        component.zipCode?.markAsTouched();
+        component.zipCode?.updateValueAndValidity();
+
+        expect(component.zipCode?.errors?.['invalidZipCode']).toBeTrue();
+
+        component.country?.setValue('Austria');
+        component.zipCode?.updateValueAndValidity();
+
+        expect(component.zipCode?.errors?.['invalidZipCode']).toBeFalsy();
+        expect(component.zipCode?.valid).toBeTrue();
+    });
+
+    it('syncs the no-meal selection across diet and meal controls in both directions', () => {
+        const { component } = createHarness();
+
+        component.diet?.setValue('nem kér étkezést');
+        expect(component.firstMeal?.value).toBe('nem kér étkezést');
+        expect(component.lastMeal?.value).toBe('nem kér étkezést');
+
+        component.firstMeal?.setValue('ebéd');
+        expect(component.diet?.value).toBe('');
+
+        component.lastMeal?.setValue('nem kér étkezést');
+        expect(component.diet?.value).toBe('nem kér étkezést');
+        expect(component.firstMeal?.value).toBe('nem kér étkezést');
+
+        component.diet?.setValue('normál');
+        expect(component.firstMeal?.value).toBe('');
+        expect(component.lastMeal?.value).toBe('');
+    });
+
+    it('marks the form invalid for reversed date range and invalid same-day meal order', () => {
+        const { component, guestCreateSpy } = createHarness();
+
+        fillValidRegistrationForm(component, {
+            dateOfArrival: '2026-06-12',
+            dateOfDeparture: '2026-06-10',
+        });
+
+        component.onSubmit();
+
+        expect(component.conferenceForm.errors?.['dateRangeInvalid']).toBeTrue();
+        expect(guestCreateSpy).not.toHaveBeenCalled();
+
+        fillValidRegistrationForm(component, {
+            dateOfArrival: '2026-06-10',
+            dateOfDeparture: '2026-06-10',
+            firstMeal: 'vacsora',
+            lastMeal: 'ebéd',
+        });
+
+        component.onSubmit();
+
+        expect(component.conferenceForm.errors?.['mealOrderInvalid']).toBeTrue();
+        expect(guestCreateSpy).not.toHaveBeenCalled();
+    });
+
+    it('applies conference date bounds to arrival and departure controls', () => {
+        const { component } = createHarness();
+
+        (component as any).beginDate = new Date(2026, 5, 10);
+        (component as any).endDate = new Date(2026, 5, 12);
+        (component as any).applyConferenceDateBoundsValidators();
+
+        component.dateOfArrival?.setValue('2026-06-09');
+        component.dateOfDeparture?.setValue('2026-06-13');
+
+        expect(component.dateOfArrival?.errors?.['dateOutOfRange']).toBeTrue();
+        expect(component.dateOfDeparture?.errors?.['dateOutOfRange']).toBeTrue();
+    });
+
+    it('blocks submit for accommodated adults until an id card file is provided', () => {
+        const { component, guestCreateSpy } = createHarness();
+
+        fillValidRegistrationForm(component, {
+            birthDate: birthDateYearsAgo(20),
+            roomType: 'Kastely szallas 4 agyas szoba',
+        });
+
+        component.onSubmit();
+
+        expect(component.showIdCardField).toBeTrue();
+        expect(component.idCard?.errors?.['required']).toBeTrue();
+        expect(guestCreateSpy).not.toHaveBeenCalled();
+    });
+
+    it('allows submitting without id card when no accommodation is requested', () => {
+        const { component, guestCreateSpy } = createHarness();
+
+        fillValidRegistrationForm(component, {
+            birthDate: birthDateYearsAgo(20),
+            roomType: 'Not asking for accommodation',
+        });
+
+        component.onSubmit();
+
+        expect(component.idCard?.disabled).toBeTrue();
+        expect(guestCreateSpy).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                roomType: 'Not asking for accommodation',
+            }),
+            [],
+        );
+    });
+
+    it('defaults baby bed for accommodated toddlers and does not require id card for them on submit', () => {
+        const { component, guestCreateSpy } = createHarness();
+
+        fillValidRegistrationForm(component, {
+            birthDate: birthDateYearsAgo(2),
+            roomType: 'Kastely szallas 4 agyas szoba',
+        });
+
+        component.onSubmit();
+
+        expect(component.showBabyBedField).toBeTrue();
+        expect(component.babyBed?.value).toBe('0');
+        expect(component.showIdCardField).toBeFalse();
+        expect(guestCreateSpy).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                babyBed: '0',
+                roomType: 'Kastely szallas 4 agyas szoba',
+            }),
+            [],
+        );
+    });
+
+    it('prevents submit when payment configuration is missing even with otherwise valid data', () => {
+        const { component, guestCreateSpy } = createHarness();
+
+        component.allowedPaymentMethodIds = [];
+        fillValidRegistrationForm(component);
+
+        component.onSubmit();
+
+        expect(component.isPaymentConfigurationMissing).toBeTrue();
+        expect(guestCreateSpy).not.toHaveBeenCalled();
     });
 
     it('normalizes room mate entries from the reactive form control', () => {

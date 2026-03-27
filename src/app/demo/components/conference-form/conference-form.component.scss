@@ -568,6 +568,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.2rem;
+    width: 100%;
     align-items: center;
     text-align: center;
     padding: 1.2rem 0 0.5rem;
@@ -757,21 +758,29 @@
 }
 
 .conference-form-intro__footer {
-    display: inline-flex;
-    align-items: center;
+    display: flex;
     justify-content: center;
-    gap: 0.6rem;
-    width: 100%;
+    align-self: center;
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+    padding-inline: 0.75rem;
     text-align: center;
     color: var(--text-color-secondary);
 }
 
-.conference-form-intro__footer .pi {
-    color: #f59e0b;
+.conference-form-intro__thanks {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    max-width: 26rem;
+    margin: 0;
+    text-align: center;
 }
 
-.conference-form-intro__thanks {
-    max-width: 26rem;
+.conference-form-intro__thanks .pi {
+    color: #f59e0b;
 }
 
 .conference-form-grid {

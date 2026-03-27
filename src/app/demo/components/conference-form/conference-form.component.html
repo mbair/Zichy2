@@ -64,8 +64,10 @@
                         </div>
 
                         <div class="conference-form-intro__footer">
-                            <i class="pi pi-sparkles"></i>
-                            <span class="block text-700 text-lg conference-form-intro__thanks">{{ 'conferenceForm.intro.thanks' | translate }}! 😊</span>
+                            <span class="block text-700 text-lg conference-form-intro__thanks">
+                                <i class="pi pi-sparkles"></i>
+                                {{ 'conferenceForm.intro.thanks' | translate }}! 😊
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -110,9 +112,6 @@
                         </div>
                         <div class="grid conference-form-card__body">
                             <div class="col-12 lg:col-12 pb-0">
-
-                                <!-- SYSTEM MESSAGE -->
-                                <p-messages *ngIf="showForm"></p-messages>
 
                                 <div
                                     *ngIf="pageFeedback as feedback"
