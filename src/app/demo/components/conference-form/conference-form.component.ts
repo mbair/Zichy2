@@ -539,6 +539,11 @@ export class ConferenceFormComponent implements OnInit {
                         return;
                     }
 
+                    if (!this.showForm && this.submissionFeedback) {
+                        this.showSubmissionFollowUpFeedback(message);
+                        return;
+                    }
+
                     this.showPageFeedback({
                         severity: message.severity,
                         summary: message.summary || '',
@@ -1418,6 +1423,52 @@ export class ConferenceFormComponent implements OnInit {
         this.messageService.clear();
         this.pageFeedback = feedback;
         setTimeout(() => this.scrollToPageFeedback(), 0);
+    }
+
+    private showSubmissionFollowUpFeedback(message: {
+        severity?: SubmissionFeedback['severity'];
+        summary?: string;
+        detail?: string;
+        message?: string;
+        errorMessage?: string;
+        error?: { message?: string; errorMessage?: string };
+    }): void {
+        const existingFeedback = this.submissionFeedback;
+        if (!existingFeedback) {
+            this.showPageFeedback({
+                severity: message.severity || 'warn',
+                summary: message.summary || '',
+                detail: this.extractErrorMessage(message),
+            });
+            return;
+        }
+
+        const followUpParts = [
+            message.summary?.trim(),
+            this.extractErrorMessage(message).trim(),
+        ].filter((part) => part && part.length > 0);
+        const followUpDetail = followUpParts.join(': ');
+        const shouldPromoteSuccessToWarning =
+            existingFeedback.severity === 'success' &&
+            message.severity !== 'success';
+
+        this.messageService.clear();
+        this.pageFeedback = null;
+        this.formFeedback = null;
+        this.submissionFeedback = {
+            severity: shouldPromoteSuccessToWarning
+                ? 'warn'
+                : existingFeedback.severity,
+            summary: shouldPromoteSuccessToWarning
+                ? this.translate.instant(
+                      'conferenceForm.messages.saveSuccessWithWarningSummary',
+                  )
+                : existingFeedback.summary,
+            detail: followUpDetail
+                ? `${existingFeedback.detail}\n\n${followUpDetail}`
+                : existingFeedback.detail,
+        };
+        setTimeout(() => this.scrollToSubmissionFeedback(), 0);
     }
 
     private resetSubmissionState(): void {

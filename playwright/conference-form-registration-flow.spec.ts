@@ -216,16 +216,18 @@ async function pickDate(page: Page, inputId: string, isoDate: string): Promise<v
 }
 
 test.describe('conference form registration flow', () => {
-    test('shows inline errors and focuses the first invalid field on invalid submit', async ({ page }) => {
+    test('shows inline errors and focuses the validation summary on invalid submit', async ({ page }) => {
         await installConferenceFormMocks(page);
         await gotoConferenceForm(page);
 
         await page.locator('button[type="submit"]').click();
 
-        await expect(
-            page.getByText('Kérjük, töltse ki az alábbi kötelező mezőket:'),
-        ).toBeVisible();
-        await expect(page.locator('#lastName')).toBeFocused();
+        const validationSummary = page.getByRole('alert', {
+            name: 'Kérjük, javítsd az alábbi mezőket',
+        });
+
+        await expect(validationSummary).toBeVisible();
+        await expect(validationSummary).toBeFocused();
         await expect(page.locator('#lastName')).toHaveClass(/ng-invalid/);
     });
 
@@ -345,6 +347,142 @@ test.describe('conference form registration flow', () => {
             privacy: true,
             conferenceid: 987,
             conferenceName: CONFERENCE_NAME,
+        });
+    });
+
+    test('submits successfully without id card upload when no accommodation is requested', async ({ page }) => {
+        const submittedRequest = await installConferenceFormMocks(page);
+        await gotoConferenceForm(page);
+
+        await page.locator('#lastName').fill('Teszt');
+        await page.locator('#firstName').fill('Szallas Nelkul');
+        await page.locator('label[for="gender1"]').click();
+        await pickDate(page, 'birthDate', '1988-06-15');
+        await page.locator('p-inputmask#zipCode input').fill('1234');
+        await page.locator('#email').fill('szallasnelkul@example.com');
+        await page.locator('#telephone').fill('+36123456789');
+        await pickDate(page, 'dateOfArrival', '2026-07-10');
+        await pickDate(page, 'dateOfDeparture', '2026-07-12');
+
+        await selectDropdownOption(
+            page,
+            page.locator('app-meal-selector[controlname="firstMeal"]'),
+            'Ebéd',
+            true,
+        );
+        await selectDropdownOption(
+            page,
+            page.locator('app-diet-selector'),
+            'normál',
+            true,
+        );
+        await selectDropdownOption(
+            page,
+            page.locator('app-meal-selector[controlname="lastMeal"]'),
+            'Vacsora',
+            true,
+        );
+
+        await page.locator('app-roomtype-selector .p-dropdown').click();
+        const noAccommodationOption = page
+            .locator('.p-dropdown-item')
+            .filter({ hasText: 'Nem kérek szállást' })
+            .first();
+        await expect(noAccommodationOption).toBeVisible();
+        await noAccommodationOption.click();
+
+        await expect(page.locator('app-reactive-file-upload')).toHaveCount(0);
+
+        await selectDropdownOption(
+            page,
+            page.locator('app-payment-selector'),
+            'Készpénz',
+            true,
+        );
+
+        await page.locator('p-checkbox .p-checkbox-box').click();
+        await page.locator('button[type="submit"]').click();
+
+        await expect(
+            page.locator('#home').getByText('Sikeresen regisztrált!'),
+        ).toBeVisible();
+        await expect(submittedRequest.bodyText).not.toContain('name="idcard"');
+        expect(submittedRequest.guestPayload).toMatchObject({
+            firstName: 'Szallas Nelkul',
+            roomType: 'Nem kérek szállást',
+            payment: 3,
+            privacy: true,
+            conferenceid: 987,
+            conferenceName: CONFERENCE_NAME,
+        });
+    });
+
+    test('switches the postal code field to a plain text input for non-Hungarian residence and accepts non-4-digit values', async ({ page }) => {
+        const submittedRequest = await installConferenceFormMocks(page);
+        await gotoConferenceForm(page);
+
+        await expect(page.locator('p-inputmask#zipCode')).toHaveCount(1);
+
+        await page.locator('app-country-selector .p-dropdown').click();
+        const countryFilter = page.locator('.p-dropdown-panel:visible input').last();
+        await expect(countryFilter).toBeVisible();
+        await countryFilter.fill('Németország');
+        await page
+            .locator('.p-dropdown-item')
+            .filter({ hasText: 'Németország' })
+            .first()
+            .click();
+
+        await expect(page.locator('p-inputmask#zipCode')).toHaveCount(0);
+        await expect(page.locator('input#zipCode')).toHaveCount(1);
+
+        await page.locator('#lastName').fill('Teszt');
+        await page.locator('#firstName').fill('Kulfold');
+        await page.locator('label[for="gender1"]').click();
+        await pickDate(page, 'birthDate', '1988-06-15');
+        await page.locator('input#zipCode').fill('AB-12C');
+        await page.locator('#email').fill('kulfold@example.com');
+        await page.locator('#telephone').fill('+36123456789');
+        await pickDate(page, 'dateOfArrival', '2026-07-10');
+        await pickDate(page, 'dateOfDeparture', '2026-07-12');
+
+        await selectDropdownOption(
+            page,
+            page.locator('app-meal-selector[controlname="firstMeal"]'),
+            'Ebéd',
+            true,
+        );
+        await selectDropdownOption(
+            page,
+            page.locator('app-diet-selector'),
+            'normál',
+            true,
+        );
+        await selectDropdownOption(
+            page,
+            page.locator('app-meal-selector[controlname="lastMeal"]'),
+            'Vacsora',
+            true,
+        );
+        await selectDropdownOption(
+            page,
+            page.locator('app-payment-selector'),
+            'Készpénz',
+            true,
+        );
+
+        await page.locator('p-checkbox .p-checkbox-box').click();
+        await page.locator('button[type="submit"]').click();
+
+        await expect(
+            page.locator('#home').getByText('Sikeresen regisztrált!'),
+        ).toBeVisible();
+        expect(submittedRequest.guestPayload).toMatchObject({
+            firstName: 'Kulfold',
+            country: 'Germany',
+            zipCode: 'AB-12C',
+            payment: 3,
+            privacy: true,
         });
     });
 });
