@@ -88,6 +88,10 @@ describe('ConferenceFormComponent', () => {
             {
                 hasActiveSessionSnapshot: () => false,
             } as any,
+            {
+                isMobile$: of(false),
+                getIsMobile: () => false,
+            } as any,
             new FormBuilder(),
             {
                 currentLang: 'hu',
@@ -152,7 +156,6 @@ describe('ConferenceFormComponent', () => {
             createdGuest$,
             answerMessages$,
             answerCreateSpy,
-            messageServiceAddSpy,
         } = createHarness();
 
         (component as any).conference = {
@@ -173,7 +176,7 @@ describe('ConferenceFormComponent', () => {
         answerMessages$.next({ message: 'Kulon valasz mentesi hiba' });
 
         expect(component.showForm).toBeFalse();
-        expect(messageServiceAddSpy).toHaveBeenCalledWith(
+        expect(component.submissionFeedback).toEqual(
             jasmine.objectContaining({
                 severity: 'warn',
                 summary: 'conferenceForm.messages.savePartialSummary',
@@ -193,8 +196,29 @@ describe('ConferenceFormComponent', () => {
         expect(component.canDisplayRegistrationForm).toBeFalse();
     });
 
-    it('shows only the service-provided guest save error toast without adding a second generic error', () => {
-        const { guestMessages$, messageServiceAddSpy } = createHarness();
+    it('shows the service-provided guest save error as inline feedback and scrolls to it', fakeAsync(() => {
+        const { component, guestMessages$, messageServiceAddSpy } =
+            createHarness();
+        const focusSpy = jasmine.createSpy('focus');
+
+        (component as any).formFeedbackElement = {
+            nativeElement: {
+                focus: focusSpy,
+                getBoundingClientRect: () => ({
+                    top: 280,
+                    left: 0,
+                    width: 640,
+                    height: 120,
+                    bottom: 400,
+                    right: 640,
+                    x: 0,
+                    y: 280,
+                    toJSON: () => ({}),
+                }),
+            },
+        };
+
+        spyOn(window, 'scrollTo');
 
         guestMessages$.next({
             severity: 'error',
@@ -202,14 +226,97 @@ describe('ConferenceFormComponent', () => {
             detail: 'A regisztráció jelenleg nem küldhető el.',
         });
 
-        expect(messageServiceAddSpy.calls.count()).toBe(1);
-        expect(messageServiceAddSpy).toHaveBeenCalledWith(
+        tick();
+
+        expect(messageServiceAddSpy).not.toHaveBeenCalled();
+        expect(component.formFeedback).toEqual(
             jasmine.objectContaining({
                 severity: 'error',
                 summary: 'Vendég rögzítés sikertelen',
                 detail: 'A regisztráció jelenleg nem küldhető el.',
             }),
         );
+        expect(window.scrollTo).toHaveBeenCalled();
+        expect(focusSpy).toHaveBeenCalled();
+    }));
+
+    it('shows non-error guest service messages in the page feedback area and scrolls to them', fakeAsync(() => {
+        const { component, guestMessages$, messageServiceAddSpy } =
+            createHarness();
+        const focusSpy = jasmine.createSpy('focus');
+
+        (component as any).pageFeedbackElement = {
+            nativeElement: {
+                focus: focusSpy,
+                getBoundingClientRect: () => ({
+                    top: 120,
+                    left: 0,
+                    width: 640,
+                    height: 96,
+                    bottom: 216,
+                    right: 640,
+                    x: 0,
+                    y: 120,
+                    toJSON: () => ({}),
+                }),
+            },
+        };
+
+        spyOn(window, 'scrollTo');
+
+        guestMessages$.next({
+            severity: 'warn',
+            summary: 'E-mail',
+            detail: 'A visszaigazoló e-mailt most nem sikerült elküldeni.',
+        });
+
+        tick();
+
+        expect(messageServiceAddSpy).not.toHaveBeenCalled();
+        expect(component.pageFeedback).toEqual(
+            jasmine.objectContaining({
+                severity: 'warn',
+                summary: 'E-mail',
+                detail: 'A visszaigazoló e-mailt most nem sikerült elküldeni.',
+            }),
+        );
+        expect(window.scrollTo).toHaveBeenCalled();
+        expect(focusSpy).toHaveBeenCalled();
+    }));
+
+    it('clears page feedback when save succeeds', () => {
+        const { component } = createHarness();
+
+        component.pageFeedback = {
+            severity: 'warn',
+            summary: 'Korabbi uzenet',
+            detail: 'Korabbi reszlet',
+        };
+
+        component.saveSuccess();
+
+        expect(component.pageFeedback).toBeNull();
+        expect(component.submissionFeedback).toEqual(
+            jasmine.objectContaining({
+                severity: 'success',
+            }),
+        );
+    });
+
+    it('clears page feedback when starting a new registration', () => {
+        const { component } = createHarness();
+
+        component.pageFeedback = {
+            severity: 'info',
+            summary: 'Korabbi uzenet',
+            detail: 'Korabbi reszlet',
+        };
+        component.showForm = false;
+
+        component.newRegistration();
+
+        expect(component.pageFeedback).toBeNull();
+        expect(component.showForm).toBeTrue();
     });
 
     it('does not require id card when the translated room type means no accommodation', () => {
@@ -328,8 +435,7 @@ describe('ConferenceFormComponent', () => {
     });
 
     it('treats whitespace-only required text fields as invalid before submit', () => {
-        const { component, guestCreateSpy, messageServiceAddSpy } =
-            createHarness();
+        const { component, guestCreateSpy } = createHarness();
 
         component.conferenceForm.patchValue({
             lastName: '   ',
@@ -356,18 +462,14 @@ describe('ConferenceFormComponent', () => {
         expect(component.lastName?.value).toBe('');
         expect(component.lastName?.invalid).toBeTrue();
         expect(guestCreateSpy).not.toHaveBeenCalled();
-        expect(messageServiceAddSpy).toHaveBeenCalledWith(
-            jasmine.objectContaining({
-                severity: 'error',
-            }),
-        );
+        expect(component.showInvalidFieldSummary).toBeTrue();
     });
 
     it('focuses the first invalid field after an invalid submit', fakeAsync(() => {
-        const { component, guestCreateSpy, messageServiceAddSpy } =
-            createHarness();
+        const { component, guestCreateSpy } = createHarness();
         const focusSpy = jasmine.createSpy('focus');
-        const scrollIntoViewSpy = jasmine.createSpy('scrollIntoView');
+
+        spyOn(window, 'scrollTo');
 
         (component as any).conferenceFormElement = {
             nativeElement: {
@@ -375,8 +477,24 @@ describe('ConferenceFormComponent', () => {
                     if (selector === '#lastName') {
                         return {
                             focus: focusSpy,
-                            scrollIntoView: scrollIntoViewSpy,
                             tabIndex: 0,
+                            closest: () => null,
+                            classList: {
+                                add: () => undefined,
+                                remove: () => undefined,
+                            },
+                            offsetWidth: 320,
+                            getBoundingClientRect: () => ({
+                                top: 180,
+                                left: 0,
+                                width: 320,
+                                height: 48,
+                                bottom: 228,
+                                right: 320,
+                                x: 0,
+                                y: 180,
+                                toJSON: () => ({}),
+                            }),
                             querySelector: () => null,
                         };
                     }
@@ -407,16 +525,12 @@ describe('ConferenceFormComponent', () => {
         });
 
         component.onSubmit();
-        tick();
+        tick(300);
 
         expect(guestCreateSpy).not.toHaveBeenCalled();
-        expect(messageServiceAddSpy).toHaveBeenCalledWith(
-            jasmine.objectContaining({
-                severity: 'error',
-            }),
-        );
-        expect(scrollIntoViewSpy).toHaveBeenCalled();
+        expect(window.scrollTo).toHaveBeenCalled();
         expect(focusSpy).toHaveBeenCalled();
+        tick(1800);
     }));
 
     it('ignores duplicate submit attempts while a submission is already loading', () => {

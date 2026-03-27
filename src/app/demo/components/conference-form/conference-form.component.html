@@ -115,6 +115,33 @@
                                 <p-messages *ngIf="showForm"></p-messages>
 
                                 <div
+                                    *ngIf="pageFeedback as feedback"
+                                    #pageFeedbackElement
+                                    class="conference-form-notice"
+                                    [class.conference-form-notice--error]="feedback.severity === 'error'"
+                                    [class.conference-form-notice--info]="feedback.severity === 'info'"
+                                    tabindex="-1"
+                                    role="alert"
+                                    aria-live="assertive">
+                                    <div class="conference-form-notice__icon">
+                                        <i
+                                            class="pi"
+                                            [class.pi-times-circle]="feedback.severity === 'error'"
+                                            [class.pi-exclamation-triangle]="feedback.severity === 'warn'"
+                                            [class.pi-info-circle]="feedback.severity === 'info'">
+                                        </i>
+                                    </div>
+                                    <div class="conference-form-notice__content">
+                                        <div class="conference-form-notice__title" *ngIf="feedback.summary?.trim()?.length">
+                                            {{ feedback.summary }}
+                                        </div>
+                                        <p class="conference-form-notice__text">
+                                            {{ feedback.detail }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div
                                     *ngIf="isPaymentConfigurationMissing"
                                     class="conference-form-notice conference-form-notice--warning">
                                     <div class="conference-form-notice__icon">
@@ -138,6 +165,22 @@
 
                                     <!-- Registration form -->
                                     <form #conferenceFormElement [formGroup]="conferenceForm" (ngSubmit)="onSubmit()" novalidate class="grid formgrid p-fluid conference-form-grid">
+                                        <div class="col-12 pb-0 conference-form-feedback-wrapper" *ngIf="formFeedback as feedback">
+                                            <div
+                                                #formFeedbackElement
+                                                class="conference-form-feedback"
+                                                tabindex="-1"
+                                                role="alert"
+                                                aria-live="assertive">
+                                                <div class="conference-form-feedback__icon">
+                                                    <i class="pi pi-times-circle"></i>
+                                                </div>
+                                                <div class="conference-form-feedback__content">
+                                                    <div class="conference-form-feedback__title">{{ feedback.summary }}</div>
+                                                    <p class="conference-form-feedback__detail">{{ feedback.detail }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="col-12 conference-form-test-actions" *ngIf="canUseTestDataFill">
                                             <button
                                                 pButton
