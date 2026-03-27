@@ -64,7 +64,7 @@ type InvalidFieldItem = {
 
 type TestDataPreset = 'minor' | 'adult';
 type SubmissionFeedback = {
-    severity: 'success' | 'warn';
+    severity: 'success' | 'warn' | 'error' | 'info';
     summary: string;
     detail: string;
 };
@@ -84,8 +84,12 @@ declare let gtag: Function;
 export class ConferenceFormComponent implements OnInit {
     @ViewChild('conferenceFormElement')
     private conferenceFormElement?: ElementRef<HTMLFormElement>;
+    @ViewChild('pageFeedbackElement')
+    private pageFeedbackElement?: ElementRef<HTMLElement>;
     @ViewChild('invalidSummaryElement')
     private invalidSummaryElement?: ElementRef<HTMLElement>;
+    @ViewChild('formFeedbackElement')
+    private formFeedbackElement?: ElementRef<HTMLElement>;
     @ViewChild('submissionFeedbackElement')
     private submissionFeedbackElement?: ElementRef<HTMLElement>;
     @ViewChild('roomMateChips') private roomMateChips?: Chips;
@@ -114,7 +118,9 @@ export class ConferenceFormComponent implements OnInit {
     allowedConferenceRoomTypeIds: number[] | null | undefined = undefined;
     helpSidebarVisible = false;
     helpSidebarContent: HelpSidebarContent = HELP_SIDEBAR_CONTENT.conferenceForm;
+    pageFeedback: SubmissionFeedback | null = null;
     testDataMessages: Message[] = [];
+    formFeedback: SubmissionFeedback | null = null;
     submissionFeedback: SubmissionFeedback | null = null;
     private guestCreatedForCurrentSubmission: boolean = false;
     private hasAttemptedSubmit: boolean = false;
@@ -380,6 +386,7 @@ export class ConferenceFormComponent implements OnInit {
                                 resolveConferenceFormAllowedRoomTypeIds(
                                     this.conference,
                                 );
+                            this.pageFeedback = null;
 
                             // Optional safety: if current selected payment is not allowed, clear it
                             const paymentCtrl =
@@ -513,26 +520,36 @@ export class ConferenceFormComponent implements OnInit {
 
                 // If message is a Toast
                 if (message?.severity) {
-                    this.messageService.add(message);
-                    if (message.summary === 'Vendég rögzítés sikertelen') {
+                    if (message.severity === 'error') {
                         this.loading = false;
                         this.resetSubmissionState();
+                        this.showFormFeedback({
+                            severity: 'error',
+                            summary:
+                                message?.summary ||
+                                this.translate.instant(
+                                    'conferenceForm.messages.saveFailedSummary',
+                                ),
+                            detail:
+                                this.extractErrorMessage(message) ||
+                                this.translate.instant(
+                                    'conferenceForm.messages.saveFailedDetail',
+                                ),
+                        });
+                        return;
                     }
+
+                    this.showPageFeedback({
+                        severity: message.severity,
+                        summary: message.summary || '',
+                        detail: this.extractErrorMessage(message),
+                    });
                     return;
                 }
 
                 this.loading = false;
                 this.resetSubmissionState();
-                // If message is NOT a Toast
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Válasz mentés hiba',
-                    detail:
-                        message?.errorMessage ||
-                        message?.message ||
-                        'Ismeretlen hiba.',
-                });
-                this.saveFailed();
+                this.saveFailed(this.extractErrorMessage(message));
             }),
         );
 
@@ -1075,7 +1092,7 @@ export class ConferenceFormComponent implements OnInit {
         this.translate
             .get('registrationEndMessage')
             .subscribe((translatedMessage: string) => {
-                this.messageService.add({
+                this.showPageFeedback({
                     severity: 'error',
                     summary:
                         this.currentLang == 'hu' ? 'Figyelem!' : 'Attention!',
@@ -1135,20 +1152,12 @@ export class ConferenceFormComponent implements OnInit {
 
         if (this.isPaymentConfigurationMissing) {
             this.messageService.clear();
-            this.messageService.add({
-                severity: 'warn',
-                summary: this.translate.instant(
-                    'conferenceForm.notices.paymentConfigurationMissingTitle',
-                ),
-                detail: this.translate.instant(
-                    'conferenceForm.notices.paymentConfigurationMissingDetail',
-                ),
-            });
             return;
         }
 
         this.messageService.clear();
         this.clearTestDataMessages();
+        this.formFeedback = null;
         this.submissionFeedback = null;
         this.resetSubmissionState();
         this.hasAttemptedSubmit = true;
@@ -1242,15 +1251,6 @@ export class ConferenceFormComponent implements OnInit {
         );
         if (!Number.isFinite(paymentId)) {
             this.messageService.clear();
-            this.messageService.add({
-                severity: 'warn',
-                summary: this.translate.instant(
-                    'conferenceForm.notices.paymentConfigurationMissingTitle',
-                ),
-                detail: this.translate.instant(
-                    'conferenceForm.notices.paymentConfigurationMissingDetail',
-                ),
-            });
             return;
         }
 
@@ -1275,6 +1275,7 @@ export class ConferenceFormComponent implements OnInit {
 
         this.messageService.clear();
         this.clearTestDataMessages();
+        this.formFeedback = null;
         this.submissionFeedback = null;
         this.resetSubmissionState();
         this.hasAttemptedSubmit = false;
@@ -1343,6 +1344,8 @@ export class ConferenceFormComponent implements OnInit {
      */
     saveSuccess() {
         this.messageService.clear();
+        this.pageFeedback = null;
+        this.formFeedback = null;
         this.showForm = false;
         this.submissionFeedback = {
             severity: 'success',
@@ -1360,20 +1363,24 @@ export class ConferenceFormComponent implements OnInit {
      * Called when saving the guest data fails.
      * Displays an error message to the user.
      */
-    saveFailed() {
-        this.messageService.add({
+    saveFailed(detail?: string) {
+        this.showFormFeedback({
             severity: 'error',
             summary: this.translate.instant(
                 'conferenceForm.messages.saveFailedSummary',
             ),
-            detail: this.translate.instant(
-                'conferenceForm.messages.saveFailedDetail',
-            ),
+            detail:
+                detail?.trim() ||
+                this.translate.instant(
+                    'conferenceForm.messages.saveFailedDetail',
+                ),
         });
     }
 
     private savePartialSuccess(detail?: string) {
         this.messageService.clear();
+        this.pageFeedback = null;
+        this.formFeedback = null;
         this.showForm = false;
         this.submissionFeedback = {
             severity: 'warn',
@@ -1391,12 +1398,26 @@ export class ConferenceFormComponent implements OnInit {
 
     private extractErrorMessage(message: any): string {
         return (
+            message?.detail ||
             message?.errorMessage ||
             message?.error?.message ||
             message?.error?.errorMessage ||
             message?.message ||
             ''
         );
+    }
+
+    private showFormFeedback(feedback: SubmissionFeedback): void {
+        this.messageService.clear();
+        this.formFeedback = feedback;
+        this.submissionFeedback = null;
+        setTimeout(() => this.scrollToFormFeedback(), 0);
+    }
+
+    private showPageFeedback(feedback: SubmissionFeedback): void {
+        this.messageService.clear();
+        this.pageFeedback = feedback;
+        setTimeout(() => this.scrollToPageFeedback(), 0);
     }
 
     private resetSubmissionState(): void {
@@ -1415,6 +1436,8 @@ export class ConferenceFormComponent implements OnInit {
         this.hasAttemptedSubmit = false;
         this.messageService.clear();
         this.clearTestDataMessages();
+        this.pageFeedback = null;
+        this.formFeedback = null;
         this.submissionFeedback = null;
 
         // Reset form state
@@ -1831,6 +1854,26 @@ export class ConferenceFormComponent implements OnInit {
         this.scrollElementIntoView(summaryElement, 24);
 
         summaryElement.focus();
+    }
+
+    private scrollToFormFeedback(): void {
+        const feedbackElement = this.formFeedbackElement?.nativeElement;
+        if (!feedbackElement) {
+            return;
+        }
+
+        this.scrollElementIntoView(feedbackElement, 24);
+        feedbackElement.focus();
+    }
+
+    private scrollToPageFeedback(): void {
+        const feedbackElement = this.pageFeedbackElement?.nativeElement;
+        if (!feedbackElement) {
+            return;
+        }
+
+        this.scrollElementIntoView(feedbackElement, 24);
+        feedbackElement.focus();
     }
 
     private getFirstInvalidFieldKey(): string | null {
