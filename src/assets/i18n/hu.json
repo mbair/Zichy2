@@ -182,7 +182,12 @@
     "conferenceForm": {
         "panelLabel": "Konferencia - Vendég Regisztrációs Űrlap",
         "intro": {
+            "badge": "Online regisztráció",
             "subtitle": "A regisztrációval",
+            "metaTime": "kb. 3 perc",
+            "metaHelp": "segíted a szervezőt",
+            "metaSecure": "szükséges adatok",
+            "sectionTitle": "Mire számíts?",
             "organizerHelp": "nagyban segíted a rendezvényszerveződ munkáját",
             "legalHelp": "és törvényi kötelezettségednek is eleget teszel",
             "contactOrganizer": "Kérdés esetén kérjük fordulj a rendezvény szerveződhöz",
@@ -230,6 +235,8 @@
         },
         "validation": {
             "completeRequiredFields": "Kérjük, töltse ki az alábbi kötelező mezőket:",
+            "summaryTitle": "Kérjük, javítsd az alábbi mezőket",
+            "summaryHint": "A regisztráció elküldése előtt az alábbi mezők ellenőrzése vagy kitöltése szükséges:",
             "more": "+ {{count}} további",
             "questionFallback": "Kérdés {{index}}",
             "arrivalDepartureDates": "Érkezés és távozás dátuma",
@@ -261,25 +268,39 @@
             "roomTypeSelection": "Igyekszünk figyelembe venni a választásotokat, mivel korlátozott számú szobatípus és klimatizált szoba áll rendelkezésre, ezért nem tudjuk garantálni, hogy biztosan a megjelölt szobatípusra osztunk be",
             "roomMateName": "Kérjük a regisztrációkor megadott nevet tüntesse itt fel",
             "roomMateComma": "Vesszővel elválasztva megadhatja, hogy kivel lakna egy szobában",
-            "noPaymentOptions": "A szervező még nem állított be fizetési módot ehhez a konferenciához."
+            "roomMateCombined": "Kérjük, a regisztrációkor megadott neveket írd ide, vesszővel elválasztva, ha több személlyel laknál egy szobában.",
+            "noPaymentOptions": "A szervező még nem állított be fizetési módot ehhez a konferenciához.",
+            "phoneFormat": "Telefonszámot országkóddal is megadhatsz, például: +36 30 123 4567"
+        },
+        "notices": {
+            "paymentConfigurationMissingTitle": "A regisztráció jelenleg nem küldhető el",
+            "paymentConfigurationMissingDetail": "Ehhez a konferenciához még nincs választható fizetési mód beállítva, ezért most nem érdemes kitölteni az űrlapot.",
+            "paymentConfigurationMissingHint": "Kérjük, próbáld meg később, vagy jelezd ezt a szervezőnek."
         },
         "actions": {
+            "openHelp": "Oldalsúgó megnyitása",
+            "fillTestDataMinor": "Tesztadat kiskorúval",
+            "fillTestDataAdult": "Tesztadat felnőttel",
             "browse": "Tallózás",
             "cancel": "Mégsem",
+            "submitting": "Regisztráció mentése...",
             "submit": "Elküldöm a regisztrációmat",
             "newRegistration": "Új vendéget regisztrálok"
         },
         "privacy": {
-            "acceptPrefix": "Elfogadom az",
             "dataPolicy": "ZVKK Adatvédelmi Nyilatkozatot",
-            "andAcceptance": "és az",
             "acceptanceStatement": "Adatvédelmi/Hozzájárulási Nyilatkozatot",
-            "andHouseRules": "és a",
-            "houseRules": "ZVKK házirendet"
+            "houseRules": "ZVKK házirendet",
+            "sectionTitle": "Adatvédelem és feltételek",
+            "sectionHint": "A regisztráció elküldése előtt kérjük, nyisd meg és olvasd el az alábbi dokumentumokat.",
+            "consentLabel": "Elolvastam és elfogadom a fenti dokumentumokat."
         },
         "messages": {
+            "testDataLoadedSummary": "Tesztadatok betöltve",
+            "testDataLoadedDetail": "A mezőket Super Adminként a(z) „{{preset}}” mintával töltöttük ki.",
+            "savingInProgress": "A regisztráció mentése folyamatban van, kérjük várj egy pillanatot.",
             "saveSuccessSummary": "Sikeresen regisztrált!",
-            "saveSuccessDetail": "Sok szeretettel várjuk a konferenciára!",
+            "saveSuccessDetail": "Sok szeretettel várjuk a konferenciára!\nA megadott e-mail címre hamarosan visszaigazolást is küldünk.",
             "savePartialSummary": "A regisztráció sikerült, de maradt egy teendő",
             "savePartialDetail": "A regisztrációdat elmentettük, de a kiegészítő válaszokat nem sikerült külön rögzíteni. Kérjük, jelezd ezt a szervezőnek.",
             "saveFailedSummary": "Hiba történt!",

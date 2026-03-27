@@ -44,6 +44,7 @@ type OverlayAction =
     template: `
         <ng-container *ngIf="!useNativePicker; else nativePicker">
             <p-calendar
+                [ngClass]="resolvedHostClass"
                 [inputId]="inputId"
                 [formControl]="calendarControl"
                 [appendTo]="appendTo"
@@ -63,9 +64,9 @@ type OverlayAction =
                 [yearNavigator]="yearNavigator"
                 [yearRange]="resolvedYearRange"
                 [inputStyle]="inputStyle"
-                [inputStyleClass]="inputStyleClass"
+                [inputStyleClass]="resolvedInputStyleClass"
                 [style]="style"
-                [styleClass]="resolvedStyleClass"
+                [styleClass]="styleClass"
                 [dateFormat]="resolvedDateFormat"
                 dataType="date">
             </p-calendar>
@@ -217,6 +218,24 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         }
 
         return this.styleClass ? `${this.styleClass} ng-invalid ng-dirty` : 'ng-invalid ng-dirty';
+    }
+
+    get resolvedHostClass(): string | undefined {
+        if (!this.invalid) {
+            return undefined;
+        }
+
+        return 'ng-invalid ng-dirty';
+    }
+
+    get resolvedInputStyleClass(): string | undefined {
+        if (!this.invalid) {
+            return this.inputStyleClass;
+        }
+
+        return this.inputStyleClass
+            ? `${this.inputStyleClass} ng-invalid ng-dirty`
+            : 'ng-invalid ng-dirty';
     }
 
     get nativeInputValue(): string {

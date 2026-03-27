@@ -182,7 +182,12 @@
     "conferenceForm": {
         "panelLabel": "Conference - Guest Registration Form",
         "intro": {
+            "badge": "Online registration",
             "subtitle": "With registration",
+            "metaTime": "about 3 minutes",
+            "metaHelp": "helps the organizer",
+            "metaSecure": "required details",
+            "sectionTitle": "What to expect",
             "organizerHelp": "you help your event organizer a lot",
             "legalHelp": "and you also fulfill your legal obligations",
             "contactOrganizer": "If you have any questions, please contact your event organizer",
@@ -230,6 +235,8 @@
         },
         "validation": {
             "completeRequiredFields": "Please complete these required fields:",
+            "summaryTitle": "Please review the following fields",
+            "summaryHint": "Before submitting your registration, the following fields need attention:",
             "more": "+ {{count}} more",
             "questionFallback": "Question {{index}}",
             "arrivalDepartureDates": "Arrival and departure dates",
@@ -261,25 +268,39 @@
             "roomTypeSelection": "We will try to take your choice into account, as there are a limited number of room types and air-conditioned rooms available, we cannot guarantee that we will allocate you to the type of accommodation you have indicated",
             "roomMateName": "Please enter the name entered during registration here",
             "roomMateComma": "You can specify the roommate by separating the names with a comma",
-            "noPaymentOptions": "The organizer has not configured any payment methods for this conference yet."
+            "roomMateCombined": "Please enter the names exactly as used during registration, separated by commas if you would like to stay with more than one person.",
+            "noPaymentOptions": "The organizer has not configured any payment methods for this conference yet.",
+            "phoneFormat": "You can enter your phone number with country code too, for example: +36 30 123 4567"
+        },
+        "notices": {
+            "paymentConfigurationMissingTitle": "Registration cannot be submitted right now",
+            "paymentConfigurationMissingDetail": "No selectable payment method has been configured for this conference yet, so it does not make sense to fill out the form now.",
+            "paymentConfigurationMissingHint": "Please try again later or contact the organizer."
         },
         "actions": {
+            "openHelp": "Open page help",
+            "fillTestDataMinor": "Test data with minor",
+            "fillTestDataAdult": "Test data with adult",
             "browse": "Browse",
             "cancel": "Cancel",
+            "submitting": "Saving registration...",
             "submit": "Submit My Registration",
             "newRegistration": "Register a new guest"
         },
         "privacy": {
-            "acceptPrefix": "I accept the",
             "dataPolicy": "ZVKK Privacy Statement",
-            "andAcceptance": "and the",
             "acceptanceStatement": "Privacy/Consent Statement",
-            "andHouseRules": "and the",
-            "houseRules": "ZVKK policy"
+            "houseRules": "ZVKK policy",
+            "sectionTitle": "Privacy and terms",
+            "sectionHint": "Before submitting your registration, please open and review the documents below.",
+            "consentLabel": "I have read and accept the documents above."
         },
         "messages": {
+            "testDataLoadedSummary": "Test data loaded",
+            "testDataLoadedDetail": "As Super Admin, the form has been prefilled with the “{{preset}}” sample.",
+            "savingInProgress": "Your registration is being saved, please wait a moment.",
             "saveSuccessSummary": "Registration successful!",
-            "saveSuccessDetail": "We look forward to welcoming you to the conference!",
+            "saveSuccessDetail": "We look forward to welcoming you to the conference!\nWe will also send a confirmation to the email address you provided shortly.",
             "savePartialSummary": "Registration completed with a follow-up needed",
             "savePartialDetail": "Your registration was saved, but we could not store the additional answers separately. Please let the organizer know.",
             "saveFailedSummary": "Something went wrong!",

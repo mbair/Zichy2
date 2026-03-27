@@ -229,6 +229,32 @@ test.describe('conference form registration flow', () => {
         await expect(page.locator('#lastName')).toHaveClass(/ng-invalid/);
     });
 
+    test('scrolls to a clicked field from the validation summary', async ({ page }) => {
+        await installConferenceFormMocks(page);
+        await gotoConferenceForm(page);
+
+        await page.locator('button[type="submit"]').click();
+        await page.waitForTimeout(400);
+
+        const beforeScrollY = await page.evaluate(() => window.scrollY);
+        const privacyField = page.locator('[data-field-key="privacy"]');
+
+        await page
+            .locator('.conference-form-error-summary__link')
+            .filter({ hasText: 'Adatvédelem' })
+            .first()
+            .click();
+
+        await page.waitForTimeout(800);
+
+        const afterScrollY = await page.evaluate(() => window.scrollY);
+        const privacyBox = await privacyField.boundingBox();
+
+        expect(afterScrollY).toBeGreaterThan(beforeScrollY + 300);
+        expect(privacyBox).not.toBeNull();
+        expect((privacyBox?.y ?? 9999)).toBeLessThan(260);
+    });
+
     test('submits a full registration with dropdowns, room mate draft and id card upload', async ({ page }) => {
         const submittedRequest = await installConferenceFormMocks(page);
         await gotoConferenceForm(page);
