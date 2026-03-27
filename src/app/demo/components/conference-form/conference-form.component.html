@@ -1,4 +1,4 @@
-<div class="relative overflow-hidden flex flex-column justify-content-center">
+<div class="relative overflow-hidden flex flex-column justify-content-start">
     <div class="bg-circle opacity-50" style="top: -200px; left: -700px;"></div>
     <div class="bg-circle hidden lg:flex" style="top: 50px; right:-800px; transform: rotate(60deg)"></div>
     <div class="landing-wrapper">
@@ -9,40 +9,70 @@
                 type="button"
                 icon="pi pi-question-circle"
                 class="p-button-text p-button-secondary p-button-rounded"
-                pTooltip="Oldalsúgó megnyitása"
+                [pTooltip]="'conferenceForm.actions.openHelp' | translate"
                 tooltipPosition="bottom"
                 (click)="toggleHelpSidebar()">
             </button>
             <app-language-selector></app-language-selector>
         </div>
 
-        <div class="py-6 px-4 mx-0 md:mx-6 lg:mx-8 lg:px-8 z-2">
+        <div class="py-4 px-4 mx-0 md:mx-6 lg:mx-8 lg:px-8 z-2">
             <div id="home"
-                class="grid grid-nogutter justify-content-between align-items-center mb-6">
+                class="grid grid-nogutter justify-content-between align-items-start mb-6">
                 <div
-                    class="col-12 lg:col-4 flex flex-column gap-4 flex-order-1 md:flex-order-0 align-items-center md:align-items-start text-center md:text-left mb-3">
-                    <span class="block text-900 font-bold text-4xl">{{ 'Welcome' | translate }}!</span>
-                    <span class="block text-700 text-lg">{{ 'conferenceForm.intro.subtitle' | translate }}</span>
-                    <ul class="flex flex-wrap gap-5 list-none p-0">
-                        <li class="flex align-items-center">
-                            <div class="p-1 border-circle bg-green-400 inline-block mr-2"></div>
-                            <span class="text-900 font-semibold">{{ 'conferenceForm.intro.organizerHelp' | translate }}</span>
-                        </li>
-                        <li class="flex align-items-center">
-                            <div class="p-1 border-circle bg-green-400 inline-block mr-2"></div>
-                            <span class="text-900 font-semibold">{{ 'conferenceForm.intro.legalHelp' | translate }}</span>
-                        </li>
-                        <li class="flex align-items-center">
-                            <div class="p-1 border-circle bg-green-400 inline-block mr-2"></div>
-                            <span class="text-900 font-semibold">{{ 'conferenceForm.intro.contactOrganizer' | translate }}!</span>
-                        </li>
-                    </ul>
-                    <span class="block text-700 text-lg">{{ 'conferenceForm.intro.thanks' | translate }}! 😊</span>
+                    class="col-12 lg:col-4 flex flex-column flex-order-1 md:flex-order-0 mb-3 conference-form-intro-column">
+                    <div class="conference-form-intro animation-duration-1000 animation-ease-out" animateEnter="moveinup">
+                        <div class="conference-form-intro__hero">
+                            <span class="conference-form-intro__badge">
+                                <span class="conference-form-intro__badge-label">
+                                    {{ 'conferenceForm.intro.badge' | translate }}
+                                </span>
+                            </span>
+                            <span class="conference-form-intro__welcome-title">{{ 'Welcome' | translate }}!</span>
+                        </div>
+
+                        <div class="conference-form-intro__panel">
+                            <div class="conference-form-intro__panel-header">
+                                <div class="conference-form-intro__panel-title">
+                                    {{ 'conferenceForm.intro.subtitle' | translate }}
+                                </div>
+                                <span class="conference-form-intro__chip">
+                                    <i class="pi pi-clock"></i>
+                                    {{ 'conferenceForm.intro.metaTime' | translate }}
+                                </span>
+                            </div>
+                            <ul class="conference-form-intro__list list-none p-0">
+                                <li class="conference-form-intro__item">
+                                    <div class="conference-form-intro__icon">
+                                        <i class="pi pi-users"></i>
+                                    </div>
+                                    <span class="conference-form-intro__item-text">{{ 'conferenceForm.intro.organizerHelp' | translate }}</span>
+                                </li>
+                                <li class="conference-form-intro__item">
+                                    <div class="conference-form-intro__icon">
+                                        <i class="pi pi-check-circle"></i>
+                                    </div>
+                                    <span class="conference-form-intro__item-text">{{ 'conferenceForm.intro.legalHelp' | translate }}</span>
+                                </li>
+                                <li class="conference-form-intro__item">
+                                    <div class="conference-form-intro__icon">
+                                        <i class="pi pi-comments"></i>
+                                    </div>
+                                    <span class="conference-form-intro__item-text">{{ 'conferenceForm.intro.contactOrganizer' | translate }}!</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="conference-form-intro__footer">
+                            <i class="pi pi-sparkles"></i>
+                            <span class="block text-700 text-lg conference-form-intro__thanks">{{ 'conferenceForm.intro.thanks' | translate }}! 😊</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="col-12 lg:col-7 md:col-12 flex-order-1 md:flex-order-1 mb-6 md:mb-0 border-round">
-                    <div class="card w-full h-full border-round shadow-2 animation-duration-1000 animation-ease-out" animateEnter="moveinright">
-                        <div class="header-panels">
+                    <div class="card conference-form-card w-full h-full border-round shadow-2 animation-duration-1000 animation-ease-out" animateEnter="moveinright">
+                        <div class="header-panels conference-form-card__header">
                             <div class="conference-panel">
                                 <div class="conference-header-row">
                                     <div class="conference-heading">
@@ -78,11 +108,11 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="grid mt-2">
+                        <div class="grid conference-form-card__body">
                             <div class="col-12 lg:col-12 pb-0">
 
                                 <!-- SYSTEM MESSAGE -->
-                                <p-messages></p-messages>
+                                <p-messages *ngIf="showForm"></p-messages>
 
                                 <div
                                     *ngIf="isPaymentConfigurationMissing"
@@ -107,10 +137,61 @@
                                 <div *ngIf="canDisplayRegistrationForm">
 
                                     <!-- Registration form -->
-                                    <form #conferenceFormElement [formGroup]="conferenceForm" (ngSubmit)="onSubmit()" novalidate class="grid formgrid p-fluid">
+                                    <form #conferenceFormElement [formGroup]="conferenceForm" (ngSubmit)="onSubmit()" novalidate class="grid formgrid p-fluid conference-form-grid">
+                                        <div class="col-12 conference-form-test-actions" *ngIf="canUseTestDataFill">
+                                            <button
+                                                pButton
+                                                type="button"
+                                                icon="pi pi-bolt"
+                                                class="p-button-sm p-button-help conference-form-test-actions__button"
+                                                [label]="'conferenceForm.actions.fillTestDataMinor' | translate"
+                                                (click)="fillWithTestData('minor')">
+                                            </button>
+                                            <button
+                                                pButton
+                                                type="button"
+                                                icon="pi pi-bolt"
+                                                class="p-button-sm p-button-help conference-form-test-actions__button"
+                                                [label]="'conferenceForm.actions.fillTestDataAdult' | translate"
+                                                (click)="fillWithTestData('adult')">
+                                            </button>
+                                        </div>
+                                        <div class="col-12 pb-0" *ngIf="testDataMessages.length > 0">
+                                            <p-messages
+                                                [value]="testDataMessages"
+                                                [closable]="true"
+                                                (onClose)="clearTestDataMessages()">
+                                            </p-messages>
+                                        </div>
+                                        <div class="col-12 conference-form-error-summary-wrapper" *ngIf="showInvalidFieldSummary">
+                                            <div
+                                                #invalidSummaryElement
+                                                class="conference-form-error-summary"
+                                                tabindex="-1"
+                                                role="alert"
+                                                aria-live="assertive"
+                                                aria-labelledby="conference-form-error-summary-title">
+                                                <div class="conference-form-error-summary__title" id="conference-form-error-summary-title">
+                                                    {{ 'conferenceForm.validation.summaryTitle' | translate }}
+                                                </div>
+                                                <p class="conference-form-error-summary__text">
+                                                    {{ 'conferenceForm.validation.summaryHint' | translate }}
+                                                </p>
+                                                <ul class="conference-form-error-summary__list list-none m-0 p-0">
+                                                    <li class="conference-form-error-summary__item" *ngFor="let field of invalidFieldItems; trackBy: trackByInvalidFieldKey">
+                                                        <button
+                                                            type="button"
+                                                            class="conference-form-error-summary__link"
+                                                            (click)="jumpToField(field.key, $event)">
+                                                            {{ field.label }}
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
 
                                         <!-- Vezetéknév -->
-                                        <div class="field mb-4 col-12 lg:col-4 md:col-12">
+                                        <div class="field mb-4 col-12 lg:col-4 md:col-12" data-field-key="lastName" [attr.id]="getFieldAnchorId('lastName')">
                                             <label for="lastName" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.lastName' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('lastName') === 'bubble'"
@@ -131,7 +212,7 @@
                                         </div>
 
                                         <!-- Keresztnév -->
-                                        <div class="field mb-4 col-12 lg:col-4 md:col-12" >
+                                        <div class="field mb-4 col-12 lg:col-4 md:col-12" data-field-key="firstName" [attr.id]="getFieldAnchorId('firstName')">
                                             <label for="firstName" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.firstName' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('firstName') === 'bubble'"
@@ -152,7 +233,7 @@
                                         </div>
 
                                         <!-- Neme -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="field mb-4 col-12 lg:col-4" data-field-key="gender" [attr.id]="getFieldAnchorId('gender')">
                                             <label for="gender" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.gender' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('gender') === 'bubble'"
@@ -182,7 +263,7 @@
                                         </div>
 
                                         <!-- Születési dátum -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="field mb-4 col-12 lg:col-4" data-field-key="birthDate" [attr.id]="getFieldAnchorId('birthDate')">
                                             <label for="birthDate" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.birthDate' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('birthDate') === 'bubble'"
@@ -197,6 +278,7 @@
                                                                        formControlName="birthDate"
                                                                        [monthNavigator]="true"
                                                                        [yearNavigator]="true"
+                                                                       [invalid]="!!((birthDate?.dirty || birthDate?.touched) && birthDate?.errors?.['required'])"
                                                                        [defaultDate]="birthDateMax"
                                                                        [minDate]="birthDateMin"
                                                                        [maxDate]="birthDateMax">
@@ -210,7 +292,7 @@
                                         </div>
 
                                         <!-- Állampolgárság -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="field mb-4 col-12 lg:col-4" data-field-key="nationality" [attr.id]="getFieldAnchorId('nationality')">
                                             <label for="nationality" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.nationality' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('nationality') === 'bubble'"
@@ -231,7 +313,7 @@
                                         </div>
 
                                         <!-- Lakóhely - ország -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="field mb-4 col-12 lg:col-4" data-field-key="country" [attr.id]="getFieldAnchorId('country')">
                                             <label for="country" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.residenceCountry' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('country') === 'bubble'"
@@ -252,7 +334,7 @@
                                         </div>
 
                                         <!-- Lakóhely - irányítószám -->
-                                        <div class="field mb-4 col-12 lg:col-4 md:col-12" >
+                                        <div class="field mb-4 col-12 lg:col-4 md:col-12" data-field-key="zipCode" [attr.id]="getFieldAnchorId('zipCode')">
                                             <label for="zipCode" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.residencePostalCode' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('zipCode') === 'bubble'"
@@ -293,7 +375,7 @@
                                         </div>
 
                                         <!-- Email -->
-                                        <div class="field mb-4 col-12 lg:col-4 md:col-12" >
+                                        <div class="field mb-4 col-12 lg:col-4 md:col-12" data-field-key="email" [attr.id]="getFieldAnchorId('email')">
                                             <label for="email" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.email' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('email') === 'bubble'"
@@ -319,7 +401,7 @@
                                         </div>
 
                                         <!-- Telefon -->
-                                        <div class="field mb-4 col-12 lg:col-4 md:col-12" >
+                                        <div class="field mb-4 col-12 lg:col-4 md:col-12" data-field-key="telephone" [attr.id]="getFieldAnchorId('telephone')">
                                             <label for="telephone" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.phone' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('telephone') === 'bubble'"
@@ -331,10 +413,12 @@
                                                     tooltipStyleClass="tooltip"></i>
                                             </label>
                                             <input id="telephone"
+                                                   type="tel"
                                                    pInputText
                                                    formControlName="telephone"
-                                                   (keypress)="onlyAllowNumbers($event)"
-                                                   maxlength="15" />
+                                                   inputmode="tel"
+                                                   autocomplete="tel"
+                                                   maxlength="32" />
                                             <div *ngIf="telephone?.dirty && telephone?.errors?.['required']" class="p-error">
                                                 {{ 'conferenceForm.fields.phone' | translate }} {{ 'conferenceForm.validation.requiredShort' | translate }}
                                             </div>
@@ -344,7 +428,7 @@
                                         </div>
 
                                         <!-- Érkezés dátuma -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="field mb-4 col-12 lg:col-4" data-field-key="dateOfArrival" [attr.id]="getFieldAnchorId('dateOfArrival')">
                                             <label for="dateOfArrival" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.arrivalDate' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('dateOfArrival') === 'bubble'"
@@ -359,7 +443,7 @@
                                                                        formControlName="dateOfArrival"
                                                                        [monthNavigator]="true"
                                                                        [yearNavigator]="true"
-                                                                       [invalid]="!!conferenceForm.errors?.['dateRangeInvalid'] || !!dateOfArrival?.errors?.['dateOutOfRange']"
+                                                                       [invalid]="!!(((dateOfArrival?.dirty || dateOfArrival?.touched) && dateOfArrival?.errors?.['required']) || conferenceForm.errors?.['dateRangeInvalid'] || dateOfArrival?.errors?.['dateOutOfRange'])"
                                                                        [defaultDate]="beginDate"
                                                                        [minDate]="beginDate"
                                                                        [maxDate]="endDate">
@@ -379,7 +463,7 @@
                                         </div>
 
                                         <!-- Első étkezés -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="field mb-4 col-12 lg:col-4" data-field-key="firstMeal" [attr.id]="getFieldAnchorId('firstMeal')">
                                             <label for="firstMeal" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.firstMeal' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('firstMeal') === 'bubble'"
@@ -409,7 +493,7 @@
                                         </div>
 
                                         <!-- Étrend -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="field mb-4 col-12 lg:col-4" data-field-key="diet" [attr.id]="getFieldAnchorId('diet')">
                                             <label for="diet" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.diet' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('diet') === 'bubble'"
@@ -430,7 +514,7 @@
                                         </div>
 
                                         <!-- Távozás dátuma -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="field mb-4 col-12 lg:col-4" data-field-key="dateOfDeparture" [attr.id]="getFieldAnchorId('dateOfDeparture')">
                                             <label for="dateOfDeparture" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.departureDate' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('dateOfDeparture') === 'bubble'"
@@ -445,7 +529,7 @@
                                                                        formControlName="dateOfDeparture"
                                                                        [monthNavigator]="true"
                                                                        [yearNavigator]="true"
-                                                                       [invalid]="!!conferenceForm.errors?.['dateRangeInvalid'] || !!dateOfDeparture?.errors?.['dateOutOfRange']"
+                                                                       [invalid]="!!(((dateOfDeparture?.dirty || dateOfDeparture?.touched) && dateOfDeparture?.errors?.['required']) || conferenceForm.errors?.['dateRangeInvalid'] || dateOfDeparture?.errors?.['dateOutOfRange'])"
                                                                        [defaultDate]="endDate"
                                                                        [minDate]="beginDate"
                                                                        [maxDate]="endDate">
@@ -465,7 +549,7 @@
                                         </div>
 
                                         <!-- Utolsó étkezés -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="field mb-4 col-12 lg:col-4" data-field-key="lastMeal" [attr.id]="getFieldAnchorId('lastMeal')">
                                             <label for="lastMeal" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.lastMeal' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('lastMeal') === 'bubble'"
@@ -495,7 +579,7 @@
                                         </div>
 
                                         <!-- Szobatípus -->
-                                        <div class="field mb-4 col-12 lg:col-8">
+                                        <div class="field mb-4 col-12 lg:col-8" data-field-key="roomType" [attr.id]="getFieldAnchorId('roomType')">
                                             <label for="roomType" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.roomType' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('roomType') === 'bubble'"
@@ -523,7 +607,7 @@
                                         </div>
 
                                         <!-- Babaágyat kérsz? -->
-                                        <div class="field mb-4 col-12 lg:col-4" *ngIf="showBabyBedField">
+                                        <div class="field mb-4 col-12 lg:col-4" *ngIf="showBabyBedField" data-field-key="babyBed" [attr.id]="getFieldAnchorId('babyBed')">
                                             <label for="babyBed" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.babyBed' | translate }}?
                                                 <i *ngIf="getFormFieldInfoPosition('babyBed') === 'bubble'"
@@ -553,7 +637,7 @@
                                         </div>
 
                                         <!-- Kivel laknál egy szobában -->
-                                        <div class="field mb-4 col-12 lg:col-8" *ngIf="needsRoom">
+                                        <div class="field mb-4 col-12 lg:col-8" *ngIf="needsRoom" data-field-key="roomMate" [attr.id]="getFieldAnchorId('roomMate')">
                                             <label for="roomMate" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.roomMate' | translate }}?
                                                 <i *ngIf="getFormFieldInfoPosition('roomMate') === 'bubble'"
@@ -575,10 +659,7 @@
                                                 </ng-template>
                                             </p-chips>
                                             <small id="roomMate-help">
-                                                {{ 'conferenceForm.helper.roomMateName' | translate }}.
-                                            </small>
-                                            <small id="roomMate-help">
-                                                {{ 'conferenceForm.helper.roomMateComma' | translate }}.
+                                                {{ 'conferenceForm.helper.roomMateCombined' | translate }}
                                             </small>
                                             <small *ngIf="getFormFieldInfoPosition('roomMate') === 'text' && getFormFieldInfo('roomMate')" id="roomMate-info">
                                                 {{ getFormFieldInfo('roomMate') }}
@@ -586,7 +667,7 @@
                                         </div>
 
                                         <!-- Fizetési mód -->
-                                        <div class="field mb-4 col-12 lg:col-4">
+                                        <div class="field mb-4 col-12 lg:col-4" data-field-key="payment" [attr.id]="getFieldAnchorId('payment')">
                                             <label for="payment" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.paymentMethod' | translate }}
                                                 <i *ngIf="getFormFieldInfoPosition('payment') === 'bubble'"
@@ -623,7 +704,7 @@
                                         <div formArrayName="answers" class="field col-12 mb-0">
                                             <div *ngFor="let answer of answers.controls; let i = index">
                                                 <ng-container *ngIf="getTranslatedQuestion(i) as tq">
-                                                    <div class="mb-4">
+                                                    <div class="mb-4" [attr.data-field-key]="'answers:' + i" [attr.id]="getFieldAnchorId('answers:' + i)">
                                                         <label class="font-medium text-900">
                                                             {{ tq.question }}
                                                         </label>
@@ -641,7 +722,7 @@
                                         </div>
 
                                         <!-- Személyi igazolvány -->
-                                        <div *ngIf="showIdCardField" class="field mb-4 col-12 lg:col-12">
+                                        <div *ngIf="showIdCardField" class="field mb-4 col-12 lg:col-12" data-field-key="idCard" [attr.id]="getFieldAnchorId('idCard')">
                                             <label for="idCard" class="font-medium text-900">
                                                 {{ 'conferenceForm.fields.idCardBack' | translate }}
                                                 <i [pTooltip]="idCardBackTooltipHtml"
@@ -668,63 +749,97 @@
                                         </div>
 
                                         <!-- Adatvédelem + Felhasználói feltételek -->
-                                        <div class="field mb-4 col-12">
-                                            <p-checkbox formControlName="privacy" [binary]="true" inputId="privacy"></p-checkbox>
-                                            <span class="ml-2">
-                                                {{ 'conferenceForm.privacy.acceptPrefix' | translate }}
-                                                <a class="cursor-pointer text-primary-700"
-                                                    href="https://www.zichy-vajta.com/gdpr"
-                                                    target="_blank">
-                                                    {{ 'conferenceForm.privacy.dataPolicy' | translate }}
-                                                </a>
-                                                <span *ngIf="conference?.acceptanceCriteriaUrl?.length">
-                                                    {{ 'conferenceForm.privacy.andAcceptance' | translate }}
-                                                    <a class="cursor-pointer text-primary-700 "
+                                        <div class="field mb-4 col-12" data-field-key="privacy" [attr.id]="getFieldAnchorId('privacy')">
+                                            <div class="conference-form-privacy">
+                                                <div class="conference-form-privacy__header">
+                                                    <div class="conference-form-privacy__title">
+                                                        {{ 'conferenceForm.privacy.sectionTitle' | translate }}
+                                                    </div>
+                                                    <p class="conference-form-privacy__hint">
+                                                        {{ 'conferenceForm.privacy.sectionHint' | translate }}
+                                                    </p>
+                                                </div>
+
+                                                <div class="conference-form-privacy__links">
+                                                    <a class="conference-form-privacy__link"
+                                                        href="https://www.zichy-vajta.com/gdpr"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer">
+                                                        {{ 'conferenceForm.privacy.dataPolicy' | translate }}
+                                                    </a>
+                                                    <a *ngIf="conference?.acceptanceCriteriaUrl?.length"
+                                                        class="conference-form-privacy__link"
                                                         [href]="conference.acceptanceCriteriaUrl"
-                                                        target="_blank">
+                                                        target="_blank"
+                                                        rel="noopener noreferrer">
                                                         {{ 'conferenceForm.privacy.acceptanceStatement' | translate }}
                                                     </a>
-                                                </span>
-                                                <span>
-                                                    {{ 'conferenceForm.privacy.andHouseRules' | translate }}
-                                                    <a class="cursor-pointer text-primary-700 "
+                                                    <a class="conference-form-privacy__link"
                                                         href="https://www.zichy-vajta.com/hazirend"
-                                                        target="_blank">
+                                                        target="_blank"
+                                                        rel="noopener noreferrer">
                                                         {{ 'conferenceForm.privacy.houseRules' | translate }}
                                                     </a>
-                                                </span>
-                                            </span>
+                                                </div>
+
+                                                <div class="conference-form-privacy__consent">
+                                                    <p-checkbox formControlName="privacy" [binary]="true" inputId="privacy"></p-checkbox>
+                                                    <label for="privacy" class="conference-form-privacy__consent-label">
+                                                        {{ 'conferenceForm.privacy.consentLabel' | translate }}
+                                                    </label>
+                                                </div>
+                                            </div>
                                             <div *ngIf="privacy?.dirty && (privacy?.errors?.['required'] || privacy?.errors?.['requiredTrue'])" class="p-error">
                                                 {{ 'conferenceForm.validation.privacyRequired' | translate }}!
                                             </div>
                                         </div>
 
                                         <!-- SUBMIT -->
-                                        <div class="field col-12 mb-2" *ngIf="conferenceForm.invalid && hasInteractedWithForm && incompleteFieldSummary">
-                                            <small class="p-error block" role="alert">
-                                                {{ 'conferenceForm.validation.completeRequiredFields' | translate }}
-                                                {{ incompleteFieldSummary }}
+                                        <div class="col-12 conference-form-submit-bar">
+                                            <button pButton
+                                                    pRipple
+                                                    type="submit"
+                                                    class="conference-form-submit-bar__button"
+                                                    [icon]="loading ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
+                                                    [label]="(loading ? 'conferenceForm.actions.submitting' : 'conferenceForm.actions.submit') | translate"
+                                                    [loading]="loading"
+                                                    [disabled]="loading">
+                                            </button>
+                                            <small *ngIf="loading" class="conference-form-submit-bar__progress">
+                                                {{ 'conferenceForm.messages.savingInProgress' | translate }}
                                             </small>
                                         </div>
-                                        <p-button type="submit"
-                                                  class="white-space-nowrap ml-3"
-                                                  icon="pi pi-check"
-                                                  label="{{ 'conferenceForm.actions.submit' | translate }}"
-                                                  [loading]="loading"
-                                                  [disabled]="loading">
-                                        </p-button>
                                     </form>
                                 </div>
 
                                 <!-- New registration -->
                                 <div *ngIf="canAccessConferenceForm && !showForm && !isPaymentConfigurationMissing"
-                                     class="flex col-12 align-items-center justify-content-center">
+                                     class="col-12 px-0 conference-form-result">
+                                    <div
+                                        *ngIf="submissionFeedback as feedback"
+                                        #submissionFeedbackElement
+                                        class="conference-form-result__panel"
+                                        [class.conference-form-result__panel--warn]="feedback.severity === 'warn'">
+                                        <div class="conference-form-result__icon">
+                                            <i
+                                                class="pi"
+                                                [class.pi-check]="feedback.severity === 'success'"
+                                                [class.pi-exclamation-triangle]="feedback.severity === 'warn'">
+                                            </i>
+                                        </div>
+                                        <div class="conference-form-result__content">
+                                            <div class="conference-form-result__title">{{ feedback.summary }}</div>
+                                            <p class="conference-form-result__detail">{{ feedback.detail }}</p>
+                                        </div>
+                                    </div>
 
-                                     <p-button class="white-space-nowrap mt-3"
-                                               icon="pi pi-plus"
-                                               label="{{ 'conferenceForm.actions.newRegistration' | translate }}"
-                                               (onClick)="newRegistration()">
-                                    </p-button>
+                                    <div class="conference-form-result__actions">
+                                        <p-button class="white-space-nowrap"
+                                                  icon="pi pi-plus"
+                                                  label="{{ 'conferenceForm.actions.newRegistration' | translate }}"
+                                                  (onClick)="newRegistration()">
+                                        </p-button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -791,7 +906,8 @@
     [(visible)]="helpSidebarVisible"
     position="right"
     [baseZIndex]="1000"
-    styleClass="p-sidebar-md"
+    [fullScreen]="isMobile"
+    styleClass="p-sidebar-md conference-form-help-sidebar"
     (onHide)="closeHelpSidebar()">
     <ng-template pTemplate="header">
         <div class="flex align-items-center gap-2">
@@ -812,6 +928,3 @@
     </div>
 
 </p-sidebar>
-
-<!-- Notifications -->
-<p-toast></p-toast>

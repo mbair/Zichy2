@@ -33,6 +33,7 @@ import { AnswerService } from '../../service/answer.service';
 import { GuestService } from '../../service/guest.service';
 import { UserService } from '../../service/user.service';
 import { SessionService } from '../../service/session.service';
+import { ResponsiveService } from '../../service/responsive.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Conference, FormFieldInfo } from '../../api/conference';
 import { Answer } from '../../api/answer';
@@ -50,7 +51,23 @@ import {
     normalizeQuestionTranslations,
 } from '../../utils/question-set.utils';
 import { resolveConferenceFormAllowedRoomTypeIds } from '../../utils/conference-room-type.utils';
-import { isNoAccommodationRoomTypeValue } from '../../utils/room-type.utils';
+import {
+    getRoomTypeOptions,
+    isNoAccommodationRoomTypeValue,
+    NO_ACCOMMODATION_ROOM_TYPE_VALUE,
+} from '../../utils/room-type.utils';
+
+type InvalidFieldItem = {
+    key: string;
+    label: string;
+};
+
+type TestDataPreset = 'minor' | 'adult';
+type SubmissionFeedback = {
+    severity: 'success' | 'warn';
+    summary: string;
+    detail: string;
+};
 
 // Google Analytics
 declare let gtag: Function;
@@ -67,6 +84,10 @@ declare let gtag: Function;
 export class ConferenceFormComponent implements OnInit {
     @ViewChild('conferenceFormElement')
     private conferenceFormElement?: ElementRef<HTMLFormElement>;
+    @ViewChild('invalidSummaryElement')
+    private invalidSummaryElement?: ElementRef<HTMLElement>;
+    @ViewChild('submissionFeedbackElement')
+    private submissionFeedbackElement?: ElementRef<HTMLElement>;
     @ViewChild('roomMateChips') private roomMateChips?: Chips;
     loading: boolean = false; // Loading overlay trigger value
     currentLang: string; // Current language
@@ -79,6 +100,7 @@ export class ConferenceFormComponent implements OnInit {
     showForm: boolean = true; // Show or hide form
     registrationEnded: boolean = false; // Registration ended
     darkMode: boolean = false; // Dark mode
+    isMobile: boolean = false; // Mobile screen detection
     showIdCardField: boolean = false; // IdCard field visibility
     showBabyBedField: boolean = false; // Baby bed field visibility
     szepCardMessage: Message[]; // Message for szep card payment
@@ -92,7 +114,12 @@ export class ConferenceFormComponent implements OnInit {
     allowedConferenceRoomTypeIds: number[] | null | undefined = undefined;
     helpSidebarVisible = false;
     helpSidebarContent: HelpSidebarContent = HELP_SIDEBAR_CONTENT.conferenceForm;
+    testDataMessages: Message[] = [];
+    submissionFeedback: SubmissionFeedback | null = null;
     private guestCreatedForCurrentSubmission: boolean = false;
+    private hasAttemptedSubmit: boolean = false;
+    private highlightedFieldElement: HTMLElement | null = null;
+    private fieldHighlightTimeoutId: number | null = null;
 
     private guestServiceMessageObs$: Observable<any>;
     private answerServiceMessageObs$: Observable<any>;
@@ -113,6 +140,7 @@ export class ConferenceFormComponent implements OnInit {
         private answerService: AnswerService,
         private guestService: GuestService,
         private sessionService: SessionService,
+        private responsiveService: ResponsiveService,
         private formBuilder: FormBuilder,
         private translate: TranslateService,
         private languageService: LanguageService,
@@ -183,6 +211,12 @@ export class ConferenceFormComponent implements OnInit {
         this.subs.add(
             this.userService.getUserRole().subscribe((role) => {
                 this.currentUserRole = role || 'No Role';
+            }),
+        );
+
+        this.subs.add(
+            this.responsiveService.isMobile$.subscribe((isMobile) => {
+                this.isMobile = isMobile;
             }),
         );
 
@@ -465,6 +499,8 @@ export class ConferenceFormComponent implements OnInit {
                     }
 
                     this.loading = false;
+                    this.resetSubmissionState();
+                    this.saveSuccess();
                 },
             ),
         );
@@ -478,19 +514,9 @@ export class ConferenceFormComponent implements OnInit {
                 // If message is a Toast
                 if (message?.severity) {
                     this.messageService.add(message);
-                    const hasSeparateAnswerSave =
-                        !!this.getCurrentQuestionSet()?.id &&
-                        this.getVisibleQuestionTranslations().length > 0;
                     if (message.summary === 'Vendég rögzítés sikertelen') {
                         this.loading = false;
                         this.resetSubmissionState();
-                    } else if (
-                        message.summary === 'Vendég rögzítve' &&
-                        !hasSeparateAnswerSave
-                    ) {
-                        this.loading = false;
-                        this.resetSubmissionState();
-                        this.saveSuccess();
                     }
                     return;
                 }
@@ -679,6 +705,12 @@ export class ConferenceFormComponent implements OnInit {
             this.canOrganizerFillUntilGuestEditDeadline
         );
     }
+    get canUseTestDataFill(): boolean {
+        return (
+            this.currentUserRole === 'Super Admin' &&
+            this.sessionService.hasActiveSessionSnapshot()
+        );
+    }
     get acceptanceCriteriaUrl() {
         return this.conferenceForm.get('acceptanceCriteriaUrl');
     }
@@ -839,10 +871,6 @@ export class ConferenceFormComponent implements OnInit {
         return this.conferenceForm.get('answers') as FormArray;
     }
 
-    get hasInteractedWithForm(): boolean {
-        return this.conferenceForm.dirty || this.conferenceForm.touched;
-    }
-
     get incompleteFieldSummary(): string {
         const invalidFields = this.getInvalidFieldLabels();
         if (invalidFields.length === 0) {
@@ -860,6 +888,22 @@ export class ConferenceFormComponent implements OnInit {
         );
 
         return `${invalidFields.slice(0, 5).join(', ')}, ${remainingText}`;
+    }
+
+    get invalidFieldItems(): InvalidFieldItem[] {
+        return this.getInvalidFieldItems();
+    }
+
+    get showInvalidFieldSummary(): boolean {
+        return (
+            this.hasAttemptedSubmit &&
+            this.conferenceForm.invalid &&
+            this.invalidFieldItems.length > 0
+        );
+    }
+
+    trackByInvalidFieldKey(index: number, item: InvalidFieldItem): string {
+        return item.key;
     }
 
     private getCurrentQuestionSet() {
@@ -1104,7 +1148,10 @@ export class ConferenceFormComponent implements OnInit {
         }
 
         this.messageService.clear();
+        this.clearTestDataMessages();
+        this.submissionFeedback = null;
         this.resetSubmissionState();
+        this.hasAttemptedSubmit = true;
         this.commitPendingRoomMateDraft();
         this.normalizeRoomMateControlValue();
         this.normalizeSubmissionValues();
@@ -1177,16 +1224,117 @@ export class ConferenceFormComponent implements OnInit {
 
             this.guestService.create(guestData, files);
         } else {
-            const invalidFields = this.getInvalidFieldLabels();
-            this.emitInvalidSubmitTelemetry(invalidFields);
-            setTimeout(() => this.focusFirstInvalidField());
-
-            this.messageService.add({
-                severity: 'error',
-                summary: this.translate.instant('Hiba!'),
-                detail: `${this.translate.instant('conferenceForm.validation.formIncomplete')} ${this.translate.instant('conferenceForm.validation.invalidFieldsPrefix')}: ${invalidFields.join(', ')}`,
-            });
+            const invalidFields = this.getInvalidFieldItems();
+            this.emitInvalidSubmitTelemetry(
+                invalidFields.map((field) => field.label),
+            );
+            setTimeout(() => this.focusInvalidSummary());
         }
+    }
+
+    fillWithTestData(preset: TestDataPreset): void {
+        if (!this.canUseTestDataFill || this.loading) {
+            return;
+        }
+
+        const paymentId = this.allowedPaymentMethodIds?.find((value) =>
+            Number.isFinite(Number(value)),
+        );
+        if (!Number.isFinite(paymentId)) {
+            this.messageService.clear();
+            this.messageService.add({
+                severity: 'warn',
+                summary: this.translate.instant(
+                    'conferenceForm.notices.paymentConfigurationMissingTitle',
+                ),
+                detail: this.translate.instant(
+                    'conferenceForm.notices.paymentConfigurationMissingDetail',
+                ),
+            });
+            return;
+        }
+
+        const now = new Date();
+        const arrivalDate = this.getTestArrivalDate(now);
+        const departureDate = this.getTestDepartureDate(arrivalDate);
+        const firstMeal = this.getTestFirstMeal(arrivalDate);
+        const lastMeal = this.getTestLastMeal(arrivalDate, departureDate, firstMeal);
+        const isMinorPreset = preset === 'minor';
+        const testRoomType = this.getTestRoomTypeValue(preset);
+        const testBirthDate = isMinorPreset
+            ? new Date(now.getFullYear() - 10, 5, 15)
+            : new Date(now.getFullYear() - 28, 5, 15);
+        const emailSeed = `${now.getFullYear()}${String(
+            now.getMonth() + 1,
+        ).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(
+            now.getHours(),
+        ).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(
+            now.getSeconds(),
+        ).padStart(2, '0')}`;
+        const answersArray = this.answers;
+
+        this.messageService.clear();
+        this.clearTestDataMessages();
+        this.submissionFeedback = null;
+        this.resetSubmissionState();
+        this.hasAttemptedSubmit = false;
+
+        this.conferenceForm.patchValue({
+            lastName: 'Teszt',
+            firstName: isMinorPreset
+                ? `Kiskoru ${emailSeed.slice(-4)}`
+                : `Felnott ${emailSeed.slice(-4)}`,
+            gender: '1',
+            birthDate: testBirthDate,
+            nationality: 'HU',
+            country: 'Hungary',
+            zipCode: '1234',
+            email: `superadmin.test+${emailSeed}@example.com`,
+            telephone: '+36123456789',
+            dateOfArrival: arrivalDate,
+            firstMeal,
+            diet: 'normál',
+            dateOfDeparture: departureDate,
+            lastMeal,
+            roomType: testRoomType,
+            roomMate: null,
+            payment: Number(paymentId),
+            babyBed: null,
+            idCard: null,
+            privacy: true,
+        });
+
+        answersArray.controls.forEach((answerControl, index) => {
+            answerControl.setValue(this.getTestAnswerValue(index), {
+                emitEvent: false,
+            });
+        });
+
+        this.normalizeRoomMateControlValue(null);
+        this.updateIdCardVisibility();
+        this.updateBabyBedVisibility();
+        this.conferenceForm.updateValueAndValidity({ emitEvent: false });
+        this.resetControlInteractionState(this.conferenceForm);
+        this.cdRef.detectChanges();
+
+        this.testDataMessages = [
+            {
+                severity: 'info',
+                summary: this.translate.instant(
+                    'conferenceForm.messages.testDataLoadedSummary',
+                ),
+                detail: this.translate.instant(
+                    'conferenceForm.messages.testDataLoadedDetail',
+                    {
+                        preset: this.translate.instant(
+                            isMinorPreset
+                                ? 'conferenceForm.actions.fillTestDataMinor'
+                                : 'conferenceForm.actions.fillTestDataAdult',
+                        ),
+                    },
+                ),
+            },
+        ];
     }
 
     /**
@@ -1194,8 +1342,9 @@ export class ConferenceFormComponent implements OnInit {
      * Hides the form and displays a success message to the user.
      */
     saveSuccess() {
+        this.messageService.clear();
         this.showForm = false;
-        this.messageService.add({
+        this.submissionFeedback = {
             severity: 'success',
             summary: this.translate.instant(
                 'conferenceForm.messages.saveSuccessSummary',
@@ -1203,7 +1352,8 @@ export class ConferenceFormComponent implements OnInit {
             detail: this.translate.instant(
                 'conferenceForm.messages.saveSuccessDetail',
             ),
-        });
+        };
+        setTimeout(() => this.scrollToSubmissionFeedback(), 0);
     }
 
     /**
@@ -1223,8 +1373,9 @@ export class ConferenceFormComponent implements OnInit {
     }
 
     private savePartialSuccess(detail?: string) {
+        this.messageService.clear();
         this.showForm = false;
-        this.messageService.add({
+        this.submissionFeedback = {
             severity: 'warn',
             summary: this.translate.instant(
                 'conferenceForm.messages.savePartialSummary',
@@ -1234,7 +1385,8 @@ export class ConferenceFormComponent implements OnInit {
                 this.translate.instant(
                     'conferenceForm.messages.savePartialDetail',
                 ),
-        });
+        };
+        setTimeout(() => this.scrollToSubmissionFeedback(), 0);
     }
 
     private extractErrorMessage(message: any): string {
@@ -1260,7 +1412,10 @@ export class ConferenceFormComponent implements OnInit {
     newRegistration() {
         this.showForm = true;
         this.resetSubmissionState();
+        this.hasAttemptedSubmit = false;
         this.messageService.clear();
+        this.clearTestDataMessages();
+        this.submissionFeedback = null;
 
         // Reset form state
         this.conferenceForm.reset();
@@ -1270,17 +1425,6 @@ export class ConferenceFormComponent implements OnInit {
         answersArray.clear();
 
         this.getConferenceBySlug();
-    }
-
-    /**
-     * Keypress monitor
-     * @param event
-     */
-    onlyAllowNumbers(event: KeyboardEvent) {
-        const allowedKeys = /[0-9+]/;
-        if (!allowedKeys.test(event.key)) {
-            event.preventDefault();
-        }
     }
 
     /**
@@ -1508,6 +1652,112 @@ export class ConferenceFormComponent implements OnInit {
         return value.replace(/\u00A0/g, ' ').trim();
     }
 
+    private getTestArrivalDate(referenceDate: Date): Date {
+        if (this.beginDate) {
+            return new Date(this.beginDate);
+        }
+
+        return new Date(
+            referenceDate.getFullYear(),
+            referenceDate.getMonth(),
+            referenceDate.getDate(),
+        );
+    }
+
+    private getTestDepartureDate(arrivalDate: Date): Date {
+        if (!this.endDate) {
+            return new Date(arrivalDate);
+        }
+
+        const endDate = new Date(this.endDate);
+        return endDate.getTime() >= arrivalDate.getTime()
+            ? endDate
+            : new Date(arrivalDate);
+    }
+
+    private getTestFirstMeal(arrivalDate: Date): string {
+        if (isSameDay(arrivalDate, this.beginDate)) {
+            return this.normalizeMealValue(this.conference?.firstMeal, 'reggeli');
+        }
+
+        return 'reggeli';
+    }
+
+    private getTestLastMeal(
+        arrivalDate: Date,
+        departureDate: Date,
+        firstMeal: string,
+    ): string {
+        const fallbackLastMeal = isSameDay(departureDate, this.endDate)
+            ? this.normalizeMealValue(this.conference?.lastMeal, 'vacsora')
+            : 'vacsora';
+
+        if (!isSameDay(arrivalDate, departureDate)) {
+            return fallbackLastMeal;
+        }
+
+        const mealOrder = ['reggeli', 'ebéd', 'vacsora'];
+        const firstMealIndex = mealOrder.indexOf(firstMeal);
+        const lastMealIndex = mealOrder.indexOf(fallbackLastMeal);
+
+        if (
+            firstMealIndex !== -1 &&
+            lastMealIndex !== -1 &&
+            lastMealIndex < firstMealIndex
+        ) {
+            return firstMeal;
+        }
+
+        return fallbackLastMeal;
+    }
+
+    private normalizeMealValue(
+        mealValue: string | null | undefined,
+        fallback: string,
+    ): string {
+        const allowedMeals = new Set(['reggeli', 'ebéd', 'vacsora']);
+        return mealValue && allowedMeals.has(mealValue) ? mealValue : fallback;
+    }
+
+    private getTestRoomTypeValue(preset: TestDataPreset): string {
+        if (preset === 'minor') {
+            return NO_ACCOMMODATION_ROOM_TYPE_VALUE;
+        }
+
+        const allowedRoomTypeIds = Array.isArray(this.allowedConferenceRoomTypeIds)
+            ? new Set(
+                  this.allowedConferenceRoomTypeIds
+                      .map((value) => Number(value))
+                      .filter((value) => Number.isFinite(value)),
+              )
+            : null;
+
+        const firstAccommodationOption = getRoomTypeOptions(this.translate).find(
+            (roomType) =>
+                roomType.id !== 0 &&
+                !isNoAccommodationRoomTypeValue(roomType.value, this.translate) &&
+                (!allowedRoomTypeIds || allowedRoomTypeIds.has(roomType.id)),
+        );
+
+        return firstAccommodationOption?.value ?? NO_ACCOMMODATION_ROOM_TYPE_VALUE;
+    }
+
+    private getTestAnswerValue(index: number): string {
+        const prefix = this.currentLang === 'en' ? 'Test answer' : 'Teszt válasz';
+        return `${prefix} ${index + 1}`;
+    }
+
+    private resetControlInteractionState(control: AbstractControl): void {
+        control.markAsPristine();
+        control.markAsUntouched();
+
+        if (control instanceof FormGroup || control instanceof FormArray) {
+            Object.values(control.controls).forEach((childControl) => {
+                this.resetControlInteractionState(childControl);
+            });
+        }
+    }
+
     private emitInvalidSubmitTelemetry(invalidFields: string[]): void {
         const conferenceName = this.conference?.name || 'ismeretlen_konferencia';
         const telemetryPayload = {
@@ -1531,23 +1781,56 @@ export class ConferenceFormComponent implements OnInit {
 
     private focusFirstInvalidField(): void {
         const fieldKey = this.getFirstInvalidFieldKey();
+        this.focusField(fieldKey);
+    }
+
+    jumpToField(fieldKey: string | null, event?: Event): void {
+        event?.preventDefault();
+
+        this.focusField(fieldKey);
+    }
+
+    getFieldAnchorId(fieldKey: string): string {
+        return `conference-form-field-${fieldKey.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+    }
+
+    focusField(fieldKey: string | null): void {
         if (!fieldKey) {
             return;
         }
 
         const formElement = this.conferenceFormElement?.nativeElement;
+        const fieldContainer = this.findFieldContainerForField(
+            fieldKey,
+            formElement,
+        );
         const target = this.findFocusableElementForField(fieldKey, formElement);
-        if (!target) {
+        const scrollTarget = fieldContainer ?? target;
+
+        if (!scrollTarget) {
             return;
         }
 
-        target.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-            inline: 'nearest',
-        });
+        this.scrollElementIntoView(scrollTarget, 132);
+        this.highlightFieldContainer(fieldContainer ?? scrollTarget);
 
-        target.focus?.();
+        if (target) {
+            window.setTimeout(() => {
+                target.focus?.({ preventScroll: true });
+            }, 260);
+        }
+    }
+
+    private focusInvalidSummary(): void {
+        const summaryElement = this.invalidSummaryElement?.nativeElement;
+        if (!summaryElement) {
+            this.focusFirstInvalidField();
+            return;
+        }
+
+        this.scrollElementIntoView(summaryElement, 24);
+
+        summaryElement.focus();
     }
 
     private getFirstInvalidFieldKey(): string | null {
@@ -1588,6 +1871,14 @@ export class ConferenceFormComponent implements OnInit {
             return null;
         }
 
+        const fieldContainer = this.findFieldContainerForField(
+            fieldKey,
+            formElement,
+        );
+        if (fieldContainer) {
+            return this.resolveFocusableElement(fieldContainer);
+        }
+
         const fieldSelectorMap: Record<string, string> = {
             lastName: '#lastName',
             firstName: '#firstName',
@@ -1615,9 +1906,15 @@ export class ConferenceFormComponent implements OnInit {
         if (fieldKey.startsWith('answers:')) {
             const answerIndex = fieldKey.split(':')[1] || '0';
             return (
+                this.resolveFocusableElement(
+                    formElement.querySelector<HTMLElement>(
+                        `[data-field-key="answers:${answerIndex}"]`,
+                    ),
+                ) ??
                 formElement.querySelector<HTMLElement>(
                     `input[formcontrolname="${answerIndex}"]`,
-                ) ?? null
+                ) ??
+                null
             );
         }
 
@@ -1628,6 +1925,19 @@ export class ConferenceFormComponent implements OnInit {
 
         const hostElement = formElement.querySelector<HTMLElement>(selector);
         return this.resolveFocusableElement(hostElement);
+    }
+
+    private findFieldContainerForField(
+        fieldKey: string,
+        formElement?: HTMLElement,
+    ): HTMLElement | null {
+        if (!formElement) {
+            return null;
+        }
+
+        return formElement.querySelector<HTMLElement>(
+            `[data-field-key="${fieldKey}"]`,
+        );
     }
 
     private resolveFocusableElement(
@@ -1655,6 +1965,86 @@ export class ConferenceFormComponent implements OnInit {
                 ].join(','),
             ) ?? hostElement
         );
+    }
+
+    private scrollElementIntoView(
+        element: HTMLElement,
+        topOffset: number = 96,
+    ): void {
+        const scrollContainer = this.getClosestScrollContainer(element);
+        const elementRect = element.getBoundingClientRect();
+
+        if (scrollContainer) {
+            const containerRect = scrollContainer.getBoundingClientRect();
+            const targetTop =
+                scrollContainer.scrollTop +
+                (elementRect.top - containerRect.top) -
+                topOffset;
+
+            scrollContainer.scrollTo({
+                top: Math.max(0, targetTop),
+                behavior: 'smooth',
+            });
+            return;
+        }
+
+        const targetTop = window.scrollY + elementRect.top - topOffset;
+        window.scrollTo({
+            top: Math.max(0, targetTop),
+            behavior: 'smooth',
+        });
+    }
+
+    private getClosestScrollContainer(element: HTMLElement): HTMLElement | null {
+        let current: HTMLElement | null = element.parentElement;
+
+        while (current) {
+            const style = window.getComputedStyle(current);
+            const overflowY = style.overflowY;
+            const isScrollable =
+                (overflowY === 'auto' || overflowY === 'scroll') &&
+                current.scrollHeight > current.clientHeight;
+
+            if (isScrollable) {
+                return current;
+            }
+
+            current = current.parentElement;
+        }
+
+        return null;
+    }
+
+    private highlightFieldContainer(element: HTMLElement): void {
+        const highlightTarget =
+            element.closest<HTMLElement>('[data-field-key]') ?? element;
+
+        if (this.highlightedFieldElement) {
+            this.highlightedFieldElement.classList.remove(
+                'conference-form-field-highlighted',
+            );
+        }
+
+        if (this.fieldHighlightTimeoutId !== null) {
+            window.clearTimeout(this.fieldHighlightTimeoutId);
+        }
+
+        highlightTarget.classList.remove('conference-form-field-highlighted');
+        void highlightTarget.offsetWidth;
+        highlightTarget.classList.add('conference-form-field-highlighted');
+        this.highlightedFieldElement = highlightTarget;
+
+        this.fieldHighlightTimeoutId = window.setTimeout(() => {
+            highlightTarget.classList.remove(
+                'conference-form-field-highlighted',
+            );
+
+            if (this.highlightedFieldElement === highlightTarget) {
+                this.highlightedFieldElement = null;
+            }
+
+            this.fieldHighlightTimeoutId = null;
+        }, 1800);
     }
 
     private getRoomMateInputElement(): HTMLInputElement | null {
@@ -1704,9 +2094,17 @@ export class ConferenceFormComponent implements OnInit {
         };
     }
 
-    private getInvalidFieldLabels(): string[] {
+    private getInvalidFieldItems(): InvalidFieldItem[] {
         const translatedFieldNames = this.getTranslatedFieldNames();
-        const invalidFields: string[] = [];
+        const invalidFields: InvalidFieldItem[] = [];
+        const seenKeys = new Set<string>();
+        const pushField = (key: string, label: string) => {
+            if (seenKeys.has(key)) {
+                return;
+            }
+            seenKeys.add(key);
+            invalidFields.push({ key, label });
+        };
 
         Object.keys(this.conferenceForm.controls).forEach((key) => {
             const control = this.conferenceForm.get(key);
@@ -1721,19 +2119,20 @@ export class ConferenceFormComponent implements OnInit {
                         const questionText =
                             this.getTranslatedQuestion(idx)?.question ||
                             fallbackQuestion;
-                        invalidFields.push(questionText);
+                        pushField(`answers:${idx}`, questionText);
                     }
                 });
                 return;
             }
 
             if (control?.invalid) {
-                invalidFields.push(translatedFieldNames[key] || key);
+                pushField(key, translatedFieldNames[key] || key);
             }
         });
 
         if (this.conferenceForm.errors?.['dateRangeInvalid']) {
-            invalidFields.push(
+            pushField(
+                'dateOfArrival',
                 this.translate.instant(
                     'conferenceForm.validation.arrivalDepartureDates',
                 ),
@@ -1741,14 +2140,19 @@ export class ConferenceFormComponent implements OnInit {
         }
 
         if (this.conferenceForm.errors?.['mealOrderInvalid']) {
-            invalidFields.push(
+            pushField(
+                'firstMeal',
                 this.translate.instant(
                     'conferenceForm.validation.mealOrderLabel',
                 ),
             );
         }
 
-        return [...new Set(invalidFields)];
+        return invalidFields;
+    }
+
+    private getInvalidFieldLabels(): string[] {
+        return this.getInvalidFieldItems().map((field) => field.label);
     }
 
     /**
@@ -1883,6 +2287,33 @@ export class ConferenceFormComponent implements OnInit {
         this.helpSidebarVisible = false;
     }
 
+    clearTestDataMessages(): void {
+        this.testDataMessages = [];
+    }
+
+    private scrollToSubmissionFeedback(): void {
+        const feedbackElement = this.submissionFeedbackElement?.nativeElement;
+        if (!feedbackElement) {
+            return;
+        }
+
+        this.scrollElementToViewportCenter(feedbackElement);
+    }
+
+    private scrollElementToViewportCenter(element: HTMLElement): void {
+        const elementRect = element.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const targetTop =
+            window.scrollY +
+            elementRect.top -
+            Math.max(24, (viewportHeight - elementRect.height) / 2);
+
+        window.scrollTo({
+            top: Math.max(0, targetTop),
+            behavior: 'smooth',
+        });
+    }
+
     /**
      * Switches the theme to the given one.
      * @param theme The name of the theme to switch to.
@@ -1939,6 +2370,14 @@ export class ConferenceFormComponent implements OnInit {
         this.conferenceForm.reset();
         const answersArray = this.conferenceForm.get('answers') as FormArray;
         answersArray.clear();
+
+        if (this.fieldHighlightTimeoutId !== null) {
+            window.clearTimeout(this.fieldHighlightTimeoutId);
+        }
+
+        this.highlightedFieldElement?.classList.remove(
+            'conference-form-field-highlighted',
+        );
 
         // Clean up
         this.subs.unsubscribe();

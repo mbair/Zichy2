@@ -226,11 +226,11 @@ export class GuestService {
                     // server returns { guest, email }
                     this.createdGuest$.next(response.guest)
 
-                    const regToast = this.registrationToast(response.guest)
                     const emailToast = this.emailStatusToast(response.email)
 
-                    this.message$.next(regToast)
-                    this.message$.next(emailToast)
+                    if (emailToast) {
+                        this.message$.next(emailToast)
+                    }
                 },
                 error: (error: any) => {
                     const errToast: ToastMsg = {
@@ -367,23 +367,18 @@ export class GuestService {
         }
     }
 
-    private emailStatusToast(email?: EmailStatus): ToastMsg {
+    private emailStatusToast(email?: EmailStatus): ToastMsg | null {
         if (!email) {
-            return { severity: 'warn', summary: 'E-mail', detail: 'A visszaigazoló e-mail státusza ismeretlen.' };
+            return null;
         }
         switch (email.status) {
-            case 'queued': return { severity: 'info', summary: 'E-mail', detail: 'A visszaigazoló e-mail küldésre vár.' };
-            case 'processing': return { severity: 'info', summary: 'E-mail', detail: 'A visszaigazoló e-mail küldése folyamatban van.' };
-            case 'sent': return { severity: 'success', summary: 'E-mail', detail: 'A visszaigazoló e-mail sikeresen elküldve.' };
-            case 'failed': return { severity: 'error', summary: 'E-mail hiba', detail: email.lastError || email.message || 'A visszaigazoló e-mail küldése sikertelen volt.' };
+            case 'queued': return null;
+            case 'processing': return null;
+            case 'sent': return null;
+            case 'failed': return { severity: 'warn', summary: 'E-mail', detail: email.lastError || email.message || 'A visszaigazoló e-mailt most nem sikerült elküldeni.' };
             case 'skipped': return { severity: 'warn', summary: 'E-mail', detail: email.lastError || email.message || 'A visszaigazoló e-mail nem került elküldésre.' };
-            default: return { severity: 'info', summary: 'E-mail', detail: 'A visszaigazoló e-mail státusza ismeretlen.' };
+            default: return null;
         }
-    }
-
-    private registrationToast(guest: any): ToastMsg {
-        const name = (guest?.lastName && guest?.firstName) ? `${guest.lastName} ${guest.firstName}` : 'Vendég';
-        return { severity: 'success', summary: 'Vendég rögzítve', detail: `${name} sikeresen rögzítve.` };
     }
 
     private extractCreateErrorDetail(error: any): string {
