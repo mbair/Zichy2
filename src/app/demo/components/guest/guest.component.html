@@ -574,8 +574,13 @@
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="zipCode" class="font-medium text-900">Lakóhely - irányítószám</label>
                         <input id="zipCode" type="text" pInputText formControlName="zipCode">
-                        <div *ngIf="zipCode?.dirty && zipCode?.errors?.['required']" class="p-error">
-                            Irányítószám kötelező
+                        <div *ngIf="zipCode?.dirty" class="p-error">
+                            <div *ngIf="zipCode?.errors?.['required']">
+                                Irányítószám kötelező
+                            </div>
+                            <div *ngIf="zipCode?.errors?.['invalidZipCode']">
+                                Magyarországi cím esetén 4 számjegyű irányítószám szükséges
+                            </div>
                         </div>
                     </div>
 
@@ -587,7 +592,7 @@
                             <div *ngIf="email?.errors?.['required']">
                                 Email kötelező
                             </div>
-                            <div *ngIf="email?.errors?.['email']">
+                            <div *ngIf="email?.errors?.['email'] || email?.errors?.['invalidEmail']">
                                 Nem megfelelő email formátum
                             </div>
                         </div>
@@ -653,6 +658,9 @@
                         <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['required']" class="p-error">
                             Kérjük, adja meg az érkezés dátumát!
                         </div>
+                        <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['dateOutOfRange']" class="p-error">
+                            Az érkezés dátumának a konferencia időszakán belül kell lennie.
+                        </div>
                         <div *ngIf="guestForm.errors?.['dateRangeInvalid']" class="p-error">
                             Az érkezés dátumának korábbinak kell lennie, mint a távozási dátum!
                         </div>
@@ -670,6 +678,9 @@
                         </app-meal-selector>
                         <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
                             Kérjük, válassza ki az első étkezését!
+                        </div>
+                        <div *ngIf="guestForm.errors?.['mealOrderInvalid']" class="p-error">
+                            Az első étkezés nem lehet későbbi, mint az utolsó étkezés, ha az érkezés és távozás egy napra esik.
                         </div>
                     </div>
 
@@ -695,6 +706,9 @@
                         <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['required']" class="p-error">
                             Kérjük, adja meg a távozás dátumát!
                         </div>
+                        <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['dateOutOfRange']" class="p-error">
+                            A távozás dátumának a konferencia időszakán belül kell lennie.
+                        </div>
                         <div *ngIf="guestForm.errors?.['dateRangeInvalid']" class="p-error">
                             A távozás dátumának későbbinek kell lennie, mint az érkezési dátum!
                         </div>
@@ -716,7 +730,7 @@
                     </div>
 
                     <!-- babyBed -->
-                    <div class="field mb-4 col-12 lg:col-4">
+                    <div *ngIf="showBabyBedField" class="field mb-4 col-12 lg:col-4">
                         <label for="babyBed" class="font-medium text-900">Babaágyat kérsz?</label>
                         <div class="flex flex-wrap gap-3 my-3">
                             <div class="flex align-items-center">
@@ -738,6 +752,7 @@
                         <label for="roomType" class="font-medium text-900">Szobatípus</label>
                         <app-roomtype-selector
                             [parentForm]="guestForm"
+                            [allowedRoomTypeIds]="allowedConferenceRoomTypeIds"
                             controlName="roomType">
                         </app-roomtype-selector>
                         <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
@@ -745,20 +760,43 @@
                         </div>
                     </div>
 
+                    <!-- roomMate -->
+                    <div *ngIf="needsRoom" class="field mb-4 col-12 lg:col-8">
+                        <label for="roomMate" class="font-medium text-900">Kivel laknál egy szobában?</label>
+                        <p-chips #roomMateChips
+                                 formControlName="roomMate"
+                                 separator=","
+                                 [showClear]="true"
+                                 [allowDuplicate]="false"
+                                 [addOnBlur]="true">
+                            <ng-template let-item pTemplate="item">
+                                <i class="pi pi-user mr-2"></i> {{ item }}
+                            </ng-template>
+                        </p-chips>
+                        <small>
+                            Több nevet vesszővel elválasztva is megadhatsz.
+                        </small>
+                    </div>
+
                     <!-- payment -->
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="payment" class="font-medium text-900">Fizetési mód</label>
                         <app-payment-selector
                             [parentForm]="guestForm"
+                            [allowedPaymentMethodIds]="allowedPaymentMethodIds"
+                            [optionSelectable]="!hasSelectedConference || (allowedPaymentMethodIds?.length ?? 0) > 0"
                             controlName="payment">
                         </app-payment-selector>
                         <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
                             Kérjük válassza ki a fizetési módot!
                         </div>
+                        <small class="p-error" *ngIf="hasSelectedConference && (allowedPaymentMethodIds?.length ?? 0) === 0">
+                            Ehhez a konferenciához nincs engedélyezett fizetési mód beállítva.
+                        </small>
                     </div>
 
                     <!-- idCard -->
-                    <div class="field mb-4 col-12 lg:col-8">
+                    <div *ngIf="showIdCardField" class="field mb-4 col-12 lg:col-8">
                         <label for="idCard" class="font-medium text-900">Személyi igazolvány</label>
                         <ng-container *ngIf="currentIdCardUrl; else uploadBlock">
                             <div class="mb-2 flex flex-row gap-2">
@@ -816,8 +854,13 @@
                                 chooseLabel="Tallózás"
                                 cancelLabel="Mégsem">
                             </app-reactive-file-upload>
-                            <div *ngIf="idCard?.dirty && idCard?.errors?.['required']" class="p-error">
-                                Kérjük, töltse fel a személyi igazolványának másolatát!
+                            <div *ngIf="idCard?.dirty" class="p-error">
+                                <div *ngIf="idCard?.errors?.['required']">
+                                    Kérjük, töltse fel a személyi igazolványának másolatát!
+                                </div>
+                                <div *ngIf="idCard?.errors?.['maxFileSize']">
+                                    A személyi igazolvány fájlmérete legfeljebb 15 MB lehet.
+                                </div>
                             </div>
                         </ng-template>
                     </div>

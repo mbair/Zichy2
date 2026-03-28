@@ -1,14 +1,20 @@
 import { Component, OnInit, HostListener, isDevMode, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, FormControl, AbstractControl, ValidationErrors } from '@angular/forms';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, Subject } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { ConfirmationService, MenuItem, Message, MessageService } from 'primeng/api';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { FileSendEvent, FileUpload, FileUploadErrorEvent } from 'primeng/fileupload';
+import { Chips } from 'primeng/chips';
 import { Table } from 'primeng/table';
+import { dateBoundsValidator } from '../../utils/date-bounds-validator';
 import { dateRangeValidator } from '../../utils/date-range-validator';
+import { emailDomainValidator } from '../../utils/email-validator';
+import { sameDayMealOrderValidator } from '../../utils/same-day-meal-order-validator';
+import { zipCodeValidator } from '../../utils/zipcode-validator';
 import { GuestService } from '../../service/guest.service';
 import { UserService } from '../../service/user.service';
+import { ConferenceService } from '../../service/conference.service';
 import { GenderService } from '../../service/gender.service';
 import { TagService } from '../../service/tag.service';
 import { DietService } from '../../service/diet.service';
@@ -20,7 +26,9 @@ import { Reservation } from '../../api/reservation';
 import { Conference } from '../../api/conference';
 import { EmailStatusSummary, Guest } from '../../api/guest';
 import { Tag } from '../../api/tag';
-import { calculateAgeYears, formatDateCompact, formatDateDots, isSameDay, isSameOrBeforeDay, parseDateOnly } from '../../utils/date.utils';
+import { calculateAgeYears, formatDateCompact, formatDateDots, formatDateYmd, isSameDay, isSameOrBeforeDay, parseDateOnly } from '../../utils/date.utils';
+import { resolveConferenceFormAllowedRoomTypeIds } from '../../utils/conference-room-type.utils';
+import { getRoomTypeOptions, isNoAccommodationRoomTypeValue } from '../../utils/room-type.utils';
 import { saveBlobAsFile } from '../../utils/file-saver.utils';
 
 import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
@@ -41,6 +49,7 @@ export class GuestComponent implements OnInit {
     @ViewChild(ConferenceSelectorComponent) conferenceSelector!: ConferenceSelectorComponent;
     @ViewChild('identifier') identifierElement: ElementRef;
     @ViewChild('dt') table!: Table;
+    @ViewChild('roomMateChips') private roomMateChips?: Chips;
 
     apiURL: string                               // API URL depending on whether we are working on test or production
     loading: boolean = true                      // Loading overlay trigger value
@@ -101,7 +110,11 @@ export class GuestComponent implements OnInit {
     idCardImageUrls: { [guestId: string]: string } = {};
     loadingIdCard: { [guestId: string]: boolean } = {};
     showUploadBlock: boolean = false             // Upload block visibility in edit form  
-    guestConference: Conference                  // Guest's conference
+    guestConference: Conference | null = null    // Guest's conference
+    showIdCardField: boolean = false
+    showBabyBedField: boolean = false
+    allowedPaymentMethodIds: number[] | null | undefined = undefined
+    allowedConferenceRoomTypeIds: number[] | null | undefined = undefined
     prepaidOptions: any[] = []                   // Possible prepaid options
     guestReservations: Reservation[] = []        // Guest reservations
     acutalReservation: any | null = null         // Actual guest reservation
@@ -113,6 +126,7 @@ export class GuestComponent implements OnInit {
     private static readonly NONE_CONF_ID = -1
     private static readonly BACKGROUND_REFRESH_INTERVAL_MS = 15000
     private static readonly MISSING_EMAIL_STATUS_MESSAGE = 'Nincs e-mail cím megadva a küldéshez.'
+    readonly idCardMaxFileSizeBytes = 15 * 1024 * 1024
     noConferenceMode: boolean = false
 
     private initialFormValues = {
@@ -142,11 +156,11 @@ export class GuestComponent implements OnInit {
         email: '',
         telephone: '',
         roomType: '',
-        payment: '',
-        babyBed: '',
+        payment: null,
+        babyBed: null,
         prepaid: '',
-        roomMate: '',
-        idCard: [null],
+        roomMate: null,
+        idCard: null,
         enabled: true,
     }
 
@@ -253,6 +267,7 @@ export class GuestComponent implements OnInit {
     constructor(private http: HttpClient,
         private guestService: GuestService,
         private userService: UserService,
+        private conferenceService: ConferenceService,
         private tagService: TagService,
         private genderService: GenderService,
         private dietService: DietService,
@@ -296,10 +311,18 @@ export class GuestComponent implements OnInit {
             payment: [this.initialFormValues.payment],
             babyBed: [this.initialFormValues.babyBed],
             prepaid: [this.initialFormValues.prepaid],
-            roomMate: [this.initialFormValues.roomMate],
+            roomMate: new FormControl<string[] | null>(this.initialFormValues.roomMate),
             idCard: [this.initialFormValues.idCard]
         }, {
-            validators: dateRangeValidator('dateOfArrival', 'dateOfDeparture')
+            validators: [
+                dateRangeValidator('dateOfArrival', 'dateOfDeparture'),
+                sameDayMealOrderValidator(
+                    'dateOfArrival',
+                    'dateOfDeparture',
+                    'firstMeal',
+                    'lastMeal',
+                ),
+            ]
         })
 
         this.dialogFiltersForm = this.fb.group({
@@ -451,20 +474,113 @@ export class GuestComponent implements OnInit {
             this.cdRef.detectChanges()
         })
 
+        this.guestForm.get('diet')?.valueChanges.subscribe((dietValue) => {
+            if (dietValue === 'nem kér étkezést') {
+                this.guestForm.patchValue({
+                    firstMeal: 'nem kér étkezést',
+                    lastMeal: 'nem kér étkezést',
+                })
+            } else {
+                const firstMealValue = this.guestForm.get('firstMeal')?.value
+                const lastMealValue = this.guestForm.get('lastMeal')?.value
+
+                if (firstMealValue === 'nem kér étkezést') {
+                    this.guestForm.patchValue({ firstMeal: '' })
+                }
+                if (lastMealValue === 'nem kér étkezést') {
+                    this.guestForm.patchValue({ lastMeal: '' })
+                }
+            }
+        })
+
+        this.guestForm.get('firstMeal')?.valueChanges.subscribe((firstMealValue) => {
+            if (firstMealValue === 'nem kér étkezést') {
+                if (this.guestForm.get('diet')?.value !== 'nem kér étkezést') {
+                    this.guestForm.patchValue({
+                        diet: 'nem kér étkezést',
+                        lastMeal: 'nem kér étkezést',
+                    })
+                }
+            } else if (this.guestForm.get('diet')?.value === 'nem kér étkezést') {
+                this.guestForm.patchValue({ diet: '' })
+            }
+        })
+
+        this.guestForm.get('lastMeal')?.valueChanges.subscribe((lastMealValue) => {
+            if (lastMealValue === 'nem kér étkezést') {
+                if (this.guestForm.get('diet')?.value !== 'nem kér étkezést') {
+                    this.guestForm.patchValue({
+                        diet: 'nem kér étkezést',
+                        firstMeal: 'nem kér étkezést',
+                    })
+                }
+            } else if (this.guestForm.get('diet')?.value === 'nem kér étkezést') {
+                this.guestForm.patchValue({ diet: '' })
+            }
+        })
+
         this.guestForm.get('diet')?.valueChanges.subscribe(() => {
             const selectedDietName = this.guestForm.get('diet')?.value
             const selectedDietId = this.diets.find(diet => diet.name === selectedDietName)?.id || null
             this.guestForm.patchValue({ diet_id: selectedDietId })
         })
 
+        this.guestForm.get('roomType')?.valueChanges.subscribe((value) => {
+            const roomMateControl = this.guestForm.get('roomMate')
+
+            if (!this.isRoomSelectionRequiringAccommodation(value)) {
+                roomMateControl?.reset(null, { emitEvent: false })
+                roomMateControl?.disable({ emitEvent: false })
+            } else {
+                roomMateControl?.enable({ emitEvent: false })
+            }
+
+            this.updateIdCardVisibility()
+            this.updateBabyBedVisibility()
+        })
+
+        this.guestForm.get('roomMate')?.valueChanges.subscribe((value) => {
+            this.normalizeRoomMateControlValue(value)
+        })
+
         // TODO: Remove redundant conference Id + Name
         this.guestForm.get('conference')?.valueChanges.subscribe((conference) => {
-            if (conference.length > 0) {
-                const selectedConferenceId = conference[0].id
-                const selectedConferenceName = conference[0].name
+            const selectedConference = this.getSelectedConference(conference)
+
+            if (selectedConference) {
+                const selectedConferenceId = selectedConference.id
+                const selectedConferenceName = selectedConference.name
                 this.guestForm.patchValue({ conferenceid: selectedConferenceId })
                 this.guestForm.patchValue({ conferenceName: selectedConferenceName })
+            } else {
+                this.guestForm.patchValue({
+                    conferenceid: null,
+                    conferenceName: null,
+                })
             }
+
+            this.applyConferenceRules(selectedConference)
+            this.loadConferenceDetails(selectedConference)
+        })
+
+        this.guestForm.get('country')?.valueChanges.subscribe((country) => {
+            const zipCodeControl = this.guestForm.get('zipCode')
+
+            if (country === 'Hungary') {
+                zipCodeControl?.setValidators([
+                    Validators.required,
+                    zipCodeValidator(),
+                ])
+            } else {
+                zipCodeControl?.setValidators([Validators.required])
+            }
+
+            zipCodeControl?.updateValueAndValidity()
+        })
+
+        this.guestForm.get('birthDate')?.valueChanges.subscribe(() => {
+            this.updateIdCardVisibility()
+            this.updateBabyBedVisibility()
         })
 
         // Global search
@@ -521,6 +637,7 @@ export class GuestComponent implements OnInit {
         })
 
         this.startGuestViewPolling()
+        this.applyConferenceRules(this.getSelectedConference(this.conference?.value))
     }
 
     // Getters for form validation
@@ -541,6 +658,7 @@ export class GuestComponent implements OnInit {
     get rfidColor() { return this.guestForm.get('rfidColor') }
     get enabled() { return this.guestForm.get('enabled') }
     get conference() { return this.guestForm.get('conference') }
+    get hasSelectedConference() { return !!this.getSelectedConference(this.conference?.value) }
     get diet() { return this.guestForm.get('diet') }
     get lastRfidUsage() { return this.guestForm.get('lastRfidUsage') }
     get is_test() { return this.guestForm.get('is_test') }
@@ -552,6 +670,9 @@ export class GuestComponent implements OnInit {
     get prepaid() { return this.guestForm.get('prepaid') }
     get roomMate() { return this.guestForm.get('roomMate') }
     get idCard() { return this.guestForm.get('idCard') }
+    get needsRoom() {
+        return this.hasSelectedConference && this.isRoomSelectionRequiringAccommodation(this.roomType?.value)
+    }
     
     // Helper for Guests primary reservation
     get primaryReservation(): Reservation | null {
@@ -982,6 +1103,10 @@ export class GuestComponent implements OnInit {
      */
     create() {
         this.guestForm.reset(this.initialFormValues)
+        this.currentIdCardUrl = null
+        this.showUploadBlock = false
+        this.guestReservations = []
+        this.applyConferenceRules(null)
 
         // Store original values for Cancel (create mode)
         this.originalFormValues = this.guestForm.getRawValue()
@@ -996,6 +1121,7 @@ export class GuestComponent implements OnInit {
     edit(guest: Guest) {
         this.guestForm.reset(this.initialFormValues)
         this.currentIdCardUrl = guest.idcard ? `${this.apiURL}/guest/idcard/${guest.id}` : null
+        this.showUploadBlock = false
         if (this.currentIdCardUrl) {
             this.getIdCardImage(guest)
         }
@@ -1021,9 +1147,15 @@ export class GuestComponent implements OnInit {
         }
 
         if (selectedConf) {
+            this.applyConferenceRules(selectedConf)
+
             // Because side bar is not visible yet, we need to wait a bit
             setTimeout(() => {
                 this.guestForm.patchValue(guestFormValue)
+                this.applyConferenceRules(this.guestConference ?? selectedConf)
+                this.normalizeRoomMateControlValue()
+                this.updateIdCardVisibility()
+                this.updateBabyBedVisibility()
 
                 // Store original values for Cancel (edit mode)
                 this.originalFormValues = this.guestForm.getRawValue()
@@ -1032,6 +1164,7 @@ export class GuestComponent implements OnInit {
             // Set arrival and departure date limitations
             this.beginDate = selectedConf?.beginDate ? parseDateOnly(selectedConf.beginDate) ?? undefined : undefined
             this.endDate = selectedConf?.endDate ? parseDateOnly(selectedConf.endDate) ?? undefined : undefined
+            this.guestConference = selectedConf
 
             this.getEarliestFirstMeal()
             this.getLatestFirstMeal()
@@ -1101,6 +1234,208 @@ export class GuestComponent implements OnInit {
         return null
     }
 
+    private getSelectedConference(value: unknown): Conference | null {
+        const conferences = Array.isArray(value) ? value : []
+        return conferences.length > 0 ? conferences[0] as Conference : null
+    }
+
+    private loadConferenceDetails(selectedConference: Conference | null): void {
+        const conferenceId = Number(selectedConference?.id)
+        if (!Number.isFinite(conferenceId) || conferenceId <= 0) {
+            return
+        }
+
+        this.conferenceService.getById(conferenceId).subscribe({
+            next: (response: any) => {
+                const currentSelectedConferenceId = Number(this.getSelectedConference(this.conference?.value)?.id)
+                if (currentSelectedConferenceId !== conferenceId) {
+                    return
+                }
+
+                const detailedConference = this.normalizeConferenceFromResponse(
+                    response,
+                    selectedConference as Conference,
+                )
+
+                this.applyConferenceRules(detailedConference)
+            },
+        })
+    }
+
+    private normalizeConferenceFromResponse(
+        response: any,
+        fallbackConference: Conference,
+    ): Conference {
+        if (response && typeof response === 'object') {
+            if (
+                response.rows &&
+                Array.isArray(response.rows) &&
+                response.rows.length > 0
+            ) {
+                return {
+                    ...fallbackConference,
+                    ...response.rows[0],
+                }
+            }
+
+            if (response.row && typeof response.row === 'object') {
+                return {
+                    ...fallbackConference,
+                    ...response.row,
+                }
+            }
+
+            return {
+                ...fallbackConference,
+                ...response,
+            }
+        }
+
+        return { ...fallbackConference }
+    }
+
+    private applyConferenceRules(selectedConference: Conference | null): void {
+        this.guestConference = selectedConference
+        this.beginDate = selectedConference?.beginDate
+            ? parseDateOnly(selectedConference.beginDate) ?? undefined
+            : undefined
+        this.endDate = selectedConference?.endDate
+            ? parseDateOnly(selectedConference.endDate) ?? undefined
+            : undefined
+        this.allowedPaymentMethodIds = selectedConference
+            ? this.extractPaymentMethodIds(selectedConference)
+            : undefined
+        this.allowedConferenceRoomTypeIds = selectedConference
+            ? resolveConferenceFormAllowedRoomTypeIds(selectedConference)
+            : undefined
+
+        this.updateConferenceScopedValidators()
+        this.applyConferenceDateBoundsValidators()
+        this.sanitizeConferenceScopedSelections()
+        this.updateIdCardVisibility()
+        this.updateBabyBedVisibility()
+        this.cdRef.detectChanges()
+    }
+
+    private updateConferenceScopedValidators(): void {
+        if (this.hasSelectedConference) {
+            this.email?.setValidators([
+                Validators.required,
+                emailDomainValidator(),
+            ])
+            this.telephone?.setValidators([Validators.required])
+            this.roomType?.setValidators([Validators.required])
+            this.payment?.setValidators([Validators.required])
+        } else {
+            this.email?.setValidators([Validators.email])
+            this.telephone?.clearValidators()
+            this.roomType?.clearValidators()
+            this.payment?.clearValidators()
+        }
+
+        this.email?.updateValueAndValidity({ emitEvent: false })
+        this.telephone?.updateValueAndValidity({ emitEvent: false })
+        this.roomType?.updateValueAndValidity({ emitEvent: false })
+        this.payment?.updateValueAndValidity({ emitEvent: false })
+    }
+
+    private applyConferenceDateBoundsValidators(): void {
+        const conferenceDateValidators = this.hasSelectedConference
+            ? [Validators.required, dateBoundsValidator(this.beginDate, this.endDate)]
+            : [Validators.required]
+
+        this.dateOfArrival?.setValidators(conferenceDateValidators)
+        this.dateOfDeparture?.setValidators(conferenceDateValidators)
+        this.dateOfArrival?.updateValueAndValidity({ emitEvent: false })
+        this.dateOfDeparture?.updateValueAndValidity({ emitEvent: false })
+        this.guestForm.updateValueAndValidity({ emitEvent: false })
+    }
+
+    private sanitizeConferenceScopedSelections(): void {
+        const paymentCtrl = this.guestForm.get('payment')
+        const roomTypeCtrl = this.guestForm.get('roomType')
+
+        if (
+            paymentCtrl &&
+            Array.isArray(this.allowedPaymentMethodIds) &&
+            this.allowedPaymentMethodIds.length > 0
+        ) {
+            const currentPayment = Number(paymentCtrl.value)
+            if (
+                Number.isFinite(currentPayment) &&
+                !this.allowedPaymentMethodIds.includes(currentPayment)
+            ) {
+                paymentCtrl.setValue(null, { emitEvent: false })
+            }
+        }
+
+        if (
+            roomTypeCtrl &&
+            Array.isArray(this.allowedConferenceRoomTypeIds)
+        ) {
+            const availableValues = new Set(
+                this.allowedConferenceRoomTypeIds
+                    .map((value) => Number(value))
+                    .filter((value) => Number.isFinite(value)),
+            )
+
+            const currentRoomTypeId = this.resolveRoomTypeId(roomTypeCtrl.value)
+            if (
+                this.isRoomSelectionRequiringAccommodation(roomTypeCtrl.value) &&
+                (
+                    currentRoomTypeId === null ||
+                    !availableValues.has(currentRoomTypeId)
+                )
+            ) {
+                roomTypeCtrl.setValue(null, { emitEvent: false })
+            }
+        }
+    }
+
+    private resolveRoomTypeId(value: unknown): number | null {
+        if (!value || isNoAccommodationRoomTypeValue(value)) {
+            return null
+        }
+
+        const numericValue = Number(value)
+        if (Number.isFinite(numericValue) && numericValue > 0) {
+            return numericValue
+        }
+
+        const normalizedValue = this.normalizeRoomTypeComparisonValue(value)
+        const guestConference = this.guestConference
+        const selectedConferenceRoomTypes: any[] =
+            guestConference && Array.isArray(guestConference.roomTypes)
+                ? guestConference.roomTypes
+                : []
+        const matchedRoomType = selectedConferenceRoomTypes.find(
+            (roomType: any) =>
+                this.normalizeRoomTypeComparisonValue(roomType?.name) === normalizedValue
+        )
+
+        if (matchedRoomType) {
+            const roomTypeId = Number((matchedRoomType as any)?.id)
+            return Number.isFinite(roomTypeId) ? roomTypeId : null
+        }
+
+        const fallbackOption = getRoomTypeOptions({
+            instant: (key: string) => key,
+        }).find(
+            (roomTypeOption) =>
+                this.normalizeRoomTypeComparisonValue(roomTypeOption.value) === normalizedValue,
+        )
+
+        return fallbackOption?.id ?? null
+    }
+
+    private normalizeRoomTypeComparisonValue(value: unknown): string {
+        return String(value ?? '')
+            .trim()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+    }
+
     /**
      * Delete the Guest
      */
@@ -1138,44 +1473,58 @@ export class GuestComponent implements OnInit {
      * Saving the form
      */
     save() {
-        if (this.guestForm.valid) {
-            this.loading = true
-            const formValues = this.guestForm.value
+        this.commitPendingRoomMateDraft()
+        this.guestForm.markAllAsTouched()
 
-            // ID Card kezelés
-            const rawIdCard = this.guestForm.get('idCard')?.value
-            // Ha van új file, azt File-ként add át, ha nincs, üres tömb
-            const files: File[] = rawIdCard instanceof File ? [rawIdCard] : []
+        if (!this.guestForm.valid) {
+            return
+        }
 
-            // CREATE
-            if (!formValues.id) {
-                this.guestService.create(formValues, files)
-                this.sidebar = false
-            }
-            // UPDATE
-            else {
-                this.guestService.update$(formValues, files).subscribe({
-                    next: (updatedGuest) => {
-                        this.replaceGuestRow(updatedGuest)
-                        this.messageService.add({
-                            severity: 'success',
-                            summary: 'Sikeres mentés',
-                            detail: 'A vendég adatai frissültek.'
-                        })
-                        this.sidebar = false
-                        this.loading = false
-                    },
-                    error: (error) => {
-                        this.loading = false
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: 'Mentési hiba',
-                            detail: error?.error?.message || 'A vendég mentése nem sikerült.'
-                        })
-                    }
-                })
-                return
-            }
+        this.loading = true
+        const formValues = { ...this.guestForm.getRawValue() }
+
+        const rawIdCard = this.guestForm.get('idCard')?.value
+        const idCardFile = this.extractIdCardFile(rawIdCard)
+        const files: File[] = idCardFile ? [idCardFile] : []
+
+        formValues.birthDate = formatDateYmd(formValues.birthDate)
+        formValues.dateOfArrival = formatDateYmd(formValues.dateOfArrival)
+        formValues.dateOfDeparture = formatDateYmd(formValues.dateOfDeparture)
+
+        if (Array.isArray(formValues.roomMate)) {
+            formValues.roomMate = this.normalizeRoomMateEntries(formValues.roomMate).join(', ')
+        }
+
+        delete formValues.idCard
+
+        // CREATE
+        if (!formValues.id) {
+            this.guestService.create(formValues, files)
+            this.sidebar = false
+        }
+        // UPDATE
+        else {
+            this.guestService.update$(formValues, files).subscribe({
+                next: (updatedGuest) => {
+                    this.replaceGuestRow(updatedGuest)
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Sikeres mentés',
+                        detail: 'A vendég adatai frissültek.'
+                    })
+                    this.sidebar = false
+                    this.loading = false
+                },
+                error: (error) => {
+                    this.loading = false
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Mentési hiba',
+                        detail: error?.error?.message || 'A vendég mentése nem sikerült.'
+                    })
+                }
+            })
+            return
         }
     }
 
@@ -1185,6 +1534,8 @@ export class GuestComponent implements OnInit {
     cancel() {
         // Fallback to initial values if original is missing for any reason
         this.guestForm.reset(this.originalFormValues ?? this.initialFormValues)
+        this.applyConferenceRules(this.getSelectedConference(this.conference?.value))
+        this.normalizeRoomMateControlValue()
     }
 
     /**
@@ -1759,6 +2110,7 @@ export class GuestComponent implements OnInit {
             next: () => {
                 this.currentIdCardUrl = null;
                 this.guestForm.get('idCard')?.setValue(null);
+                this.updateIdCardVisibility()
                 this.messageService.add({
                     severity: 'success',
                     summary: '',
@@ -1777,6 +2129,266 @@ export class GuestComponent implements OnInit {
                 });
             }
         });
+    }
+
+    private updateIdCardVisibility(): void {
+        const idCardControl = this.guestForm.get('idCard')
+        if (!idCardControl) {
+            return
+        }
+
+        const birthDate = this.guestForm.get('birthDate')?.value
+        const age = calculateAgeYears(birthDate)
+        const shouldRequireIdCard =
+            this.hasSelectedConference &&
+            this.needsRoom &&
+            age >= 14
+
+        this.showIdCardField = shouldRequireIdCard
+
+        if (shouldRequireIdCard) {
+            idCardControl.enable({ emitEvent: false })
+            idCardControl.setValidators([
+                this.idCardPresenceValidator.bind(this),
+                this.idCardMaxFileSizeValidator.bind(this),
+            ])
+        } else {
+            idCardControl.clearValidators()
+            idCardControl.setValue(null, { emitEvent: false })
+            idCardControl.disable({ emitEvent: false })
+        }
+
+        idCardControl.updateValueAndValidity({ emitEvent: false })
+    }
+
+    private idCardPresenceValidator(control: AbstractControl): ValidationErrors | null {
+        if (this.currentIdCardUrl) {
+            return null
+        }
+
+        return this.extractIdCardFile(control.value) ? null : { required: true }
+    }
+
+    private idCardMaxFileSizeValidator(control: AbstractControl): ValidationErrors | null {
+        const file = this.extractIdCardFile(control.value)
+        if (!file) {
+            return null
+        }
+
+        return file.size <= this.idCardMaxFileSizeBytes
+            ? null
+            : {
+                maxFileSize: {
+                    max: this.idCardMaxFileSizeBytes,
+                    actual: file.size,
+                },
+            }
+    }
+
+    private extractIdCardFile(value: unknown): File | null {
+        if (value instanceof File) {
+            return value
+        }
+
+        if (Array.isArray(value)) {
+            for (const item of value) {
+                const file = this.extractIdCardFile(item)
+                if (file) {
+                    return file
+                }
+            }
+        }
+
+        if (value && typeof value === 'object') {
+            const candidate = value as { file?: unknown; files?: unknown }
+
+            if (candidate.file instanceof File) {
+                return candidate.file
+            }
+
+            if (Array.isArray(candidate.files)) {
+                return this.extractIdCardFile(candidate.files)
+            }
+        }
+
+        return null
+    }
+
+    private isRoomSelectionRequiringAccommodation(value: unknown): boolean {
+        if (value === null || value === undefined || value === '') {
+            return false
+        }
+
+        return !isNoAccommodationRoomTypeValue(value)
+    }
+
+    private isBabyBedEligibleByBirthDate(): boolean {
+        const birthDateValue = this.guestForm.get('birthDate')?.value
+        if (!birthDateValue) {
+            return false
+        }
+
+        const ageYears = calculateAgeYears(birthDateValue)
+        return ageYears >= 0 && ageYears <= 3
+    }
+
+    private updateBabyBedVisibility(): void {
+        const babyBedControl = this.guestForm.get('babyBed')
+        if (!babyBedControl) {
+            return
+        }
+
+        const canAskForBabyBed =
+            this.hasSelectedConference &&
+            this.needsRoom &&
+            this.isBabyBedEligibleByBirthDate()
+        this.showBabyBedField = canAskForBabyBed
+
+        if (canAskForBabyBed) {
+            babyBedControl.enable({ emitEvent: false })
+            babyBedControl.setValidators([Validators.required])
+
+            if (
+                babyBedControl.value === null ||
+                babyBedControl.value === '' ||
+                babyBedControl.value === undefined
+            ) {
+                babyBedControl.setValue('0', { emitEvent: false })
+            }
+        } else {
+            babyBedControl.clearValidators()
+            babyBedControl.setValue(null, { emitEvent: false })
+            babyBedControl.disable({ emitEvent: false })
+        }
+
+        babyBedControl.updateValueAndValidity({ emitEvent: false })
+    }
+
+    private commitPendingRoomMateDraft(): void {
+        const roomMateControl = this.roomMate
+        if (!roomMateControl || roomMateControl.disabled) {
+            return
+        }
+
+        const inputElement = this.getRoomMateInputElement()
+        const pendingEntries = this.normalizeRoomMateEntries(inputElement?.value ?? '')
+
+        if (pendingEntries.length === 0) {
+            if (inputElement && inputElement.value) {
+                inputElement.value = ''
+            }
+            return
+        }
+
+        const nextEntries = this.normalizeRoomMateEntries([
+            ...(roomMateControl.value ?? []),
+            ...pendingEntries,
+        ])
+
+        roomMateControl.setValue(nextEntries.length > 0 ? nextEntries : null)
+        roomMateControl.markAsDirty()
+        roomMateControl.markAsTouched()
+
+        if (inputElement) {
+            inputElement.value = ''
+        }
+    }
+
+    private normalizeRoomMateControlValue(value = this.roomMate?.value): void {
+        const roomMateControl = this.roomMate
+        if (!roomMateControl) {
+            return
+        }
+
+        const normalizedEntries = this.normalizeRoomMateEntries(value)
+        const normalizedValue = normalizedEntries.length > 0 ? normalizedEntries : null
+
+        if (this.areSameRoomMateValues(roomMateControl.value, normalizedValue)) {
+            return
+        }
+
+        roomMateControl.setValue(normalizedValue, { emitEvent: false })
+    }
+
+    private normalizeRoomMateEntries(value: unknown): string[] {
+        const rawEntries = Array.isArray(value) ? value : [value]
+        const normalizedEntries: string[] = []
+        const seenEntries = new Set<string>()
+
+        rawEntries.forEach((entry) => {
+            this.splitRoomMateEntries(entry).forEach((item) => {
+                const dedupeKey = item.toLocaleLowerCase()
+                if (seenEntries.has(dedupeKey)) {
+                    return
+                }
+
+                seenEntries.add(dedupeKey)
+                normalizedEntries.push(item)
+            })
+        })
+
+        return normalizedEntries
+    }
+
+    private splitRoomMateEntries(value: unknown): string[] {
+        if (value == null) {
+            return []
+        }
+
+        return String(value)
+            .split(/[,\n;]+/)
+            .map((entry) => entry.replace(/\s+/g, ' ').trim())
+            .filter((entry) => entry.length > 0)
+    }
+
+    private areSameRoomMateValues(
+        currentValue: unknown,
+        nextValue: string[] | null,
+    ): boolean {
+        const normalizedNext = nextValue ?? []
+
+        if (currentValue == null) {
+            return normalizedNext.length === 0
+        }
+
+        if (!Array.isArray(currentValue)) {
+            return false
+        }
+
+        if (currentValue.length !== normalizedNext.length) {
+            return false
+        }
+
+        return currentValue.every((entry, index) => entry === normalizedNext[index])
+    }
+
+    private getRoomMateInputElement(): HTMLInputElement | null {
+        const chipsInput = this.roomMateChips?.inputViewChild as ElementRef<HTMLInputElement> | undefined
+        return chipsInput?.nativeElement ?? null
+    }
+
+    private extractPaymentMethodIds(conf: any): number[] {
+        if (!conf) {
+            return []
+        }
+
+        if (Array.isArray(conf.paymentMethodIds)) {
+            const ids = conf.paymentMethodIds
+                .map((value: any) => Number(value))
+                .filter((value: number) => Number.isFinite(value))
+
+            return Array.from(new Set(ids))
+        }
+
+        if (Array.isArray(conf.paymentMethods)) {
+            const ids = conf.paymentMethods
+                .map((paymentMethod: any) => Number(paymentMethod?.id))
+                .filter((value: number) => Number.isFinite(value))
+
+            return Array.from(new Set(ids))
+        }
+
+        return []
     }
 
     hasDietName(dietName: string): boolean {

@@ -53,6 +53,7 @@ export class MealSelectorComponent
             this.setMeals()
         })
         this.setMeals()
+        this.syncSelectionWithAvailableMeals()
     }
 
     ngAfterViewChecked(): void {
@@ -66,6 +67,7 @@ export class MealSelectorComponent
      */
     ngOnChanges(changes: SimpleChanges) {
         this.setMeals()
+        this.syncSelectionWithAvailableMeals()
     }
 
     /**
@@ -164,6 +166,7 @@ export class MealSelectorComponent
      */
     writeValue(value: any): void {
         this.applySelection(value ?? '', false, false)
+        this.syncSelectionWithAvailableMeals()
         this.cdRef.detectChanges()
     }
 
@@ -236,5 +239,24 @@ export class MealSelectorComponent
         if (emitTouch) {
             this.onTouched()
         }
+    }
+
+    private syncSelectionWithAvailableMeals(): void {
+        const control = this.getFormControl()
+        const currentValue = control?.value ?? this.selectedMeal ?? ''
+
+        if (!currentValue) {
+            return
+        }
+
+        const isAllowed = this.meals.some((meal) => meal.value === currentValue)
+        if (isAllowed) {
+            if (this.selectedMeal !== currentValue) {
+                this.selectedMeal = currentValue
+            }
+            return
+        }
+
+        this.applySelection('', false, false)
     }
 }
