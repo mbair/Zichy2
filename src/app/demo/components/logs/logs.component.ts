@@ -390,8 +390,30 @@ export class LogsComponent implements OnInit {
      * @param createdAt 
      * @returns 
      */
-    formatUTCToHungarian(createdAt: string): string {
-        return formatUtcToTimeZone(createdAt, 'Europe/Budapest')
+    formatUTCToHungarian(createdAt: string | Date | null | undefined): string {
+        const formatted = formatUtcToTimeZone(createdAt, 'Europe/Budapest')
+
+        if (formatted) {
+            return formatted
+        }
+
+        if (createdAt instanceof Date) {
+            const iso = createdAt.toISOString()
+            return formatUtcToTimeZone(iso, 'Europe/Budapest') || iso
+        }
+
+        if (typeof createdAt === 'string' && createdAt.trim().length > 0) {
+            const reparsed = new Date(createdAt)
+            if (!Number.isNaN(reparsed.getTime())) {
+                return formatUtcToTimeZone(reparsed, 'Europe/Budapest')
+            }
+
+            return createdAt
+                .replace('T', ' ')
+                .replace(/\.\d+Z$/i, ' UTC')
+        }
+
+        return '-'
     }
 
     private isUpdateAction(actionType: string | undefined | null): boolean {
