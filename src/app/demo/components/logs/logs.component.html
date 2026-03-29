@@ -180,7 +180,12 @@
                         </td>
                         <td>
                             <span class="p-column-title">Válasz</span>
-                            {{ logs.response_data }}
+                            <div class="log-response-preview"
+                                 [pTooltip]="getResponseTooltip(logs)"
+                                 tooltipPosition="top"
+                                 appendTo="body">
+                                {{ getResponsePreview(logs) }}
+                            </div>
                         </td>
                         <td>
                             <span class="p-column-title">Felhasználó</span>
@@ -191,8 +196,8 @@
                 <ng-template pTemplate="rowexpansion" let-log>
                     <tr *ngIf="log.table_name !== 'food_counter'">
                         <td colspan="7">
-                            <div class="grid p-2" *ngIf="log.original_data || log.new_data">
-                                <div class="col-12">
+                            <div class="grid p-2" *ngIf="hasExpandedContent(log)">
+                                <div class="col-12" *ngIf="getDiffRows(log).length > 0">
                                     <p-table [value]="getDiffRows(log)" responsiveLayout="scroll">
                                         <ng-template pTemplate="header">
                                             <tr>
@@ -223,6 +228,13 @@
                                             </tr>
                                         </ng-template>
                                     </p-table>
+                                </div>
+
+                                <div class="col-12" *ngIf="getResponseDetails(log)">
+                                    <div class="log-response-panel">
+                                        <div class="log-response-panel__title">Válasz részletek</div>
+                                        <pre class="log-response-panel__content">{{ getResponseDetails(log) }}</pre>
+                                    </div>
                                 </div>
                             </div>
                         </td>
