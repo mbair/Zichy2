@@ -32,4 +32,20 @@ describe('MealSelectorComponent', () => {
         expect(component.selectedMeal).toBe('vacsora');
         expect(component.getFormControl()?.value).toBe('vacsora');
     });
+
+    it('clears an already selected meal when it falls outside the updated bounds', () => {
+        const component = createComponent();
+        component.parentForm = new FormGroup({
+            meal: new FormControl('reggeli'),
+        });
+        component.controlName = 'meal';
+
+        component.ngOnInit();
+        component.earliestMeal = 'ebéd';
+
+        component.ngOnChanges({});
+
+        expect(component.selectedMeal).toBe('');
+        expect(component.getFormControl()?.value).toBe('');
+    });
 });

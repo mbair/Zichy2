@@ -19,6 +19,7 @@ import { TagModule } from 'primeng/tag';
 import { ImageModule } from 'primeng/image';
 import { TooltipModule } from 'primeng/tooltip';
 import { CalendarModule } from 'primeng/calendar';
+import { ChipsModule } from 'primeng/chips';
 import { SkeletonModule } from 'primeng/skeleton';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -56,6 +57,7 @@ import { LocalizedDatePickerComponent } from '../../widget/localized-date-picker
         ImageModule,
         TooltipModule,
         CalendarModule,
+        ChipsModule,
         SkeletonModule,
         SplitButtonModule,
         ConfirmDialogModule,
