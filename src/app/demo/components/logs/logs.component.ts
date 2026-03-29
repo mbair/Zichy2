@@ -76,6 +76,7 @@ export class LogsComponent implements OnInit {
 
     private diffCache = new Map<number, DiffRow[]>()
     private readonly DIFF_TRUNCATE_LIMIT = 160
+    private readonly RESPONSE_PREVIEW_LIMIT = 140
 
     private logObs$: Observable<any> | undefined;
     private serviceMessageObs$: Observable<any> | undefined;
@@ -385,6 +386,10 @@ export class LogsComponent implements OnInit {
         return rowData.expandable
     }
 
+    hasExpandedContent(log: Log): boolean {
+        return this.getDiffRows(log).length > 0 || this.getResponseDetails(log).length > 0
+    }
+
     /**
      * Format UTC date-time to hungarian timezone
      * @param createdAt 
@@ -414,6 +419,46 @@ export class LogsComponent implements OnInit {
         }
 
         return '-'
+    }
+
+    getResponsePreview(log: Log): string {
+        const text = this.getResponseDetails(log)
+        if (!text) {
+            return '-'
+        }
+
+        return this.truncate(text.replace(/\s+/g, ' ').trim(), this.RESPONSE_PREVIEW_LIMIT)
+    }
+
+    getResponseTooltip(log: Log): string {
+        return this.getResponseDetails(log)
+    }
+
+    getResponseDetails(log: Log): string {
+        const response = log?.response_data
+
+        if (!response) {
+            return ''
+        }
+
+        if (typeof response !== 'string') {
+            return this.formatStructuredText(response)
+        }
+
+        const trimmed = response.trim()
+        if (!trimmed) {
+            return ''
+        }
+
+        if (this.isValidJSON(trimmed)) {
+            try {
+                return this.formatStructuredText(JSON.parse(trimmed))
+            } catch {
+                return trimmed
+            }
+        }
+
+        return trimmed
     }
 
     private isUpdateAction(actionType: string | undefined | null): boolean {
@@ -541,6 +586,30 @@ export class LogsComponent implements OnInit {
             return JSON.stringify(value);
         } catch {
             return String(value);
+        }
+    }
+
+    private formatStructuredText(value: unknown): string {
+        if (value === null) {
+            return 'null'
+        }
+
+        if (value === undefined) {
+            return ''
+        }
+
+        if (typeof value === 'string') {
+            return value
+        }
+
+        if (typeof value === 'number' || typeof value === 'boolean') {
+            return String(value)
+        }
+
+        try {
+            return JSON.stringify(value, null, 2)
+        } catch {
+            return String(value)
         }
     }
 
