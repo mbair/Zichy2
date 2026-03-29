@@ -211,7 +211,7 @@ export function formatUtcToTimeZone(
         return '';
     }
 
-    const formatter = new Intl.DateTimeFormat('en-GB', {
+    const formatter = new Intl.DateTimeFormat('hu-HU', {
         timeZone,
         year: 'numeric',
         month: '2-digit',
@@ -229,5 +229,9 @@ export function formatUtcToTimeZone(
         return acc;
     }, {});
 
-    return `${parts['year']}.${parts['month']}.${parts['day']} ${parts['hour']}:${parts['minute']}:${parts['second']}`;
+    if (parts['year'] && parts['month'] && parts['day'] && parts['hour'] && parts['minute'] && parts['second']) {
+        return `${parts['year']}. ${parts['month']}. ${parts['day']}. ${parts['hour']}:${parts['minute']}:${parts['second']}`;
+    }
+
+    return formatter.format(date).replace(',', '').trim();
 }
