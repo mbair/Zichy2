@@ -465,6 +465,90 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="guest-activity-panel mt-4">
+                                    <div class="guest-activity-panel__header">
+                                        <div>
+                                            <div class="guest-activity-panel__title">Vendég idővonala</div>
+                                            <div class="guest-activity-panel__subtitle">
+                                                Itt látható a vendéghez kapcsolódó események időrendje és a műveletek végrehajtója.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <ng-container *ngIf="isGuestTimelineLoading(guest.id); else guestTimelineContent">
+                                        <div class="guest-activity-skeleton">
+                                            <div class="guest-activity-skeleton__row" *ngFor="let item of [1, 2, 3]">
+                                                <p-skeleton width="9rem" height="1rem"></p-skeleton>
+                                                <div class="guest-activity-skeleton__content">
+                                                    <p-skeleton width="13rem" height="1rem"></p-skeleton>
+                                                    <p-skeleton width="8rem" height="0.85rem"></p-skeleton>
+                                                    <p-skeleton width="18rem" height="0.85rem"></p-skeleton>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </ng-container>
+
+                                    <ng-template #guestTimelineContent>
+                                        <div *ngIf="getGuestTimelineError(guest.id) as timelineError" class="guest-activity-panel__empty">
+                                            {{ timelineError }}
+                                        </div>
+
+                                        <ng-container *ngIf="!getGuestTimelineError(guest.id)">
+                                            <p-timeline
+                                                *ngIf="getGuestTimeline(guest.id).length > 0; else guestTimelineEmpty"
+                                                [value]="getGuestTimeline(guest.id)"
+                                                align="left"
+                                                styleClass="guest-activity-timeline">
+                                                <ng-template pTemplate="opposite" let-item>
+                                                    <small class="text-500">{{ item.timestamp | date:'yyyy.MM.dd HH:mm:ss' }}</small>
+                                                </ng-template>
+                                                <ng-template pTemplate="marker" let-item>
+                                                    <span class="guest-activity-timeline__marker" [style.background-color]="item.color">
+                                                        <i [class]="item.icon"></i>
+                                                    </span>
+                                                </ng-template>
+                                                <ng-template pTemplate="content" let-item>
+                                                    <div class="guest-activity-timeline__card">
+                                                        <div class="guest-activity-timeline__title">{{ item.title }}</div>
+                                                        <div class="guest-activity-timeline__meta">{{ item.actor }}</div>
+                                                        <div *ngIf="item.fieldChanges?.length" class="guest-activity-timeline__changes">
+                                                            <div *ngFor="let change of item.fieldChanges" class="guest-activity-timeline__change-row">
+                                                                <div class="guest-activity-timeline__change-label">{{ change.label }}</div>
+                                                                <div *ngIf="!isRoomTypeTimelineChange(change)" class="guest-activity-timeline__change-values">
+                                                                    <span class="guest-activity-timeline__change-value">{{ change.oldText }}</span>
+                                                                    <i class="pi pi-arrow-right guest-activity-timeline__change-arrow"></i>
+                                                                    <span class="guest-activity-timeline__change-value guest-activity-timeline__change-value--new">{{ change.newText }}</span>
+                                                                </div>
+                                                                <div *ngIf="isRoomTypeTimelineChange(change)" class="guest-activity-timeline__change-values">
+                                                                    <span [ngClass]="'color-badge ' + getTimelineRoomTypeBadgeClass(change.oldText)">{{ change.oldText }}</span>
+                                                                    <i class="pi pi-arrow-right guest-activity-timeline__change-arrow"></i>
+                                                                    <span [ngClass]="'color-badge ' + getTimelineRoomTypeBadgeClass(change.newText)">{{ change.newText }}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div *ngIf="item.tagBadgeValue" class="guest-activity-timeline__tag-badge-row">
+                                                            <span *ngIf="item.tagBadgeLabel" class="guest-activity-timeline__tag-badge-label">{{ item.tagBadgeLabel }}</span>
+                                                            <span [ngClass]="'color-badge ' + item.tagBadgeColorClass">
+                                                                <i class="pi pi-tag mr-2"></i>
+                                                                {{ item.tagBadgeValue }}
+                                                            </span>
+                                                        </div>
+                                                        <div *ngIf="item.description" class="guest-activity-timeline__description">
+                                                            {{ item.description }}
+                                                        </div>
+                                                    </div>
+                                                </ng-template>
+                                            </p-timeline>
+
+                                            <ng-template #guestTimelineEmpty>
+                                                <div class="guest-activity-panel__empty">
+                                                    Ehhez a vendéghez még nincs megjeleníthető esemény.
+                                                </div>
+                                            </ng-template>
+                                        </ng-container>
+                                    </ng-template>
+                                </div>
                             </div>
                         </td>
                     </tr>

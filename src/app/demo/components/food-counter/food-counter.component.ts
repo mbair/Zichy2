@@ -176,6 +176,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.logService.create({
                     action_type: "same code",
                     table_name: "food_counter",
+                    guestid: this.guest?.id,
                     original_data: `${this.guest?.lastName} ${this.guest?.firstName} (${this.scannedCode})`,
                 })
 
@@ -247,6 +248,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 this.logService.create({
                     action_type: "scanned code",
                     table_name: "food_counter",
+                    guestid: this.guest?.id,
                     original_data: `${this.guest?.lastName} ${this.guest?.firstName} (${this.guest?.rfid})`,
                 })
 
@@ -367,6 +369,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                         this.logService.create({
                             action_type: "already received food",
                             table_name: "food_counter",
+                            guestid: this.guest?.id,
                             original_data: `${this.guest?.lastName} ${this.guest?.firstName} (${this.guest?.rfid})`,
                         })
 

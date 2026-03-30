@@ -141,6 +141,8 @@ export class LogsComponent implements OnInit {
             'tag duplicate',
             'already received food',
             'unknown device',
+            'roomkey-issue',
+            'roomkey-return',
             'import',
             'login success',
             'login failed',
