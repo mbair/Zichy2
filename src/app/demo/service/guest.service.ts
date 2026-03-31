@@ -172,6 +172,10 @@ export class GuestService {
         return this.apiService.get(`guest/getbyrfid/${rfid}`)
     }
 
+    public getById$(guestId: number): Observable<Guest> {
+        return this.apiService.get<Guest>(`guest/getbyid/${guestId}`)
+    }
+
     /**
      * Updates the last tag usage of the guest identified by the given id.
      * @param guestId The id of the guest to update the last tag usage for.

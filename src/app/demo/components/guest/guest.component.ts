@@ -11,6 +11,7 @@ import { dateBoundsValidator } from '../../utils/date-bounds-validator';
 import { dateRangeValidator } from '../../utils/date-range-validator';
 import { emailDomainValidator } from '../../utils/email-validator';
 import { sameDayMealOrderValidator } from '../../utils/same-day-meal-order-validator';
+import { visitorSelectedMealsValidator } from '../../utils/visitor-selected-meals-validator';
 import { zipCodeValidator } from '../../utils/zipcode-validator';
 import { GuestService } from '../../service/guest.service';
 import { UserService } from '../../service/user.service';
@@ -25,14 +26,44 @@ import { ApiResponse } from '../../api/ApiResponse';
 import { Reservation } from '../../api/reservation';
 import { Conference } from '../../api/conference';
 import { EmailStatusSummary, Guest } from '../../api/guest';
+import { Log } from '../../api/log';
 import { Tag } from '../../api/tag';
 import { calculateAgeYears, formatDateCompact, formatDateDots, formatDateYmd, isSameDay, isSameOrBeforeDay, parseDateOnly } from '../../utils/date.utils';
 import { resolveConferenceFormAllowedRoomTypeIds } from '../../utils/conference-room-type.utils';
-import { getRoomTypeOptions, isNoAccommodationRoomTypeValue } from '../../utils/room-type.utils';
+import { getRoomTypeOptions, isNoAccommodationRoomTypeValue, NO_ACCOMMODATION_ROOM_TYPE_VALUE } from '../../utils/room-type.utils';
 import { saveBlobAsFile } from '../../utils/file-saver.utils';
 
 import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
 
+type GuestActivityTimelineItem = {
+    id: string;
+    title: string;
+    description: string | null;
+    fieldChanges?: GuestTimelineFieldChange[];
+    tagBadgeLabel?: string | null;
+    tagBadgeValue?: string | null;
+    tagBadgeColorClass?: string;
+    actor: string;
+    timestamp: string | null;
+    icon: string;
+    color: string;
+};
+
+type GuestActivityTimelineEntry = GuestActivityTimelineItem & {
+    action: string;
+    tableName: string;
+    changedFieldKeys: string[];
+    logId: number | null;
+    priority: number;
+    timestampKey: string;
+};
+
+type GuestTimelineFieldChange = {
+    key: string;
+    label: string;
+    oldText: string;
+    newText: string;
+};
 
 @Component({
     selector: 'guest-component',
@@ -109,6 +140,9 @@ export class GuestComponent implements OnInit {
     currentIdCardUrl: string | null = null       // idCard image URL in Guest edit form   
     idCardImageUrls: { [guestId: string]: string } = {};
     loadingIdCard: { [guestId: string]: boolean } = {};
+    guestTimelineByGuestId: Record<number, GuestActivityTimelineItem[]> = {}
+    guestTimelineLoading: Record<number, boolean> = {}
+    guestTimelineError: Record<number, string | null> = {}
     showUploadBlock: boolean = false             // Upload block visibility in edit form  
     guestConference: Conference | null = null    // Guest's conference
     showIdCardField: boolean = false
@@ -128,6 +162,74 @@ export class GuestComponent implements OnInit {
     private static readonly MISSING_EMAIL_STATUS_MESSAGE = 'Nincs e-mail cím megadva a küldéshez.'
     readonly idCardMaxFileSizeBytes = 15 * 1024 * 1024
     noConferenceMode: boolean = false
+    private readonly guestTimelineLimit = 100
+    private readonly guestTimelineFieldLabels: Record<string, string> = {
+        accommodationExtra: 'szállás megjegyzés',
+        babyBed: 'babaágy',
+        birthDate: 'születési dátum',
+        conferenceName: 'konferencia',
+        conferenceid: 'konferencia',
+        country: 'ország',
+        dateOfArrival: 'érkezés',
+        dateOfDeparture: 'távozás',
+        diet: 'étrend',
+        displayRoomNum: 'szoba',
+        email: 'e-mail',
+        enabled: 'státusz',
+        firstMeal: 'első étkezés',
+        firstName: 'keresztnév',
+        gender: 'nem',
+        idcard: 'személyi igazolvány',
+        lastMeal: 'utolsó étkezés',
+        lastName: 'vezetéknév',
+        lastRfidUsage: 'utolsó NFC használat',
+        nationality: 'állampolgárság',
+        payment: 'fizetés',
+        prepaid: 'előleg',
+        rfid: 'NFC címke',
+        roomKeyIssued: 'szobakulcs',
+        roomKeyIssuedAt: 'kulcs kiadása',
+        roomKeyReturnedAt: 'kulcs visszavétele',
+        roomMate: 'szobatárs',
+        roomNum: 'szoba',
+        roomType: 'szobatípus',
+        telephone: 'telefon',
+        zipCode: 'irányítószám',
+        is_visitor: 'látogató',
+        visitor_meals_per_day: 'napi étkezések száma',
+    }
+    private readonly guestTimelineIgnoredFieldKeys = new Set([
+        'actualReservation',
+        'answers',
+        'conference',
+        'createdAt',
+        'dietDetails',
+        'diet_id',
+        'idCardUploaded',
+        'idcardtype',
+        'is_test',
+        'paymentMethodName',
+        'paymentName',
+        'requestedRoomType',
+        'requestedRoomTypeId',
+        'requested_room_type_id',
+        'reservations',
+        'rfidColor',
+        'rfid_id',
+        'room_id',
+        'updatedAt',
+        'userid',
+    ])
+    private readonly guestTimelineRoomTypeColorMap = new Map<string, string>([
+        ['nem kérek szállást', 'gray'],
+        ['kastély szállás 4 ágyas szoba', 'teal'],
+        ['kastély szállás 6 ágyas szoba', 'teal'],
+        ['kastély szállás 8 ágyas szoba', 'teal'],
+        ['maranatha panzióház 2 ágyas szoba (külön fürdős)', 'yellow'],
+        ['maranatha panzióház franciaágyas szoba (külön fürdős)', 'yellow'],
+        ['maranatha panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)', 'yellow'],
+        ['családi szoba (közös konyhával, fürdővel és nappalival)', 'orange'],
+    ])
 
     private initialFormValues = {
         id: null,
@@ -160,9 +262,18 @@ export class GuestComponent implements OnInit {
         babyBed: null,
         prepaid: '',
         roomMate: null,
+        is_visitor: false,
+        visitor_meals_per_day: 0,
         idCard: null,
         enabled: true,
     }
+
+    readonly visitorMealOptions = [
+        { label: 'Nincs étkezés', value: 0 },
+        { label: '1 étkezés / nap', value: 1 },
+        { label: '2 étkezés / nap', value: 2 },
+        { label: 'Korlátlan', value: null },
+    ]
 
     public selectedFile: File
     private globalSearch$ = new Subject<string>()
@@ -175,6 +286,8 @@ export class GuestComponent implements OnInit {
     private guestViewPollTimer: ReturnType<typeof setInterval> | null = null
     private guestViewPollInFlight: boolean = false
     private lastAppliedGuestViewFingerprint: string = ''
+    private readonly conferenceDetailsCache = new Map<number, Conference>()
+    private readonly conferenceDetailsInFlight = new Set<number>()
 
     getEmailStatusLabel(guest: Guest): string {
         switch (guest.emailStatus?.status) {
@@ -312,6 +425,8 @@ export class GuestComponent implements OnInit {
             babyBed: [this.initialFormValues.babyBed],
             prepaid: [this.initialFormValues.prepaid],
             roomMate: new FormControl<string[] | null>(this.initialFormValues.roomMate),
+            is_visitor: [this.initialFormValues.is_visitor],
+            visitor_meals_per_day: [this.initialFormValues.visitor_meals_per_day],
             idCard: [this.initialFormValues.idCard]
         }, {
             validators: [
@@ -319,6 +434,17 @@ export class GuestComponent implements OnInit {
                 sameDayMealOrderValidator(
                     'dateOfArrival',
                     'dateOfDeparture',
+                    'firstMeal',
+                    'lastMeal',
+                    {
+                        skipWhen: (control) =>
+                            !!control.get('is_visitor')?.value &&
+                            Number(control.get('visitor_meals_per_day')?.value) === 2,
+                    },
+                ),
+                visitorSelectedMealsValidator(
+                    'is_visitor',
+                    'visitor_meals_per_day',
                     'firstMeal',
                     'lastMeal',
                 ),
@@ -543,24 +669,44 @@ export class GuestComponent implements OnInit {
             this.normalizeRoomMateControlValue(value)
         })
 
-        // TODO: Remove redundant conference Id + Name
-        this.guestForm.get('conference')?.valueChanges.subscribe((conference) => {
-            const selectedConference = this.getSelectedConference(conference)
+        const syncVisitorModeState = () => {
+            this.applyVisitorAccommodationState()
+            updateMealValidators()
+        }
 
-            if (selectedConference) {
-                const selectedConferenceId = selectedConference.id
-                const selectedConferenceName = selectedConference.name
-                this.guestForm.patchValue({ conferenceid: selectedConferenceId })
-                this.guestForm.patchValue({ conferenceName: selectedConferenceName })
+        // Látogató mód váltásakor frissítjük a firstMeal/lastMeal validátorait
+        const updateMealValidators = () => {
+            const isVisitor: boolean = !!this.guestForm.get('is_visitor')?.value
+            const mealsPerDay: number | null = this.guestForm.get('visitor_meals_per_day')?.value ?? 0
+            const firstMealCtrl = this.guestForm.get('firstMeal')
+            const lastMealCtrl = this.guestForm.get('lastMeal')
+            if (isVisitor && mealsPerDay === 1) {
+                firstMealCtrl?.setValidators(Validators.required)
+                lastMealCtrl?.clearValidators()
+                lastMealCtrl?.patchValue(null, { emitEvent: false })
+            } else if (isVisitor && mealsPerDay !== 2) {
+                firstMealCtrl?.clearValidators()
+                lastMealCtrl?.clearValidators()
+                firstMealCtrl?.patchValue(null, { emitEvent: false })
+                lastMealCtrl?.patchValue(null, { emitEvent: false })
             } else {
-                this.guestForm.patchValue({
-                    conferenceid: null,
-                    conferenceName: null,
-                })
+                firstMealCtrl?.setValidators(Validators.required)
+                lastMealCtrl?.setValidators(Validators.required)
             }
+            firstMealCtrl?.updateValueAndValidity({ emitEvent: false })
+            lastMealCtrl?.updateValueAndValidity({ emitEvent: false })
+        }
 
-            this.applyConferenceRules(selectedConference)
-            this.loadConferenceDetails(selectedConference)
+        this.guestForm.get('is_visitor')?.valueChanges.subscribe(() => syncVisitorModeState())
+        this.guestForm.get('visitor_meals_per_day')?.valueChanges.subscribe(() => updateMealValidators())
+        syncVisitorModeState()
+
+        // TODO: Remove redundant conference Id + Name
+        this.guestForm.get('conference')?.valueChanges.pipe(
+            map((conference) => this.getSelectedConference(conference)),
+            distinctUntilChanged((previous, current) => Number(previous?.id ?? 0) === Number(current?.id ?? 0)),
+        ).subscribe((selectedConference) => {
+            this.syncConferenceSelectionState(selectedConference)
         })
 
         this.guestForm.get('country')?.valueChanges.subscribe((country) => {
@@ -669,9 +815,14 @@ export class GuestComponent implements OnInit {
     get babyBed() { return this.guestForm.get('babyBed') }
     get prepaid() { return this.guestForm.get('prepaid') }
     get roomMate() { return this.guestForm.get('roomMate') }
+    get is_visitor() { return this.guestForm.get('is_visitor') }
+    get visitor_meals_per_day() { return this.guestForm.get('visitor_meals_per_day') }
     get idCard() { return this.guestForm.get('idCard') }
+    get isVisitorSelection() {
+        return !!this.is_visitor?.value
+    }
     get needsRoom() {
-        return this.hasSelectedConference && this.isRoomSelectionRequiringAccommodation(this.roomType?.value)
+        return this.hasSelectedConference && !this.isVisitorSelection && this.isRoomSelectionRequiringAccommodation(this.roomType?.value)
     }
     
     // Helper for Guests primary reservation
@@ -901,6 +1052,7 @@ export class GuestComponent implements OnInit {
         if (!data) return
 
         this.tableData = this.getNormalizedGuestRows(data)
+        this.resetGuestTimelineCache()
         this.totalRecords = data.totalItems || 0
         this.page = data.currentPage || 0
         this.totalTaggedGuests = data.rfidCount || 0
@@ -1096,6 +1248,597 @@ export class GuestComponent implements OnInit {
         if (guest.idcard) {
             this.getIdCardImage(guest)
         }
+
+        this.loadGuestTimeline(guest)
+    }
+
+    getGuestTimeline(guestId: number | null | undefined): GuestActivityTimelineItem[] {
+        if (!guestId) return []
+        return this.guestTimelineByGuestId[guestId] || []
+    }
+
+    isGuestTimelineLoading(guestId: number | null | undefined): boolean {
+        return !!guestId && !!this.guestTimelineLoading[guestId]
+    }
+
+    getGuestTimelineError(guestId: number | null | undefined): string | null {
+        if (!guestId) return null
+        return this.guestTimelineError[guestId] || null
+    }
+
+    trackGuestTimelineItem(index: number, item: GuestActivityTimelineItem): string {
+        return item.id
+    }
+
+    private resetGuestTimelineCache(): void {
+        this.guestTimelineByGuestId = {}
+        this.guestTimelineLoading = {}
+        this.guestTimelineError = {}
+    }
+
+    private invalidateGuestTimeline(guestId: number | null | undefined): void {
+        if (!guestId) return
+
+        delete this.guestTimelineByGuestId[guestId]
+        delete this.guestTimelineLoading[guestId]
+        delete this.guestTimelineError[guestId]
+    }
+
+    private loadGuestTimeline(guest: Guest): void {
+        const guestId = Number(guest?.id)
+        if (!Number.isInteger(guestId) || guestId <= 0) return
+        if (this.guestTimelineLoading[guestId]) return
+        if (Array.isArray(this.guestTimelineByGuestId[guestId])) return
+
+        this.guestTimelineLoading[guestId] = true
+        this.guestTimelineError[guestId] = null
+
+        this.logService.getGuestTimeline$(guestId, this.guestTimelineLimit).subscribe({
+            next: (logs) => {
+                this.guestTimelineByGuestId[guestId] = this.buildGuestTimelineItems(guest, logs)
+                this.guestTimelineLoading[guestId] = false
+            },
+            error: () => {
+                this.guestTimelineLoading[guestId] = false
+                this.guestTimelineError[guestId] = 'A vendég eseményei most nem tölthetők be.'
+            }
+        })
+    }
+
+    private buildGuestTimelineItems(guest: Guest, logs: Log[]): GuestActivityTimelineItem[] {
+        const entries = [...(logs || [])]
+            .sort((a, b) => this.getLogTimestampValue(a) - this.getLogTimestampValue(b))
+            .map((log, index) => this.buildGuestTimelineEntry(guest, log, index))
+
+        return this.filterGuestTimelineEntries(entries).map(({ action, tableName, changedFieldKeys, logId, priority, timestampKey, ...item }) => item)
+    }
+
+    private buildGuestTimelineEntry(guest: Guest, log: Log, index: number): GuestActivityTimelineEntry {
+        const action = this.normalizeLogAction(log?.action_type)
+        const tableName = this.normalizeLogTableName(log?.table_name)
+        const changedFieldKeys = this.getChangedGuestFieldKeys(log)
+        const actor = this.getGuestTimelineActor(log)
+        const timestamp = this.getGuestTimelineTimestamp(log)
+        const timestampKey = this.getGuestTimelineTimestampKey(timestamp)
+        const appearance = this.getGuestTimelineAppearance(action, tableName, changedFieldKeys)
+        const description = this.getGuestTimelineDescription(log, action, tableName, changedFieldKeys)
+        const fieldChanges = tableName === 'guest' && action === 'update'
+            ? this.getGuestTimelineFieldChanges(log)
+            : []
+        const tagBadge = this.getGuestTimelineTagBadge(guest, log, action)
+
+        return {
+            id: `${log.id || 'log'}-${index}`,
+            title: appearance.title,
+            description: fieldChanges.length > 0 ? null : description,
+            fieldChanges,
+            tagBadgeLabel: tagBadge?.label ?? null,
+            tagBadgeValue: tagBadge?.value ?? null,
+            tagBadgeColorClass: tagBadge?.colorClass ?? this.getGuestTimelineTagBadgeColorClass(guest),
+            actor,
+            timestamp,
+            icon: appearance.icon,
+            color: appearance.color,
+            action,
+            tableName,
+            changedFieldKeys,
+            logId: log?.id ?? null,
+            priority: this.getGuestTimelinePriority(action, tableName, description),
+            timestampKey,
+        }
+    }
+
+    private filterGuestTimelineEntries(entries: GuestActivityTimelineEntry[]): GuestActivityTimelineEntry[] {
+        const guestCreateKeys = new Set(
+            entries
+                .filter((entry) => entry.tableName === 'guest' && entry.action === 'create' && entry.timestampKey)
+                .map((entry) => `${entry.actor}|${entry.timestampKey}`),
+        )
+
+        const tagActionKeys = new Set(
+            entries
+                .filter((entry) => (entry.action === 'assign tag' || entry.action === 'unassign') && entry.timestampKey)
+                .map((entry) => `${entry.actor}|${entry.timestampKey}`),
+        )
+
+        const bestNfcUsageEntries = new Map<string, GuestActivityTimelineEntry>()
+        for (const entry of entries) {
+            if (entry.title !== 'NFC címke használat' || !entry.timestampKey) {
+                continue
+            }
+
+            const dedupeKey = `${entry.actor}|${entry.timestampKey}|${entry.title}`
+            const currentBest = bestNfcUsageEntries.get(dedupeKey)
+            if (!currentBest || entry.priority > currentBest.priority) {
+                bestNfcUsageEntries.set(dedupeKey, entry)
+            }
+        }
+
+        const tagMaintenanceUpdateEntries = new Map<string, GuestActivityTimelineEntry>()
+        for (const entry of entries) {
+            if (
+                entry.tableName === 'guest' &&
+                entry.action === 'update' &&
+                entry.timestampKey &&
+                this.isTagMaintenanceOnlyChange(entry.changedFieldKeys)
+            ) {
+                tagMaintenanceUpdateEntries.set(`${entry.actor}|${entry.timestampKey}`, entry)
+            }
+        }
+
+        for (const entry of entries) {
+            if (
+                (entry.action === 'assign tag' || entry.action === 'unassign') &&
+                entry.timestampKey &&
+                !entry.tagBadgeValue
+            ) {
+                const pairedUpdate = tagMaintenanceUpdateEntries.get(`${entry.actor}|${entry.timestampKey}`)
+                const pairedBadge = this.getTagBadgeFromFieldChanges(entry.action, pairedUpdate?.fieldChanges || [])
+                if (pairedBadge) {
+                    entry.tagBadgeValue = pairedBadge.value
+                }
+            }
+        }
+
+        return entries.filter((entry) => {
+            if (
+                entry.tableName === 'answers' &&
+                entry.action === 'create' &&
+                entry.timestampKey &&
+                guestCreateKeys.has(`${entry.actor}|${entry.timestampKey}`)
+            ) {
+                return false
+            }
+
+            if (
+                entry.tableName === 'guest' &&
+                entry.action === 'update' &&
+                entry.timestampKey &&
+                this.isTagMaintenanceOnlyChange(entry.changedFieldKeys) &&
+                tagActionKeys.has(`${entry.actor}|${entry.timestampKey}`)
+            ) {
+                return false
+            }
+
+            if (entry.title === 'NFC címke használat' && entry.timestampKey) {
+                const dedupeKey = `${entry.actor}|${entry.timestampKey}|${entry.title}`
+                return bestNfcUsageEntries.get(dedupeKey)?.id === entry.id
+            }
+
+            return true
+        })
+    }
+
+    private getLogTimestampValue(log: Log): number {
+        const rawTimestamp = this.getGuestTimelineTimestamp(log)
+        if (!rawTimestamp) return 0
+
+        const timestamp = new Date(rawTimestamp).getTime()
+        return Number.isNaN(timestamp) ? 0 : timestamp
+    }
+
+    private getGuestTimelineTimestamp(log: Log): string | null {
+        return log?.createdAt || log?.updatedAt || null
+    }
+
+    private getGuestTimelineActor(log: Log): string {
+        const actor = String(log?.user_fullname || '').trim()
+        return actor || 'SYSTEM'
+    }
+
+    private getGuestTimelineAppearance(action: string, tableName: string, changedFieldKeys: string[]): { title: string; icon: string; color: string } {
+        if (tableName === 'answers') {
+            switch (action) {
+                case 'create':
+                    return { title: 'Kérdőív válaszok rögzítve', icon: 'pi pi-comments', color: '#16a34a' }
+                case 'update':
+                    return { title: 'Kérdőív válaszok módosítva', icon: 'pi pi-comments', color: '#2563eb' }
+                case 'delete':
+                    return { title: 'Kérdőív válaszok törölve', icon: 'pi pi-comments', color: '#dc2626' }
+                default:
+                    return { title: 'Kérdőív esemény', icon: 'pi pi-comments', color: '#475569' }
+            }
+        }
+
+        if (tableName === 'guest' && action === 'update' && this.isTagMaintenanceOnlyChange(changedFieldKeys)) {
+            return { title: 'NFC címke állapota frissítve', icon: 'pi pi-tag', color: '#ea580c' }
+        }
+
+        switch (action) {
+            case 'create':
+                return { title: 'Vendég regisztrálva', icon: 'pi pi-user-plus', color: '#16a34a' }
+            case 'update':
+                return { title: 'Vendég adatai módosítva', icon: 'pi pi-pencil', color: '#2563eb' }
+            case 'delete':
+                return { title: 'Vendég törölve', icon: 'pi pi-trash', color: '#dc2626' }
+            case 'assign tag':
+                return { title: 'NFC címke hozzárendelve', icon: 'pi pi-tag', color: '#ea580c' }
+            case 'unassign':
+                return { title: 'NFC címke eltávolítva', icon: 'pi pi-times-circle', color: '#f97316' }
+            case 'updatelasttagusage':
+            case 'scanned code':
+                return { title: 'NFC címke használat', icon: 'pi pi-bolt', color: '#0891b2' }
+            case 'roomkey-issue':
+                return { title: 'Szobakulcs kiadva', icon: 'pi pi-key', color: '#ca8a04' }
+            case 'roomkey-return':
+                return { title: 'Szobakulcs visszavéve', icon: 'pi pi-key', color: '#16a34a' }
+            case 'tag duplicate':
+                return { title: 'NFC címke ütközés', icon: 'pi pi-exclamation-triangle', color: '#dc2626' }
+            case 'already received food':
+                return { title: 'Étkezés már rögzítve', icon: 'pi pi-exclamation-circle', color: '#dc2626' }
+            case 'import':
+                return { title: 'Vendég import esemény', icon: 'pi pi-upload', color: '#7c3aed' }
+            default:
+                return { title: 'Vendéghez kapcsolódó esemény', icon: 'pi pi-clock', color: '#475569' }
+        }
+    }
+
+    private getGuestTimelineDescription(log: Log, action: string, tableName: string, changedFieldKeys: string[]): string | null {
+        const customDescription = this.getGuestTimelineCustomDescription(log, action, tableName, changedFieldKeys)
+        if (customDescription !== null) {
+            return customDescription
+        }
+
+        const responseText = this.getLogPayloadText(this.parseLogPayload(log?.response_data))
+        if (responseText) {
+            return responseText
+        }
+
+        const originalText = this.getLogPayloadText(this.parseLogPayload(log?.original_data))
+        if (originalText) {
+            return originalText
+        }
+
+        const changedFields = changedFieldKeys.map((key) => this.guestTimelineFieldLabels[key] || key)
+        if (!changedFields.length) {
+            return null
+        }
+
+        const visibleFields = changedFields.slice(0, 4)
+        const suffix = changedFields.length > visibleFields.length
+            ? ` +${changedFields.length - visibleFields.length} további mező`
+            : ''
+
+        return `Módosult: ${visibleFields.join(', ')}${suffix}`
+    }
+
+    private getGuestTimelineCustomDescription(log: Log, action: string, tableName: string, changedFieldKeys: string[]): string | null {
+        if (tableName === 'answers') {
+            switch (action) {
+                case 'create':
+                    return 'A vendég kérdőív válaszai rögzítve lettek.'
+                case 'update':
+                    return 'A vendég kérdőív válaszai frissültek.'
+                case 'delete':
+                    return 'A vendég kérdőív válaszai törölve lettek.'
+                default:
+                    return null
+            }
+        }
+
+        if (action === 'assign tag') {
+            return ''
+        }
+
+        if (action === 'unassign') {
+            return 'Címke leválasztva a vendégről.'
+        }
+
+        if (action === 'scanned code' || action === 'updatelasttagusage') {
+            return ''
+        }
+
+        if (tableName === 'guest' && action === 'update') {
+            const changes = this.getGuestTimelineFieldChanges(log)
+            if (!changes.length) {
+                return null
+            }
+            return null
+        }
+
+        return null
+    }
+
+    private getChangedGuestFieldKeys(log: Log): string[] {
+        const originalData = this.parseLogPayload(log?.original_data)
+        const newData = this.parseLogPayload(log?.new_data)
+        if (!this.isLogRecord(originalData) || !this.isLogRecord(newData)) {
+            return []
+        }
+
+        return Object.keys(newData)
+            .filter((key) => !['id'].includes(key))
+            .filter((key) => !this.guestTimelineIgnoredFieldKeys.has(key))
+            .filter((key) => JSON.stringify(originalData[key] ?? null) !== JSON.stringify(newData[key] ?? null))
+    }
+
+    private getGuestTimelineFieldChanges(log: Log): GuestTimelineFieldChange[] {
+        const originalData = this.parseLogPayload(log?.original_data)
+        const newData = this.parseLogPayload(log?.new_data)
+        if (!this.isLogRecord(originalData) || !this.isLogRecord(newData)) {
+            return []
+        }
+
+        return this.getChangedGuestFieldKeys(log)
+            .map((key) => ({
+                key,
+                label: this.guestTimelineFieldLabels[key] || key,
+                oldText: this.formatGuestTimelineFieldValue(key, originalData[key]),
+                newText: this.formatGuestTimelineFieldValue(key, newData[key]),
+            }))
+            .filter((change) => change.oldText !== change.newText)
+    }
+
+    private isTagMaintenanceOnlyChange(changedFieldKeys: string[]): boolean {
+        if (!changedFieldKeys.length) {
+            return false
+        }
+
+        return changedFieldKeys.every((field) => ['rfid', 'lastRfidUsage'].includes(field))
+    }
+
+    private formatGuestTimelineFieldValue(key: string, value: unknown): string {
+        if (value === null || value === undefined) {
+            return 'üres'
+        }
+
+        if (typeof value === 'string') {
+            const trimmed = value.trim()
+            if (!trimmed) {
+                return 'üres'
+            }
+
+            if (this.isDateOnlyField(key)) {
+                return formatDateDots(trimmed) || trimmed
+            }
+
+            if (this.isDateTimeField(key)) {
+                return this.formatGuestTimelineDateTime(trimmed) || trimmed
+            }
+
+            return trimmed
+        }
+
+        if (typeof value === 'number') {
+            if (key === 'gender') {
+                return value === 1 ? 'Férfi' : value === 2 ? 'Nő' : String(value)
+            }
+
+            if (this.isBooleanField(key)) {
+                return value ? 'Igen' : 'Nem'
+            }
+
+            return String(value)
+        }
+
+        if (typeof value === 'boolean') {
+            return value ? 'Igen' : 'Nem'
+        }
+
+        if (Array.isArray(value)) {
+            const normalizedItems = value
+                .map((item) => this.formatGuestTimelineFieldValue(key, item))
+                .filter((item) => item !== 'üres')
+
+            return normalizedItems.length > 0 ? normalizedItems.join(', ') : 'üres'
+        }
+
+        if (this.isLogRecord(value)) {
+            if (typeof value['name'] === 'string' && value['name'].trim()) {
+                return value['name'].trim()
+            }
+
+            if (typeof value['roomNum'] === 'string' && value['roomNum'].trim()) {
+                return value['roomNum'].trim()
+            }
+
+            return JSON.stringify(value)
+        }
+
+        return String(value)
+    }
+
+    private isBooleanField(key: string): boolean {
+        return ['babyBed', 'enabled', 'is_visitor', 'prepaid', 'roomKeyIssued'].includes(key)
+    }
+
+    visitorLabel(guest: Guest): string {
+        const meals = guest.visitor_meals_per_day
+        if (meals === null || meals === undefined) return 'Látogató + korlátlan'
+        if (meals === 1) return 'Látogató +1 étkezés'
+        if (meals === 2) return 'Látogató +2 étkezés'
+        return 'Látogató'
+    }
+
+    private isDateOnlyField(key: string): boolean {
+        return ['birthDate', 'dateOfArrival', 'dateOfDeparture'].includes(key)
+    }
+
+    private isDateTimeField(key: string): boolean {
+        return ['lastRfidUsage', 'roomKeyIssuedAt', 'roomKeyReturnedAt'].includes(key)
+    }
+
+    private formatGuestTimelineDateTime(value: string): string {
+        const date = new Date(value)
+        if (Number.isNaN(date.getTime())) {
+            return ''
+        }
+
+        const pad = (part: number) => String(part).padStart(2, '0')
+        return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+    }
+
+    private getGuestTimelineTagBadge(guest: Guest, log: Log, action: string): { label: string; value: string; colorClass: string } | null {
+        const tagNumber = this.getGuestTimelineTagNumber(log, action)
+        if (!tagNumber) {
+            return null
+        }
+
+        return {
+            label: '',
+            value: tagNumber,
+            colorClass: this.getGuestTimelineTagBadgeColorClass(guest),
+        }
+    }
+
+    private getGuestTimelineTagNumber(log: Log, action: string): string | null {
+        const originalText = this.getLogPayloadText(this.parseLogPayload(log?.original_data))
+        if (!originalText) {
+            return null
+        }
+
+        if (action === 'assign tag') {
+            const match = originalText.match(/^Assign Tag\s+(.+?)\s+to\s+(.+)$/i)
+            return match?.[1]?.trim() || null
+        }
+
+        if (action === 'scanned code' || action === 'updatelasttagusage') {
+            const match = originalText.match(/\(([^()]+)\)\s*$/)
+            return match?.[1]?.trim() || null
+        }
+
+        if (action === 'unassign') {
+            const match = originalText.match(/^Unassign Tag\s+(.+?)\s+from\s+(.+)$/i)
+            return match?.[1]?.trim() || null
+        }
+
+        return null
+    }
+
+    private getGuestTimelineTagBadgeColorClass(guest: Guest): string {
+        const dietDetails = guest?.dietDetails as { color?: string } | undefined
+        const color = String(dietDetails?.color || '').trim()
+        return color || 'indigo'
+    }
+
+    private getTagBadgeFromFieldChanges(action: string, fieldChanges: GuestTimelineFieldChange[]): { value: string } | null {
+        const rfidChange = fieldChanges.find((change) => change.key === 'rfid')
+        if (!rfidChange) {
+            return null
+        }
+
+        const badgeValue = action === 'unassign' ? rfidChange.oldText : rfidChange.newText
+        if (!badgeValue || badgeValue === 'üres') {
+            return null
+        }
+
+        return {
+            value: badgeValue,
+        }
+    }
+
+    isRoomTypeTimelineChange(change: GuestTimelineFieldChange): boolean {
+        return change.key === 'roomType'
+    }
+
+    getTimelineRoomTypeBadgeClass(value: string): string {
+        const normalized = String(value || '').trim().toLowerCase()
+        return this.guestTimelineRoomTypeColorMap.get(normalized) ?? ''
+    }
+
+    private parseLogPayload(value: unknown): unknown {
+        if (value === null || value === undefined || value === '') {
+            return null
+        }
+
+        if (typeof value !== 'string') {
+            return value
+        }
+
+        const trimmed = value.trim()
+        if (!trimmed) {
+            return null
+        }
+
+        try {
+            return JSON.parse(trimmed)
+        } catch {
+            return trimmed
+        }
+    }
+
+    private getLogPayloadText(value: unknown): string | null {
+        if (!value) return null
+
+        if (typeof value === 'string') {
+            const normalized = value.trim()
+            return normalized ? normalized : null
+        }
+
+        if (!this.isLogRecord(value)) {
+            return null
+        }
+
+        const message = value['message']
+        if (typeof message === 'string' && message.trim()) {
+            return message.trim()
+        }
+
+        const error = value['error']
+        if (typeof error === 'string' && error.trim()) {
+            return error.trim()
+        }
+
+        return null
+    }
+
+    private isLogRecord(value: unknown): value is Record<string, any> {
+        return !!value && typeof value === 'object' && !Array.isArray(value)
+    }
+
+    private normalizeLogTableName(tableName: string | undefined): string {
+        return String(tableName || '').trim().toLowerCase()
+    }
+
+    private normalizeLogAction(action: string | undefined): string {
+        return String(action || '').trim().toLowerCase()
+    }
+
+    private getGuestTimelinePriority(action: string, tableName: string, description: string | null): number {
+        let priority = description ? 10 : 0
+
+        if (tableName === 'food_counter' && action === 'scanned code') {
+            priority += 30
+        }
+
+        if (tableName === 'guest' && action === 'updatelasttagusage') {
+            priority += 5
+        }
+
+        return priority
+    }
+
+    private getGuestTimelineTimestampKey(timestamp: string | null): string {
+        if (!timestamp) {
+            return ''
+        }
+
+        const date = new Date(timestamp)
+        if (Number.isNaN(date.getTime())) {
+            return ''
+        }
+
+        return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}-${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`
     }
 
     /**
@@ -1119,7 +1862,20 @@ export class GuestComponent implements OnInit {
      * @param guest
      */
     edit(guest: Guest) {
-        this.guestForm.reset(this.initialFormValues)
+        const guestId = Number(guest?.id)
+        if (Number.isFinite(guestId) && guestId > 0) {
+            this.guestService.getById$(guestId).subscribe({
+                next: (fullGuest) => this.openGuestEditor(fullGuest ?? guest),
+                error: () => this.openGuestEditor(guest),
+            })
+            return
+        }
+
+        this.openGuestEditor(guest)
+    }
+
+    private openGuestEditor(guest: Guest) {
+        this.guestForm.reset(this.initialFormValues, { emitEvent: false })
         this.currentIdCardUrl = guest.idcard ? `${this.apiURL}/guest/idcard/${guest.id}` : null
         this.showUploadBlock = false
         if (this.currentIdCardUrl) {
@@ -1129,49 +1885,26 @@ export class GuestComponent implements OnInit {
         // Guest room reservation
         this.guestReservations = guest.reservations ?? []
 
-        this.sidebar = true
+        const selectedConf = this.resolveConferenceForEditor(guest)
 
-        // Get guest conference details
-        let selectedConf: any = null
-        if (guest.conferenceid) {
-            selectedConf = this.conferenceSelector.conferences.find(conf => conf.id === guest.conferenceid)
-        } else if (guest.conferenceName) {
-            // If conferenceid is null, search by conferenceName
-            selectedConf = this.conferenceSelector.conferences.find(conf => conf.name === guest.conferenceName)
-        }
-
-        guest.conference = selectedConf ? [selectedConf] : []
         const guestFormValue: Guest = {
             ...guest,
+            conference: selectedConf ? [selectedConf] : [],
             payment: this.resolvePaymentMethodId(guest)
         }
 
-        if (selectedConf) {
-            this.applyConferenceRules(selectedConf)
+        this.guestForm.patchValue(guestFormValue, { emitEvent: false })
+        this.syncConferenceSelectionState(selectedConf)
+        this.normalizeRoomMateControlValue()
+        this.updateIdCardVisibility()
+        this.updateBabyBedVisibility()
 
-            // Because side bar is not visible yet, we need to wait a bit
-            setTimeout(() => {
-                this.guestForm.patchValue(guestFormValue)
-                this.applyConferenceRules(this.guestConference ?? selectedConf)
-                this.normalizeRoomMateControlValue()
-                this.updateIdCardVisibility()
-                this.updateBabyBedVisibility()
+        // Store original values for Cancel (edit mode)
+        this.originalFormValues = this.guestForm.getRawValue()
 
-                // Store original values for Cancel (edit mode)
-                this.originalFormValues = this.guestForm.getRawValue()
-            })
+        this.sidebar = true
 
-            // Set arrival and departure date limitations
-            this.beginDate = selectedConf?.beginDate ? parseDateOnly(selectedConf.beginDate) ?? undefined : undefined
-            this.endDate = selectedConf?.endDate ? parseDateOnly(selectedConf.endDate) ?? undefined : undefined
-            this.guestConference = selectedConf
-
-            this.getEarliestFirstMeal()
-            this.getLatestFirstMeal()
-            this.getEarliestLastMeal()
-            this.getLatestLastMeal()
-            this.cdRef.detectChanges()
-        } else {
+        if (!selectedConf) {
             console.warn('No conference found for guest:', guest);
         }
     }
@@ -1239,14 +1972,96 @@ export class GuestComponent implements OnInit {
         return conferences.length > 0 ? conferences[0] as Conference : null
     }
 
+    private syncConferenceSelectionState(
+        selectedConference: Conference | null,
+        options: { loadDetails?: boolean } = {},
+    ): void {
+        if (selectedConference) {
+            this.guestForm.patchValue({
+                conferenceid: selectedConference.id ?? null,
+                conferenceName: selectedConference.name ?? null,
+            }, { emitEvent: false })
+        } else {
+            this.guestForm.patchValue({
+                conferenceid: null,
+                conferenceName: null,
+            }, { emitEvent: false })
+        }
+
+        this.applyConferenceRules(selectedConference)
+
+        if (options.loadDetails !== false) {
+            this.loadConferenceDetails(selectedConference)
+        }
+    }
+
+    private resolveConferenceForEditor(guest: Guest): Conference | null {
+        const selectorConferences = this.conferenceSelector?.conferences ?? []
+        const guestConference = Array.isArray(guest.conference) && guest.conference.length > 0
+            ? guest.conference[0]
+            : null
+
+        let selectorConference: Conference | null = null
+
+        if (guest.conferenceid) {
+            const targetConferenceId = Number(guest.conferenceid)
+            selectorConference = selectorConferences.find(
+                conf => Number(conf.id) === targetConferenceId
+            ) ?? null
+        } else if (guest.conferenceName) {
+            selectorConference = selectorConferences.find(
+                conf => conf.name?.trim() === guest.conferenceName?.trim()
+            ) ?? null
+        }
+
+        if (!selectorConference && !guestConference) {
+            return null
+        }
+
+        return {
+            ...(selectorConference ?? {}),
+            ...(guestConference ?? {}),
+        }
+    }
+
+    private hasDetailedConferenceRules(conference: Conference | null): boolean {
+        return !!conference && (
+            conference.guestEditEndDate != null ||
+            Array.isArray(conference.paymentMethodIds) ||
+            Array.isArray(conference.roomTypeIds) ||
+            Array.isArray(conference.conferenceRoomTypeIds) ||
+            Array.isArray(conference.roomTypes)
+        )
+    }
+
     private loadConferenceDetails(selectedConference: Conference | null): void {
         const conferenceId = Number(selectedConference?.id)
         if (!Number.isFinite(conferenceId) || conferenceId <= 0) {
             return
         }
 
+        if (this.hasDetailedConferenceRules(selectedConference)) {
+            this.conferenceDetailsCache.set(conferenceId, { ...selectedConference! })
+            return
+        }
+
+        const cachedConference = this.conferenceDetailsCache.get(conferenceId)
+        if (cachedConference) {
+            const currentSelectedConferenceId = Number(this.getSelectedConference(this.conference?.value)?.id)
+            if (currentSelectedConferenceId === conferenceId) {
+                this.applyConferenceRules(cachedConference)
+            }
+            return
+        }
+
+        if (this.conferenceDetailsInFlight.has(conferenceId)) {
+            return
+        }
+
+        this.conferenceDetailsInFlight.add(conferenceId)
         this.conferenceService.getById(conferenceId).subscribe({
             next: (response: any) => {
+                this.conferenceDetailsInFlight.delete(conferenceId)
                 const currentSelectedConferenceId = Number(this.getSelectedConference(this.conference?.value)?.id)
                 if (currentSelectedConferenceId !== conferenceId) {
                     return
@@ -1256,8 +2071,12 @@ export class GuestComponent implements OnInit {
                     response,
                     selectedConference as Conference,
                 )
+                this.conferenceDetailsCache.set(conferenceId, detailedConference)
 
                 this.applyConferenceRules(detailedConference)
+            },
+            error: () => {
+                this.conferenceDetailsInFlight.delete(conferenceId)
             },
         })
     }
@@ -1324,7 +2143,11 @@ export class GuestComponent implements OnInit {
                 emailDomainValidator(),
             ])
             this.telephone?.setValidators([Validators.required])
-            this.roomType?.setValidators([Validators.required])
+            if (this.isVisitorSelection) {
+                this.roomType?.clearValidators()
+            } else {
+                this.roomType?.setValidators([Validators.required])
+            }
             this.payment?.setValidators([Validators.required])
         } else {
             this.email?.setValidators([Validators.email])
@@ -1337,6 +2160,32 @@ export class GuestComponent implements OnInit {
         this.telephone?.updateValueAndValidity({ emitEvent: false })
         this.roomType?.updateValueAndValidity({ emitEvent: false })
         this.payment?.updateValueAndValidity({ emitEvent: false })
+    }
+
+    private applyVisitorAccommodationState(): void {
+        const roomTypeControl = this.roomType
+        const roomMateControl = this.roomMate
+
+        if (this.isVisitorSelection) {
+            if (roomTypeControl && !isNoAccommodationRoomTypeValue(roomTypeControl.value)) {
+                roomTypeControl.setValue(NO_ACCOMMODATION_ROOM_TYPE_VALUE, { emitEvent: false })
+            }
+
+            roomMateControl?.reset(null, { emitEvent: false })
+            roomMateControl?.disable({ emitEvent: false })
+
+            this.babyBed?.clearValidators()
+            this.babyBed?.setValue(null, { emitEvent: false })
+            this.babyBed?.disable({ emitEvent: false })
+        } else if (this.isRoomSelectionRequiringAccommodation(roomTypeControl?.value)) {
+            roomMateControl?.enable({ emitEvent: false })
+        } else {
+            roomMateControl?.disable({ emitEvent: false })
+        }
+
+        this.updateConferenceScopedValidators()
+        this.updateIdCardVisibility()
+        this.updateBabyBedVisibility()
     }
 
     private applyConferenceDateBoundsValidators(): void {
@@ -1477,6 +2326,11 @@ export class GuestComponent implements OnInit {
         this.guestForm.markAllAsTouched()
 
         if (!this.guestForm.valid) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Hiányzó vagy hibás adat',
+                detail: 'A mentéshez töltsd ki a kötelező mezőket.'
+            })
             return
         }
 
@@ -1716,11 +2570,17 @@ export class GuestComponent implements OnInit {
 
         // Logging
         const name = `${g.lastName ?? ''} ${g.firstName ?? ''}`.trim()
+        const tagIdentifier = String(g.rfid || '').trim()
+        const unassignLogText = tagIdentifier
+            ? `Unassign Tag ${tagIdentifier} from ${name || 'ismeretlen vendég'}`
+            : `Unassign Tag from ${name || 'ismeretlen vendég'}`
         this.logService.create({
             action_type: "unassign",
             table_name: "guest",
-            original_data: `Unassign Tag from ${name || 'ismeretlen vendég'}`
+            guestid: g.id,
+            original_data: unassignLogText
         })
+        this.invalidateGuestTimeline(g.id)
     }
 
 
@@ -1895,6 +2755,7 @@ export class GuestComponent implements OnInit {
                             this.logService.create({
                                 action_type: 'tag duplicate',
                                 table_name: 'guest',
+                                guestid: this.guest?.id,
                                 original_data: `Tag duplicate: ${data.rfid} is used by ${data.lastName} ${data.firstName}`
                             })
                         },
@@ -1930,8 +2791,10 @@ export class GuestComponent implements OnInit {
                                     this.logService.create({
                                         action_type: 'assign Tag',
                                         table_name: 'guest',
+                                        guestid: this.guest?.id,
                                         original_data: `Assign Tag ${this.scannedCode} to ${this.guest?.lastName} ${this.guest?.firstName}`
                                     })
+                                    this.invalidateGuestTimeline(this.guest?.id)
 
                                     this.scannedCode = ''
                                     this.guest = null
@@ -2530,7 +3393,9 @@ export class GuestComponent implements OnInit {
                 const issuedByUser = baseRow['roomKeyIssuedByUser']
                 const returnedByUser = baseRow['roomKeyReturnedByUser']
                 const paymentText = baseRow['paymentMethodName'] || baseRow['payment'] || null
-                const exportedRoomNum = baseRow['displayRoomNum'] ?? baseRow['roomNum'] ?? null
+                const exportedRoomNum = baseRow['is_visitor']
+                    ? this.visitorLabel(baseRow as Guest)
+                    : (baseRow['displayRoomNum'] ?? baseRow['roomNum'] ?? null)
 
                 // roomKeyIssued is replaced by roomKeyStatus in export
                 delete baseRow['id']

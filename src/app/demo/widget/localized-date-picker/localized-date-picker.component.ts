@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, forwardRef, Input, OnChanges, OnDestroy, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
+import { Component, DoCheck, EventEmitter, forwardRef, Injector, Input, OnChanges, OnDestroy, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
+import { AbstractControl, ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, NgControl, ReactiveFormsModule } from '@angular/forms';
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { Calendar, CalendarModule } from 'primeng/calendar';
 import { Subscription } from 'rxjs';
@@ -96,7 +96,7 @@ type OverlayAction =
         }
     ]
 })
-export class LocalizedDatePickerComponent implements ControlValueAccessor, OnInit, OnDestroy, OnChanges {
+export class LocalizedDatePickerComponent implements ControlValueAccessor, OnInit, OnDestroy, OnChanges, DoCheck {
     @ViewChild(Calendar) calendar?: Calendar;
 
     @Input() appendTo: any = 'body';
@@ -142,10 +142,13 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     private suppressNextOverlayClick = false;
     private onChange: (value: string | Date | null) => void = () => {};
     private onTouched: () => void = () => {};
+    private isDerivedInvalid = false;
+    private parentControl: AbstractControl | null = null;
 
     constructor(
         private translate: TranslateService,
-        private renderer: Renderer2
+        private renderer: Renderer2,
+        private injector: Injector
     ) {}
 
     ngOnInit(): void {
@@ -212,8 +215,12 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         return this.currentLang === 'en' ? 'dd/mm/yy' : 'yy.mm.dd';
     }
 
+    private get isInvalid(): boolean {
+        return this.invalid || this.isDerivedInvalid;
+    }
+
     get resolvedStyleClass(): string | undefined {
-        if (!this.invalid) {
+        if (!this.isInvalid) {
             return this.styleClass;
         }
 
@@ -221,7 +228,7 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     }
 
     get resolvedHostClass(): string | undefined {
-        if (!this.invalid) {
+        if (!this.isInvalid) {
             return undefined;
         }
 
@@ -229,7 +236,7 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
     }
 
     get resolvedInputStyleClass(): string | undefined {
-        if (!this.invalid) {
+        if (!this.isInvalid) {
             return this.inputStyleClass;
         }
 
@@ -257,7 +264,7 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
             classes.push(this.inputStyleClass);
         }
 
-        if (this.invalid) {
+        if (this.isInvalid) {
             classes.push('ng-invalid', 'ng-dirty');
         }
 
@@ -284,6 +291,24 @@ export class LocalizedDatePickerComponent implements ControlValueAccessor, OnIni
         const maxYear = this.normalizedMaxDate?.getFullYear() ?? (baseYear + 20);
 
         return `${Math.min(minYear, maxYear)}:${Math.max(minYear, maxYear)}`;
+    }
+
+    ngDoCheck(): void {
+        // Angular 16 has no AbstractControl.events, so we poll in ngDoCheck —
+        // the same approach Angular's own NgControlStatus directive uses.
+        // Lazy init here because FormControlName.ngOnInit() (which sets .control)
+        // runs after the component's ngOnInit, so parentControl would be null there.
+        if (!this.parentControl) {
+            const ngControl = this.injector.get(NgControl, null, { self: true, optional: true } as any);
+            this.parentControl = ngControl?.control ?? null;
+        }
+        if (!this.parentControl) {
+            return;
+        }
+        const derived = this.parentControl.touched && this.parentControl.status === 'INVALID';
+        if (derived !== this.isDerivedInvalid) {
+            this.isDerivedInvalid = derived;
+        }
     }
 
     writeValue(value: string | Date | null | undefined): void {

@@ -53,4 +53,32 @@ describe('sameDayMealOrderValidator', () => {
 
         expect(form.errors).toBeNull();
     });
+
+    it('can skip validation when the caller declares a special mode', () => {
+        const form = new FormGroup(
+            {
+                is_visitor: new FormControl(true),
+                visitor_meals_per_day: new FormControl(2),
+                dateOfArrival: new FormControl('2026-05-28'),
+                dateOfDeparture: new FormControl('2026-05-28'),
+                firstMeal: new FormControl('vacsora'),
+                lastMeal: new FormControl('reggeli'),
+            },
+            {
+                validators: sameDayMealOrderValidator(
+                    'dateOfArrival',
+                    'dateOfDeparture',
+                    'firstMeal',
+                    'lastMeal',
+                    {
+                        skipWhen: (control) =>
+                            !!control.get('is_visitor')?.value &&
+                            Number(control.get('visitor_meals_per_day')?.value) === 2,
+                    },
+                ),
+            },
+        );
+
+        expect(form.errors).toBeNull();
+    });
 });

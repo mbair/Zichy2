@@ -9,6 +9,7 @@ export interface Log {
     createdAt?: string;
     updatedAt?: string;
     userid?: number;
+    guestid?: number | null;
     user_fullname?: string;
     user_email?: string;
 }

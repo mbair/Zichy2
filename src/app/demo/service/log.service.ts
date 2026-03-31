@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiResponse } from '../api/ApiResponse';
 import { ApiService } from './api.service';
 import { Log } from '../api/log';
@@ -202,6 +203,12 @@ export class LogService {
                     this.message$.next(error)
                 }
             })
+    }
+
+    public getGuestTimeline$(guestId: number, limit: number = 100): Observable<Log[]> {
+        return this.apiService
+            .get<{ rows?: Log[] }>(`logs/guesttimeline/${guestId}?limit=${limit}`)
+            .pipe(map((response) => Array.isArray(response?.rows) ? response.rows : []))
     }
 
     /**

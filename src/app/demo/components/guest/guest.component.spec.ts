@@ -12,6 +12,7 @@ describe('GuestComponent', () => {
             guestObs: of(null),
             messageObs: of(null),
             update$: jasmine.createSpy('update$'),
+            getById$: jasmine.createSpy('getById$').and.callFake((id: number) => of(buildValidGuest({ id }))),
             create: jasmine.createSpy('create'),
         };
 
@@ -192,6 +193,82 @@ describe('GuestComponent', () => {
         );
     });
 
+    it('does not apply same-day meal order validation to visitors with two selected meals', () => {
+        const { component } = createInitializedComponent();
+        const conference = buildConference();
+
+        component.guestForm.patchValue({
+            conference: [conference],
+            dateOfArrival: '2026-04-10',
+            dateOfDeparture: '2026-04-10',
+            is_visitor: true,
+            visitor_meals_per_day: 2,
+            firstMeal: 'vacsora',
+            lastMeal: 'reggeli',
+        });
+
+        expect(component.guestForm.errors?.['mealOrderInvalid']).toBeUndefined();
+    });
+
+    it('requires two different selected meals for visitors with two meals per day', () => {
+        const { component } = createInitializedComponent();
+        const conference = buildConference();
+
+        component.guestForm.patchValue({
+            conference: [conference],
+            is_visitor: true,
+            visitor_meals_per_day: 2,
+            firstMeal: 'ebéd',
+            lastMeal: 'ebéd',
+        });
+
+        expect(component.guestForm.errors).toEqual(
+            jasmine.objectContaining({ visitorMealsMustDiffer: true }),
+        );
+    });
+
+    it('requires exactly one selected meal for visitors with one meal per day', () => {
+        const { component, guestService, messageService } = createInitializedComponent();
+        const conference = buildConference();
+
+        component.guestForm.patchValue({
+            ...buildValidGuest({ id: 1 }),
+            conference: [conference],
+            is_visitor: true,
+            visitor_meals_per_day: 1,
+            firstMeal: null,
+            lastMeal: null,
+        });
+
+        component.save();
+
+        expect(guestService.update$).not.toHaveBeenCalled();
+        expect(messageService.add).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                severity: 'warn',
+                summary: 'Hiányzó vagy hibás adat',
+            }),
+        );
+    });
+
+    it('clears the second visitor meal when switching to one meal per day', () => {
+        const { component } = createInitializedComponent();
+
+        component.guestForm.patchValue({
+            is_visitor: true,
+            visitor_meals_per_day: 2,
+            firstMeal: 'reggeli',
+            lastMeal: 'vacsora',
+        });
+
+        component.guestForm.patchValue({
+            visitor_meals_per_day: 1,
+        });
+
+        expect(component.firstMeal?.value).toBe('reggeli');
+        expect(component.lastMeal?.value).toBeNull();
+    });
+
     it('synchronizes diet and meal selections like the conference form', () => {
         const { component } = createInitializedComponent();
 
@@ -243,6 +320,48 @@ describe('GuestComponent', () => {
         expect(component.guestForm.get('idCard')?.valid).toBeTrue();
     });
 
+    it('switches visitor mode to no accommodation and clears accommodation-specific fields', () => {
+        const { component } = createInitializedComponent();
+        const conference = buildConference();
+
+        component.guestForm.patchValue({
+            conference: [conference],
+            roomType: 'Kastély szállás 4 ágyas szoba',
+            roomMate: ['Teszt Szobatárs'],
+            babyBed: '1',
+            is_visitor: true,
+        });
+
+        expect(component.roomType?.value).toBe('Nem kérek szállást');
+        expect(component.roomMate?.value).toBeNull();
+        expect(component.needsRoom).toBeFalse();
+        expect(component.showBabyBedField).toBeFalse();
+    });
+
+    it('shows a warning instead of silently blocking save when visitor meal timing is incomplete', () => {
+        const { component, guestService, messageService } = createInitializedComponent();
+        const conference = buildConference();
+
+        component.guestForm.patchValue({
+            ...buildValidGuest({ id: 1 }),
+            conference: [conference],
+            is_visitor: true,
+            visitor_meals_per_day: 2,
+            firstMeal: null,
+            lastMeal: 'reggeli',
+        });
+
+        component.save();
+
+        expect(guestService.update$).not.toHaveBeenCalled();
+        expect(messageService.add).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                severity: 'warn',
+                summary: 'Hiányzó vagy hibás adat',
+            }),
+        );
+    });
+
     it('clears disallowed payment and room type values when a conference is selected', () => {
         const { component } = createInitializedComponent();
         const conference = buildConference({
@@ -287,23 +406,25 @@ describe('GuestComponent', () => {
     });
 
     it('shows the id card field immediately when edit opens for an adult guest needing accommodation', fakeAsync(() => {
-        const { component, conferenceService } = createComponent();
+        const { component, conferenceService, guestService } = createComponent();
         const conference = buildConference({
             guestEditEndDate: '2099-12-31',
         });
+        const guest = buildValidGuest({
+            id: 7,
+            birthDate: '1990-01-01',
+            roomType: 'Kastély szállás 4 ágyas szoba',
+            conferenceid: 99,
+        });
 
         conferenceService.getById.and.returnValue(of({ rows: [conference] }));
+        guestService.getById$.and.returnValue(of(guest));
         component.canEdit = true;
         component.conferenceSelector = {
             conferences: [conference],
         } as any;
 
-        component.edit(buildValidGuest({
-            id: 7,
-            birthDate: '1990-01-01',
-            roomType: 'Kastély szállás 4 ágyas szoba',
-            conferenceid: 99,
-        }));
+        component.edit(guest);
 
         tick();
 
@@ -311,26 +432,117 @@ describe('GuestComponent', () => {
         expect(component.guestForm.get('idCard')?.enabled).toBeTrue();
     }));
 
-    it('keeps Maranatha accommodation selected when conference data only exposes legacy room type ids', fakeAsync(() => {
-        const { component, conferenceService } = createComponent();
-        const selectorConference = buildConference({
-            guestEditEndDate: '2099-12-31',
-            roomTypeIds: [6],
-            roomTypes: undefined as any,
+    it('still patches guest values into the form when the conference cannot be resolved from the selector list', fakeAsync(() => {
+        const { component, guestService } = createComponent();
+        const guest = buildValidGuest({
+            id: 42,
+            firstName: 'Editalt',
+            lastName: 'Vendeg',
+            conferenceid: 999,
+            conferenceName: 'Nem talalhato konferencia',
+            is_visitor: true,
+            visitor_meals_per_day: 1,
+            firstMeal: 'ebéd',
         });
 
-        conferenceService.getById.and.returnValue(of({ rows: [selectorConference] }));
+        component.canEdit = true;
+        component.conferenceSelector = {
+            conferences: [],
+        } as any;
+        guestService.getById$.and.returnValue(of(guest));
+
+        component.edit(guest);
+
+        tick();
+
+        expect(component.guestForm.get('firstName')?.value).toBe('Editalt');
+        expect(component.guestForm.get('lastName')?.value).toBe('Vendeg');
+        expect(component.guestForm.get('is_visitor')?.value).toBeTrue();
+        expect(component.guestForm.get('visitor_meals_per_day')?.value).toBe(1);
+        expect(component.guestForm.get('firstMeal')?.value).toBe('ebéd');
+    }));
+
+    it('loads conference details only once during edit hydration', fakeAsync(() => {
+        const { component, conferenceService, guestService } = createComponent();
+        const selectorConference = {
+            id: 99,
+            name: 'Teszt konferencia',
+            beginDate: '2026-04-10',
+            endDate: '2026-04-12',
+        } as Conference;
+        const detailedConference = buildConference({
+            id: 99,
+            guestEditEndDate: '2099-12-31',
+        });
+        const guest = buildValidGuest({
+            id: 77,
+            conferenceid: 99,
+        });
+
+        guestService.getById$.and.returnValue(of(guest));
+        conferenceService.getById.and.returnValue(of({ rows: [detailedConference] }));
         component.canEdit = true;
         component.conferenceSelector = {
             conferences: [selectorConference],
         } as any;
 
-        component.edit(buildValidGuest({
+        component.edit(guest);
+
+        tick();
+
+        expect(conferenceService.getById).toHaveBeenCalledTimes(1);
+        expect(conferenceService.getById).toHaveBeenCalledWith(99);
+    }));
+
+    it('does not refetch conference details during edit when the guest payload already contains them', fakeAsync(() => {
+        const { component, conferenceService, guestService } = createComponent();
+        const detailedConference = buildConference({
+            id: 99,
+            guestEditEndDate: '2099-12-31',
+        });
+        const guest = buildValidGuest({
+            id: 78,
+            conferenceid: 99,
+            conference: [detailedConference],
+        });
+
+        guestService.getById$.and.returnValue(of(guest));
+        component.canEdit = true;
+        component.conferenceSelector = {
+            conferences: [{ id: 99, name: 'Teszt konferencia' }],
+        } as any;
+
+        component.edit(guest);
+
+        tick();
+
+        expect(conferenceService.getById).not.toHaveBeenCalled();
+        expect(component.guestConference?.id).toBe(99);
+        expect(component.canEdit).toBeTrue();
+    }));
+
+    it('keeps Maranatha accommodation selected when conference data only exposes legacy room type ids', fakeAsync(() => {
+        const { component, conferenceService, guestService } = createComponent();
+        const selectorConference = buildConference({
+            guestEditEndDate: '2099-12-31',
+            roomTypeIds: [6],
+            roomTypes: undefined as any,
+        });
+        const guest = buildValidGuest({
             id: 8,
             birthDate: '1974.10.16',
             roomType: 'Maranatha Panzióház 4 ágyas szoba (emeletes ágyas, külön fürdős)',
             conferenceid: 99,
-        }));
+        });
+
+        conferenceService.getById.and.returnValue(of({ rows: [selectorConference] }));
+        guestService.getById$.and.returnValue(of(guest));
+        component.canEdit = true;
+        component.conferenceSelector = {
+            conferences: [selectorConference],
+        } as any;
+
+        component.edit(guest);
 
         tick();
 

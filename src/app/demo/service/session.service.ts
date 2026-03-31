@@ -413,7 +413,8 @@ export class SessionService {
     }
 
     private handleSessionRefreshSuccess(mode: SessionRefreshMode, previousExpiry: number | null): void {
-        if (mode !== 'manual') {
+        if (mode === 'auto') {
+            this.syncSessionWarningVisibilityAfterAutoRefresh();
             return;
         }
 
@@ -441,7 +442,12 @@ export class SessionService {
     }
 
     private handleSessionRefreshError(mode: SessionRefreshMode): void {
-        if (mode !== 'manual' || !this.sessionWarningStateSubject.getValue().visible) {
+        if (mode === 'auto') {
+            this.syncSessionWarningVisibilityAfterAutoRefresh();
+            return;
+        }
+
+        if (!this.sessionWarningStateSubject.getValue().visible) {
             return;
         }
 
@@ -453,6 +459,11 @@ export class SessionService {
     }
 
     private openSessionWarning(expiresAt: number): void {
+        if (this.keepAliveInFlight) {
+            this.activeWarningExpiry = expiresAt;
+            return;
+        }
+
         const current = this.sessionWarningStateSubject.getValue();
         const isSameWarning = current.visible && this.activeWarningExpiry === expiresAt;
 
@@ -515,6 +526,22 @@ export class SessionService {
             ...this.sessionWarningStateSubject.getValue(),
             ...patch,
         });
+    }
+
+    private syncSessionWarningVisibilityAfterAutoRefresh(): void {
+        const expiresAt = this.getStoredExpiry();
+        if (expiresAt === null) {
+            this.closeSessionWarning();
+            return;
+        }
+
+        const remainingMs = getRemainingSessionMs(expiresAt, Date.now());
+        if (remainingMs > this.warningBeforeExpiryMs) {
+            this.closeSessionWarning();
+            return;
+        }
+
+        this.openSessionWarning(expiresAt);
     }
 
     private rememberPostLoginRedirect(redirectReason?: string): void {

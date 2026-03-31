@@ -51,6 +51,8 @@ export interface Guest {
     paymentMethodName?: string;
     babyBed?: boolean;
     roomMate?: string;
+    is_visitor?: boolean;
+    visitor_meals_per_day?: number | null;
     idcard?: string;
     idcardtype?: string;
     lastRfidUsage?: string | null;

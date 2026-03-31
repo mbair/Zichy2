@@ -258,10 +258,17 @@ export class ConferenceSelectorComponent implements OnInit, OnChanges, OnDestroy
      */
     private syncSelectedConferences(): void {
         const current = Array.isArray(this.selectedConferences) ? this.selectedConferences : [];
-        this.selectedConferences = this.conferences.filter(conf =>
-            current.some(sel => sel?.id === conf?.id)
+        const nextSelection = this.conferences.filter(conf =>
+            current.some(sel => Number(sel?.id) === Number(conf?.id))
         );
-        this.onChange(this.selectedConferences)
+        const hasSelectionChanged = current.length !== nextSelection.length
+            || current.some((selection, index) => Number(selection?.id) !== Number(nextSelection[index]?.id))
+
+        this.selectedConferences = nextSelection
+
+        if (hasSelectionChanged) {
+            this.onChange(this.selectedConferences)
+        }
         this.cdr.markForCheck()
     }
 
