@@ -1053,24 +1053,6 @@
                                     </div>
                                 </div>
 
-                                <!-- roomMate -->
-                                <div *ngIf="needsRoom" class="field mb-4 col-12 lg:col-8">
-                                    <label for="roomMate" class="font-medium text-900">Kivel laknál egy szobában?</label>
-                                    <p-chips #roomMateChips
-                                             formControlName="roomMate"
-                                             separator=","
-                                             [showClear]="true"
-                                             [allowDuplicate]="false"
-                                             [addOnBlur]="true">
-                                        <ng-template let-item pTemplate="item">
-                                            <i class="pi pi-user mr-2"></i> {{ item }}
-                                        </ng-template>
-                                    </p-chips>
-                                    <small class="guest-form-hint">
-                                        Több nevet vesszővel elválasztva is megadhatsz.
-                                    </small>
-                                </div>
-
                                 <!-- payment -->
                                 <div class="field mb-4 col-12 lg:col-4">
                                     <label for="payment" class="font-medium text-900">Fizetési mód</label>
@@ -1085,6 +1067,24 @@
                                     </div>
                                     <small class="p-error" *ngIf="hasSelectedConference && (allowedPaymentMethodIds?.length ?? 0) === 0">
                                         Ehhez a konferenciához nincs engedélyezett fizetési mód beállítva.
+                                    </small>
+                                </div>
+
+                                <!-- roomMate -->
+                                <div *ngIf="needsRoom" class="field mb-4 col-12">
+                                    <label for="roomMate" class="font-medium text-900">Kivel laknál egy szobában?</label>
+                                    <p-chips #roomMateChips
+                                             formControlName="roomMate"
+                                             separator=","
+                                             [showClear]="true"
+                                             [allowDuplicate]="false"
+                                             [addOnBlur]="true">
+                                        <ng-template let-item pTemplate="item">
+                                            <i class="pi pi-user mr-2"></i> {{ item }}
+                                        </ng-template>
+                                    </p-chips>
+                                    <small class="guest-form-hint">
+                                        Több nevet vesszővel elválasztva is megadhatsz.
                                     </small>
                                 </div>
 
