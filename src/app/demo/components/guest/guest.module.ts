@@ -20,11 +20,11 @@ import { ImageModule } from 'primeng/image';
 import { TooltipModule } from 'primeng/tooltip';
 import { CalendarModule } from 'primeng/calendar';
 import { ChipsModule } from 'primeng/chips';
-import { InputSwitchModule } from 'primeng/inputswitch';
 import { SkeletonModule } from 'primeng/skeleton';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TimelineModule } from 'primeng/timeline';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
 import { CountrySelectorComponent } from '../../selectors/country-selector/country-selector.component';
 import { DietSelectorComponent } from '../../selectors/diet-selector/diet-selector.component';
@@ -60,11 +60,11 @@ import { LocalizedDatePickerComponent } from '../../widget/localized-date-picker
         TooltipModule,
         CalendarModule,
         ChipsModule,
-        InputSwitchModule,
         SkeletonModule,
         SplitButtonModule,
         ConfirmDialogModule,
         TimelineModule,
+        SelectButtonModule,
         ConferenceSelectorComponent,
         CountrySelectorComponent,
         DietSelectorComponent,

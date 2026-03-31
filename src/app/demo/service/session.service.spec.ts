@@ -1,4 +1,4 @@
-import { of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { AuthService } from './auth.service';
 import { SessionService, SessionWarningState } from './session.service';
 import { UserService } from './user.service';
@@ -133,6 +133,57 @@ describe('SessionService', () => {
         expect(latestWarningState.remainingMs).toBeLessThanOrEqual(5 * 60 * 1000);
     });
 
+    it('does not flash the session warning while automatic refresh is still in flight', () => {
+        let latestWarningState: SessionWarningState = INITIAL_WARNING_STATE();
+        let pendingRefreshObserver: any = null;
+
+        service.sessionWarning$.subscribe((state) => {
+            latestWarningState = state;
+        });
+
+        userServiceSpy.refreshSession$.and.returnValue(new Observable((subscriber) => {
+            pendingRefreshObserver = subscriber;
+        }));
+
+        setActiveSession(4 * 60 * 1000);
+
+        (service as any).activityListener();
+        (service as any).openSessionWarning(Date.now() + 4 * 60 * 1000);
+
+        expect(latestWarningState.visible).toBeFalse();
+
+        sessionStorage.setItem('session_expires_at', String(Date.now() + 10 * 60 * 1000));
+        pendingRefreshObserver.next({});
+        pendingRefreshObserver.complete();
+
+        expect(latestWarningState.visible).toBeFalse();
+    });
+
+    it('shows the session warning after automatic refresh failure when expiry is still near', () => {
+        let latestWarningState: SessionWarningState = INITIAL_WARNING_STATE();
+        let pendingRefreshObserver: any = null;
+
+        service.sessionWarning$.subscribe((state) => {
+            latestWarningState = state;
+        });
+
+        userServiceSpy.refreshSession$.and.returnValue(new Observable((subscriber) => {
+            pendingRefreshObserver = subscriber;
+        }));
+
+        setActiveSession(4 * 60 * 1000);
+
+        (service as any).activityListener();
+        (service as any).openSessionWarning(Date.now() + 4 * 60 * 1000);
+
+        expect(latestWarningState.visible).toBeFalse();
+
+        pendingRefreshObserver.error(new Error('refresh failed'));
+
+        expect(latestWarningState.visible).toBeTrue();
+        expect(latestWarningState.remainingMs).toBeLessThanOrEqual(5 * 60 * 1000);
+    });
+
     it('stores the current route for post-login redirect when the session expires', () => {
         setActiveSession(-1000);
 
@@ -195,3 +246,12 @@ describe('SessionService', () => {
         );
     });
 });
+
+function INITIAL_WARNING_STATE(): SessionWarningState {
+    return {
+        visible: false,
+        remainingMs: 0,
+        refreshing: false,
+        error: null,
+    };
+}

@@ -12,9 +12,16 @@ export function sameDayMealOrderValidator(
     arrivalField: string,
     departureField: string,
     firstMealField: string,
-    lastMealField: string
+    lastMealField: string,
+    options?: {
+        skipWhen?: (control: AbstractControl) => boolean;
+    },
 ): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
+        if (options?.skipWhen?.(control)) {
+            return null;
+        }
+
         const arrivalDate = control.get(arrivalField)?.value;
         const departureDate = control.get(departureField)?.value;
         const firstMeal = control.get(firstMealField)?.value;

@@ -11,6 +11,7 @@ import { dateBoundsValidator } from '../../utils/date-bounds-validator';
 import { dateRangeValidator } from '../../utils/date-range-validator';
 import { emailDomainValidator } from '../../utils/email-validator';
 import { sameDayMealOrderValidator } from '../../utils/same-day-meal-order-validator';
+import { visitorSelectedMealsValidator } from '../../utils/visitor-selected-meals-validator';
 import { zipCodeValidator } from '../../utils/zipcode-validator';
 import { GuestService } from '../../service/guest.service';
 import { UserService } from '../../service/user.service';
@@ -270,7 +271,7 @@ export class GuestComponent implements OnInit {
     readonly visitorMealOptions = [
         { label: 'Nincs étkezés', value: 0 },
         { label: '1 étkezés / nap', value: 1 },
-        { label: '2 étkezés / nap (időponttal)', value: 2 },
+        { label: '2 étkezés / nap', value: 2 },
         { label: 'Korlátlan', value: null },
     ]
 
@@ -285,6 +286,8 @@ export class GuestComponent implements OnInit {
     private guestViewPollTimer: ReturnType<typeof setInterval> | null = null
     private guestViewPollInFlight: boolean = false
     private lastAppliedGuestViewFingerprint: string = ''
+    private readonly conferenceDetailsCache = new Map<number, Conference>()
+    private readonly conferenceDetailsInFlight = new Set<number>()
 
     getEmailStatusLabel(guest: Guest): string {
         switch (guest.emailStatus?.status) {
@@ -431,6 +434,17 @@ export class GuestComponent implements OnInit {
                 sameDayMealOrderValidator(
                     'dateOfArrival',
                     'dateOfDeparture',
+                    'firstMeal',
+                    'lastMeal',
+                    {
+                        skipWhen: (control) =>
+                            !!control.get('is_visitor')?.value &&
+                            Number(control.get('visitor_meals_per_day')?.value) === 2,
+                    },
+                ),
+                visitorSelectedMealsValidator(
+                    'is_visitor',
+                    'visitor_meals_per_day',
                     'firstMeal',
                     'lastMeal',
                 ),
@@ -666,7 +680,11 @@ export class GuestComponent implements OnInit {
             const mealsPerDay: number | null = this.guestForm.get('visitor_meals_per_day')?.value ?? 0
             const firstMealCtrl = this.guestForm.get('firstMeal')
             const lastMealCtrl = this.guestForm.get('lastMeal')
-            if (isVisitor && mealsPerDay !== 2) {
+            if (isVisitor && mealsPerDay === 1) {
+                firstMealCtrl?.setValidators(Validators.required)
+                lastMealCtrl?.clearValidators()
+                lastMealCtrl?.patchValue(null, { emitEvent: false })
+            } else if (isVisitor && mealsPerDay !== 2) {
                 firstMealCtrl?.clearValidators()
                 lastMealCtrl?.clearValidators()
                 firstMealCtrl?.patchValue(null, { emitEvent: false })
@@ -684,23 +702,11 @@ export class GuestComponent implements OnInit {
         syncVisitorModeState()
 
         // TODO: Remove redundant conference Id + Name
-        this.guestForm.get('conference')?.valueChanges.subscribe((conference) => {
-            const selectedConference = this.getSelectedConference(conference)
-
-            if (selectedConference) {
-                const selectedConferenceId = selectedConference.id
-                const selectedConferenceName = selectedConference.name
-                this.guestForm.patchValue({ conferenceid: selectedConferenceId })
-                this.guestForm.patchValue({ conferenceName: selectedConferenceName })
-            } else {
-                this.guestForm.patchValue({
-                    conferenceid: null,
-                    conferenceName: null,
-                })
-            }
-
-            this.applyConferenceRules(selectedConference)
-            this.loadConferenceDetails(selectedConference)
+        this.guestForm.get('conference')?.valueChanges.pipe(
+            map((conference) => this.getSelectedConference(conference)),
+            distinctUntilChanged((previous, current) => Number(previous?.id ?? 0) === Number(current?.id ?? 0)),
+        ).subscribe((selectedConference) => {
+            this.syncConferenceSelectionState(selectedConference)
         })
 
         this.guestForm.get('country')?.valueChanges.subscribe((country) => {
@@ -1856,7 +1862,20 @@ export class GuestComponent implements OnInit {
      * @param guest
      */
     edit(guest: Guest) {
-        this.guestForm.reset(this.initialFormValues)
+        const guestId = Number(guest?.id)
+        if (Number.isFinite(guestId) && guestId > 0) {
+            this.guestService.getById$(guestId).subscribe({
+                next: (fullGuest) => this.openGuestEditor(fullGuest ?? guest),
+                error: () => this.openGuestEditor(guest),
+            })
+            return
+        }
+
+        this.openGuestEditor(guest)
+    }
+
+    private openGuestEditor(guest: Guest) {
+        this.guestForm.reset(this.initialFormValues, { emitEvent: false })
         this.currentIdCardUrl = guest.idcard ? `${this.apiURL}/guest/idcard/${guest.id}` : null
         this.showUploadBlock = false
         if (this.currentIdCardUrl) {
@@ -1866,49 +1885,26 @@ export class GuestComponent implements OnInit {
         // Guest room reservation
         this.guestReservations = guest.reservations ?? []
 
-        this.sidebar = true
+        const selectedConf = this.resolveConferenceForEditor(guest)
 
-        // Get guest conference details
-        let selectedConf: any = null
-        if (guest.conferenceid) {
-            selectedConf = this.conferenceSelector.conferences.find(conf => conf.id === guest.conferenceid)
-        } else if (guest.conferenceName) {
-            // If conferenceid is null, search by conferenceName
-            selectedConf = this.conferenceSelector.conferences.find(conf => conf.name === guest.conferenceName)
-        }
-
-        guest.conference = selectedConf ? [selectedConf] : []
         const guestFormValue: Guest = {
             ...guest,
+            conference: selectedConf ? [selectedConf] : [],
             payment: this.resolvePaymentMethodId(guest)
         }
 
-        if (selectedConf) {
-            this.applyConferenceRules(selectedConf)
+        this.guestForm.patchValue(guestFormValue, { emitEvent: false })
+        this.syncConferenceSelectionState(selectedConf)
+        this.normalizeRoomMateControlValue()
+        this.updateIdCardVisibility()
+        this.updateBabyBedVisibility()
 
-            // Because side bar is not visible yet, we need to wait a bit
-            setTimeout(() => {
-                this.guestForm.patchValue(guestFormValue)
-                this.applyConferenceRules(this.guestConference ?? selectedConf)
-                this.normalizeRoomMateControlValue()
-                this.updateIdCardVisibility()
-                this.updateBabyBedVisibility()
+        // Store original values for Cancel (edit mode)
+        this.originalFormValues = this.guestForm.getRawValue()
 
-                // Store original values for Cancel (edit mode)
-                this.originalFormValues = this.guestForm.getRawValue()
-            })
+        this.sidebar = true
 
-            // Set arrival and departure date limitations
-            this.beginDate = selectedConf?.beginDate ? parseDateOnly(selectedConf.beginDate) ?? undefined : undefined
-            this.endDate = selectedConf?.endDate ? parseDateOnly(selectedConf.endDate) ?? undefined : undefined
-            this.guestConference = selectedConf
-
-            this.getEarliestFirstMeal()
-            this.getLatestFirstMeal()
-            this.getEarliestLastMeal()
-            this.getLatestLastMeal()
-            this.cdRef.detectChanges()
-        } else {
+        if (!selectedConf) {
             console.warn('No conference found for guest:', guest);
         }
     }
@@ -1976,14 +1972,96 @@ export class GuestComponent implements OnInit {
         return conferences.length > 0 ? conferences[0] as Conference : null
     }
 
+    private syncConferenceSelectionState(
+        selectedConference: Conference | null,
+        options: { loadDetails?: boolean } = {},
+    ): void {
+        if (selectedConference) {
+            this.guestForm.patchValue({
+                conferenceid: selectedConference.id ?? null,
+                conferenceName: selectedConference.name ?? null,
+            }, { emitEvent: false })
+        } else {
+            this.guestForm.patchValue({
+                conferenceid: null,
+                conferenceName: null,
+            }, { emitEvent: false })
+        }
+
+        this.applyConferenceRules(selectedConference)
+
+        if (options.loadDetails !== false) {
+            this.loadConferenceDetails(selectedConference)
+        }
+    }
+
+    private resolveConferenceForEditor(guest: Guest): Conference | null {
+        const selectorConferences = this.conferenceSelector?.conferences ?? []
+        const guestConference = Array.isArray(guest.conference) && guest.conference.length > 0
+            ? guest.conference[0]
+            : null
+
+        let selectorConference: Conference | null = null
+
+        if (guest.conferenceid) {
+            const targetConferenceId = Number(guest.conferenceid)
+            selectorConference = selectorConferences.find(
+                conf => Number(conf.id) === targetConferenceId
+            ) ?? null
+        } else if (guest.conferenceName) {
+            selectorConference = selectorConferences.find(
+                conf => conf.name?.trim() === guest.conferenceName?.trim()
+            ) ?? null
+        }
+
+        if (!selectorConference && !guestConference) {
+            return null
+        }
+
+        return {
+            ...(selectorConference ?? {}),
+            ...(guestConference ?? {}),
+        }
+    }
+
+    private hasDetailedConferenceRules(conference: Conference | null): boolean {
+        return !!conference && (
+            conference.guestEditEndDate != null ||
+            Array.isArray(conference.paymentMethodIds) ||
+            Array.isArray(conference.roomTypeIds) ||
+            Array.isArray(conference.conferenceRoomTypeIds) ||
+            Array.isArray(conference.roomTypes)
+        )
+    }
+
     private loadConferenceDetails(selectedConference: Conference | null): void {
         const conferenceId = Number(selectedConference?.id)
         if (!Number.isFinite(conferenceId) || conferenceId <= 0) {
             return
         }
 
+        if (this.hasDetailedConferenceRules(selectedConference)) {
+            this.conferenceDetailsCache.set(conferenceId, { ...selectedConference! })
+            return
+        }
+
+        const cachedConference = this.conferenceDetailsCache.get(conferenceId)
+        if (cachedConference) {
+            const currentSelectedConferenceId = Number(this.getSelectedConference(this.conference?.value)?.id)
+            if (currentSelectedConferenceId === conferenceId) {
+                this.applyConferenceRules(cachedConference)
+            }
+            return
+        }
+
+        if (this.conferenceDetailsInFlight.has(conferenceId)) {
+            return
+        }
+
+        this.conferenceDetailsInFlight.add(conferenceId)
         this.conferenceService.getById(conferenceId).subscribe({
             next: (response: any) => {
+                this.conferenceDetailsInFlight.delete(conferenceId)
                 const currentSelectedConferenceId = Number(this.getSelectedConference(this.conference?.value)?.id)
                 if (currentSelectedConferenceId !== conferenceId) {
                     return
@@ -1993,8 +2071,12 @@ export class GuestComponent implements OnInit {
                     response,
                     selectedConference as Conference,
                 )
+                this.conferenceDetailsCache.set(conferenceId, detailedConference)
 
                 this.applyConferenceRules(detailedConference)
+            },
+            error: () => {
+                this.conferenceDetailsInFlight.delete(conferenceId)
             },
         })
     }

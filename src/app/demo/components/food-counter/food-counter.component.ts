@@ -273,10 +273,15 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                             this.canEat = true
                         }
 
-                        // 1 étkezés/nap – lastRfidUsage alapján ellenőrzünk
+                        // 1 étkezés/nap – ha van kiválasztott étkezés, csak annál ehet; régi adatoknál marad a napi egyszeri fallback
                         if (data.visitor_meals_per_day === 1) {
-                            if (!data.lastRfidUsage ||
-                                (data.lastRfidUsage && !isSameDay(data.lastRfidUsage, today))) {
+                            const selectedVisitorMeal = data.firstMeal || data.lastMeal
+                            const canUseSelectedMeal =
+                                !selectedVisitorMeal || selectedVisitorMeal === this.currentMeal
+
+                            if (canUseSelectedMeal &&
+                                (!data.lastRfidUsage ||
+                                (data.lastRfidUsage && !isSameDay(data.lastRfidUsage, today)))) {
                                     this.canEat = true
                             }
                         }
