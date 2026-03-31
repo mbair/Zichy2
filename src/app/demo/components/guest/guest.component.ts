@@ -29,7 +29,7 @@ import { Log } from '../../api/log';
 import { Tag } from '../../api/tag';
 import { calculateAgeYears, formatDateCompact, formatDateDots, formatDateYmd, isSameDay, isSameOrBeforeDay, parseDateOnly } from '../../utils/date.utils';
 import { resolveConferenceFormAllowedRoomTypeIds } from '../../utils/conference-room-type.utils';
-import { getRoomTypeOptions, isNoAccommodationRoomTypeValue } from '../../utils/room-type.utils';
+import { getRoomTypeOptions, isNoAccommodationRoomTypeValue, NO_ACCOMMODATION_ROOM_TYPE_VALUE } from '../../utils/room-type.utils';
 import { saveBlobAsFile } from '../../utils/file-saver.utils';
 
 import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
@@ -194,6 +194,8 @@ export class GuestComponent implements OnInit {
         roomType: 'szobatípus',
         telephone: 'telefon',
         zipCode: 'irányítószám',
+        is_visitor: 'látogató',
+        visitor_meals_per_day: 'napi étkezések száma',
     }
     private readonly guestTimelineIgnoredFieldKeys = new Set([
         'actualReservation',
@@ -259,9 +261,18 @@ export class GuestComponent implements OnInit {
         babyBed: null,
         prepaid: '',
         roomMate: null,
+        is_visitor: false,
+        visitor_meals_per_day: 0,
         idCard: null,
         enabled: true,
     }
+
+    readonly visitorMealOptions = [
+        { label: 'Nincs étkezés', value: 0 },
+        { label: '1 étkezés / nap', value: 1 },
+        { label: '2 étkezés / nap (időponttal)', value: 2 },
+        { label: 'Korlátlan', value: null },
+    ]
 
     public selectedFile: File
     private globalSearch$ = new Subject<string>()
@@ -411,6 +422,8 @@ export class GuestComponent implements OnInit {
             babyBed: [this.initialFormValues.babyBed],
             prepaid: [this.initialFormValues.prepaid],
             roomMate: new FormControl<string[] | null>(this.initialFormValues.roomMate),
+            is_visitor: [this.initialFormValues.is_visitor],
+            visitor_meals_per_day: [this.initialFormValues.visitor_meals_per_day],
             idCard: [this.initialFormValues.idCard]
         }, {
             validators: [
@@ -642,6 +655,34 @@ export class GuestComponent implements OnInit {
             this.normalizeRoomMateControlValue(value)
         })
 
+        const syncVisitorModeState = () => {
+            this.applyVisitorAccommodationState()
+            updateMealValidators()
+        }
+
+        // Látogató mód váltásakor frissítjük a firstMeal/lastMeal validátorait
+        const updateMealValidators = () => {
+            const isVisitor: boolean = !!this.guestForm.get('is_visitor')?.value
+            const mealsPerDay: number | null = this.guestForm.get('visitor_meals_per_day')?.value ?? 0
+            const firstMealCtrl = this.guestForm.get('firstMeal')
+            const lastMealCtrl = this.guestForm.get('lastMeal')
+            if (isVisitor && mealsPerDay !== 2) {
+                firstMealCtrl?.clearValidators()
+                lastMealCtrl?.clearValidators()
+                firstMealCtrl?.patchValue(null, { emitEvent: false })
+                lastMealCtrl?.patchValue(null, { emitEvent: false })
+            } else {
+                firstMealCtrl?.setValidators(Validators.required)
+                lastMealCtrl?.setValidators(Validators.required)
+            }
+            firstMealCtrl?.updateValueAndValidity({ emitEvent: false })
+            lastMealCtrl?.updateValueAndValidity({ emitEvent: false })
+        }
+
+        this.guestForm.get('is_visitor')?.valueChanges.subscribe(() => syncVisitorModeState())
+        this.guestForm.get('visitor_meals_per_day')?.valueChanges.subscribe(() => updateMealValidators())
+        syncVisitorModeState()
+
         // TODO: Remove redundant conference Id + Name
         this.guestForm.get('conference')?.valueChanges.subscribe((conference) => {
             const selectedConference = this.getSelectedConference(conference)
@@ -768,9 +809,14 @@ export class GuestComponent implements OnInit {
     get babyBed() { return this.guestForm.get('babyBed') }
     get prepaid() { return this.guestForm.get('prepaid') }
     get roomMate() { return this.guestForm.get('roomMate') }
+    get is_visitor() { return this.guestForm.get('is_visitor') }
+    get visitor_meals_per_day() { return this.guestForm.get('visitor_meals_per_day') }
     get idCard() { return this.guestForm.get('idCard') }
+    get isVisitorSelection() {
+        return !!this.is_visitor?.value
+    }
     get needsRoom() {
-        return this.hasSelectedConference && this.isRoomSelectionRequiringAccommodation(this.roomType?.value)
+        return this.hasSelectedConference && !this.isVisitorSelection && this.isRoomSelectionRequiringAccommodation(this.roomType?.value)
     }
     
     // Helper for Guests primary reservation
@@ -1607,7 +1653,15 @@ export class GuestComponent implements OnInit {
     }
 
     private isBooleanField(key: string): boolean {
-        return ['babyBed', 'enabled', 'prepaid', 'roomKeyIssued'].includes(key)
+        return ['babyBed', 'enabled', 'is_visitor', 'prepaid', 'roomKeyIssued'].includes(key)
+    }
+
+    visitorLabel(guest: Guest): string {
+        const meals = guest.visitor_meals_per_day
+        if (meals === null || meals === undefined) return 'Látogató + korlátlan'
+        if (meals === 1) return 'Látogató +1 étkezés'
+        if (meals === 2) return 'Látogató +2 étkezés'
+        return 'Látogató'
     }
 
     private isDateOnlyField(key: string): boolean {
@@ -2007,7 +2061,11 @@ export class GuestComponent implements OnInit {
                 emailDomainValidator(),
             ])
             this.telephone?.setValidators([Validators.required])
-            this.roomType?.setValidators([Validators.required])
+            if (this.isVisitorSelection) {
+                this.roomType?.clearValidators()
+            } else {
+                this.roomType?.setValidators([Validators.required])
+            }
             this.payment?.setValidators([Validators.required])
         } else {
             this.email?.setValidators([Validators.email])
@@ -2020,6 +2078,32 @@ export class GuestComponent implements OnInit {
         this.telephone?.updateValueAndValidity({ emitEvent: false })
         this.roomType?.updateValueAndValidity({ emitEvent: false })
         this.payment?.updateValueAndValidity({ emitEvent: false })
+    }
+
+    private applyVisitorAccommodationState(): void {
+        const roomTypeControl = this.roomType
+        const roomMateControl = this.roomMate
+
+        if (this.isVisitorSelection) {
+            if (roomTypeControl && !isNoAccommodationRoomTypeValue(roomTypeControl.value)) {
+                roomTypeControl.setValue(NO_ACCOMMODATION_ROOM_TYPE_VALUE, { emitEvent: false })
+            }
+
+            roomMateControl?.reset(null, { emitEvent: false })
+            roomMateControl?.disable({ emitEvent: false })
+
+            this.babyBed?.clearValidators()
+            this.babyBed?.setValue(null, { emitEvent: false })
+            this.babyBed?.disable({ emitEvent: false })
+        } else if (this.isRoomSelectionRequiringAccommodation(roomTypeControl?.value)) {
+            roomMateControl?.enable({ emitEvent: false })
+        } else {
+            roomMateControl?.disable({ emitEvent: false })
+        }
+
+        this.updateConferenceScopedValidators()
+        this.updateIdCardVisibility()
+        this.updateBabyBedVisibility()
     }
 
     private applyConferenceDateBoundsValidators(): void {
@@ -2160,6 +2244,11 @@ export class GuestComponent implements OnInit {
         this.guestForm.markAllAsTouched()
 
         if (!this.guestForm.valid) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Hiányzó vagy hibás adat',
+                detail: 'A mentéshez töltsd ki a kötelező mezőket.'
+            })
             return
         }
 
@@ -3222,7 +3311,9 @@ export class GuestComponent implements OnInit {
                 const issuedByUser = baseRow['roomKeyIssuedByUser']
                 const returnedByUser = baseRow['roomKeyReturnedByUser']
                 const paymentText = baseRow['paymentMethodName'] || baseRow['payment'] || null
-                const exportedRoomNum = baseRow['displayRoomNum'] ?? baseRow['roomNum'] ?? null
+                const exportedRoomNum = baseRow['is_visitor']
+                    ? this.visitorLabel(baseRow as Guest)
+                    : (baseRow['displayRoomNum'] ?? baseRow['roomNum'] ?? null)
 
                 // roomKeyIssued is replaced by roomKeyStatus in export
                 delete baseRow['id']

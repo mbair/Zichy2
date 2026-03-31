@@ -243,6 +243,48 @@ describe('GuestComponent', () => {
         expect(component.guestForm.get('idCard')?.valid).toBeTrue();
     });
 
+    it('switches visitor mode to no accommodation and clears accommodation-specific fields', () => {
+        const { component } = createInitializedComponent();
+        const conference = buildConference();
+
+        component.guestForm.patchValue({
+            conference: [conference],
+            roomType: 'Kastély szállás 4 ágyas szoba',
+            roomMate: ['Teszt Szobatárs'],
+            babyBed: '1',
+            is_visitor: true,
+        });
+
+        expect(component.roomType?.value).toBe('Nem kérek szállást');
+        expect(component.roomMate?.value).toBeNull();
+        expect(component.needsRoom).toBeFalse();
+        expect(component.showBabyBedField).toBeFalse();
+    });
+
+    it('shows a warning instead of silently blocking save when visitor meal timing is incomplete', () => {
+        const { component, guestService, messageService } = createInitializedComponent();
+        const conference = buildConference();
+
+        component.guestForm.patchValue({
+            ...buildValidGuest({ id: 1 }),
+            conference: [conference],
+            is_visitor: true,
+            visitor_meals_per_day: 2,
+            firstMeal: null,
+            lastMeal: 'reggeli',
+        });
+
+        component.save();
+
+        expect(guestService.update$).not.toHaveBeenCalled();
+        expect(messageService.add).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                severity: 'warn',
+                summary: 'Hiányzó vagy hibás adat',
+            }),
+        );
+    });
+
     it('clears disallowed payment and room type values when a conference is selected', () => {
         const { component } = createInitializedComponent();
         const conference = buildConference({

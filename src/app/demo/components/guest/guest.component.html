@@ -226,6 +226,13 @@
                         </td>
                         <td class="text-center" style="white-space: break-spaces">
                             <span class="p-column-title">Szoba</span>
+
+                            <!-- Látogató: nem szállhat meg, csak az étkezési jogosultságát mutatjuk -->
+                            <ng-container *ngIf="guest.is_visitor; else hotelGuest">
+                                <span class="text-600 font-italic">{{ visitorLabel(guest) }}</span>
+                            </ng-container>
+
+                            <ng-template #hotelGuest>
                             <ng-container *ngIf="guest.actualReservation as res; else noReservation">
                                 <button
                                 pButton
@@ -272,6 +279,7 @@
                                 <ng-template #noRoom>
                                 <span class="text-500">nincs foglalása</span>
                                 </ng-template>
+                            </ng-template>
                             </ng-template>
                             </td>
 
@@ -589,7 +597,7 @@
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="lastName" class="font-medium text-900">Vezetéknév</label>
                         <input id="lastName" type="text" pInputText formControlName="lastName">
-                        <div *ngIf="lastName?.dirty && lastName?.errors?.['required']" class="block p-error">
+                        <div *ngIf="(lastName?.dirty || lastName?.touched) && lastName?.errors?.['required']" class="block p-error">
                             Kötelező kitölteni
                         </div>
                     </div>
@@ -598,7 +606,7 @@
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="firstName" class="font-medium text-900">Keresztnév</label>
                         <input id="firstName" type="text" pInputText formControlName="firstName">
-                        <div *ngIf="firstName?.dirty && firstName?.errors?.['required']" class="block p-error">
+                        <div *ngIf="(firstName?.dirty || firstName?.touched) && firstName?.errors?.['required']" class="block p-error">
                             Kötelező kitölteni
                         </div>
                     </div>
@@ -617,7 +625,7 @@
                                 <label for="gender2" class="ml-2">Nő</label>
                             </div>
                         </div>
-                        <div *ngIf="gender?.dirty && gender?.errors?.['required']" class="p-error">
+                        <div *ngIf="(gender?.dirty || gender?.touched) && gender?.errors?.['required']" class="p-error">
                             Neme kötelező
                         </div>
                     </div>
@@ -631,7 +639,7 @@
                                                    [minDate]="birthDateMin"
                                                    [maxDate]="birthDateMax">
                         </app-localized-date-picker>
-                        <div *ngIf="birthDate?.dirty && birthDate?.errors?.['required']" class="p-error">
+                        <div *ngIf="(birthDate?.dirty || birthDate?.touched) && birthDate?.errors?.['required']" class="p-error">
                             Születési dátum kötelező
                         </div>
                     </div>
@@ -640,7 +648,7 @@
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="nationality" class="font-medium text-900">Állampolgárság</label>
                         <app-nationality-selector [parentForm]="guestForm" controlName="nationality"></app-nationality-selector>
-                        <div *ngIf="nationality?.dirty && nationality?.errors?.['required']" class="p-error">
+                        <div *ngIf="(nationality?.dirty || nationality?.touched) && nationality?.errors?.['required']" class="p-error">
                             Állampolgárság kötelező
                         </div>
                     </div>
@@ -649,7 +657,7 @@
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="country" class="font-medium text-900">Lakóhely - ország</label>
                         <app-country-selector [parentForm]="guestForm" controlName="country"></app-country-selector>
-                        <div *ngIf="country?.dirty && country?.errors?.['required']" class="p-error">
+                        <div *ngIf="(country?.dirty || country?.touched) && country?.errors?.['required']" class="p-error">
                             Ország kötelező
                         </div>
                     </div>
@@ -658,7 +666,7 @@
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="zipCode" class="font-medium text-900">Lakóhely - irányítószám</label>
                         <input id="zipCode" type="text" pInputText formControlName="zipCode">
-                        <div *ngIf="zipCode?.dirty" class="p-error">
+                        <div *ngIf="zipCode?.dirty || zipCode?.touched" class="p-error">
                             <div *ngIf="zipCode?.errors?.['required']">
                                 Irányítószám kötelező
                             </div>
@@ -672,7 +680,7 @@
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="email" class="font-medium text-900">Email</label>
                         <input id="email" type="email" pInputText formControlName="email" autocomplete="email">
-                        <div *ngIf="email?.dirty" class="p-error">
+                        <div *ngIf="email?.dirty || email?.touched" class="p-error">
                             <div *ngIf="email?.errors?.['required']">
                                 Email kötelező
                             </div>
@@ -686,7 +694,7 @@
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="telephone" class="font-medium text-900">Telefon</label>
                         <input id="telephone" type="text" pInputText formControlName="telephone">
-                        <div *ngIf="telephone?.dirty && telephone?.errors?.['required']" class="p-error">
+                        <div *ngIf="(telephone?.dirty || telephone?.touched) && telephone?.errors?.['required']" class="p-error">
                             Telefon kötelező
                         </div>
                     </div>
@@ -700,15 +708,21 @@
                             [showClear]="true"
                             placeholder="Válasszon konferenciát...">
                         </app-conference-selector>
-                        <div *ngIf="conference?.dirty && conference?.errors?.['required']" class="block p-error">
+                        <div *ngIf="(conference?.dirty || conference?.touched) && conference?.errors?.['required']" class="block p-error">
                             Kötelező kitölteni
                         </div>
                     </div>
 
-                    <!-- roomNum -->
+                    <!-- is_visitor + roomNum -->
                     <div class="field mb-4 col-12 lg:col-4">
-                        <label class="font-medium text-900">Szoba</label>
-                        <div class="mt-2">
+                        <label class="font-medium text-900">Szoba / Látogató</label>
+                        <div class="flex align-items-center gap-2 mt-2 mb-2">
+                            <p-inputSwitch formControlName="is_visitor" inputId="is_visitor"></p-inputSwitch>
+                            <label for="is_visitor">Látogató (nem száll meg)</label>
+                        </div>
+
+                        <!-- Foglalás gomb – csak ha NEM látogató -->
+                        <div *ngIf="!is_visitor?.value" class="mt-1">
                             <button
                                 pButton
                                 pRipple
@@ -727,6 +741,18 @@
                                 [disabled]="!primaryReservation?.id">
                             </button>
                         </div>
+
+                        <!-- Étkezési jogosultság – csak ha látogató -->
+                        <div *ngIf="is_visitor?.value" class="mt-1">
+                            <label class="font-medium text-700 mb-1 block">Napi étkezések</label>
+                            <p-dropdown
+                                formControlName="visitor_meals_per_day"
+                                [options]="visitorMealOptions"
+                                optionLabel="label"
+                                optionValue="value"
+                                placeholder="Válasszon...">
+                            </p-dropdown>
+                        </div>
                     </div>
 
                     <!-- dateOfArrival -->
@@ -739,10 +765,10 @@
                                                    [minDate]="beginDate"
                                                    [maxDate]="endDate">
                         </app-localized-date-picker>
-                        <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['required']" class="p-error">
+                        <div *ngIf="(dateOfArrival?.dirty || dateOfArrival?.touched) && dateOfArrival?.errors?.['required']" class="p-error">
                             Kérjük, adja meg az érkezés dátumát!
                         </div>
-                        <div *ngIf="dateOfArrival?.dirty && dateOfArrival?.errors?.['dateOutOfRange']" class="p-error">
+                        <div *ngIf="(dateOfArrival?.dirty || dateOfArrival?.touched) && dateOfArrival?.errors?.['dateOutOfRange']" class="p-error">
                             Az érkezés dátumának a konferencia időszakán belül kell lennie.
                         </div>
                         <div *ngIf="guestForm.errors?.['dateRangeInvalid']" class="p-error">
@@ -750,9 +776,12 @@
                         </div>
                     </div>
 
-                    <!-- firstMeal -->
-                    <div class="field mb-4 col-12 lg:col-4">
-                        <label for="firstMeal" class="font-medium text-900">Első étkezés</label>
+                    <!-- firstMeal – látogatónál csak 2 étkezés esetén jelenik meg -->
+                    <div class="field mb-4 col-12 lg:col-4"
+                         *ngIf="!is_visitor?.value || visitor_meals_per_day?.value === 2">
+                        <label for="firstMeal" class="font-medium text-900">
+                            {{ is_visitor?.value ? 'Első étkezés időpontja' : 'Első étkezés' }}
+                        </label>
                         <app-meal-selector
                             [parentForm]="guestForm"
                             controlName="firstMeal"
@@ -760,8 +789,8 @@
                             [latestMeal]="getLatestFirstMeal()"
                             [showNothing]="true">
                         </app-meal-selector>
-                        <div *ngIf="firstMeal?.dirty && firstMeal?.errors?.['required']" class="p-error">
-                            Kérjük, válassza ki az első étkezését!
+                        <div *ngIf="(firstMeal?.dirty || firstMeal?.touched) && firstMeal?.errors?.['required']" class="p-error">
+                            Kérjük, válassza ki az első étkezés időpontját!
                         </div>
                         <div *ngIf="guestForm.errors?.['mealOrderInvalid']" class="p-error">
                             Az első étkezés nem lehet későbbi, mint az utolsó étkezés, ha az érkezés és távozás egy napra esik.
@@ -772,7 +801,7 @@
                     <div class="field mb-4 col-12 lg:col-4">
                         <label for="diet" class="font-medium text-900">Étrend</label>
                         <app-diet-selector [parentForm]="guestForm" controlName="diet"></app-diet-selector>
-                        <div *ngIf="diet?.dirty && diet?.errors?.['required']" class="p-error">
+                        <div *ngIf="(diet?.dirty || diet?.touched) && diet?.errors?.['required']" class="p-error">
                             Kérjük, válassza ki az étrendjét!
                         </div>
                     </div>
@@ -787,10 +816,10 @@
                                                    [minDate]="beginDate"
                                                    [maxDate]="endDate">
                         </app-localized-date-picker>
-                        <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['required']" class="p-error">
+                        <div *ngIf="(dateOfDeparture?.dirty || dateOfDeparture?.touched) && dateOfDeparture?.errors?.['required']" class="p-error">
                             Kérjük, adja meg a távozás dátumát!
                         </div>
-                        <div *ngIf="dateOfDeparture?.dirty && dateOfDeparture?.errors?.['dateOutOfRange']" class="p-error">
+                        <div *ngIf="(dateOfDeparture?.dirty || dateOfDeparture?.touched) && dateOfDeparture?.errors?.['dateOutOfRange']" class="p-error">
                             A távozás dátumának a konferencia időszakán belül kell lennie.
                         </div>
                         <div *ngIf="guestForm.errors?.['dateRangeInvalid']" class="p-error">
@@ -798,9 +827,12 @@
                         </div>
                     </div>
 
-                    <!-- lastMeal -->
-                    <div class="field mb-4 col-12 lg:col-4">
-                        <label for="lastMeal" class="font-medium text-900">Utolsó étkezés</label>
+                    <!-- lastMeal – látogatónál csak 2 étkezés esetén jelenik meg -->
+                    <div class="field mb-4 col-12 lg:col-4"
+                         *ngIf="!is_visitor?.value || visitor_meals_per_day?.value === 2">
+                        <label for="lastMeal" class="font-medium text-900">
+                            {{ is_visitor?.value ? 'Második étkezés időpontja' : 'Utolsó étkezés' }}
+                        </label>
                         <app-meal-selector
                             [parentForm]="guestForm"
                             controlName="lastMeal"
@@ -808,8 +840,8 @@
                             [latestMeal]="getLatestLastMeal()"
                             [showNothing]="true">
                         </app-meal-selector>
-                        <div *ngIf="lastMeal?.dirty && lastMeal?.errors?.['required']" class="p-error">
-                            Kérjük, válassza ki az utolsó étkezését!
+                        <div *ngIf="(lastMeal?.dirty || lastMeal?.touched) && lastMeal?.errors?.['required']" class="p-error">
+                            Kérjük, válassza ki a második étkezés időpontját!
                         </div>
                     </div>
 
@@ -826,20 +858,20 @@
                                 <label for="baby-bed-no" class="ml-2">Nem</label>
                             </div>
                         </div>
-                        <div *ngIf="babyBed?.dirty && babyBed?.errors?.['required']" class="p-error">
+                        <div *ngIf="(babyBed?.dirty || babyBed?.touched) && babyBed?.errors?.['required']" class="p-error">
                             Kérjük válassza ki, hogy kér-e babaágyat!
                         </div>
                     </div>
 
                     <!-- roomType -->
-                    <div class="field mb-4 col-12 lg:col-8">
+                    <div *ngIf="!is_visitor?.value" class="field mb-4 col-12 lg:col-8">
                         <label for="roomType" class="font-medium text-900">Szobatípus</label>
                         <app-roomtype-selector
                             [parentForm]="guestForm"
                             [allowedRoomTypeIds]="allowedConferenceRoomTypeIds"
                             controlName="roomType">
                         </app-roomtype-selector>
-                        <div *ngIf="roomType?.dirty && roomType?.errors?.['required']" class="p-error">
+                        <div *ngIf="(roomType?.dirty || roomType?.touched) && roomType?.errors?.['required']" class="p-error">
                             Kérjük válassza ki a szobatípust!
                         </div>
                     </div>
@@ -871,7 +903,7 @@
                             [optionSelectable]="!hasSelectedConference || (allowedPaymentMethodIds?.length ?? 0) > 0"
                             controlName="payment">
                         </app-payment-selector>
-                        <div *ngIf="payment?.dirty && payment?.errors?.['required']" class="p-error">
+                        <div *ngIf="(payment?.dirty || payment?.touched) && payment?.errors?.['required']" class="p-error">
                             Kérjük válassza ki a fizetési módot!
                         </div>
                         <small class="p-error" *ngIf="hasSelectedConference && (allowedPaymentMethodIds?.length ?? 0) === 0">
@@ -938,7 +970,7 @@
                                 chooseLabel="Tallózás"
                                 cancelLabel="Mégsem">
                             </app-reactive-file-upload>
-                            <div *ngIf="idCard?.dirty" class="p-error">
+                            <div *ngIf="idCard?.dirty || idCard?.touched" class="p-error">
                                 <div *ngIf="idCard?.errors?.['required']">
                                     Kérjük, töltse fel a személyi igazolványának másolatát!
                                 </div>
@@ -962,7 +994,7 @@
                                 <label for="prepaid-no" class="ml-2">Nem</label>
                             </div>
                         </div>
-                        <div *ngIf="prepaid?.dirty && prepaid?.errors?.['required']" class="p-error">
+                        <div *ngIf="(prepaid?.dirty || prepaid?.touched) && prepaid?.errors?.['required']" class="p-error">
                             Kérjük válassza ki, hogy kér-e babaágyat!
                         </div>
                     </div>
@@ -985,8 +1017,8 @@
                             icon="pi pi-check"
                             class="p-button ml-2"
                             (click)="save()"
-                            [disabled]="!guestForm.valid || !guestForm.dirty">
-                    </button>
+                            [disabled]="!guestForm.dirty">
+                        </button>
                 </div>
             </ng-template>
         </p-sidebar>

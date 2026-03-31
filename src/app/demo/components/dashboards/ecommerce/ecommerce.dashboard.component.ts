@@ -295,6 +295,9 @@ export class EcommerceDashboardComponent implements OnInit {
     }
 
     private hasAssignedRoom(guest: Guest): boolean {
+        if (guest?.is_visitor) {
+            return true
+        }
         const reservationRoomNum = guest.reservations?.find(reservation => reservation?.room?.roomNum)?.room?.roomNum
         const roomNum = (guest.displayRoomNum ?? guest.roomNum ?? reservationRoomNum ?? '').trim()
         return roomNum.length > 0

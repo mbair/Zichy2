@@ -266,32 +266,29 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                     }
 
                     // VISITOR (NOT HOTEL GUEST)
-                    if (data.roomNum?.includes("látogató")){
+                    if (data.is_visitor) {
 
-                        // visitor + more meal
-                        if (data.roomNum == 'látogató +több étkezés') {
+                        // korlátlan étkezés
+                        if (data.visitor_meals_per_day === null || data.visitor_meals_per_day === undefined) {
                             this.canEat = true
                         }
 
-                        // visitor +1 meal
-                        if (data.roomNum == 'látogató +1 étkezés') {
-                            // If visitor eat today, or
-                            // has used the RFID and it was not today
+                        // 1 étkezés/nap – lastRfidUsage alapján ellenőrzünk
+                        if (data.visitor_meals_per_day === 1) {
                             if (!data.lastRfidUsage ||
-                                (data.lastRfidUsage && !isSameDay(data.lastRfidUsage, today))) { // TODO: itt legyen azonos a firstMeal és lastMeal
+                                (data.lastRfidUsage && !isSameDay(data.lastRfidUsage, today))) {
                                     this.canEat = true
                             }
                         }
 
-                        // visitor +2 meal
-                        if (data.roomNum == 'látogató +2 étkezés') {
-                            // First meal or Last meal is equivalent with current meal.
-                            // It works differently than with the guest, here it doesn't mean the first and last meal,
-                            // but when the visitor can eat during the day
+                        // 2 meghatározott étkezés/nap – firstMeal és lastMeal adja meg, mikor ehet
+                        if (data.visitor_meals_per_day === 2) {
                             if (data.firstMeal == this.currentMeal || data.lastMeal == this.currentMeal) {
                                 this.canEat = true
                             }
                         }
+
+                        // visitor_meals_per_day === 0: canEat marad false (nincs étkezés)
 
                     // HOTEL GUEST
                     } else {
