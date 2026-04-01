@@ -16,6 +16,7 @@ import { formatDateCompact, formatDateDots } from '../../utils/date.utils';
 import { saveBlobAsFile } from '../../utils/file-saver.utils';
 import { getRoomTypeOptionById, getRoomTypeOptions, RoomTypeOption } from '../../utils/room-type.utils';
 import { replaceTableRowById, shouldRequeryAfterTableRowUpdate } from '../../utils/table-row-update.utils';
+import { mapRoomForExport } from '../../utils/room-export.utils';
 
 @Component({
     selector: 'room-component',
@@ -458,7 +459,7 @@ export class RoomComponent implements OnInit {
         import("xlsx").then(xlsx => {
             this.getRowsForExport()
                 .then((rows) => {
-                    const data = rows.map((row: Room) => this.mapRoomForExport(row))
+                    const data = rows.map((row: Room) => mapRoomForExport(row, this.translate))
                     const worksheet = xlsx.utils.json_to_sheet(data)
                     const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
                     const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
@@ -531,38 +532,4 @@ export class RoomComponent implements OnInit {
         return response?.rows ?? []
     }
 
-    private mapRoomForExport(room: Room): { [key: string]: any } {
-        const roomType = this.getRoomType(room)
-        const conferenceNames = Array.isArray(room?.conferences)
-            ? room.conferences
-                .map((conference: Conference) => conference?.name || '')
-                .filter((name: string) => name.length > 0)
-                .join(', ')
-            : ''
-        const translatedBuilding = room?.building
-            ? this.translate.instant(`BUILDINGS.${String(room.building).toUpperCase()}`)
-            : ''
-        const spareBeds = room?.spareBeds
-            ? this.translate.instant(`SPAREBEDS.${String(room.spareBeds).toUpperCase()}`)
-            : ''
-
-        return {
-            'Szobaszám': room?.roomNum ?? '',
-            'Szoba kód': room?.roomCode ?? '',
-            'Ágyak száma': room?.beds ?? '',
-            'Pótágy (Matrac/gyerekágy)': spareBeds,
-            'Épület/folyosó': translatedBuilding,
-            'Ágy típus': room?.bedType ?? '',
-            'Fürdőszoba': room?.bathroom ?? '',
-            'Megjegyzés': room?.comment ?? '',
-            'Emelet': room?.floor ?? '',
-            'Klimatizált': room?.climate ? 'Igen' : 'Nem',
-            'Családi szoba': room?.familyRoom ? 'Igen' : 'Nem',
-            'Extra férőhely': room?.extraBeds ?? '',
-            'Szobatípus': roomType?.label ?? '',
-            'Szobatípus leírás': roomType?.description ?? '',
-            'Szobatípus státusz': roomType ? 'Megadva' : 'Nincs szobatípus megadva',
-            'Konferenciák': conferenceNames,
-        }
-    }
 }

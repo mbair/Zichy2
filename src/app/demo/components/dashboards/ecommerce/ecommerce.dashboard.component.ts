@@ -1,18 +1,20 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import { trigger, transition, style, animate } from '@angular/animations';
+import { Observable, Subscription } from 'rxjs';
 import { AutoUnsubscribe } from 'ngx-auto-unsubscribe';
 import { MessageService } from 'primeng/api';
-import { Subscription } from 'rxjs';
 import { DashboardService } from 'src/app/demo/service/dashboard.service';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { ActivityService } from 'src/app/demo/service/activity.service';
 import { ConferenceService } from 'src/app/demo/service/conference.service';
 import { GuestService } from 'src/app/demo/service/guest.service';
 import { UserService } from 'src/app/demo/service/user.service';
+import { LiveDiningService, GuestEatingEvent } from 'src/app/demo/service/liveDining.service';
+import { MealService } from 'src/app/demo/service/meal.service';
 import { Table } from 'primeng/table';
 import { Conference } from 'src/app/demo/api/conference';
 import { Guest } from 'src/app/demo/api/guest';
-import { formatDateDots, getWeekdayName, parseDateOnly } from 'src/app/demo/utils/date.utils';
+import { calculateAgeYears, formatDateDots, getWeekdayName, parseDateOnly } from 'src/app/demo/utils/date.utils';
 
 type OrganizerReminderTone = 'critical' | 'warning' | 'info' | 'success';
 
@@ -42,7 +44,16 @@ const APPROACHING_REMINDER_DAYS = 2;
 @Component({
     templateUrl: './ecommerce.dashboard.component.html',
     styleUrls: ['./ecommerce.dashboard.component.scss'],
-    providers: [MessageService]
+    providers: [MessageService],
+    animations: [
+        trigger('feedItemEnter', [
+            transition('void => new', [
+                style({ opacity: 0, transform: 'translateY(-16px)' }),
+                animate('350ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+            ]),
+            transition('void => existing', [])
+        ])
+    ]
 })
 
 // Makes unsubscribe automatically, don't need to do manually in ngOnDestroy
@@ -61,7 +72,7 @@ export class EcommerceDashboardComponent implements OnInit {
     pieData: any;
     pieOptions: any;
     products: any[] = [];
-    subscription: Subscription;
+    subscriptions: Subscription = new Subscription();
     cols: any[] = [];
     rfidPercentage: number = 85;
     prepaidPercentage: number = 0;
@@ -101,30 +112,54 @@ export class EcommerceDashboardComponent implements OnInit {
     private rfidCountObs$: Observable<any> | undefined
     private serviceMessageObs$: Observable<any> | undefined
 
+    get liveDiningFeed(): ReadonlyArray<GuestEatingEvent> { return this.liveDiningService.feed; }
+    private newDiningItems = new Set<GuestEatingEvent>();
+    canUseTestDiningEvent: boolean = false;
+    currentMealLabel: string = '';
+    isMealOpen: boolean = false;
+
     constructor(private dashboardService: DashboardService,
                 private conferenceService: ConferenceService,
                 private guestService: GuestService,
                 private userService: UserService,
                 private activityService: ActivityService,
-                private layoutService: LayoutService) {
+                private layoutService: LayoutService,
+                private liveDiningService: LiveDiningService,
+                private mealService: MealService) {
 
         // Set default theme
         this.changeTheme('indigo')
 
-        this.subscription = this.layoutService.configUpdate$.subscribe(config => {
+        this.subscriptions.add(this.layoutService.configUpdate$.subscribe(config => {
             this.initCharts()
-        })
+        }))
     }
 
     ngOnInit(): void {
         // User Role
-        this.userService.getUserRole().subscribe(role => {
+        this.subscriptions.add(this.userService.getUserRole().subscribe(role => {
             this.userRole = role
-        })
+        }))
+
+        // Étkezés badge inicializálás + frissítés étkezésváltáskor
+        this.refreshMealStatus();
+        this.subscriptions.add(this.mealService.mealChanged.subscribe(() => {
+            this.refreshMealStatus();
+        }));
+
+        // Live dining feed — az eseményeket a LiveDiningService tárolja (singleton, navigáción át is megmarad)
+        // Csak az e komponens életideje alatt érkező elemek animálódnak
+        this.subscriptions.add(this.liveDiningService.getGuestEatingEvents().subscribe(() => {
+            this.markNewestDiningFeedItem();
+        }))
+
+        this.subscriptions.add(this.userService.hasRole(['Super Admin']).subscribe(has => {
+            this.canUseTestDiningEvent = has
+        }))
 
         // Dashboard Informations
         this.dashboardObs$ = this.dashboardService.dashboardObs;
-        this.dashboardObs$.subscribe((data: any) => {
+        this.subscriptions.add(this.dashboardObs$.subscribe((data: any) => {
             this.loading = false
             if (data) {
                 this.conferences = data.conferences
@@ -139,16 +174,16 @@ export class EcommerceDashboardComponent implements OnInit {
                 this.childrens = parseFloat(this.guests.guestsAge[0].childrens)
                 this.initCharts()
             }
-        })
+        }))
         this.dashboardService.getInformations()
 
         // Conferences
         this.conferenceObs$ = this.conferenceService.conferenceObs;
-        this.conferenceObs$.subscribe((data: any) => {
+        this.subscriptions.add(this.conferenceObs$.subscribe((data: any) => {
             if (data && data.rows) {
                 this.conferenceData = data.rows[0]
             }
-        })
+        }))
 
         this.activities = this.activityService.getActivities();
 
@@ -923,6 +958,61 @@ export class EcommerceDashboardComponent implements OnInit {
                 this.layoutService.config.theme = theme
                 this.layoutService.onConfigUpdate()
             })
+        }
+    }
+
+    pushTestDiningEvent() {
+        const diets = ['normál', 'gluténmentes', 'vegetáriánus', 'tejmentes', 'glutén-, laktóz-, tejmentes'];
+        const meals = ['reggeli', 'ebéd', 'vacsora'];
+        const randomAge = 18 + Math.floor(Math.random() * 60);
+        const birthYear = new Date().getFullYear() - randomAge;
+        const event: GuestEatingEvent = {
+            lastName: 'Teszt',
+            firstName: 'Vendég',
+            diet: diets[Math.floor(Math.random() * diets.length)],
+            mealType: meals[Math.floor(Math.random() * meals.length)],
+            timestamp: new Date(),
+            birthDate: `${birthYear}-01-01`
+        };
+        this.liveDiningService.addLocalEvent(event);
+    }
+
+    isNewFeedItem(item: GuestEatingEvent): string {
+        return this.newDiningItems.has(item) ? 'new' : 'existing';
+    }
+
+    trackByDiningFeedItem(index: number, item: GuestEatingEvent): string {
+        return `${item.timestamp.getTime()}-${item.lastName}-${item.firstName}-${item.mealType}-${index}`;
+    }
+
+    guestAge(birthDate: string | null | undefined): string {
+        if (!birthDate) return '';
+        const age = calculateAgeYears(birthDate);
+        return age > 0 ? `(${age})` : '';
+    }
+
+    guestDietLabel(diet: string | null | undefined): string {
+        const normalizedDiet = diet?.trim();
+        return normalizedDiet || 'normál';
+    }
+
+    private refreshMealStatus(): void {
+        this.currentMealLabel = this.mealService.getMealNameByTime(new Date());
+        this.isMealOpen = this.mealService.isOpen();
+    }
+
+    private markNewestDiningFeedItem(): void {
+        const currentFeed = this.liveDiningFeed;
+        const newest = currentFeed[0];
+
+        if (newest) {
+            this.newDiningItems.add(newest);
+        }
+
+        for (const item of Array.from(this.newDiningItems)) {
+            if (!currentFeed.includes(item)) {
+                this.newDiningItems.delete(item);
+            }
         }
     }
 

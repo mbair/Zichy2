@@ -75,7 +75,7 @@
             </div>
         </div>
 
-        <div class="col-12 xl:col-9">
+        <div class="col-12 xl:col-6">
             <div class="card h-full">
                 <div class="flex align-items-start justify-content-between mb-6">
                     <span class="text-900 text-xl font-semibold">Bevételek áttekintése</span>
@@ -88,6 +88,60 @@
             <div class="card h-full">
                 <div class="text-900 text-xl font-semibold mb-6">Korosztályok</div>
                 <p-chart type="pie" [data]="pieData" [options]="pieOptions" height="300px"></p-chart>
+            </div>
+        </div>
+        <div class="col-12 xl:col-3">
+            <div class="card h-full relative">
+                <div class="flex align-items-center justify-content-between mb-3">
+                    <span class="font-semibold text-lg">Konyhapult élő</span>
+                    <span class="border-round px-2 py-1 text-xs font-medium text-white"
+                          [ngClass]="isMealOpen ? 'bg-teal-500' : 'bg-red-500'">
+                        {{ isMealOpen ? currentMealLabel : 'Nincs étkezés' }}
+                    </span>
+                </div>
+
+                <div *ngIf="liveDiningFeed.length === 0" class="text-center py-4 text-500">
+                    <i class="pi pi-clock text-3xl mb-2 block"></i>
+                    <span class="text-sm">Még nem érkezett étkezési esemény</span>
+                </div>
+
+                <div *ngFor="let event of liveDiningFeed; trackBy: trackByDiningFeedItem"
+                     [@feedItemEnter]="isNewFeedItem(event)"
+                     class="flex align-items-center justify-content-between py-2 border-bottom-1 surface-border">
+                    <div class="flex align-items-center gap-2">
+                        <span class="w-2rem h-2rem border-circle flex align-items-center justify-content-center flex-shrink-0"
+                              [ngClass]="{
+                                'bg-blue-100':   event.diet === 'tejmentes' || event.diet === 'laktózmentes',
+                                'bg-yellow-100': event.diet === 'gluténmentes',
+                                'bg-red-100':    event.diet === 'glutén-, laktóz-, tejmentes',
+                                'bg-teal-100':   event.diet === 'vegetáriánus',
+                                'bg-gray-900':   !event.diet || event.diet === 'normál' || event.diet === 'nem kér étkezést'
+                              }">
+                            <i class="pi pi-user text-xs"
+                               [ngClass]="{
+                                'text-blue-500':   event.diet === 'tejmentes' || event.diet === 'laktózmentes',
+                                'text-yellow-600': event.diet === 'gluténmentes',
+                                'text-red-500':    event.diet === 'glutén-, laktóz-, tejmentes',
+                                'text-teal-500':   event.diet === 'vegetáriánus',
+                                'text-white':      !event.diet || event.diet === 'normál' || event.diet === 'nem kér étkezést'
+                               }"></i>
+                        </span>
+                        <div>
+                            <div class="font-medium text-900 text-sm">{{ event.lastName }} {{ event.firstName }} <span class="text-500 font-normal">{{ guestAge(event.birthDate) }}</span></div>
+                            <div class="text-xs text-500">{{ guestDietLabel(event.diet) }}</div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-500">{{ event.timestamp | date:'HH:mm:ss' }}</div>
+                </div>
+
+                <button *ngIf="canUseTestDiningEvent"
+                        pButton
+                        type="button"
+                        icon="pi pi-bolt"
+                        class="p-button-xs p-button-help p-button-outlined absolute"
+                        style="bottom: 0.75rem; left: 50%; transform: translateX(-50%); font-size: 0.7rem; padding: 0.25rem 0.6rem;"
+                        (click)="pushTestDiningEvent()">
+                </button>
             </div>
         </div>
 

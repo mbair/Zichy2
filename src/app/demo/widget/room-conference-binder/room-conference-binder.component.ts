@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { EMPTY, Observable, Subject, Subscription, catchError, filter, map, switchMap, tap } from 'rxjs';
+import { EMPTY, Observable, Subject, Subscription, catchError, filter, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { Table } from 'primeng/table';
 import { Room } from '../../api/room';
 import { Conference } from '../../api/conference';
@@ -9,7 +10,9 @@ import { RoomService } from '../../service/room.service';
 import { UserService } from '../../service/user.service';
 import { ConferenceService, ConferenceStatsMap } from '../../service/conference.service';
 import { ReservationService } from '../../service/reservation.service';
-import { formatDateDots, toEpoch as toDateEpoch } from '../../utils/date.utils';
+import { formatDateCompact, formatDateDots, toEpoch as toDateEpoch } from '../../utils/date.utils';
+import { saveBlobAsFile } from '../../utils/file-saver.utils';
+import { mapRoomForExport } from '../../utils/room-export.utils';
 
 @Component({
     selector: 'app-room-conference-binder',
@@ -172,7 +175,8 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
         private reservationService: ReservationService,
         private userService: UserService,
         private messageService: MessageService,
-        private confirmationService: ConfirmationService
+        private confirmationService: ConfirmationService,
+        private translate: TranslateService
     ) { }
 
     /** The array actually shown in the table (original or filtered by "free") */
@@ -475,6 +479,26 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
         this.executeAssign(selectedConferenceId, roomIds)
     }
 
+    exportExcel(): void {
+        import("xlsx").then(xlsx => {
+            this.getRowsForExport()
+                .then((rows) => {
+                    const data = rows.map((row: Room) => mapRoomForExport(row, this.translate))
+                    const worksheet = xlsx.utils.json_to_sheet(data)
+                    const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] }
+                    const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })
+                    this.saveAsExcelFile(excelBuffer, 'rooms')
+                })
+                .catch(() => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Export hiba',
+                        detail: 'A szoba exportálása nem sikerült.'
+                    })
+                })
+        })
+    }
+
     /**
      * Executes the room-to-conference assignment call and updates the UI state on success/failure.
      *
@@ -507,6 +531,45 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
                 })
             }
         })
+    }
+
+    private saveAsExcelFile(buffer: any, fileName: string): void {
+        const excelType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+        const excelExtension = '.xlsx'
+        const data: Blob = new Blob([buffer], { type: excelType })
+        saveBlobAsFile(data, fileName + '_export_' + formatDateCompact(new Date()) + excelExtension)
+    }
+
+    private async getRowsForExport(): Promise<Room[]> {
+        if (this.selectedRooms.length > 0) {
+            return this.selectedRooms
+        }
+
+        if (this.showOnlyFreeRooms) {
+            return this.displayedRooms
+        }
+
+        if (this.globalFilter !== '') {
+            const response = await firstValueFrom(
+                this.roomService.getBySearch$(this.globalFilter, {
+                    sortField: this.sortField,
+                    sortOrder: this.sortOrder
+                })
+            )
+
+            return response?.rows ?? []
+        }
+
+        const response = await firstValueFrom(
+            this.roomService.get$(
+                0,
+                Math.max(this.totalRecords || 0, this.tableData.length || 0, 1),
+                { sortField: this.sortField, sortOrder: this.sortOrder },
+                this.buildRoomQueryParams()
+            )
+        )
+
+        return response?.rows ?? []
     }
 
     /**
