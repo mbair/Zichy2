@@ -6,7 +6,8 @@ import { Subject } from 'rxjs';
 })
 export class MealService {
 
-    mealChanged: Subject<string> = new Subject<string>()
+    mealChanged: Subject<string | null> = new Subject<string | null>()
+    private currentMealKey: string | null = null
 
     meals: any = {
         breakfast: {
@@ -31,24 +32,20 @@ export class MealService {
     }
 
     checkMealStart(): void {
-        const now = new Date()
-        const currentHour = now.getHours()
-
-        for (const mealName of Object.keys(this.meals)) {
-            const meal = this.meals[mealName];
-            if (currentHour >= meal.begin && currentHour < meal.end) {
-                this.mealChanged.next(mealName)
-                // Once the current meal has been found, there is no need to search further
-                return
-            }
+        const nextMealKey = this.getMealKeyByTime(new Date())
+        if (nextMealKey === this.currentMealKey) {
+            return
         }
+
+        this.currentMealKey = nextMealKey
+        this.mealChanged.next(nextMealKey)
     }
 
     getMealNameByTime(time: Date): string {
         const hour = time.getHours()
         for (const mealName in this.meals) {
             const meal = this.meals[mealName];
-            if (hour >= meal.begin && hour <= meal.end) {
+            if (hour >= meal.begin && hour < meal.end) {
                 return this.translateMealName(mealName)
             }
         }
@@ -74,13 +71,18 @@ export class MealService {
     }
 
     isOpen(): boolean {
-        const currentHour = new Date().getHours();
-        for (const mealName in this.meals) {
+        return this.getMealKeyByTime(new Date()) !== null
+    }
+
+    private getMealKeyByTime(time: Date): string | null {
+        const currentHour = time.getHours()
+        for (const mealName of Object.keys(this.meals)) {
             const meal = this.meals[mealName];
             if (currentHour >= meal.begin && currentHour < meal.end) {
-                return true
+                return mealName
             }
         }
-        return false
+
+        return null
     }
 }

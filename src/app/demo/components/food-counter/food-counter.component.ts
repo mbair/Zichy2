@@ -387,7 +387,7 @@ export class FoodCounterComponent implements OnInit, OnDestroy {
                 // this.guest.lastRfidUsage = new Date().toISOString()
                 // this.guestService.update(this.guest)
                 if (this.guest) {
-                    this.guestService.updateLastTagUsage(this.guest?.id)
+                    this.guestService.updateLastTagUsage(this.guest?.id, this.currentMeal)
                 }
             },
             error: (error) => {

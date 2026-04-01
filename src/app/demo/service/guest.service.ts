@@ -180,8 +180,11 @@ export class GuestService {
      * Updates the last tag usage of the guest identified by the given id.
      * @param guestId The id of the guest to update the last tag usage for.
      */
-    public updateLastTagUsage(guestId: number): void {
-        this.apiService.get<ApiResponse>(`guest/updatelasttagusage/${guestId}`)
+    public updateLastTagUsage(guestId: number, mealType?: string): void {
+        const url = mealType
+            ? `guest/updatelasttagusage/${guestId}?mealType=${encodeURIComponent(mealType)}`
+            : `guest/updatelasttagusage/${guestId}`;
+        this.apiService.get<ApiResponse>(url)
             .subscribe({
                 next: (response: ApiResponse) => { },
                 error: (error: any) => {
