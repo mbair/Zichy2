@@ -77,6 +77,40 @@ type GuestTimelineFieldChange = {
 @AutoUnsubscribe()
 
 export class GuestComponent implements OnInit {
+    private static readonly EXPORT_COLUMNS: string[] = [
+        'firstName',
+        'lastName',
+        'gender',
+        'nationality',
+        'country',
+        'zipCode',
+        'roomNum',
+        'dateOfArrival',
+        'firstMeal',
+        'dateOfDeparture',
+        'lastMeal',
+        'diet',
+        'birthDate',
+        'conferenceName',
+        'rfid',
+        'rfidColor',
+        'lastRfidUsage',
+        'email',
+        'telephone',
+        'roomType',
+        'payment',
+        'babyBed',
+        'roomMate',
+        'prepaid',
+        'createdAt',
+        'updatedAt',
+        'roomKeyStatus',
+        'roomKeyIssuedAt',
+        'roomKeyIssuedByUserName',
+        'roomKeyReturnedAt',
+        'roomKeyReturnedByUserName',
+    ]
+
     @ViewChild(ConferenceSelectorComponent) conferenceSelector!: ConferenceSelectorComponent;
     @ViewChild('identifier') identifierElement: ElementRef;
     @ViewChild('dt') table!: Table;
@@ -3381,6 +3415,7 @@ export class GuestComponent implements OnInit {
      */
     exportExcel() {
         import("xlsx").then(xlsx => {
+            const exportColumns = GuestComponent.EXPORT_COLUMNS
             const mapGuestRowForExport = (row: any): { [key: string]: any } => {
                 const {
                     answers,
@@ -3452,6 +3487,34 @@ export class GuestComponent implements OnInit {
                 } as { [key: string]: any }
             }
 
+            const pickExportColumns = (row: { [key: string]: any }): { [key: string]: any } => {
+                const orderedRow: { [key: string]: any } = {}
+
+                exportColumns.forEach((column) => {
+                    orderedRow[column] = row[column] ?? ''
+                })
+
+                Object.keys(row)
+                    .filter(key => key.startsWith('question_') || key.startsWith('answer_'))
+                    .sort((leftKey, rightKey) => {
+                        const leftMatch = leftKey.match(/_(\d+)$/)
+                        const rightMatch = rightKey.match(/_(\d+)$/)
+                        const leftIndex = leftMatch ? Number(leftMatch[1]) : 0
+                        const rightIndex = rightMatch ? Number(rightMatch[1]) : 0
+
+                        if (leftIndex !== rightIndex) {
+                            return leftIndex - rightIndex
+                        }
+
+                        return leftKey.localeCompare(rightKey)
+                    })
+                    .forEach((key) => {
+                        orderedRow[key] = row[key] ?? ''
+                    })
+
+                return orderedRow
+            }
+
             let data = this.selected.map(mapGuestRowForExport)
 
             // If the selected array is empty, we work from the filtered or full dataset as a fallback
@@ -3483,24 +3546,7 @@ export class GuestComponent implements OnInit {
                 return r
             })
 
-            // Delete unnecessary columns
-            data.forEach((row: any) => {
-                delete row.id
-                delete row.is_test
-                delete row.userid
-                delete row.rfid_id
-                delete row.diet_id
-                delete row.room_id
-                delete row.conferenceid
-                delete row.dietDetails
-                delete row.reservations
-                delete row.actualReservation
-                delete row.paymentMethodName
-                delete row.accommodationExtra
-                delete row.enabled
-                delete row.idcardtype
-                delete row.idcard
-            })
+            data = data.map(pickExportColumns)
 
             // Creating an Excel worksheet and file
             const worksheet = xlsx.utils.json_to_sheet(data)
