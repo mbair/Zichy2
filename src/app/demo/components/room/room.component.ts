@@ -18,6 +18,8 @@ import { getRoomTypeOptionById, getRoomTypeOptions, RoomTypeOption } from '../..
 import { replaceTableRowById, shouldRequeryAfterTableRowUpdate } from '../../utils/table-row-update.utils';
 import { mapRoomForExport } from '../../utils/room-export.utils';
 import { resolveLazyLoadSort } from '../../utils/lazy-load-sort.utils';
+import { buildRoomPageHint } from '../../utils/room-page-hint.utils';
+import { PageHintService } from '../../../layout/page-hint.service';
 
 @Component({
     selector: 'room-component',
@@ -57,6 +59,7 @@ export class RoomComponent implements OnInit {
     selectedConferences: Conference[] = []       // Selected conferences
     numberOfBeds: number = 0                     // Number of beds
     roomTypes: RoomTypeOption[] = []             // Available room types for badges and filters
+    expandedRoomRows: { [key: string]: boolean } = {} // Expanded conference detail rows
 
     private initialFormValues = {
         id: null,
@@ -88,6 +91,7 @@ export class RoomComponent implements OnInit {
         private messageService: MessageService,
         private responsiveService: ResponsiveService,
         private translate: TranslateService,
+        private pageHintService: PageHintService,
         private fb: FormBuilder) {
 
         // Room form fields and validators
@@ -114,6 +118,7 @@ export class RoomComponent implements OnInit {
     ngOnInit() {
         this.setRoomTypes()
         this.translate.onLangChange.subscribe(() => this.setRoomTypes())
+        this.updatePageHint()
 
         // Permissions
         this.userService.hasRole(['Super Admin', 'Nagy Admin']).subscribe(canCreate => this.canCreate = canCreate)
@@ -131,6 +136,7 @@ export class RoomComponent implements OnInit {
                 this.page = data.currentPage || 0
                 this.numberOfBeds = data.numberOfBeds || 0
             }
+            this.updatePageHint()
         })
 
         // Monitor the changes of the window size
@@ -213,6 +219,7 @@ export class RoomComponent implements OnInit {
         }
 
         this.filterValues[field] = filterValue
+        this.updatePageHint()
 
         // If the field is a dropdown, run doQuery immediately
         if (noWaitFields.includes(field)) {
@@ -246,6 +253,7 @@ export class RoomComponent implements OnInit {
         this.sortField = nextSort.sortField
         this.sortOrder = nextSort.sortOrder
         this.globalFilter = event.globalFilter ?? ''
+        this.updatePageHint()
         this.doQuery()
     }
 
@@ -267,6 +275,7 @@ export class RoomComponent implements OnInit {
             currentIds.some((id, index) => id !== nextIds[index])
 
         this.selectedConferences = nextSelectedConferences
+        this.updatePageHint()
 
         if (!selectionChanged) {
             return
@@ -287,6 +296,24 @@ export class RoomComponent implements OnInit {
         }
 
         return this.roomTypes.find((roomType) => roomType.id === Number(roomTypeId)) ?? null
+    }
+
+    hasConferenceAssignments(room: Room): boolean {
+        return (room?.conferences?.length ?? 0) > 0
+    }
+
+    getConferenceSummaryLabel(room: Room): string {
+        const conferenceCount = room?.conferences?.length ?? 0
+
+        if (conferenceCount === 0) {
+            return 'Nincs konferencia'
+        }
+
+        if (conferenceCount === 1) {
+            return '1 konferencia'
+        }
+
+        return `${conferenceCount} konferencia`
     }
 
     private setRoomTypes(): void {
@@ -495,6 +522,7 @@ export class RoomComponent implements OnInit {
 
     // Don't delete this, its needed from a performance point of view,
     ngOnDestroy(): void {
+        this.pageHintService.clear()
     }
 
     private buildQueryParams(): string {
@@ -532,6 +560,16 @@ export class RoomComponent implements OnInit {
         )
 
         return response?.rows ?? []
+    }
+
+    private updatePageHint(): void {
+        this.pageHintService.setHint(buildRoomPageHint({
+            selectedConferences: this.selectedConferences,
+            globalFilter: this.globalFilter,
+            filterValues: this.filterValues,
+            totalRecords: this.totalRecords,
+            loading: this.loading,
+        }))
     }
 
 }

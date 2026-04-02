@@ -103,8 +103,22 @@
                         </td>
                         <td>
                             <div class="flex">
-                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(user)" [disabled]="!canEdit"></button>
-                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = user; deleteDialog = true" [disabled]="!canDelete"></button>
+                                <button pButton
+                                        pRipple
+                                        icon="pi pi-pencil"
+                                        class="p-button-rounded p-button-success mr-2"
+                                        (click)="edit(user)"
+                                        [disabled]="!canEdit"
+                                        pTooltip="Felhasználó szerkesztése"
+                                        tooltipPosition="top"></button>
+                                <button pButton
+                                        pRipple
+                                        icon="pi pi-trash"
+                                        class="p-button-rounded p-button-warning"
+                                        (click)="tableItem = user; deleteDialog = true"
+                                        [disabled]="!canDelete"
+                                        pTooltip="Felhasználó törlése"
+                                        tooltipPosition="top"></button>
                             </div>
                         </td>
                     </tr>
@@ -230,7 +244,9 @@
                                         type="button"
                                         icon="pi pi-trash"
                                         class="p-button-rounded p-button-text p-button-danger"
-                                        (click)="removeOrganizerContractingParty(i)">
+                                        (click)="removeOrganizerContractingParty(i)"
+                                        pTooltip="Kapcsolódó jogi entitás eltávolítása"
+                                        tooltipPosition="top">
                                     </button>
                                 </div>
                             </div>

@@ -29,6 +29,10 @@ describe('RoomComponent', () => {
             {
                 onLangChange: of(null),
             } as any,
+            {
+                setHint: jasmine.createSpy('setHint'),
+                clear: jasmine.createSpy('clear'),
+            } as any,
             new FormBuilder(),
         );
 

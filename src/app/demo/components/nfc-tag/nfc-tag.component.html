@@ -160,8 +160,22 @@
                         </td>
                         <td>
                             <div class="flex">
-                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="edit(tag)" [disabled]="!canEdit"></button>
-                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="tableItem = tag; deleteDialog = true" [disabled]="!canDelete"></button>
+                                <button pButton
+                                        pRipple
+                                        icon="pi pi-pencil"
+                                        class="p-button-rounded p-button-success mr-2"
+                                        (click)="edit(tag)"
+                                        [disabled]="!canEdit"
+                                        pTooltip="NFC címke szerkesztése"
+                                        tooltipPosition="top"></button>
+                                <button pButton
+                                        pRipple
+                                        icon="pi pi-trash"
+                                        class="p-button-rounded p-button-warning"
+                                        (click)="tableItem = tag; deleteDialog = true"
+                                        [disabled]="!canDelete"
+                                        pTooltip="NFC címke törlése"
+                                        tooltipPosition="top"></button>
                             </div>
                         </td>
                     </tr>
