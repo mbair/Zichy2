@@ -32,6 +32,7 @@ import { calculateAgeYears, formatDateCompact, formatDateDots, formatDateYmd, is
 import { resolveConferenceFormAllowedRoomTypeIds } from '../../utils/conference-room-type.utils';
 import { getRoomTypeOptions, isNoAccommodationRoomTypeValue, NO_ACCOMMODATION_ROOM_TYPE_VALUE } from '../../utils/room-type.utils';
 import { saveBlobAsFile } from '../../utils/file-saver.utils';
+import { resolveLazyLoadSort } from '../../utils/lazy-load-sort.utils';
 
 import { ConferenceSelectorComponent } from '../../selectors/conference-selector/conference-selector.component';
 
@@ -1254,8 +1255,9 @@ export class GuestComponent implements OnInit {
         this.firstRowIndex = event.first ?? 0
         this.page = event.first! / event.rows!
         this.rowsPerPage = event.rows ?? this.rowsPerPage
-        this.sortField = event.sortField ?? ''
-        this.sortOrder = event.sortOrder ?? 1
+        const nextSort = resolveLazyLoadSort(this, event)
+        this.sortField = nextSort.sortField
+        this.sortOrder = nextSort.sortOrder
         this.globalFilter = event.globalFilter ?? ''
         this.doQuery()
     }

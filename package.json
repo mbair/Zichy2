@@ -1,6 +1,6 @@
 {
     "name": "nfc-reserve",
-    "version": "1.17.12",
+    "version": "1.17.13",
     "scripts": {
         "preinstall": "node ./scripts/check-runtime.js ./package.json",
         "prestart": "node ./scripts/generate-version.js",

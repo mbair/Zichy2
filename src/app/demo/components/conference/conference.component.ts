@@ -34,6 +34,7 @@ import {
     replaceTableRowById,
     shouldRequeryAfterTableRowUpdate,
 } from '../../utils/table-row-update.utils';
+import { resolveLazyLoadSort } from '../../utils/lazy-load-sort.utils';
 
 type Option = { label: string; value: string };
 
@@ -493,8 +494,9 @@ export class ConferenceComponent implements OnInit {
     onLazyLoad(event: any) {
         this.page = event.first! / event.rows!;
         this.rowsPerPage = event.rows ?? this.rowsPerPage;
-        this.sortField = event.sortField ?? '';
-        this.sortOrder = event.sortOrder ?? 1;
+        const nextSort = resolveLazyLoadSort(this, event);
+        this.sortField = nextSort.sortField;
+        this.sortOrder = nextSort.sortOrder;
         this.globalFilter = event.globalFilter ?? '';
         this.doQuery();
     }

@@ -9,6 +9,7 @@ import { UserService } from '../../service/user.service';
 import { ApiResponse } from '../../api/ApiResponse';
 import { Log } from '../../api/log';
 import { formatDateDots, formatUtcToTimeZone } from '../../utils/date.utils';
+import { resolveLazyLoadSort } from '../../utils/lazy-load-sort.utils';
 
 type DiffChangeType = 'unchanged' | 'changed' | 'added' | 'removed'
 interface DiffRow {
@@ -252,8 +253,9 @@ export class LogsComponent implements OnInit {
     onLazyLoad(event: any) {
         this.page = event.first! / event.rows!;
         this.rowsPerPage = event.rows ?? this.rowsPerPage;
-        this.sortField = event.sortField ?? '';
-        this.sortOrder = event.sortOrder ?? 1;
+        const nextSort = resolveLazyLoadSort(this, event);
+        this.sortField = nextSort.sortField;
+        this.sortOrder = nextSort.sortOrder;
         this.globalFilter = event.globalFilter ?? '';
         this.doQuery()
     }

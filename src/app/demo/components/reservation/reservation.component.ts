@@ -24,6 +24,7 @@ import { ChangeSource, ConferenceSelectorComponent } from '../../selectors/confe
 import { calculateAgeYears, formatDateCompact, formatDateDots, formatDateYmd, parseDateOnly } from '../../utils/date.utils';
 import { saveBlobAsFile } from '../../utils/file-saver.utils';
 import { getRoomTypeOptionById } from '../../utils/room-type.utils';
+import { resolveLazyLoadSort } from '../../utils/lazy-load-sort.utils';
 
 type SortDir = 1 | -1
 
@@ -601,8 +602,9 @@ export class ReservationComponent implements OnInit {
     onLazyLoad(event: any) {
         this.page = event.first! / event.rows!
         this.rowsPerPage = event.rows ?? this.rowsPerPage
-        this.sortField = event.sortField ?? ''
-        this.sortOrder = (event.sortOrder === -1 ? -1 : 1)
+        const nextSort = resolveLazyLoadSort(this, event)
+        this.sortField = nextSort.sortField
+        this.sortOrder = nextSort.sortOrder
         this.globalFilter = event.globalFilter ?? ''
         this.doQuery()
     }
