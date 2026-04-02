@@ -1,0 +1,58 @@
+{
+  "workspaceName": "NFC Reserve Frontend",
+  "repoId": "frontend",
+  "repoLabel": "Frontend",
+  "defaultModel": "qwen2.5-coder:7b-instruct",
+  "plannerModel": "qwen3.5:9b",
+  "embeddingModel": "nomic-embed-text:latest",
+  "outputDir": "docs/ai-daily",
+  "aiBranchPrefix": "ai/daily/frontend",
+  "defaultCommitPrefix": "chore(ai)",
+  "sourceRoots": [
+    "src/app"
+  ],
+  "testRoots": [
+    "src/app"
+  ],
+  "candidatePatterns": [
+    ".component.ts",
+    ".service.ts",
+    ".directive.ts",
+    ".pipe.ts"
+  ],
+  "testSuffixes": [
+    ".spec.ts"
+  ],
+  "safeValidationCommands": [
+    "npm lint",
+    "npm test -- --watch=false"
+  ],
+  "forbiddenPathPrefixes": [
+    "docs/",
+    "dist/",
+    "package-lock.json",
+    "localSslCertificate/"
+  ],
+  "scan": {
+    "todoKeywords": [
+      "TODO",
+      "FIXME",
+      "HACK"
+    ],
+    "excludeGlobs": [
+      "!**/node_modules/**",
+      "!**/.git/**",
+      "!**/dist/**",
+      "!**/coverage/**",
+      "!**/docs/**",
+      "!**/.angular/**",
+      "!scripts/ai-dev/**",
+      "!**/package-lock.json"
+    ],
+    "largeFileThresholds": {
+      ".ts": 260,
+      ".js": 260,
+      ".html": 220
+    }
+  }
+}
