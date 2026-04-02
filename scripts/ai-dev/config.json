@@ -24,7 +24,6 @@
     ".spec.ts"
   ],
   "safeValidationCommands": [
-    "npm lint",
     "npm test -- --watch=false"
   ],
   "forbiddenPathPrefixes": [

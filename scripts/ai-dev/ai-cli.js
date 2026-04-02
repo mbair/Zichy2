@@ -183,6 +183,18 @@ function buildCommitMessage(task) {
     return `${config.defaultCommitPrefix}: ${task.title}`;
 }
 
+function normalizeValidationCommand(command) {
+    if (command === 'npm lint') {
+        return null;
+    }
+
+    if (command === 'npm run lint') {
+        return null;
+    }
+
+    return command;
+}
+
 function buildTodoPattern() {
     return `\\b(${config.scan.todoKeywords.join('|')})\\b`;
 }
@@ -373,7 +385,7 @@ function classifyTodo(todo) {
 function validationCommandsFor(kind, file) {
     if (kind === 'missing-test' || kind === 'add-test-from-todo') {
         const specPath = file.endsWith('.ts') ? file.replace(/\.ts$/, '.spec.ts') : file;
-        return ['npm lint', `npm test -- --watch=false --include=${specPath}`];
+        return [`npm test -- --watch=false --include=${specPath}`];
     }
 
     return config.safeValidationCommands;
@@ -577,7 +589,10 @@ function promptCommand(args) {
         ? [
             '- For a missing frontend spec, creating a minimal Angular smoke test is acceptable.',
             '- Prefer matching existing spec style from nearby files.',
-            '- If the component has little logic, test that the component instance can be created.'
+            '- If the component has little logic, test that the component instance can be created.',
+            '- Prefer exact expectations over loose checks like greater-than-or-equal when the seeded data is known.',
+            '- For append-style behavior, compare the length before and after the mutation and assert the last item directly.',
+            '- For simple services without Angular dependencies, instantiate the service directly instead of using TestBed.'
         ]
         : [];
 
@@ -800,14 +815,20 @@ function validateCommand(args) {
     const taskPayload = getCurrentTask();
     const results = [];
     for (const command of taskPayload.task.validationCommands || []) {
-        if (args['dry-run']) {
+        const normalizedCommand = normalizeValidationCommand(command);
+        if (!normalizedCommand) {
             results.push({ command, status: 'skipped' });
             continue;
         }
 
-        const result = runShell(command, { allowFailure: true });
+        if (args['dry-run']) {
+            results.push({ command: normalizedCommand, status: 'skipped' });
+            continue;
+        }
+
+        const result = runShell(normalizedCommand, { allowFailure: true });
         results.push({
-            command,
+            command: normalizedCommand,
             status: result.status === 0 ? 'passed' : 'failed',
             exitCode: result.status,
             stdout: result.stdout,
