@@ -746,14 +746,14 @@ export class RoomConferenceBinderComponent implements OnInit, OnDestroy {
 
     getConferenceChipTooltip(room: Room, conference: any): string | undefined {
         if (this.isConferenceOverlapping(conference)) {
-            return 'Átfedés van a konferenciával, amihez szobát rendelne'
+            return 'Átfedés van a konferenciával, amihez szobát rendelne. Az X-re kattintva megszüntetheti ezt az összerendelést.'
         }
 
         if (this.isPotentiallyRemovableConference(room, conference)) {
-            return 'A jelenlegi kapacitás alapján ez a szoba eltávolítható lehet erről a konferenciáról.'
+            return 'A jelenlegi kapacitás alapján ez a szoba eltávolítható lehet erről a konferenciáról. Az X-re kattintva megszüntetheti az összerendelést.'
         }
 
-        return undefined
+        return 'Az X-re kattintva megszüntetheti a szoba és konferencia összerendelését.'
     }
 
     private isPotentiallyRemovableConference(room: Room, conference: any): boolean {

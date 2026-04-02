@@ -1,5 +1,6 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
+import { PageHintService } from './page-hint.service';
 
 @Component({
     selector: 'app-topbar',
@@ -9,7 +10,12 @@ export class AppTopbarComponent {
 
     @ViewChild('menubutton') menuButton!: ElementRef;
 
-    constructor(public layoutService: LayoutService) { }
+    readonly pageHint$ = this.pageHintService.pageHint$;
+
+    constructor(
+        public layoutService: LayoutService,
+        private pageHintService: PageHintService
+    ) { }
 
     onMenuButtonClick() {
         this.layoutService.onMenuToggle();

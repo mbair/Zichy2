@@ -29,6 +29,10 @@ describe('RoomComponent', () => {
             {
                 onLangChange: of(null),
             } as any,
+            {
+                setHint: jasmine.createSpy('setHint'),
+                clear: jasmine.createSpy('clear'),
+            } as any,
             new FormBuilder(),
         );
 
@@ -112,6 +116,26 @@ describe('RoomComponent', () => {
         component.save();
 
         expect(component.tableData[0]).toEqual(updatedRoom);
+        expect(component.doQuery).toHaveBeenCalled();
+    });
+
+    it('preserves the default sort when lazy load does not provide a new sort field', () => {
+        const { component } = createComponent();
+
+        component.sortField = 'roomNum';
+        component.sortOrder = 1;
+        spyOn(component, 'doQuery');
+
+        component.onLazyLoad({
+            first: 0,
+            rows: 20,
+            sortField: undefined,
+            sortOrder: undefined,
+            globalFilter: undefined,
+        });
+
+        expect(component.sortField).toBe('roomNum');
+        expect(component.sortOrder).toBe(1);
         expect(component.doQuery).toHaveBeenCalled();
     });
 });

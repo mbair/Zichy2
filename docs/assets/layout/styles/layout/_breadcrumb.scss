@@ -1,4 +1,12 @@
 .layout-breadcrumb {
+    .layout-breadcrumb__content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        min-width: 0;
+    }
+
     ol {
         display: flex;
         align-items: center;
@@ -12,6 +20,32 @@
         li {
             font-weight: 600;
         }
+    }
+
+    .layout-breadcrumb__hint {
+        display: inline-flex;
+        align-items: center;
+        min-width: 0;
+        max-width: min(68rem, calc(100vw - 28rem));
+        border: 1px solid #bfdbfe;
+        border-radius: 0.9rem;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-size: 0.95rem;
+        font-weight: 500;
+        line-height: 1.2;
+    }
+
+    .layout-breadcrumb__hint-inner {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        min-width: 0;
+        padding: 0.65rem 1rem;
+    }
+
+    .layout-breadcrumb__hint-inner span:last-child {
+        overflow-wrap: anywhere;
     }
 }
 

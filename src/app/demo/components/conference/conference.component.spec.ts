@@ -206,4 +206,24 @@ describe('ConferenceComponent', () => {
             }),
         );
     });
+
+    it('preserves the default sort when lazy load does not provide a new sort field', () => {
+        const { component } = createComponent();
+
+        component.sortField = 'beginDate';
+        component.sortOrder = 1;
+        spyOn(component, 'doQuery');
+
+        component.onLazyLoad({
+            first: 0,
+            rows: 20,
+            sortField: undefined,
+            sortOrder: undefined,
+            globalFilter: undefined,
+        });
+
+        expect(component.sortField).toBe('beginDate');
+        expect(component.sortOrder).toBe(1);
+        expect(component.doQuery).toHaveBeenCalled();
+    });
 });

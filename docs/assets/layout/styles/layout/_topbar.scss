@@ -1,12 +1,16 @@
 .layout-topbar {
     margin-bottom: 2rem;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
+    gap: 1rem;
 
     .topbar-start {
         display: flex;
         align-items: center;
+        min-width: 0;
+        justify-self: start;
+        grid-column: 1;
 
         .topbar-menubutton {
             display: inline-flex;
@@ -33,6 +37,39 @@
                 }
             }
         }
+    }
+
+    .topbar-page-hint {
+        display: inline-flex;
+        align-items: center;
+        justify-self: center;
+        grid-column: 2;
+        min-width: 0;
+        max-width: min(68rem, calc(100vw - 34rem));
+        border: 1px solid #bfdbfe;
+        border-radius: 0.9rem;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-size: 0.95rem;
+        font-weight: 500;
+        line-height: 1.2;
+    }
+
+    .topbar-page-hint__inner {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        min-width: 0;
+        padding: 0.65rem 1rem;
+    }
+
+    .topbar-page-hint__inner span:last-child {
+        overflow-wrap: anywhere;
+    }
+
+    .topbar-end {
+        grid-column: 3;
+        justify-self: end;
     }
 
     .topbar-menu {

@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { PageHintService } from './page-hint.service';
 
 interface Breadcrumb {
     label: string;
@@ -14,11 +15,17 @@ interface Breadcrumb {
 })
 export class AppBreadcrumbComponent {
 
+    @Input() showPageHint = false;
+
     private readonly _breadcrumbs$ = new BehaviorSubject<Breadcrumb[]>([]);
 
     readonly breadcrumbs$ = this._breadcrumbs$.asObservable();
+    readonly pageHint$ = this.pageHintService.pageHint$;
 
-    constructor(private router: Router) {
+    constructor(
+        private router: Router,
+        private pageHintService: PageHintService
+    ) {
         this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(event => {
             const root = this.router.routerState.snapshot.root;
             const breadcrumbs: Breadcrumb[] = [];

@@ -13,6 +13,7 @@ import { User } from '../../api/user';
 import { OrganizerContractingParty } from '../../api/contracting-party';
 import { formatDateDots } from '../../utils/date.utils';
 import { replaceTableRowById, shouldRequeryAfterTableRowUpdate } from '../../utils/table-row-update.utils';
+import { resolveLazyLoadSort } from '../../utils/lazy-load-sort.utils';
 
 @Component({
     templateUrl: './user.component.html',
@@ -217,8 +218,9 @@ export class UserComponent implements OnInit {
     onLazyLoad(event: any) {
         this.page = event.first! / event.rows!
         this.rowsPerPage = event.rows ?? this.rowsPerPage
-        this.sortField = event.sortField ?? ''
-        this.sortOrder = event.sortOrder ?? 1
+        const nextSort = resolveLazyLoadSort(this, event)
+        this.sortField = nextSort.sortField
+        this.sortOrder = nextSort.sortOrder
         this.globalFilter = event.globalFilter ?? ''
         this.doQuery()
     }

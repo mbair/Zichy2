@@ -1,6 +1,6 @@
 {
     "name": "nfc-reserve",
-    "version": "1.17.12",
+    "version": "1.17.14",
     "scripts": {
         "preinstall": "node ./scripts/check-runtime.js ./package.json",
         "prestart": "node ./scripts/generate-version.js",
@@ -23,7 +23,16 @@
         "e2e:conference-form:headed": "playwright test playwright/conference-form-date-inputs.spec.ts --project=chromium --headed",
         "e2e:install": "playwright install chromium",
         "lint": "ng lint",
-        "bump:patch": "npm version patch --no-git-tag-version --force"
+        "bump:patch": "npm version patch --no-git-tag-version --force",
+        "ai:scan": "node ./scripts/ai-dev/ai-cli.js scan",
+        "ai:backlog": "node ./scripts/ai-dev/ai-cli.js backlog",
+        "ai:prompt": "node ./scripts/ai-dev/ai-cli.js prompt",
+        "ai:branch": "node ./scripts/ai-dev/ai-cli.js branch",
+        "ai:run": "node ./scripts/ai-dev/ai-cli.js run",
+        "ai:apply": "node ./scripts/ai-dev/ai-cli.js apply",
+        "ai:validate": "node ./scripts/ai-dev/ai-cli.js validate",
+        "ai:commit": "node ./scripts/ai-dev/ai-cli.js commit",
+        "ai:daily": "node ./scripts/ai-dev/ai-cli.js daily"
     },
     "private": true,
     "engines": {

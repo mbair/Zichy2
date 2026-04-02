@@ -7,6 +7,14 @@
         <app-breadcrumb class="topbar-breadcrumb"></app-breadcrumb>
     </div>
 
+    <div *ngIf="pageHint$ | async as pageHint"
+         class="topbar-page-hint">
+        <span class="topbar-page-hint__inner">
+            <i class="pi pi-info-circle"></i>
+            <span>{{ pageHint }}</span>
+        </span>
+    </div>
+
     <div class="topbar-end">
         <ul class="topbar-menu">
             <!-- Hide main search permanently -->
