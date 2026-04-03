@@ -16,6 +16,7 @@ import { SidebarModule } from 'primeng/sidebar';
 import { TooltipModule } from 'primeng/tooltip';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { ChipModule } from 'primeng/chip';
+import { SkeletonModule } from 'primeng/skeleton';
 import { BathroomSelectorComponent } from '../../selectors/bathroom-selector/bathroom-selector.component';
 import { BedtypeSelectorComponent } from '../../selectors/bedtype-selector/bedtype-selector.component';
 import { BuildingSelectorComponent } from '../../selectors/building-selector/building-selector.component';
@@ -50,7 +51,8 @@ import { RoomService } from '../../service/room.service';
         RoomTypeSelectorComponent,
         SparebedSelectorComponent,
         TranslateModule,
-        ChipModule
+        ChipModule,
+        SkeletonModule
     ],
     declarations: [RoomComponent],
     providers: [RoomService]

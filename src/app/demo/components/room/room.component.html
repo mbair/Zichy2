@@ -17,6 +17,8 @@
                      selectionMode="multiple"
                      [tableStyle]="{'min-height': 'calc(100vh - 320px)'}"
                      [rowHover]="true"
+                     (onRowExpand)="onRoomRowExpand($event.data)"
+                     (onRowCollapse)="onRoomRowCollapse($event.data)"
                      (onLazyLoad)="onLazyLoad($event)"
                      [lazy]="true">
 
@@ -254,8 +256,19 @@
                                     <div class="text-sm font-semibold text-700">
                                         Szobához rendelt konferenciák
                                     </div>
-                                    <div class="flex flex-wrap gap-2">
-                                        <ng-container *ngFor="let conference of room.conferences">
+                                    <div *ngIf="isExpandedRoomLoading(room)" class="flex flex-wrap gap-2" aria-label="Konferencia lista betöltése">
+                                        <p-skeleton
+                                            *ngFor="let skeletonWidth of conferenceChipSkeletonWidths; trackBy: trackBySkeletonChipIndex"
+                                            [width]="skeletonWidth"
+                                            height="2rem"
+                                            styleClass="border-round-3xl">
+                                        </p-skeleton>
+                                    </div>
+                                    <div *ngIf="hasExpandedRoomLoadError(room)" class="text-500">
+                                        A konferencia lista betöltése nem sikerült. Zárja be és nyissa meg újra a sort.
+                                    </div>
+                                    <div *ngIf="!isExpandedRoomLoading(room) && !hasExpandedRoomLoadError(room) && getExpandedRoomConferences(room).length" class="flex flex-wrap gap-2">
+                                        <ng-container *ngFor="let conference of getExpandedRoomConferences(room); trackBy: trackByConferenceId">
                                             <p-chip
                                                 [label]="conference.name"
                                                 icon="pi pi-calendar"
@@ -265,6 +278,9 @@
                                                 (onRemove)="onConferenceRemove(conference, room)">
                                             </p-chip>
                                         </ng-container>
+                                    </div>
+                                    <div *ngIf="!isExpandedRoomLoading(room) && !hasExpandedRoomLoadError(room) && !getExpandedRoomConferences(room).length" class="text-500">
+                                        Ehhez a szobához jelenleg nincs konferencia rendelve.
                                     </div>
                                 </div>
                             </div>

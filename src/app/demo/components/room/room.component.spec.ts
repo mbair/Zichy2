@@ -8,6 +8,7 @@ describe('RoomComponent', () => {
         const roomService = {
             update$: jasmine.createSpy('update$'),
             create: jasmine.createSpy('create'),
+            getConferenceAssignments$: jasmine.createSpy('getConferenceAssignments$'),
         };
 
         const messageService = {
@@ -137,5 +138,39 @@ describe('RoomComponent', () => {
         expect(component.sortField).toBe('roomNum');
         expect(component.sortOrder).toBe(1);
         expect(component.doQuery).toHaveBeenCalled();
+    });
+
+    it('uses conferenceCount metadata for the summary badge before details are loaded', () => {
+        const { component } = createComponent();
+        const room = buildValidRoom({
+            conferences: undefined,
+            conferenceCount: 2,
+        });
+
+        expect(component.hasConferenceAssignments(room)).toBeTrue();
+        expect(component.getConferenceSummaryLabel(room)).toBe('2 konferencia');
+    });
+
+    it('loads room conference details only when a row is expanded', () => {
+        const { component, roomService } = createComponent();
+        const room = buildValidRoom({
+            id: '7',
+            conferences: undefined,
+            conferenceCount: 1,
+        });
+        const conferenceAssignments = {
+            id: '7',
+            conferences: [{ id: 99, name: 'Tavaszi konferencia' }],
+            conferenceCount: 1,
+        };
+
+        component.tableData = [room];
+        roomService.getConferenceAssignments$.and.returnValue(of(conferenceAssignments));
+
+        component.onRoomRowExpand(room);
+
+        expect(roomService.getConferenceAssignments$).toHaveBeenCalledWith(7);
+        expect(component.getExpandedRoomConferences(room)).toEqual(conferenceAssignments.conferences);
+        expect(component.hasExpandedRoomLoadError(room)).toBeFalse();
     });
 });
