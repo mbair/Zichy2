@@ -25,6 +25,7 @@ export interface Room {
     guestData?: any;
     Reservations?: any;
     conferences?: any;
+    conferenceCount?: number;
 }
 
 export interface RoomFilter {

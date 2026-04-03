@@ -60,6 +60,31 @@ export class RoomComponent implements OnInit {
     numberOfBeds: number = 0                     // Number of beds
     roomTypes: RoomTypeOption[] = []             // Available room types for badges and filters
     expandedRoomRows: { [key: string]: boolean } = {} // Expanded conference detail rows
+    expandedRoomDetails: { [key: number]: { conferences: any[]; conferenceCount: number } } = {}
+    loadingExpandedRoomIds: Set<number> = new Set()
+    failedExpandedRoomIds: Set<number> = new Set()
+    conferenceChipSkeletonWidths: string[] = [
+        '11rem',
+        '14rem',
+        '9rem',
+        '13rem',
+        '10rem',
+        '15rem',
+        '12rem',
+        '8rem',
+        '14rem',
+        '11rem',
+        '9rem',
+        '13rem',
+        '10rem',
+        '15rem',
+        '12rem',
+        '8rem',
+        '14rem',
+        '11rem',
+        '13rem',
+        '10rem',
+    ]
 
     private initialFormValues = {
         id: null,
@@ -83,6 +108,7 @@ export class RoomComponent implements OnInit {
     private roomObs$: Observable<any> | undefined
     private serviceMessageObs$: Observable<any> | undefined
     private conferenceMessageObs$: Observable<any> | undefined
+    private roomTypeById: Map<number, RoomTypeOption> = new Map()
 
     constructor(
         private roomService: RoomService,
@@ -131,6 +157,7 @@ export class RoomComponent implements OnInit {
         this.roomObs$.subscribe((data: ApiResponse) => {
             this.loading = false
             if (data) {
+                this.resetExpandedRoomState()
                 this.tableData = data.rows || []
                 this.totalRecords = data.totalItems || 0
                 this.page = data.currentPage || 0
@@ -291,19 +318,21 @@ export class RoomComponent implements OnInit {
             return null
         }
 
-        if (this.roomTypes.length === 0) {
+        const numericRoomTypeId = Number(roomTypeId)
+
+        if (this.roomTypeById.size === 0) {
             return getRoomTypeOptionById(roomTypeId, this.translate)
         }
 
-        return this.roomTypes.find((roomType) => roomType.id === Number(roomTypeId)) ?? null
+        return this.roomTypeById.get(numericRoomTypeId) ?? null
     }
 
     hasConferenceAssignments(room: Room): boolean {
-        return (room?.conferences?.length ?? 0) > 0
+        return this.getConferenceCount(room) > 0
     }
 
     getConferenceSummaryLabel(room: Room): string {
-        const conferenceCount = room?.conferences?.length ?? 0
+        const conferenceCount = this.getConferenceCount(room)
 
         if (conferenceCount === 0) {
             return 'Nincs konferencia'
@@ -316,8 +345,80 @@ export class RoomComponent implements OnInit {
         return `${conferenceCount} konferencia`
     }
 
+    getExpandedRoomConferences(room: Room): any[] {
+        const roomId = Number(room?.id)
+
+        if (Number.isInteger(roomId) && roomId > 0) {
+            const detailedRoom = this.expandedRoomDetails[roomId]
+            if (Array.isArray(detailedRoom?.conferences)) {
+                return detailedRoom.conferences
+            }
+        }
+
+        return Array.isArray(room?.conferences) ? room.conferences : []
+    }
+
+    isExpandedRoomLoading(room: Room): boolean {
+        const roomId = Number(room?.id)
+        return Number.isInteger(roomId) && roomId > 0 && this.loadingExpandedRoomIds.has(roomId)
+    }
+
+    hasExpandedRoomLoadError(room: Room): boolean {
+        const roomId = Number(room?.id)
+        return Number.isInteger(roomId) && roomId > 0 && this.failedExpandedRoomIds.has(roomId)
+    }
+
+    onRoomRowExpand(room: Room): void {
+        const roomId = Number(room?.id)
+        if (!Number.isInteger(roomId) || roomId <= 0) return
+
+        this.expandedRoomRows = { ...this.expandedRoomRows, [String(roomId)]: true }
+        this.failedExpandedRoomIds.delete(roomId)
+
+        if (this.expandedRoomDetails[roomId] || this.loadingExpandedRoomIds.has(roomId)) {
+            return
+        }
+
+        this.loadingExpandedRoomIds.add(roomId)
+        this.roomService.getConferenceAssignments$(roomId).subscribe({
+            next: (response) => {
+                this.expandedRoomDetails[roomId] = {
+                    conferences: Array.isArray(response?.conferences) ? response.conferences : [],
+                    conferenceCount: Number(response?.conferenceCount) || 0,
+                }
+                this.replaceTableRoomConferenceCount(roomId, Number(response?.conferenceCount))
+                this.loadingExpandedRoomIds.delete(roomId)
+            },
+            error: () => {
+                this.loadingExpandedRoomIds.delete(roomId)
+                this.failedExpandedRoomIds.add(roomId)
+            }
+        })
+    }
+
+    onRoomRowCollapse(room: Room): void {
+        const roomId = Number(room?.id)
+        if (!Number.isInteger(roomId) || roomId <= 0) return
+
+        const nextExpandedRows = { ...this.expandedRoomRows }
+        delete nextExpandedRows[String(roomId)]
+        this.expandedRoomRows = nextExpandedRows
+    }
+
+    trackByConferenceId(index: number, conference: Conference): number {
+        const conferenceId = Number(conference?.id)
+        return Number.isInteger(conferenceId) && conferenceId > 0 ? conferenceId : index
+    }
+
+    trackBySkeletonChipIndex(index: number): number {
+        return index
+    }
+
     private setRoomTypes(): void {
         this.roomTypes = getRoomTypeOptions(this.translate)
+        this.roomTypeById = new Map(
+            this.roomTypes.map((roomType) => [Number(roomType.id), roomType])
+        )
     }
 
     /**
@@ -525,18 +626,23 @@ export class RoomComponent implements OnInit {
         this.pageHintService.clear()
     }
 
-    private buildQueryParams(): string {
+    private buildQueryParams(options: { includeConferenceDetails?: boolean } = {}): string {
         this.filterValues['conferences'] = this.selectedConferences.map(conference => conference.id).join(',')
 
-        return Object.keys(this.filterValues)
+        const queryParams = Object.keys(this.filterValues)
             .map((key) => this.filterValues[key].length > 0 ? `${key}=${this.filterValues[key]}` : '')
             .filter((value) => value.length > 0)
-            .join('&')
+
+        if (options.includeConferenceDetails) {
+            queryParams.push('includeConferenceDetails=true')
+        }
+
+        return queryParams.join('&')
     }
 
     private async getRowsForExport(): Promise<Room[]> {
         if (this.selected.length > 0) {
-            return this.selected
+            return this.loadDetailedRoomsForExport(this.selected)
         }
 
         if (this.globalFilter !== '') {
@@ -544,7 +650,7 @@ export class RoomComponent implements OnInit {
                 this.roomService.getBySearch$(this.globalFilter, {
                     sortField: this.sortField,
                     sortOrder: this.sortOrder
-                })
+                }, 'includeConferenceDetails=true')
             )
 
             return response?.rows ?? []
@@ -555,11 +661,69 @@ export class RoomComponent implements OnInit {
                 0,
                 Math.max(this.totalRecords || 0, this.tableData.length || 0, 1),
                 { sortField: this.sortField, sortOrder: this.sortOrder },
-                this.buildQueryParams()
+                this.buildQueryParams({ includeConferenceDetails: true })
             )
         )
 
         return response?.rows ?? []
+    }
+
+    private getConferenceCount(room: Room): number {
+        const roomId = Number(room?.id)
+        if (Number.isInteger(roomId) && roomId > 0) {
+            const expandedConferenceCount = this.expandedRoomDetails[roomId]?.conferenceCount
+            if (Number.isFinite(expandedConferenceCount) && expandedConferenceCount >= 0) {
+                return expandedConferenceCount
+            }
+        }
+
+        const conferenceCount = Number(room?.conferenceCount)
+
+        if (Number.isFinite(conferenceCount) && conferenceCount >= 0) {
+            return conferenceCount
+        }
+
+        return Array.isArray(room?.conferences) ? room.conferences.length : 0
+    }
+
+    private replaceTableRoomConferenceCount(roomId: number, conferenceCount: number): void {
+        if (!Number.isInteger(roomId) || roomId <= 0) return
+
+        this.tableData = this.tableData.map((room) =>
+            Number(room?.id) === roomId
+                ? {
+                    ...room,
+                    conferenceCount: Number.isFinite(conferenceCount) && conferenceCount >= 0
+                        ? conferenceCount
+                        : this.getConferenceCount(room)
+                }
+                : room
+        )
+    }
+
+    private async loadDetailedRoomsForExport(rooms: Room[]): Promise<Room[]> {
+        return Promise.all(
+            (rooms ?? []).map(async (room) => {
+                const roomId = Number(room?.id)
+
+                if (!Number.isInteger(roomId) || roomId <= 0) {
+                    return room
+                }
+
+                try {
+                    const response = await firstValueFrom(this.roomService.getConferenceAssignments$(roomId))
+                    return {
+                        ...room,
+                        conferences: Array.isArray(response?.conferences) ? response.conferences : room.conferences,
+                        conferenceCount: Number.isFinite(Number(response?.conferenceCount))
+                            ? Number(response?.conferenceCount)
+                            : this.getConferenceCount(room),
+                    }
+                } catch {
+                    return room
+                }
+            })
+        )
     }
 
     private updatePageHint(): void {
@@ -570,6 +734,13 @@ export class RoomComponent implements OnInit {
             totalRecords: this.totalRecords,
             loading: this.loading,
         }))
+    }
+
+    private resetExpandedRoomState(): void {
+        this.expandedRoomRows = {}
+        this.expandedRoomDetails = {}
+        this.loadingExpandedRoomIds.clear()
+        this.failedExpandedRoomIds.clear()
     }
 
 }

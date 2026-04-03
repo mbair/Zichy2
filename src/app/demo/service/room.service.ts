@@ -59,13 +59,13 @@ export class RoomService {
      * @param globalFilter
      * @param sort
      */
-    public getBySearch$(globalFilter: string, sort: any): Observable<ApiResponse> {
-        const url = this.buildSearchUrl(globalFilter, sort)
+    public getBySearch$(globalFilter: string, sort: any, queryParams: string = ''): Observable<ApiResponse> {
+        const url = this.buildSearchUrl(globalFilter, sort, queryParams)
         return this.apiService.get<ApiResponse>(url)
     }
 
-    public getBySearch(globalFilter: string, sort: any): void {
-        this.getBySearch$(globalFilter, sort)
+    public getBySearch(globalFilter: string, sort: any, queryParams: string = ''): void {
+        this.getBySearch$(globalFilter, sort, queryParams)
             .subscribe({
                 next: (response: ApiResponse) => {
                     this.data$.next(response)
@@ -94,6 +94,14 @@ export class RoomService {
 
     public getBySearchQuery$(filters: string) {
         return this.apiService.get<ApiResponse>(`room/searchquery?${filters}`)
+    }
+
+    public getById$(id: number | string): Observable<Room> {
+        return this.apiService.get<Room>(`room/getbyid/${id}`)
+    }
+
+    public getConferenceAssignments$(id: number | string): Observable<{ id: number | string; conferenceCount: number; conferences: any[] }> {
+        return this.apiService.get<{ id: number | string; conferenceCount: number; conferences: any[] }>(`room/getbyid/${id}/conferences`)
     }
 
     /**
@@ -224,14 +232,18 @@ export class RoomService {
         return `${page}/${rowsPerPage}${query !== '' ? "?" + query : ''}`
     }
 
-    private buildSearchUrl(globalFilter: string, sort: any): string {
+    private buildSearchUrl(globalFilter: string, sort: any, queryParams: string = ''): string {
         let pageSort: string = ''
         if (sort !== '') {
             const sortOrder = sort.sortOrder === 1 ? 'ASC' : 'DESC'
             pageSort = sort.sortField != "" ? `?sort=${sort.sortField}&order=${sortOrder}` : ''
         }
 
-        return `room/search/${globalFilter}${pageSort}`
+        if (!queryParams) {
+            return `room/search/${globalFilter}${pageSort}`
+        }
+
+        return `room/search/${globalFilter}${pageSort ? `${pageSort}&${queryParams}` : `?${queryParams}`}`
     }
 
     private buildRoomQS(f: RoomFilter = {}): string {
